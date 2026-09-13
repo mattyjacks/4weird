@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { getPodLive, runPodLifecycle } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/blender/jobs/[id]/pod {action: stop|start|restart|terminate|delete} -

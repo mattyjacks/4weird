@@ -5,12 +5,8 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
-function idFrom(url: string, back: number): string {
-  const parts = new URL(url).pathname.split("/").filter(Boolean);
-  return parts[parts.length - back] ?? "";
-}
+type Ctx = { params: Promise<{ id: string }> };
 
 function isUuid(v: unknown): string {
   const s = String(v ?? "");
@@ -23,12 +19,12 @@ function isUuid(v: unknown): string {
  * watcher to certain members (empty targets = whole org). Requires
  * org.members.change_role.
  */
-export async function GET(req: Request) {
+export async function GET(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
-  const orgId = idFrom(req.url, 2);
+  const orgId = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   // Membership gate: org_roster raises 'forbidden' for non-members.
   const { error: memberError } = await supabase.rpc("org_roster", { p_org: orgId });
@@ -38,14 +34,14 @@ export async function GET(req: Request) {
   return ok({ scopes: scopes ?? [] });
 }
 
-export async function PUT(req: Request) {
+export async function PUT(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
-  const orgId = idFrom(req.url, 2);
+  const orgId = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   const throttle = rateLimit(`org-watch:${u.id}`, 30, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isRunUuid } from "@/lib/vcw-runs";
 
-export const dynamic = "force-dynamic";
 
 /**
  * DELETE /api/vcw/bugs/[id]; retract one of the caller's bug filings

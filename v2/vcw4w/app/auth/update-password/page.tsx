@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { UpdatePasswordForm } from "@/components/update-password-form";
+
+export const metadata: Metadata = {
+  title: "Update password",
+  description: "Set a new password for your 4weird Games account.",
+  alternates: { canonical: "/auth/update-password" },
+};
 
 // NOTE: no 'use cache' here — per-user session form streams in Suspense.
 export default function Page() {

@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { listGpuTypes, runpodConfigured } from "@/lib/runpod";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/agents/runpod-gpus; REAL GPU catalog for sizing picks
 // (GET /v2/catalog/gpus). Login required. Unconfigured key → honest

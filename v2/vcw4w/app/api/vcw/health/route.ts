@@ -1,6 +1,7 @@
-import { ok } from "@/lib/api-respond";
+import { fail, ok } from "@/lib/api-respond";
+import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /**
  * VibeCodeWorker service health. The upstream response body is never
@@ -12,7 +13,11 @@ export const dynamic = "force-dynamic";
  * field ("ok" | "unconfigured" | "degraded" | "unavailable"), so a missing
  * env var shows as honest UI text instead of a console-spamming 503.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  // Public probe (no session): throttle per IP so status polling cannot
+  // spray the upstream health check. Still force-dynamic + no-store.
+  const rl = rateLimit(`vcw:health:${clientIp(req)}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   const base = (process.env.VCW_SERVICE_URL ?? "").replace(/\/$/, "");
   let target: URL;
   try {

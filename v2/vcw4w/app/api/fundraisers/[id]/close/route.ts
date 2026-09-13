@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
 import { FUNDRAISERS_DISABLED_NOTICE, FUNDRAISERS_ENABLED } from "@/lib/support";
 
-export const dynamic = "force-dynamic";
 
 function isUuid(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

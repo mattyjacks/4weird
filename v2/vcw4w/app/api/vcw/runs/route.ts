@@ -7,7 +7,6 @@ import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit"
 import { gameSlugs } from "@/content/games";
 import { cleanGameSlug, isVcwVerdict } from "@/lib/vcw-runs";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/runs; list the caller's playtest runs (authenticated).

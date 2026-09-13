@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { FUNDRAISERS_DISABLED_NOTICE, FUNDRAISERS_ENABLED, isLaunchCategory, isUuid } from "@/lib/support";
 import { requireHuman } from "@/lib/botid";
 
-export const dynamic = "force-dynamic";
 
 function rpcStatus(msg: string): number {
   if (/login required/i.test(msg)) return 401;

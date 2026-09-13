@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { getJobStatus, runpodConfigured } from "@/lib/runpod";
 
-export const dynamic = "force-dynamic";
 
 function isEndpointId(v: unknown): v is string {
   return typeof v === "string" && /^[A-Za-z0-9_-]{4,64}$/.test(v);

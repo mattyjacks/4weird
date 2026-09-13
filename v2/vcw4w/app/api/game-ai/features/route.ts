@@ -3,7 +3,6 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { featuresForGame, gameRequiresAi, GAME_AI_CUT_NOTE } from "@/lib/game-ai";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/game-ai/features?game=<slug>; which AI features a game requires

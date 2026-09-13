@@ -14,7 +14,6 @@ import {
   type SwarmBrain,
 } from "@/lib/swarm-brain";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/swarm/brain; my internal brain (persona, memory, exec mode).

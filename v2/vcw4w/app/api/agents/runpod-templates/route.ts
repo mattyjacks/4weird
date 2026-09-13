@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { listGpuTypes, listTemplates, runpodConfigured } from "@/lib/runpod";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/agents/runpod-templates; REAL RunPod templates owned by the key
 // (GET /v2/templates) plus the GPU catalog (GET /v2/catalog/gpus) for sizing

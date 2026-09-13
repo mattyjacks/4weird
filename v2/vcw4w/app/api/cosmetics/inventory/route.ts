@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { cleanLoadoutIds } from "@/lib/cosmetics";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/cosmetics/inventory; owned item ids + equipped loadout.

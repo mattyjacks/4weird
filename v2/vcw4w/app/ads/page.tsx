@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { HOUSE_ADS } from "@/lib/ads";
 import { AdsPlayground } from "./ads-playground";
 
@@ -17,6 +19,41 @@ export const metadata: Metadata = {
 };
 
 const TICKER = ["🪙", "🎧", "👾", "🤖", "🚀", "🧠", "⚡", "🏆", "🎩", "🛍️"];
+
+// Fully static FAQ: no cookies/headers/searchParams ('days' profile).
+// AdsPlayground stays uncached: it is a 'use client' island with
+// Math.random() shuffling + useState, which must never be cached.
+async function CachedAdsFaq() {
+  'use cache';
+  cacheLife('days');
+  return (
+    <dl className="mt-6 grid gap-4 md:grid-cols-2">
+      {[
+        {
+          q: "Why does this page exist?",
+          a: "Because someone said “make a page called /ads/” and honestly? Respect. Also: transparency; every fallback creative, out in the open, no dark patterns.",
+        },
+        {
+          q: "Do signed-in players see ads?",
+          a: "Nope; signed-in players pay coins instead of watching ads. Guests get quota + skippable house ads. This page is the one place everyone can gawk at them on purpose.",
+        },
+        {
+          q: "Do these ads track me?",
+          a: "The house ads are just links and emoji; no trackers, no fingerprinting. The optional provider slot (when configured) loads in a sandboxed iframe and still falls back here on error, timeout, or adblock.",
+        },
+        {
+          q: "Can I advertise my weird thing here?",
+          a: "Not yet; the on-site slots above are placeholders. Until then, the honest paths are clans, fundraisers, and creator support. This page will be first to know.",
+        },
+      ].map((item) => (
+        <div key={item.q} className="rounded-3xl border border-white/10 bg-white/[.03] p-5">
+          <dt className="font-black text-yellow-200">{item.q}</dt>
+          <dd className="mt-2 text-sm leading-relaxed text-slate-300">{item.a}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export default function AdsPage() {
   return (
@@ -71,7 +108,9 @@ export default function AdsPage() {
           unskippable-proof. Hit shuffle. Hit skip-all. The ads will survive. They always survive.
         </p>
         <div className="mt-6">
-          <AdsPlayground />
+          <Suspense fallback={<p className="text-sm text-slate-400">Loading the ad wall…</p>}>
+            <AdsPlayground />
+          </Suspense>
         </div>
       </section>
 
@@ -113,31 +152,9 @@ export default function AdsPage() {
       {/* FAQ */}
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-5" aria-label="Ad questions">
         <h2 className="text-2xl font-black sm:text-3xl">Questions nobody asked</h2>
-        <dl className="mt-6 grid gap-4 md:grid-cols-2">
-          {[
-            {
-              q: "Why does this page exist?",
-              a: "Because someone said “make a page called /ads/” and honestly? Respect. Also: transparency; every fallback creative, out in the open, no dark patterns.",
-            },
-            {
-              q: "Do signed-in players see ads?",
-              a: "Nope; signed-in players pay coins instead of watching ads. Guests get quota + skippable house ads. This page is the one place everyone can gawk at them on purpose.",
-            },
-            {
-              q: "Do these ads track me?",
-              a: "The house ads are just links and emoji; no trackers, no fingerprinting. The optional provider slot (when configured) loads in a sandboxed iframe and still falls back here on error, timeout, or adblock.",
-            },
-            {
-              q: "Can I advertise my weird thing here?",
-              a: "Not yet; the on-site slots above are placeholders. Until then, the honest paths are clans, fundraisers, and creator support. This page will be first to know.",
-            },
-          ].map((item) => (
-            <div key={item.q} className="rounded-3xl border border-white/10 bg-white/[.03] p-5">
-              <dt className="font-black text-yellow-200">{item.q}</dt>
-              <dd className="mt-2 text-sm leading-relaxed text-slate-300">{item.a}</dd>
-            </div>
-          ))}
-        </dl>
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading questions…</p>}>
+          <CachedAdsFaq />
+        </Suspense>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/games"

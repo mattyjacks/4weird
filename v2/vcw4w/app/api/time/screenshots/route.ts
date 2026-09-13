@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 // Stored image URLs render in the work diary, so arbitrary external https
 // URLs would be a tracking/content-spoofing vector (same stance as clan

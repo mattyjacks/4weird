@@ -7,7 +7,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
 import { isClanBoard } from "@/lib/clan-forum";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/clans/post/[id]/board {board}; author or owner/mod only.
 // Plain authors may move between the human-writable boards (h/s/a);

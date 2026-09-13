@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { CounterTools } from "@/components/tools/counter-tools";
 
@@ -16,7 +17,15 @@ export default function Page() {
       title="Counter Tools"
       blurb="Paste quest text, lore, patch notes, or essays — counts, reading time, and speaking time update live as you type."
     >
-      <CounterTools />
+      <Suspense
+        fallback={
+          <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+            Loading counter tools…
+          </p>
+        }
+      >
+        <CounterTools />
+      </Suspense>
     </ToolShell>
   );
 }

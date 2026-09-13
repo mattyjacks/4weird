@@ -7,7 +7,6 @@ import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit"
 import { requireHuman } from "@/lib/botid";
 import { cleanSupportAmount, isUuid } from "@/lib/support";
 
-export const dynamic = "force-dynamic";
 
 function rpcStatus(msg: string): number {
   if (/login required/i.test(msg)) return 401;

@@ -18,7 +18,6 @@ import {
   vaultObjectKey,
 } from "@/lib/blob-vault";
 
-export const dynamic = "force-dynamic";
 
 /**
  * True when a PostgREST error means the trash migration

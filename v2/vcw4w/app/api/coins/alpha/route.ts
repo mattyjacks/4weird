@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 
-export const dynamic = "force-dynamic";
 
 /** One-time 300-coin launch gift, capped at 10,000 coins total. The database RPC is the authority. */
 export async function POST(req: Request) {

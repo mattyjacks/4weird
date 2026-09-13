@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { MarketingPage } from "@/components/site/marketing-page";
 
 export const metadata: Metadata = {
@@ -14,4 +16,10 @@ export const metadata: Metadata = {
       "Next.js platform, preserved game runtimes, Supabase identity, RunPod cloud, and automated parity checks.",
   },
 };
-export default function Page(){return <MarketingPage title="4weird Technology" intro="Next-generation experiments, autonomous game development, and playful tools for making the impossible feel buildable."><div className="grid gap-4 sm:grid-cols-2"><article className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><h2 className="text-xl font-bold">Next.js platform</h2><p className="mt-2">Routing, metadata, account boundaries, APIs, and the site shell live in the v2 App Router.</p></article><article className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><h2 className="text-xl font-bold">Original game runtimes</h2><p className="mt-2">Games remain static HTML, CSS, JavaScript, workers, audio, and assets inside isolated runtime frames.</p><Link href="/games" className="mt-3 inline-block text-cyan-300">Browse games →</Link></article><article className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><h2 className="text-xl font-bold">Service boundaries</h2><p className="mt-2">Supabase handles identity and persistence; Shopify handles purchases; VibeCodeWorker is an optional protected service.</p><Link href="/web-apps" className="mt-3 inline-block text-cyan-300">View worker status →</Link></article><article className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><h2 className="text-xl font-bold">Preservation first</h2><p className="mt-2">Automated parity checks prevent the migration from silently changing legacy experiences.</p><Link href="/vibecodeworker/docs" className="mt-3 inline-block text-cyan-300">Read documentation →</Link></article></div></MarketingPage>}
+// Fully static marketing grid: no cookies/headers/searchParams ('days').
+async function CachedTechGrid() {
+  'use cache';
+  cacheLife('days');
+  return <div className="grid gap-4 sm:grid-cols-2"><article className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><h2 className="text-xl font-bold">Next.js platform</h2><p className="mt-2">Routing, metadata, account boundaries, APIs, and the site shell live in the v2 App Router.</p></article><article className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><h2 className="text-xl font-bold">Original game runtimes</h2><p className="mt-2">Games remain static HTML, CSS, JavaScript, workers, audio, and assets inside isolated runtime frames.</p><Link href="/games" className="mt-3 inline-block text-cyan-300">Browse games →</Link></article><article className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><h2 className="text-xl font-bold">Service boundaries</h2><p className="mt-2">Supabase handles identity and persistence; Shopify handles purchases; VibeCodeWorker is an optional protected service.</p><Link href="/web-apps" className="mt-3 inline-block text-cyan-300">View worker status →</Link></article><article className="rounded-2xl border border-white/10 bg-white/[.04] p-5"><h2 className="text-xl font-bold">Preservation first</h2><p className="mt-2">Automated parity checks prevent the migration from silently changing legacy experiences.</p><Link href="/vibecodeworker/docs" className="mt-3 inline-block text-cyan-300">Read documentation →</Link></article></div>;
+}
+export default function Page(){return <MarketingPage title="4weird Technology" intro="Next-generation experiments, autonomous game development, and playful tools for making the impossible feel buildable."><Suspense fallback={<p className="text-sm text-muted-foreground">Loading…</p>}><CachedTechGrid /></Suspense></MarketingPage>}

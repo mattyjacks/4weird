@@ -12,7 +12,6 @@ import { requireHuman } from "@/lib/botid";
 import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
 import { clientIp, isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 const CONFIRM_PHRASE = "DELETE MY DATA";
 const REQUEST_TTL_MS = 30 * 60 * 1000;

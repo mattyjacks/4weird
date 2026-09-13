@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 
-export const dynamic = "force-dynamic";
 
 function mapErr(msg: string) {
   if (/login required/i.test(msg)) return fail("Login required.", 401);

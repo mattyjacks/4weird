@@ -6,7 +6,6 @@ import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { validatePodPolicyInput } from "@/lib/pod-idle";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/desktop/[id]/policy - change YOUR pod's idle lifecycle

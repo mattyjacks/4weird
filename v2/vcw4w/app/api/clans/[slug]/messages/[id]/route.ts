@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { meterLunaCheck } from "@/lib/clan-meter";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 
-export const dynamic = "force-dynamic";
 
 function isClanSlug(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

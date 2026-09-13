@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { MarketingPage } from "@/components/site/marketing-page";
 
 export const metadata: Metadata = {
@@ -10,9 +12,13 @@ export const metadata: Metadata = {
 const h2 = "text-2xl font-bold text-white";
 const a = "text-cyan-200 underline";
 
-export default function PrivacyPage() {
+// Fully static legal copy: no cookies/headers/searchParams, so it is cached
+// ('max' profile: legal pages rarely change) and streamed via <Suspense>.
+async function CachedPrivacyBody() {
+  'use cache';
+  cacheLife('max');
+  cacheTag('site-legal');
   return (
-      <MarketingPage title="Privacy Policy" intro="Effective September 13, 2026 · MattyJacks LLC, New Hampshire, USA">
       <section className="space-y-6">
         <p>
           This policy describes how MattyJacks LLC (“MattyJacks,” “we,” “us,” or “our”) handles information across the
@@ -230,6 +236,15 @@ export default function PrivacyPage() {
           email with proof of authority as described in Section 11.
         </p>
       </section>
+  );
+}
+
+export default function PrivacyPage() {
+  return (
+      <MarketingPage title="Privacy Policy" intro="Effective September 13, 2026 · MattyJacks LLC, New Hampshire, USA">
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading policy…</p>}>
+        <CachedPrivacyBody />
+      </Suspense>
     </MarketingPage>
   );
 }

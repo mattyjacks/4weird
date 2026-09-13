@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /** POST /api/swarm/sessions/[id]/end; retire a hired swarm. */
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {

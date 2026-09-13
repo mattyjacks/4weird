@@ -6,7 +6,6 @@ import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { cleanVaultPath, isVaultScope, sanitizeVaultFilter } from "@/lib/blob-vault";
 
-export const dynamic = "force-dynamic";
 
 const FOLDER_CAP = 500;
 

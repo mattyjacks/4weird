@@ -6,7 +6,6 @@ import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 
-export const dynamic = "force-dynamic";
 
 function refundStatus(message: string): number {
   const m = message.toLowerCase();

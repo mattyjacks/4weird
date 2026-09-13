@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { cleanByokLabel, isVcwByokKind } from "@/lib/vcw-byok";
 
-export const dynamic = "force-dynamic";
 
 const MAX_PROVIDERS = 20;
 

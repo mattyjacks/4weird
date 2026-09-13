@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { getGame } from "@/content/games";
 import { CompactDetails } from "@/components/ui/compact-details";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -104,6 +104,7 @@ const FAQS = [
 async function FeaturedGameCards() {
   'use cache';
   cacheLife('hours');
+  cacheTag('site-home');
   const games = FEATURED_SLUGS.map((slug) => getGame(slug)!).filter(Boolean);
   return (
     <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -130,6 +131,7 @@ async function FeaturedGameCards() {
 async function ClassicsGrid() {
   'use cache';
   cacheLife('days');
+  cacheTag('site-home');
   return (
     <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {CLASSICS.map((c) => (
@@ -153,6 +155,7 @@ async function ClassicsGrid() {
 async function HomeFaqList() {
   'use cache';
   cacheLife('days');
+  cacheTag('site-home');
   return (
     <div className="mt-6 grid gap-4 md:grid-cols-2">
       {FAQS.map((f, i) => (

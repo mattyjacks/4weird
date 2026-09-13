@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { clampLimit } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/ai/artifacts?limit=; own autosaved AI artifacts (newest first).
 // Auth: session OR bot key with `ai:read`.

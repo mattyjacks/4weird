@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { games } from "@/content/games";
 import { getGamePlaybook } from "@/lib/game-playbooks";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/games; playable catalog for agents (authenticated).

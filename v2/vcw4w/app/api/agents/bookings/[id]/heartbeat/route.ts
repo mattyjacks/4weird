@@ -6,7 +6,6 @@ import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { isHeartbeatSeconds, rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
 /** Report metered seconds on a booking (renter or listing owner). The
  *  heartbeat_usage RPC stores the gross split (includes 25% platform cut). */

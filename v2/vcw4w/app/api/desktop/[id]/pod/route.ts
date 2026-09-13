@@ -6,7 +6,6 @@ import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { getPodLive, runPodLifecycle } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/desktop/[id]/pod {action: stop|start|restart|terminate|delete} -

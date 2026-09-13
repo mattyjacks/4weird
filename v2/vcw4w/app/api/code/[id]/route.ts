@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/code/[id]; owner reads the full submission incl. verdict,
 // findings, game root, and (when safe) a short-lived download URL.

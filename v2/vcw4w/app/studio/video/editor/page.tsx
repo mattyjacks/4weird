@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { VideoNle } from "@/components/studio/video/video-nle";
 
 export const metadata: Metadata = {
@@ -28,7 +29,17 @@ export default function Page() {
           convergence build: zero shared files, same cloud-render endpoint.
         </p>
         <div className="mt-8">
-          <VideoNle />
+          {/* Per-user NLE session: never cached. Static copy above streams in
+              the shell; library/preview/timeline resolve at request time. */}
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading the NLE editor…
+              </p>
+            }
+          >
+            <VideoNle />
+          </Suspense>
         </div>
       </section>
     </div>

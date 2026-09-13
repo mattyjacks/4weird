@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { getPodLive } from "@/lib/compute";
 import { BLENDER_BUCKET } from "@/lib/blender-render";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/blender/jobs/[id]; one job: status, exact quote inputs, pod

@@ -7,7 +7,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { REFERRAL_INVITEE_COINS, REFERRAL_INVITER_COINS, isReferralCode } from "@/lib/economy";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Referrals: GET returns your code plus invite counts; POST { code } applies

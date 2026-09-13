@@ -25,7 +25,6 @@ import { BUDDY_SSE_HEADERS, isBuddyStreamRequested, isResponsesCompleted, isResp
 import { falConfigured } from "@/lib/fal";
 import { OPENROUTER_ENDPOINT, OPENROUTER_REFERER, OPENROUTER_TITLE, parseOpenRouterText } from "@/lib/openrouter-plays";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/buddy/chat; one Gaming Buddy turn reusing the VibeCodeWorker

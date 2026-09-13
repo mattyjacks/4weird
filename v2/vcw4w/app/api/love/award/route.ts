@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { LOVE_AWARD_TIERS, isLoveAwardTier } from "@/lib/love-letters";
 
-export const dynamic = "force-dynamic";
 
 function mapErr(msg: string) {
   if (/login required/i.test(msg)) return fail("Login required.", 401);

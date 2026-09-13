@@ -21,7 +21,6 @@ import {
 } from "@/lib/bot-auth";
 import { logBotKeyRequest } from "@/lib/bot-log";
 
-export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 4096;
 

@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { cleanLoadoutIds, validateLoadout } from "@/lib/cosmetics";
 import type { AvatarKind } from "@/components/buddy/avatars/types";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/cosmetics/equip; equip owned cosmetics (free, looks-only).

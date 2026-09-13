@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { InvoiceForm } from "@/components/invoice/invoice-form";
 
 export const metadata: Metadata = {
@@ -28,7 +29,16 @@ export default function NewInvoicePage() {
           .
         </p>
         <div className="mt-10">
-          <InvoiceForm />
+          {/* Per-user draft form (localStorage-backed): never cached. */}
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading the invoice form…
+              </p>
+            }
+          >
+            <InvoiceForm />
+          </Suspense>
         </div>
       </section>
     </main>

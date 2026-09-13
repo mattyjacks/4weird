@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ComputeForm } from "./compute-form";
 
 export const metadata: Metadata = {
@@ -9,5 +10,12 @@ export const metadata: Metadata = {
 };
 
 export default function ComputePage() {
-  return <ComputeForm />;
+  // Fully client-rendered form (offline-safe local queue, no server data):
+  // nothing static to cache, so the shell streams the fallback instantly.
+  // No 'use cache' here (and never inside the 'use client' form).
+  return (
+    <Suspense fallback={<p className="p-10 text-center text-sm text-slate-400">Loading compute form…</p>}>
+      <ComputeForm />
+    </Suspense>
+  );
 }

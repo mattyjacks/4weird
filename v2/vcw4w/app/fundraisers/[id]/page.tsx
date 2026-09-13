@@ -17,7 +17,6 @@ export async function generateMetadata({
   };
 }
 
-export const dynamic = "force-dynamic";
 
 export default async function FundraiserPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

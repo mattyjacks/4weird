@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { fetchRunpodBilling, runpodApiBase, runpodConfigured } from "@/lib/runpod";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/agents/runpod-status; is RUNPOD_API_KEY set, and does it work?
 // The live check is a read-only 24h pod-billing query: success proves the key

@@ -6,7 +6,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { CUSTOM_COINS_MAX, CUSTOM_COINS_MIN } from "@/lib/economy";
 
-export const dynamic = "force-dynamic";
 
 const variantPattern = /^\d+$/;
 

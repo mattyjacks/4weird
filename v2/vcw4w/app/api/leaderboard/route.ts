@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { gameSlugs, games } from "@/content/games";
 
-export const dynamic = "force-dynamic";
 
 const METRICS = ["kills", "actions", "active_seconds"] as const;
 

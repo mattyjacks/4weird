@@ -4,7 +4,6 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 function statusOf(message: string): number {
   const m = message.toLowerCase();

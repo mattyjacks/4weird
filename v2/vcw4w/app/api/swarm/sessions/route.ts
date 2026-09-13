@@ -23,7 +23,6 @@ import {
 } from "@/lib/swarm";
 import { isSwarmExecMode } from "@/lib/swarm-brain";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/swarm/sessions; list my swarm hires (newest first).

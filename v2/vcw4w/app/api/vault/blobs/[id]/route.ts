@@ -8,7 +8,6 @@ import { rpcStatus } from "@/lib/agent-market";
 import { isUuid } from "@/lib/validate";
 import { VAULT_CUT_NOTE, cleanVaultPath, quoteVaultStorageSplit } from "@/lib/blob-vault";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vault/blobs/[id]; owner/member reads one file + (when clean) a

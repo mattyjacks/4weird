@@ -1,4 +1,6 @@
 import { fail, ok } from "@/lib/api-respond";
+import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 import {
   DEBUG_PLAY_LOOP_WINDOW,
   DEBUG_PLAY_MAX_FRAME_CHARS,
@@ -10,7 +12,6 @@ import {
   type LoopGuardState,
 } from "@/lib/vcw-debug-play";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vcw/debug-play — DebugPlay frame analyzer (Remastery §3.3).
@@ -30,6 +31,11 @@ export const dynamic = "force-dynamic";
  * }
  */
 export async function POST(req: Request) {
+  // Stateless foundation (no session by steward QUEUE design, DS-REM-05):
+  // throttle per IP — each call can spend OpenRouter budget. Still
+  // force-dynamic + no-store.
+  const rl = rateLimit(`vcw:debug-play:${clientIp(req)}`, 20, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   let body: unknown;
   try {
     body = await req.json();

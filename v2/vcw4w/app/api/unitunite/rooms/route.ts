@@ -14,7 +14,6 @@ import {
   resolveBotKey,
 } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
 function statusOf(message: string): number {
   if (/login required/i.test(message)) return 401;

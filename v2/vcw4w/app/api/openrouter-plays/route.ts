@@ -17,7 +17,6 @@ import {
   parseOpenRouterText,
 } from "@/lib/openrouter-plays";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/openrouter-plays; run one of the 25 OpenRouter plays.

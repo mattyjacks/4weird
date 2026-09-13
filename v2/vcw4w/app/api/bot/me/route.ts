@@ -10,7 +10,6 @@ import {
 import { logBotKeyRequest } from "@/lib/bot-log";
 import { clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/bot/me; bot identity: username, human_id, key metadata, scopes.
 // No secrets are ever returned. Scope: identity:read.

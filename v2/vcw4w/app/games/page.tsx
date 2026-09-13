@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { games } from "@/content/games";
+import { cacheLife, cacheTag } from "next/cache";
 import { GameCatalog } from "@/components/games/game-catalog";
 import { canonical, itemListJsonLd, jsonLdScript } from "@/lib/seo";
+import { getCachedGames } from "@/lib/games-catalog";
 
 export const metadata: Metadata = {
   title: "Find Your Next Weird World - All 34 Games, Free to Try",
@@ -28,7 +29,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function GamesPage() {
+export default async function GamesPage() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("games");
+  // Cached catalog read (lib/games-catalog.ts): the GameCatalog client UI
+  // hydrates on top; its per-visitor filtering (Kids Mode, search) runs
+  // client-side and is unaffected by this server cache.
+  const games = await getCachedGames();
   return (
     <div className="bg-[#070912] text-white">
       <script

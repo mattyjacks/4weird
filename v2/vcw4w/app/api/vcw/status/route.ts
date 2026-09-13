@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { gameSlugs } from "@/content/games";
 import { FAL_FAST_OPS, FAL_OPS, VCW_FAL_HOWTO, falConfigured, falOpsForVcwPhase } from "@/lib/fal";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/status; agent control-plane status (authenticated).

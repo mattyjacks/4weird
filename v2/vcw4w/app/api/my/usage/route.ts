@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { GAME_AI_CUT_NOTE } from "@/lib/game-ai";
 import { runpodUsdToCoins } from "@/lib/runpod";
 
-export const dynamic = "force-dynamic";
 
 type Spend = { gross: number; cut: number; provider: number; turns: number };
 

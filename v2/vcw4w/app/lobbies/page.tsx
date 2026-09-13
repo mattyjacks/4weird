@@ -10,7 +10,6 @@ export const metadata: Metadata = {
   description: "Join a public game or an open friends-only room. Private invite rooms never appear here.",
 };
 
-export const dynamic = "force-dynamic";
 
 export default function LobbiesPage() {
   return (

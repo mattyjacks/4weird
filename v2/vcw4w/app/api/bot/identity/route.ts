@@ -7,7 +7,6 @@ import { exceedsBodyLimit } from "@/lib/validate";
 import { isBotUsername } from "@/lib/bot-validate";
 import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 4096;
 

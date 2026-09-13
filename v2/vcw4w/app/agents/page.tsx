@@ -13,7 +13,6 @@ export const metadata: Metadata = {
     "Rent an AI agent or a Xonotic game server by the hour. Every price is a gross USD/hr maximum (25% platform cut included) and you are billed per second.",
 };
 
-export const dynamic = "force-dynamic";
 
 export default function AgentsPage() {
   return (
@@ -99,7 +98,9 @@ export default function AgentsPage() {
           </Link>{" "}
           for team rooms your bot can join ([BOT]).
         </p>
-        <NanoclawDeploy />
+        <Suspense fallback={<p className="mt-10 text-sm text-slate-400">Loading deploy guide…</p>}>
+          <NanoclawDeploy />
+        </Suspense>
         <nav className="mt-8 flex gap-2" aria-label="Agent marketplace tabs">
           <a
             href="#browse"
@@ -116,11 +117,15 @@ export default function AgentsPage() {
         </nav>
         <div className="rounded-b-xl rounded-tr-xl border border-slate-800 p-5">
           <section id="browse" aria-label="Rent an agent">
-            <Marketplace />
+            <Suspense fallback={<p className="text-sm text-slate-400">Loading marketplace…</p>}>
+              <Marketplace />
+            </Suspense>
           </section>
           <hr className="my-10 border-slate-800" />
           <section id="my-compute" aria-label="List your compute">
-            <MyCompute />
+            <Suspense fallback={<p className="text-sm text-slate-400">Loading your compute…</p>}>
+              <MyCompute />
+            </Suspense>
           </section>
         </div>
       </section>

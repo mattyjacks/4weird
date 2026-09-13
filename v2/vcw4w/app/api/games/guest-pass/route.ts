@@ -8,7 +8,6 @@ import { clientIp, isSlug } from "@/lib/validate";
 import { GUEST_FREE_LOADS_PER_DAY, GUEST_MAX_LOADS_PER_DAY } from "@/lib/game-rent";
 import { pickHouseAd } from "@/lib/ads";
 
-export const dynamic = "force-dynamic";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

@@ -10,7 +10,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { KID_SESSION_DAYS, parseKidHandle } from "@/lib/family";
 import { dummyKidPasswordVerify, getKidSession, kidSessionCookie, newKidToken, verifyKidPassword } from "@/lib/kid-session";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/family/kid-login {handle: "name#1234", password}; child sign-in

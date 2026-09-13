@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { getPodLive, stopPodAction } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/blender/jobs/[id]/stop; end GPU billing now. Works for

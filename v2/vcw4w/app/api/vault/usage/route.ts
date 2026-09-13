@@ -3,7 +3,6 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { VAULT_COINS_PER_GB_MO, VAULT_FREE_BYTES_PERSONAL, VAULT_MIN_COINS } from "@/lib/blob-vault";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vault/usage; storage bytes + file counts per scope the caller can

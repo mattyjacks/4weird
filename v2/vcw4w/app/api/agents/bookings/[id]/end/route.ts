@@ -6,7 +6,6 @@ import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
 /** End a booking (renter or listing owner). Settlement pays the provider share
  *  and refunds the unused escrow to the renter ledger in one guarded

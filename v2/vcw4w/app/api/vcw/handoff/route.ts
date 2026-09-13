@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { buildRunHandoff, isRunUuid } from "@/lib/vcw-runs";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vcw/handoff; portable AI handoff brief for a run

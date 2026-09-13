@@ -8,7 +8,6 @@ import { meterLunaCheck, meterTransfer } from "@/lib/clan-meter";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 import type { NextResponse } from "next/server";
 
-export const dynamic = "force-dynamic";
 
 function isClanSlug(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

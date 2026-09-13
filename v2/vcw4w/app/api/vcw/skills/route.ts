@@ -10,7 +10,6 @@ import {
   type EchoSkillSource,
 } from "@/lib/vcw-skills";
 
-export const dynamic = "force-dynamic";
 
 // Registry is seeded once per worker from the trusted echo builtin via the
 // fail-open loader, so a bad seed can never 500 the route. Gateway auth is

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { games, getGame } from "@/content/games";
+import { cacheLife, cacheTag } from "next/cache";
+import { games } from "@/content/games";
+import { getCachedGameDetail } from "@/lib/games-catalog";
 import { hasContentModes, CONTENT_MODE_DESCRIPTIONS } from "@/lib/content-modes";
-import { getGameManifest, gameGuidePath } from "@/content/game-manifests";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { RatingBadge } from "@/components/games/rating-badge";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
@@ -18,11 +20,14 @@ export function generateStaticParams() {
 // Closed catalog: 34 games, no dynamic fallback. Unknown slugs 404 at the
 // routing layer (correct status for crawlers) instead of rendering notFound
 // content with a 200.
-export const dynamicParams = false;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const g = getGame((await params).slug);
-  if (!g) return {};
+  // No 'use cache' here: generateMetadata reuses the cached catalog helper,
+  // which carries the cacheLife/cacheTag lifetime.
+  const { slug } = await params;
+  const detail = await getCachedGameDetail(slug);
+  if (!detail) return {};
+  const g = detail.game;
   const description = `${g.description} Free to try in your browser with guides, cloud saves, and coin-metered play that pays the makers.`;
   return {
     title: `${g.title} - Play Free in Your Browser`,
@@ -44,10 +49,25 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function GamePage({ params }: { params: Promise<{ slug: string }> }) {
-  const g = getGame((await params).slug);
-  if (!g) notFound();
-  const m = getGameManifest(g.slug);
-  const guide = gameGuidePath(g.slug);
+  // Runtime param read + 404 stay OUTSIDE the cached scope: params are
+  // request data (part of the cache key, never read inside it), and
+  // notFound() control flow must not be cached.
+  const { slug } = await params;
+  const detail = await getCachedGameDetail(slug);
+  if (!detail) notFound();
+  return <CachedGameDetail slug={slug} />;
+}
+
+async function CachedGameDetail({ slug }: { slug: string }) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("games");
+  cacheTag(`game-${slug}`);
+  const detail = await getCachedGameDetail(slug);
+  if (!detail) return null;
+  const g = detail.game;
+  const m = detail.manifest;
+  const guide = detail.guide;
   const rating = g.rating ?? "kids";
   return (
     <div className="bg-slate-950 text-white">
@@ -138,10 +158,14 @@ export default async function GamePage({ params }: { params: Promise<{ slug: str
         <p className="mt-10 text-slate-400 sm:mt-12">
           A hand-crafted HTML5 experience. The original game runtime is preserved intact.
         </p>
-        <PlayRateBadge slug={g.slug} />
+        <Suspense fallback={<p className="mt-4 text-sm text-slate-400">Loading live rates…</p>}>
+          <PlayRateBadge slug={g.slug} />
+        </Suspense>
         <GameAiBadge slug={g.slug} />
         <GamePlaybookPanel slug={g.slug} />
-        <TipGame slug={g.slug} title={g.title} />
+        <Suspense fallback={<p className="mt-4 text-sm text-slate-400">Loading tipping…</p>}>
+          <TipGame slug={g.slug} title={g.title} />
+        </Suspense>
         <section className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:mt-10 sm:p-6">
           <h2 className="text-lg font-bold sm:text-xl">Runtime manifest</h2>
           <p className="mt-3 break-words text-sm text-slate-400">

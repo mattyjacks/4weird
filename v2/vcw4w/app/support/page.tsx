@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { SupportClient } from "@/components/support/support-client";
 
 export const metadata: Metadata = {
@@ -9,6 +11,23 @@ export const metadata: Metadata = {
     "Voluntary coin support for verified creators and clans: monthly tiers and one-time tips. Not a charity, not tax-deductible, no cash-out.",
 };
 
+// Fully static header copy ('days'). SupportClient is NEVER cached: it
+// fetches per-user tiers/subscriptions/verification over /api/*.
+async function CachedSupportHeader() {
+  'use cache';
+  cacheLife('days');
+  return (
+    <header className="space-y-3">
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">Support</p>
+      <h1 className="text-4xl font-black sm:text-5xl">Back the weird you love.</h1>
+      <p className="max-w-2xl text-slate-300">
+        Subscribe to a verified creator or a clan for monthly coins, or send a one-time tip - coffee money, not a
+        contract. Every amount already includes the 25% platform cut. Coins have no cash value and can never be cashed out directly. Individual recipients earn time-locked Crowns (Terms 8A.1: 30-day unlock, 1-year expiry, 1:1 convert to Coins, or fiat payout via our licensed provider (30-day unlock + 5-10 business days processing, KYC required, payout countries not yet announced). Timelines are set by fraud, tax, and payments law and cannot be bypassed). Holding Crowns never guarantees a fiat payout: restricted countries, failed KYC, sanctions, or law/provider limits can leave convert-to-Coins as your only exit, with no claim against us (Terms 8A.1).
+      </p>
+    </header>
+  );
+}
+
 export default function SupportPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -16,15 +35,12 @@ export default function SupportPage() {
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home
         </Link>
-        <header className="space-y-3">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">Support</p>
-          <h1 className="text-4xl font-black sm:text-5xl">Back the weird you love.</h1>
-          <p className="max-w-2xl text-slate-300">
-            Subscribe to a verified creator or a clan for monthly coins, or send a one-time tip - coffee money, not a
-            contract. Every amount already includes the 25% platform cut. Coins have no cash value and can never be cashed out directly. Individual recipients earn time-locked Crowns (Terms 8A.1: 30-day unlock, 1-year expiry, 1:1 convert to Coins, or fiat payout via our licensed provider (30-day unlock + 5-10 business days processing, KYC required, payout countries not yet announced). Timelines are set by fraud, tax, and payments law and cannot be bypassed). Holding Crowns never guarantees a fiat payout: restricted countries, failed KYC, sanctions, or law/provider limits can leave convert-to-Coins as your only exit, with no claim against us (Terms 8A.1).
-          </p>
-        </header>
-        <SupportClient />
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading…</p>}>
+          <CachedSupportHeader />
+        </Suspense>
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading support options…</p>}>
+          <SupportClient />
+        </Suspense>
       </section>
     </main>
   );

@@ -3,7 +3,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { DO_IDLE_POLICY, longTermIdleAdvice } from "@/lib/pod-idle";
 import { doConfigured, listDroplets } from "@/lib/digitalocean";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 // GET|POST /api/cron/do-sweep - warning-ONLY backstop for long-term

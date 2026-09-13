@@ -9,12 +9,8 @@ import { hashKidPassword } from "@/lib/kid-session";
 import { rpcStatus } from "@/lib/agent-market";
 import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
-function idFrom(url: string): string {
-  const parts = new URL(url).pathname.split("/").filter(Boolean);
-  return parts[parts.length - 1] ?? "";
-}
+type Ctx = { params: Promise<{ id: string }> };
 
 function isUuidLike(v: string): boolean {
   return /^[0-9a-f-]{36}$/i.test(v);
@@ -41,7 +37,7 @@ function toTime(v: unknown): string | null | undefined {
  * hard_stop), age_band, status (active|suspended), or password (rotates +
  * kills live sessions). Only supplied fields change.
  */
-export async function PATCH(req: Request) {
+export async function PATCH(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
@@ -51,7 +47,7 @@ export async function PATCH(req: Request) {
   // Controls, age band, password rotation, and suspension are parent-admin
   // acts: play/test sessions never perform them.
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);
-  const kidId = idFrom(req.url);
+  const kidId = (await params).id;
   if (!isUuidLike(kidId)) return fail("Invalid child account.", 400);
   const throttle = rateLimit(`family-patch:${u.id}`, 30);
   if (!throttle.allowed) {
@@ -140,7 +136,7 @@ export async function PATCH(req: Request) {
  * DELETE /api/family/kids/[id]; close a child account. Remaining wallet
  * coins refund to the parent; sessions/controls/history cascade away.
  */
-export async function DELETE(req: Request) {
+export async function DELETE(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
@@ -149,7 +145,7 @@ export async function DELETE(req: Request) {
   if (!u) return fail("Login required.", 401);
   // Closing refunds the wallet to the parent: play/test sessions never do it.
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);
-  const kidId = idFrom(req.url);
+  const kidId = (await params).id;
   if (!isUuidLike(kidId)) return fail("Invalid child account.", 400);
   const throttle = rateLimit(`family-delete:${u.id}`, 10);
   if (!throttle.allowed) {

@@ -16,7 +16,6 @@ import {
   planAutosave,
 } from "@/lib/ai-autosave";
 
-export const dynamic = "force-dynamic";
 const MAX_INLINE_BYTES = 256 * 1024;
 
 /**

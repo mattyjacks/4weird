@@ -7,7 +7,6 @@ import { requireHuman } from "@/lib/botid";
 import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { cleanSupportAmount, FUNDRAISERS_DISABLED_NOTICE, FUNDRAISERS_ENABLED } from "@/lib/support";
 
-export const dynamic = "force-dynamic";
 
 function isUuid(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

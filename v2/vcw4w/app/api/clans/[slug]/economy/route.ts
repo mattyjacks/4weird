@@ -6,7 +6,6 @@ import { clientIp } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { isClanType } from "@/lib/clan-types";
 
-export const dynamic = "force-dynamic";
 
 function isClanSlug(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

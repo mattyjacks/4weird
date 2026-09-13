@@ -10,7 +10,6 @@ import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 import { meterLunaCheck } from "@/lib/clan-meter";
 import { chargeClanFeeAs, FeeError } from "@/lib/clan-fees";
 
-export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 16384;
 

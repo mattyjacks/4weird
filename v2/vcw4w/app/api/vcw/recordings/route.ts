@@ -1,4 +1,6 @@
 import { fail, ok } from "@/lib/api-respond";
+import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 import {
   DEMO_RECORDER_MAX_FRAME_CHARS,
   DEMO_RECORDER_MAX_INGEST_EVENTS,
@@ -10,7 +12,6 @@ import {
   sampleFrame,
 } from "@/lib/vcw-demo-recorder";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vcw/recordings — DemoRecorder session ingest (Remastery Feature 05).
@@ -115,7 +116,9 @@ export async function POST(req: Request) {
  * Ephemeral foundation (per-instance window, metadata only); durable
  * persistence + per-user scoping ride the same QUEUE item as POST auth.
  */
-export async function GET() {
+export async function GET(req: Request) {
+  const rl = rateLimit(`vcw:recordings:list:${clientIp(req)}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   return ok({
     sessions: [...LEDGER].reverse(),
     ephemeral: true,

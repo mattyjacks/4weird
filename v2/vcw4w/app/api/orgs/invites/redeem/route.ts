@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
 function statusOf(message: string): number {
   if (/forbidden/i.test(message)) return 403;

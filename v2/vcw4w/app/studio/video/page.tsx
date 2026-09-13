@@ -1,4 +1,6 @@
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { VideoStudio } from "@/components/studio/video-studio/video-studio";
 
 export const metadata: Metadata = {
@@ -8,7 +10,11 @@ export const metadata: Metadata = {
     "Browser video-timeline studio: multi-track timeline with playhead drag, razor split, snap and zoom, live preview viewport, and RunPod render export.",
 };
 
-export default function Page() {
+export default async function Page() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("studio");
+
   return (
     <div className="bg-slate-950 text-white">
       <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">
@@ -25,7 +31,15 @@ export default function Page() {
           then package it for a RunPod render worker.
         </p>
         <div className="mt-8">
-          <VideoStudio />
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading the video studio…
+              </p>
+            }
+          >
+            <VideoStudio />
+          </Suspense>
         </div>
       </section>
     </div>

@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { getPodLive } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/autoplay/mine; YOUR autoplay remotes with live pod status.

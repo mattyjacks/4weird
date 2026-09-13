@@ -1,20 +1,5 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { hasEnvVars } from "@/lib/utils";
-import { BotSetupClient } from "./bot-setup";
-import { BotKeyGuide } from "@/components/bot/bot-key-guide";
-import { AgentBotNav } from "@/components/agents/agent-bot-nav";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/bot/setup" },
-  title: "Bot setup - 4weird",
-  description:
-    "Claim your bot identity, issue API keys, and connect game-dev AI and automation to the 4weird clan platform.",
-};
-
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { hasEnvVars } from "@/lib/utils";
@@ -29,7 +14,6 @@ export const metadata: Metadata = {
     "Claim your bot identity, issue API keys, and connect game-dev AI and automation to the 4weird clan platform.",
 };
 
-export const dynamic = "force-dynamic";
 
 // NOTE: no 'use cache' here — per-user bot identity + API keys stream in
 // Suspense so credentials are never cached.

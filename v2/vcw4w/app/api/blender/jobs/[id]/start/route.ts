@@ -18,7 +18,6 @@ import {
   quoteBlenderCap,
 } from "@/lib/blender-render";
 
-export const dynamic = "force-dynamic";
 
 const siteBase = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://4weird.com").replace(/\/+$/, "");
 

@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { cleanPartyRef, isPartyKind } from "@/lib/parties";
 
-export const dynamic = "force-dynamic";
 
 function statusOf(message: string): number {
   const m = message.toLowerCase();

@@ -14,7 +14,6 @@ import {
   resolveRegionFromHeaders,
 } from "@/lib/monetization-policy";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/dev-charges; a game takes coins for a declared, consented action.

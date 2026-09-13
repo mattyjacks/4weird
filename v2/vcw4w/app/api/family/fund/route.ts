@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/family/fund {kid_id, coins}; parent moves their own Vibe Coins

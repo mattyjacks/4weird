@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { TimerProClient } from "./pro-client";
 
 export const metadata: Metadata = {
@@ -9,8 +10,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/timer/pro" },
 };
 
-export const dynamic = "force-dynamic";
 
+// NOTE: no 'use cache' here — per-user clock entries stream in Suspense;
+// static shell (title/copy) prerenders.
 export default function TimerProPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -29,7 +31,9 @@ export default function TimerProPage() {
             export that feeds invoice memoranda at 100 🪙 = $1.
           </p>
         </div>
-        <TimerProClient />
+        <Suspense fallback={<p className="rounded-2xl border border-white/10 bg-white/[.04] p-8 text-center text-sm text-slate-400">Loading pro tracker…</p>}>
+          <TimerProClient />
+        </Suspense>
       </section>
     </main>
   );

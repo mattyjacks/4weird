@@ -1,4 +1,6 @@
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { FalStudio } from "@/components/fal/fal-studio";
 import { FAL_CUT_NOTE } from "@/lib/fal";
 
@@ -8,7 +10,11 @@ export const metadata: Metadata = {
   description: `Concept art, sprites, 3D, trailers, voices, music + coding promo kits on fal.ai. ${FAL_CUT_NOTE}`,
 };
 
-export default function FalPage() {
+export default async function FalPage() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("studio");
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-6xl px-5 py-16">
@@ -21,7 +27,15 @@ export default function FalPage() {
           op + game, and VibeCodeWorker runs can file fal art straight into their evidence trail.
         </p>
         <div className="mt-10">
-          <FalStudio />
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading fal.ai Studio…
+              </p>
+            }
+          >
+            <FalStudio />
+          </Suspense>
         </div>
       </section>
     </main>

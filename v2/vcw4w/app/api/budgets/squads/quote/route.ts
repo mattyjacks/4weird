@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { assertPricingInvariants, cleanSquadCap, quoteSquadBudget } from "@/lib/remastery-pricing";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/budgets/squads/quote

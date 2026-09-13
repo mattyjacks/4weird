@@ -8,7 +8,6 @@ import { isHours, rpcStatus } from "@/lib/agent-market";
 import { RUNPOD_AUTO_ENDPOINT } from "@/lib/agent-market";
 import { runpodProvider } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 
 type ListingRow = {
   id: string;

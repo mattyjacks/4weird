@@ -1,5 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { BlenderStudio } from "@/components/blender/blender-studio";
 import { BLENDER_DEMO_FILES_URL, BLENDER_MAX_FRAMES, BLENDER_MAX_SCENE_BYTES } from "@/lib/blender-render";
 
@@ -10,7 +12,11 @@ export const metadata: Metadata = {
     "Upload a Blender .blend scene and get an mp4 back, rendered on a pinned RTX 4090 RunPod worker. No Blender install needed.",
 };
 
-export default function BlenderPage() {
+export default async function BlenderPage() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("studio");
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-4xl px-5 py-14">
@@ -58,7 +64,15 @@ export default function BlenderPage() {
         </div>
 
         <div className="mt-8">
-          <BlenderStudio />
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading the render console…
+              </p>
+            }
+          >
+            <BlenderStudio />
+          </Suspense>
         </div>
 
         <p className="mt-6 text-sm text-slate-400">

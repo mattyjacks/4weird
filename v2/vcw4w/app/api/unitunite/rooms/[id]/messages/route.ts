@@ -17,14 +17,8 @@ import {
   resolveBotKey,
 } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
-function idFrom(url: string): string {
-  const parts = new URL(url).pathname.split("/").filter(Boolean);
-  // /api/unitunite/rooms/[id]/messages → the segment before "messages".
-  const i = parts.lastIndexOf("messages");
-  return parts[i - 1] ?? "";
-}
+type Ctx = { params: Promise<{ id: string }> };
 
 function statusOf(message: string): number {
   if (/login required/i.test(message)) return 401;
@@ -46,9 +40,9 @@ function clampLimit(v: unknown): number {
  * with a [BOT] label and must NOT attempt decrypt on encoding='plain'.
  * Session auth, or `bot4weird_` key + unitunite:read.
  */
-export async function GET(req: Request) {
+export async function GET(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
-  const roomId = idFrom(req.url);
+  const roomId = (await params).id;
   if (!isUuid(roomId)) return fail("Invalid room.", 400);
   const q = new URL(req.url).searchParams;
   const limit = clampLimit(q.get("limit"));
@@ -95,11 +89,11 @@ export async function GET(req: Request) {
  * `bot4weird_` keys need unitunite:send and are ALWAYS labeled [BOT]
  * (text → plain relay, or ciphertext passthrough for key-holding bots).
  */
-export async function POST(req: Request) {
+export async function POST(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   // Session browsers prove same-origin; agent relays prove a VALID bot key.
   if (!(await sameOriginOrBotKey(req))) return fail("Invalid request origin.", 403);
-  const roomId = idFrom(req.url);
+  const roomId = (await params).id;
   if (!isUuid(roomId)) return fail("Invalid room.", 400);
   let body: unknown;
   try {
@@ -170,13 +164,13 @@ export async function POST(req: Request) {
  * DELETE /api/unitunite/rooms/[id]/messages {message_id}; redact a message
  * (rooms.moderate, session users only; bots cannot redact).
  */
-export async function DELETE(req: Request) {
+export async function DELETE(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   // Redaction is session-only (bots are rejected below), so the plain
   // same-origin proof applies; no bot-key exemption on this handler.
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   if (extractBotKey(req)) return fail("Bots cannot redact messages.", 403);
-  const roomId = idFrom(req.url);
+  const roomId = (await params).id;
   if (!isUuid(roomId)) return fail("Invalid room.", 400);
   let body: unknown;
   try {

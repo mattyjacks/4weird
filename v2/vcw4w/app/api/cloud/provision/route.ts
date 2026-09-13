@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { serviceByKey, workspaceQuote } from "@/lib/cloud-catalog";
 import { WORKSPACE_COMPUTE_CUT_PCT } from "@/lib/economy";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/cloud/provision; start a pay-as-you-go UnitUnite workspace
 // service from the org wallet (RPC checks cloud.provision [+ gpu]).

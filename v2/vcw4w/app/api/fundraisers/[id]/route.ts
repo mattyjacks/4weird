@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 
-export const dynamic = "force-dynamic";
 
 function isUuid(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

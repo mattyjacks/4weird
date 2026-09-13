@@ -1,6 +1,5 @@
 import Link from "next/link"; import { redirect } from "next/navigation"; import type { Metadata } from "next"; import { Suspense } from "react"; import { createClient } from "@/lib/supabase/server"; import { hasEnvVars } from "@/lib/utils"; import { AccountDashboard } from "@/components/account/account-dashboard"; import { AccountHub } from "@/components/account/account-hub"; import { AlphaTesterClaim } from "@/components/account/alpha-tester-claim"; import { CheckoutControl } from "@/components/account/checkout-control"; import { RefundPanel } from "@/components/account/refund-panel"; import { DailyClaim } from "@/components/account/daily-claim"; import { LoveWalletPanel } from "@/components/love/love-wallet"; import { ReferralPanel } from "@/components/account/referral-panel"; import { LogoutButton } from "@/components/logout-button"; import { BudgetControls } from "@/components/budget/budget-controls";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
-export const dynamic="force-dynamic";
 // NOTE: no 'use cache' anywhere here — per-user session + Supabase reads.
 // Static shell (title/copy/skeleton) prerenders; ALL session-bound content
 // streams inside <Suspense> so personal data is never cached.

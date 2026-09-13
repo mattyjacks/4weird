@@ -10,7 +10,6 @@ import { MONITORING_NOTICE } from "@/lib/it-command";
 import { rateLimit } from "@/lib/rate-limit";
 import { bodyByteSize, clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/it/policies — public policy templates + default blocked list, no auth.
 // POST /api/it/policies { check } — public allow-check, no auth.

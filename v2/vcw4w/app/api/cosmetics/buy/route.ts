@@ -13,7 +13,6 @@ import {
   resolveRegionFromHeaders,
 } from "@/lib/monetization-policy";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/cosmetics/buy; buy one own-once cosmetic (10 coins).

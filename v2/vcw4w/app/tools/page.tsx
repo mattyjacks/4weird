@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getToolsCatalog } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/tools" },
@@ -9,33 +10,15 @@ export const metadata: Metadata = {
     "Free forever browser tools from 4weird: SEO analyzer with SERP preview, image optimizer and compressor, game writing helpers, and word counters. No signup, runs on-device.",
 };
 
-const TOOLS = [
-  {
-    href: "/tools/seo",
-    name: "🔍 SEO Analyzer",
-    blurb: "SERP simulator, social card preview, and heuristic checklist for any page.",
-  },
-  {
-    href: "/tools/image",
-    name: "🎨 Image Optimizer",
-    blurb: "Resize, compress to WebP/JPEG/PNG, and strip EXIF — 100% in your browser.",
-  },
-  {
-    href: "/tools/writing",
-    name: "✍️ Writing Tools",
-    blurb: "Game title generator and marketing pitch copywriter for your next launch.",
-  },
-  {
-    href: "/tools/counter",
-    name: "⏱️ Counter Tools",
-    blurb: "Words, characters, sentences, paragraphs, reading and speaking time — live.",
-  },
-];
-
 export default async function Page() {
   "use cache";
   cacheLife("hours");
   cacheTag("tools");
+
+  // Single source of truth lives in lib/site-content.ts (itself a cached
+  // fetcher under the same "tools" tag, so hub page + ToolShell + catalog
+  // invalidate together).
+  const tools = await getToolsCatalog();
 
   return (
     <div className="bg-slate-950 text-white">
@@ -52,7 +35,7 @@ export default async function Page() {
           a feature is missing.
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {TOOLS.map((tool) => (
+          {tools.map((tool) => (
             <Link
               key={tool.href}
               href={tool.href}

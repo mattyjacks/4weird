@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { MONITORING_NOTICE } from "@/lib/it-command";
 
@@ -12,7 +13,12 @@ const SAFE_ACTIONS = [
   { href: "/timer", title: "Timer", body: "Track work time where IT can see and back it up." },
 ];
 
-export default function WorkPage() {
+// Fully static (module-scope SAFE_ACTIONS + MONITORING_NOTICE const): cached
+// with an hours lifetime. No cacheTag: no mutation path invalidates this copy.
+export default async function WorkPage() {
+  "use cache";
+  cacheLife("hours");
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <p className="text-sm font-medium uppercase tracking-wide text-neutral-500">

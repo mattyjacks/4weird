@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { describeFalStep, isRunUuid, isVcwRunKind, parseFalToolCall } from "@/lib/vcw-runs";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vcw/runs/[id]/actions; append one observe->reason->act

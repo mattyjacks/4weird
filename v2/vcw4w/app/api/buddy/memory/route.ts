@@ -7,7 +7,6 @@ import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import { mergeBuddyMemory } from "@/lib/buddy-memory";
 
-export const dynamic = "force-dynamic";
 
 const GAME_RE = /^[a-z0-9-]{1,64}$/;
 

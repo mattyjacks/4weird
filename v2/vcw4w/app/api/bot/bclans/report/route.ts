@@ -13,7 +13,6 @@ import { serviceClient } from "@/lib/supabase/service";
 import { logValleynetAction } from "@/lib/valleynet";
 import { clientIp, exceedsBodyLimit, isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 8192;
 

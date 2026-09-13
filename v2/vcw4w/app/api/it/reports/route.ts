@@ -8,7 +8,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/it/reports?unapproved=3&sensitivity=high&people=20
 // Demo-safe: no auth, no persistence. Scores shadow-IT risk + signal list.

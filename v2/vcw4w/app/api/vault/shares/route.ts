@@ -6,7 +6,6 @@ import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vault/shares { file_id, expires_hours? }; scoped share link.

@@ -1,5 +1,7 @@
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { MarketingPage } from "@/components/site/marketing-page";
 import { ServiceStatus } from "@/components/vcw/service-status";
 
@@ -9,4 +11,25 @@ export const metadata: Metadata = {
     "Small useful web apps on the 4weird coin economy, plus VibeCodeWorker playtesting that inspects, plays, and improves the things you build. Every app metered, every coin funding the arcade.",
   alternates: { canonical: "/web-apps" },
 };
-export default function Page(){return <MarketingPage title="Play and debug web apps" intro="VibeCodeWorker helps inspect, playtest, and improve the things you build."><ServiceStatus/><div className="flex flex-wrap gap-4"><Link href="/vibecodeworker/hub" className="rounded-full bg-cyan-300 px-5 py-2 font-bold text-slate-950">Open playtest hub</Link><Link href="/vibecodeworker/docs" className="rounded-full border border-white/20 px-5 py-2">Read documentation</Link></div></MarketingPage>}
+export default async function Page() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("studio");
+
+  return (
+    <MarketingPage title="Play and debug web apps" intro="VibeCodeWorker helps inspect, playtest, and improve the things you build.">
+      {/* Per-user liveness probe (fetches /api/vcw/health client-side):
+          streams outside the cached shell. */}
+      <Suspense
+        fallback={
+          <p role="status" className="rounded-lg border border-white/10 bg-white/[.04] px-4 py-3 text-sm text-slate-300">
+            Checking worker service…
+          </p>
+        }
+      >
+        <ServiceStatus />
+      </Suspense>
+      <div className="flex flex-wrap gap-4"><Link href="/vibecodeworker/hub" className="rounded-full bg-cyan-300 px-5 py-2 font-bold text-slate-950">Open playtest hub</Link><Link href="/vibecodeworker/docs" className="rounded-full border border-white/20 px-5 py-2">Read documentation</Link></div>
+    </MarketingPage>
+  );
+}

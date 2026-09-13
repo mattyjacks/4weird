@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { getPodIdlePolicy, resolvePodPolicy } from "@/lib/pod-idle";
 import { getPodLive, runPodLifecycle } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 // GET|POST /api/cron/pod-sweep - idle-lifecycle backstop for rented RunPods

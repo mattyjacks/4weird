@@ -50,7 +50,6 @@ export function generateStaticParams() {
 }
 
 // Closed section list: unknown sections 404 with a real 404 status.
-export const dynamicParams = false;
 
 export async function generateMetadata({
   params,

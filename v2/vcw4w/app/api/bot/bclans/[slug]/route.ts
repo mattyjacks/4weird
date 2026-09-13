@@ -5,7 +5,6 @@ import { serviceClient } from "@/lib/supabase/service";
 import { botClanSlug } from "@/lib/bot-validate";
 import { clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 interface ClanRow {
   id: string;

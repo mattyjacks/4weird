@@ -8,7 +8,6 @@ import { requireHuman } from "@/lib/botid";
 import { meterLunaCheck } from "@/lib/clan-meter";
 import { logValleynetAction, valleynetCheck } from "@/lib/valleynet";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/clans/post/[id]/comment; member-only, Luna-moderated.
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {

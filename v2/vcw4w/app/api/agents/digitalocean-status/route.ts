@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { doApiBase, doConfigured, listRegions, listSizes } from "@/lib/digitalocean";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/agents/digitalocean-status; is DIGITALOCEAN_TOKEN set, and does it work?
 // The live check is a read-only regions + sizes query: success proves the token

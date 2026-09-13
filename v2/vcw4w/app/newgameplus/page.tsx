@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { NewGamePlusBuilder } from "@/components/newgameplus/newgameplus-builder";
 
 export const metadata: Metadata = {
@@ -12,19 +14,34 @@ export default function NewGamePlusPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-6xl px-5 py-16">
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">NewGamePlus</p>
-        <h1 className="mt-2 text-4xl font-black">Type a prompt. Get a tested game.</h1>
-        <p className="mt-4 max-w-3xl text-slate-300">
-          VibeCodeWorker + every related service in one launch: a bot symphony (Scout → Forge → Pixel → Echo → Sage) builds an original HTML/CSS/JS game, intelligently shortlists the fal.ai media the prompt needs, pushes it to the{" "}
-          <b>Draft</b> game folder inside your org, then executes a real local playtest of it
-          (boot the canvas, pump frames, drive input, observe HUD — observe → reason → act repair loops, with optional VCW ledger verify). Quality 0-10 (default 5) · Budget 100 coins default (1-10,000;
-          above 250 triggers Confirm the Amount). Each build auto-approves up to your 20-coin ceiling (configurable, max 250) and asks permission above it. Fast lane (≤250 coins) finishes in ≤5 minutes; deluxe budgets run longer but stay fast. Cheapest viable build, newest viable runtime, 25% cut included
- - and it succeeds.
-        </p>
+        <CachedNewGamePlusIntro />
         <div className="mt-8">
-          <NewGamePlusBuilder />
+          {/* Interactive builder (per-user session state, API-backed): dynamic
+              island streaming behind the fallback; never cached. */}
+          <Suspense fallback={<p className="text-sm text-slate-400">Loading the game builder…</p>}>
+            <NewGamePlusBuilder />
+          </Suspense>
         </div>
       </section>
     </main>
+  );
+}
+
+// Static marketing copy: no per-user data, cached hourly.
+async function CachedNewGamePlusIntro() {
+  "use cache";
+  cacheLife("hours");
+  return (
+    <>
+      <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">NewGamePlus</p>
+      <h1 className="mt-2 text-4xl font-black">Type a prompt. Get a tested game.</h1>
+      <p className="mt-4 max-w-3xl text-slate-300">
+        VibeCodeWorker + every related service in one launch: a bot symphony (Scout → Forge → Pixel → Echo → Sage) builds an original HTML/CSS/JS game, intelligently shortlists the fal.ai media the prompt needs, pushes it to the{" "}
+        <b>Draft</b> game folder inside your org, then executes a real local playtest of it
+        (boot the canvas, pump frames, drive input, observe HUD — observe → reason → act repair loops, with optional VCW ledger verify). Quality 0-10 (default 5) · Budget 100 coins default (1-10,000;
+        above 250 triggers Confirm the Amount). Each build auto-approves up to your 20-coin ceiling (configurable, max 250) and asks permission above it. Fast lane (≤250 coins) finishes in ≤5 minutes; deluxe budgets run longer but stay fast. Cheapest viable build, newest viable runtime, 25% cut included
+ - and it succeeds.
+      </p>
+    </>
   );
 }

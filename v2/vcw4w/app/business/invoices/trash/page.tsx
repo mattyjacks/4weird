@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { InvoiceTrashList } from "@/components/invoice/invoice-trash-list";
 import { trashedInvoices, type Invoice } from "@/components/invoice/invoice-types";
 
@@ -81,12 +81,22 @@ export default function InvoiceTrashPage() {
           </p>
         ) : null}
         <div className="mt-10">
-          <InvoiceTrashList
-            items={trashed}
-            onRestore={handleRestore}
-            onPurge={handlePurge}
-            onEmptyTrash={handleEmpty}
-          />
+          {/* Per-user trash bin (localStorage-backed "use client" page: never
+              cached). Static copy above streams first; the bin hydrates below. */}
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading the trash bin…
+              </p>
+            }
+          >
+            <InvoiceTrashList
+              items={trashed}
+              onRestore={handleRestore}
+              onPurge={handlePurge}
+              onEmptyTrash={handleEmpty}
+            />
+          </Suspense>
         </div>
       </section>
     </main>

@@ -13,7 +13,6 @@ import {
   type BrainDoc,
 } from "@/lib/swarm-brain";
 
-export const dynamic = "force-dynamic";
 
 function missingBrainTables(msg: string): boolean {
   return msg.includes("swarm_docs") && (msg.includes("does not exist") || msg.includes("schema"));

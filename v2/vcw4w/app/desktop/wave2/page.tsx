@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cacheLife, cacheTag } from "next/cache";
 import {
   PARITY_MODEL,
   WAVE2_PARITY_ROUTES,
@@ -12,7 +13,57 @@ export const metadata: Metadata = {
     "Desktop parity status for every Remastery Wave-2 route: native vs authenticated-webview-fallback with offline behavior notes.",
 };
 
-export const dynamic = "force-static";
+
+/**
+ * Static parity board — route list is a build-time constant from
+ * ./parity.ts, no request-time reads. Cached (`hours` + tag `desktop`).
+ */
+async function CachedParityBoard() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("desktop");
+  return (
+    <div className="mt-8 overflow-x-auto rounded-2xl border border-slate-800">
+      <table className="w-full min-w-[720px] border-collapse text-left text-sm">
+        <thead>
+          <tr className="bg-slate-900 text-xs uppercase tracking-widest text-slate-400">
+            <th className="px-4 py-3">Group</th>
+            <th className="px-4 py-3">Route</th>
+            <th className="px-4 py-3">Web path</th>
+            <th className="px-4 py-3">Desktop posture</th>
+            <th className="px-4 py-3">Offline behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          {WAVE2_PARITY_ROUTES.map((route) => (
+            <tr
+              key={`${route.group}:${route.label}`}
+              className="border-t border-slate-800 align-top"
+            >
+              <td className="px-4 py-3 font-bold text-cyan-200">
+                {route.group}
+              </td>
+              <td className="px-4 py-3 font-semibold text-white">
+                {route.label}
+              </td>
+              <td className="px-4 py-3 font-mono text-xs text-slate-300">
+                {route.webRoute}
+              </td>
+              <td className="px-4 py-3">
+                <span className="inline-block rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-0.5 text-xs font-bold text-amber-300">
+                  {route.posture === "native"
+                    ? "native"
+                    : "authenticated webview fallback"}
+                </span>
+              </td>
+              <td className="px-4 py-3 text-slate-300">{route.offline}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 export default function Wave2ParityPage() {
   return (
@@ -44,45 +95,7 @@ export default function Wave2ParityPage() {
           session, never in markup.
         </p>
 
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-slate-800">
-          <table className="w-full min-w-[720px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="bg-slate-900 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-4 py-3">Group</th>
-                <th className="px-4 py-3">Route</th>
-                <th className="px-4 py-3">Web path</th>
-                <th className="px-4 py-3">Desktop posture</th>
-                <th className="px-4 py-3">Offline behavior</th>
-              </tr>
-            </thead>
-            <tbody>
-              {WAVE2_PARITY_ROUTES.map((route) => (
-                <tr
-                  key={`${route.group}:${route.label}`}
-                  className="border-t border-slate-800 align-top"
-                >
-                  <td className="px-4 py-3 font-bold text-cyan-200">
-                    {route.group}
-                  </td>
-                  <td className="px-4 py-3 font-semibold text-white">
-                    {route.label}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-300">
-                    {route.webRoute}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="inline-block rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-0.5 text-xs font-bold text-amber-300">
-                      {route.posture === "native"
-                        ? "native"
-                        : "authenticated webview fallback"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-300">{route.offline}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CachedParityBoard />
 
         <p className="mt-4 text-sm text-slate-400">
           Coverage: {WAVE2_PARITY_ROUTES.length} Wave-2 routes listed across

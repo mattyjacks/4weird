@@ -4,14 +4,8 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
-function idFrom(url: string): string {
-  const parts = new URL(url).pathname.split("/").filter(Boolean);
-  // /api/orgs/[id]/members → the segment before "members".
-  const i = parts.lastIndexOf("members");
-  return parts[i - 1] ?? "";
-}
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/orgs/[id]/members; roster with display names, full role sets
@@ -22,7 +16,7 @@ function idFrom(url: string): string {
  * with an O(1) cached total - this is how 8,000-member orgs stay fast.
  * Without ?paged, the legacy full roster (up to 500) is returned.
  */
-export async function GET(req: Request) {
+export async function GET(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
@@ -31,7 +25,7 @@ export async function GET(req: Request) {
   // member cannot scrape rosters unchecked.
   const rl = rateLimit(`org-roster:${data.user.id}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
-  const orgId = idFrom(req.url);
+  const orgId = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   const url = new URL(req.url);
   if (url.searchParams.get("paged")) {

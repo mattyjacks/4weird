@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { bodyByteSize, clampLimit, clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // Demo-safe, monitored: no auth. In-memory only (resets on redeploy).
 // No DB writes; Boss/IT review pending requests in logs.

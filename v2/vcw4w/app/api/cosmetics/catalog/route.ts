@@ -8,7 +8,6 @@ import {
 } from "@/lib/economy";
 import { PROFILE_RULES } from "@/lib/monetization-policy";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/cosmetics/catalog; the ONE public price list for looks.

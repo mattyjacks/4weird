@@ -7,7 +7,6 @@ import { botPepperConfigured, botPepperIssuanceReady } from "@/lib/bot-auth";
 import { hashNewGatewayKey } from "@/lib/vcw-gateway-auth";
 import { gatewayKeyPrefix, generateVcwGatewayKey } from "@/lib/vcw-gateway";
 
-export const dynamic = "force-dynamic";
 
 const MAX_ACTIVE_KEYS = 10;
 const VCW_GATEWAY_SCOPES = ["vcw:read", "vcw:write"] as const;

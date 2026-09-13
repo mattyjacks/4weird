@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clampLimit, isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ id: string }> };
 

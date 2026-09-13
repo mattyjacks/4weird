@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 
-export const dynamic = "force-dynamic";
 
 // Clan quests; the second 💌 mint source besides daily bonuses.
 // GET /api/love/quests?clan_id=; list quests + completions (public).

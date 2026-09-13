@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { clearKidSessionCookie, hashKidToken, hashKidTokenLegacy } from "@/lib/kid-session";
 
-export const dynamic = "force-dynamic";
 
 /** POST /api/family/kid-logout; destroy this child session + clear cookie. */
 export async function POST(req: NextRequest) {

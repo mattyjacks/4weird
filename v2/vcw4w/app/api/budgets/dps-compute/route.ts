@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { assertPricingInvariants, COINS_PER_USD } from "@/lib/remastery-pricing";
 import { quoteDpsCompute } from "@/lib/dps-pricing";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/budgets/dps-compute?taskType=<type>&seconds=<duration>

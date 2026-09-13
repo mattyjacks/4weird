@@ -8,7 +8,6 @@ import { rpcStatus } from "@/lib/agent-market";
 import { isUuid } from "@/lib/validate";
 import { quoteAuditSplit, SUBMIT_CUT_NOTE } from "@/lib/zip-submit";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/code/[id]/audit { deep? }; coin-metered code audit.

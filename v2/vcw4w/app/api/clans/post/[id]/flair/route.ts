@@ -7,7 +7,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
 import { isClanFlair } from "@/lib/clan-forum";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/clans/post/[id]/flair {flair}; author or owner/mod only.
 // Empty string clears the flair.

@@ -1,4 +1,6 @@
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { DictateImageEditor } from "@/components/studio/image/dictate-image-editor";
 
 export const metadata: Metadata = {
@@ -8,7 +10,11 @@ export const metadata: Metadata = {
     "GIMP-style layered canvas and sprite editor: multi-layer 512px viewport with checkerboard transparency, brush/pencil/eraser/bucket/picker tools, blend modes, bounded undo, PNG export, and spritesheet slicing. AI brushes fail open when offline.",
 };
 
-export default function Page() {
+export default async function Page() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("studio");
+
   return (
     <div className="bg-slate-950 text-white">
       <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">
@@ -26,7 +32,15 @@ export default function Page() {
           never broken.
         </p>
         <div className="mt-8">
-          <DictateImageEditor />
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading the canvas editor…
+              </p>
+            }
+          >
+            <DictateImageEditor />
+          </Suspense>
         </div>
       </section>
     </div>

@@ -4,7 +4,6 @@ import { logBotKeyRequest } from "@/lib/bot-log";
 import { serviceClient } from "@/lib/supabase/service";
 import { clampLimit, clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 interface ClanRow {
   id: string;

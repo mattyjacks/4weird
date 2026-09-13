@@ -1,4 +1,6 @@
+import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { MeshyStudio } from "@/components/meshy/meshy-studio";
 import { MESHY_CUT_NOTE } from "@/lib/meshy";
 
@@ -8,7 +10,11 @@ export const metadata: Metadata = {
   description: `Full Meshy.ai through the API: text-to-3D, image-to-3D, textures, animation, remesh; with auto-vault + game-ready advice. ${MESHY_CUT_NOTE}`,
 };
 
-export default function MeshyPage() {
+export default async function MeshyPage() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("studio");
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section className="mx-auto max-w-6xl px-5 py-16">
@@ -21,7 +27,15 @@ export default function MeshyPage() {
           run is metered in Vibe Coins with the 25% cut included.
         </p>
         <div className="mt-10">
-          <MeshyStudio />
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading Meshy 3D Studio…
+              </p>
+            }
+          >
+            <MeshyStudio />
+          </Suspense>
         </div>
       </section>
     </main>

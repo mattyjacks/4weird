@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   description: "Find your crew: start or join a 4weird clan, post strats, code, and clips.",
 };
 
-export const dynamic = "force-dynamic";
 
 export default function ClansPage() {
   return (

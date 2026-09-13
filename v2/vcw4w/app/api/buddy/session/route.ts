@@ -7,7 +7,6 @@ import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import { BUDDY_DEFAULT_VOICE, cleanBuddyVoice } from "@/lib/game-ai";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/buddy/session?open=1; list the caller's most recent buddy

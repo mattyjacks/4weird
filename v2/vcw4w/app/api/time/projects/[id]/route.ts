@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // PUT /api/time/projects/[id] - Update timer project.
 // Ownership is enforced by the timer_projects_modify RLS policy (owner or

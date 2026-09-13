@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { DOCS_DATA } from "@/components/docs/docs-data";
+import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, SplitBar } from "@/components/docs/docs-bits";
+import { getDocsHub } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs" },
@@ -18,8 +20,48 @@ const theme = {
   title: "bg-gradient-to-r from-cyan-300 via-sky-200 to-fuchsia-300 bg-clip-text text-transparent",
 };
 
+// Static guide cards, cached per Cache Components docs: fully static catalog
+// data (no cookies/headers/searchParams), so the grid joins the prerendered
+// shell and streams inside <Suspense>. Per-guide read progress stays client-side
+// (useDocsProgress, localStorage) and is never cached.
+async function CachedGuidesGrid() {
+  "use cache";
+  cacheLife("days");
+  cacheTag("docs-hub");
+  const guides = await getDocsHub();
+  return (
+    <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      {guides.map((doc, i) => (
+        <Link
+          key={doc.href}
+          href={doc.href}
+          className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-1 hover:shadow-2xl"
+        >
+          <div aria-hidden="true" className={`h-2 bg-gradient-to-r ${doc.card}`} />
+          <div className="p-5">
+            <div className="flex items-center gap-3">
+              <span aria-hidden="true" className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl ${doc.card}`}>
+                {doc.icon}
+              </span>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  Guide {String(i + 1).padStart(2, "0")}
+                </p>
+                <h2 className="text-lg font-black leading-tight">{doc.label}</h2>
+              </div>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">{doc.blurb}</p>
+            <span className="mt-3 inline-block text-sm font-bold text-cyan-600 transition group-hover:translate-x-1 dark:text-cyan-300">
+              Read guide →
+            </span>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default function DocsHome() {
-  const guides = DOCS_DATA.filter((d) => d.href !== "/docs");
   return (
     <article>
       <DocsHero
@@ -78,34 +120,13 @@ export default function DocsHome() {
         body="Each card is its own page - company, how-tos, economy, social, cloud, trust."
       />
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        {guides.map((doc, i) => (
-          <Link
-            key={doc.href}
-            href={doc.href}
-            className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-1 hover:shadow-2xl"
-          >
-            <div aria-hidden="true" className={`h-2 bg-gradient-to-r ${doc.card}`} />
-            <div className="p-5">
-              <div className="flex items-center gap-3">
-                <span aria-hidden="true" className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl ${doc.card}`}>
-                  {doc.icon}
-                </span>
-                <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                    Guide {String(i + 1).padStart(2, "0")}
-                  </p>
-                  <h2 className="text-lg font-black leading-tight">{doc.label}</h2>
-                </div>
-              </div>
-              <p className="mt-2 text-sm text-muted-foreground">{doc.blurb}</p>
-              <span className="mt-3 inline-block text-sm font-bold text-cyan-600 transition group-hover:translate-x-1 dark:text-cyan-300">
-                Read guide →
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <Suspense
+        fallback={
+          <p className="mt-6 text-sm text-muted-foreground">Loading guides…</p>
+        }
+      >
+        <CachedGuidesGrid />
+      </Suspense>
 
       <SectionHead
         index="✦"

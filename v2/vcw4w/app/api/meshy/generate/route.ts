@@ -19,7 +19,6 @@ import {
   quoteMeshySplit,
 } from "@/lib/meshy";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/meshy/generate { op, prompt?, image_url?, model_url? (remesh), scope?, scope_id? }.

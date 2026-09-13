@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/love/profile?handle=; public 💌 Earned / Received / Given.
 // Hidden profiles (shy opt-out) return is_public:false with zeroed counters.

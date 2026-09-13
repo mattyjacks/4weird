@@ -6,14 +6,8 @@ import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
-function idFrom(url: string): string {
-  const parts = new URL(url).pathname.split("/").filter(Boolean);
-  // /api/orgs/[id]/invites → the segment before "invites".
-  const i = parts.lastIndexOf("invites");
-  return parts[i - 1] ?? "";
-}
+type Ctx = { params: Promise<{ id: string }> };
 
 function statusOf(message: string): number {
   if (/forbidden/i.test(message)) return 403;
@@ -23,12 +17,12 @@ function statusOf(message: string): number {
 /**
  * GET /api/orgs/[id]/invites; list shareable invite links (inviters only).
  */
-export async function GET(req: Request) {
+export async function GET(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
-  const orgId = idFrom(req.url);
+  const orgId = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   const { data: invites, error } = await supabase.rpc("list_org_invites", { p_org: orgId });
   if (error) return rpcFail("api/orgs/invites", error, statusOf, "Unable to load invites.");
@@ -41,7 +35,7 @@ export async function GET(req: Request) {
  * max_uses null = unlimited (1..10000 otherwise); expires_at null = never.
  * Creating the first link initializes an uninitialized default org.
  */
-export async function POST(req: Request) {
+export async function POST(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
@@ -50,7 +44,7 @@ export async function POST(req: Request) {
   if (!u) return fail("Login required.", 401);
   // Invite creation grants org access: play/test sessions never do it.
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);
-  const orgId = idFrom(req.url);
+  const orgId = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   const throttle = rateLimit(`org-invite:${u.id}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
@@ -92,7 +86,7 @@ export async function POST(req: Request) {
  * DELETE /api/orgs/[id]/invites {invite_id}; revoke a link (token stops
  * working; past uses stay on the audit trail).
  */
-export async function DELETE(req: Request) {
+export async function DELETE(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
@@ -100,7 +94,7 @@ export async function DELETE(req: Request) {
   if (!data?.user) return fail("Login required.", 401);
   // Invite revocation changes org access: play/test sessions never do it.
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);
-  const orgId = idFrom(req.url);
+  const orgId = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   let body: unknown;
   try {

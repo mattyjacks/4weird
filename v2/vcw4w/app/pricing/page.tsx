@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import { PackCatalog } from "@/components/coins/pack-catalog";
 import { CompactDetails } from "@/components/ui/compact-details";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -20,6 +22,76 @@ function Check({ children }: { children: React.ReactNode }) {
       </span>
       <span>{children}</span>
     </li>
+  );
+}
+
+// Fully static pricing FAQ: no cookies/headers/searchParams, so it is cached
+// ('days' profile) and streamed inside <Suspense> below. PackCatalog stays
+// uncached: it reads deployment env and renders per-deploy checkout buttons.
+async function PricingFaqList() {
+  'use cache';
+  cacheLife('days');
+  return (
+    <div className="mt-6 grid gap-4 md:grid-cols-2">
+      {[
+        {
+          q: "Is the 25% added on top?",
+          a: "Never. Every coin price and every compute meter is gross - 25% cut already inside, never on top. 100 Vibe Coins = exactly $1.00.",
+        },
+        {
+          q: "Can compute ever bill above escrow?",
+          a: "No. Agent bookings escrow coins up front and heartbeats settle metered seconds downward. The 25/75 split applies to the metered gross only.",
+        },
+        {
+          q: "What does Self-Hosted $420/mo include?",
+          a: "Up to 100 seats per org (extra seats $4.20/mo each), unlimited workspaces, projects, messaging, cloud orchestration against your own keys, self-host help, and support. Compute itself bills your providers at cost plus the 15% API/compute markup. Enterprise quotes go down to 9% - Talk to Sales.",
+        },
+        {
+          q: "Can I switch between Cloud and BYOK?",
+          a: "Yes - per workspace. Burst on cloud, settle steady work on your own keys. Your coins, saves, clans, and leaderboards follow you.",
+        },
+        {
+          q: "How is game AI priced?",
+          a: "Games with required or optional AI (OpenAI dialogue bots, AI directors on rented RunPods, voice lines in 9 voices) meter per token, char, decision, or GPU minute with the same 25% cut included. The Gaming Buddy meters the same way - watch every cent on /my/usage/.",
+        },
+        {
+          q: "What voices does the Gaming Buddy use?",
+          a: "All 9 OpenAI voices: Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer - Nova by default - on tts-1 ($15/1M chars) or tts-1-hd ($30/1M chars) at 0.5x-2.0x speed. Every turn meters true upstream cost (chat tokens + voice chars + optional screen snapshot + database writes) in Coins + CentiCentCoins with the 25% cut included.",
+        },
+        {
+          q: "How does renting games work?",
+          a: "The first load costs a proportional fee for its exact fresh bytes (default 1 coin for 1 MiB - smaller loads pay the exact fraction, down to 1 centicentcoin), then running play bills the hourly rate (default 1 coin/hr) per second from the first second - about $0.01 per hour. Same-version replays are free for 24h, a still-playing check appears every 5 hours, and developers can set 0-100 coins per load/hour. Guests play free with skippable ads instead.",
+        },
+        {
+          q: "Can I really play 5 hours a day for free?",
+          a: "Yes. A 5-hour session on default rates costs about 6 coins (up to 1 coin load for a full 1 MiB plus 5 coins of per-second play) - covered by the 100-coin signup trial many times over, and streak bonuses pay up to 12 coins a day.",
+        },
+        {
+          q: "Who owns work I contribute?",
+          a: "You assign it to us on submission: games, code, art, and other contributions made through the platform are assigned to MattyJacks LLC (or exclusively licensed where assignment is not possible). Contributors do not retain ownership, and we may improve, modify, adapt, or remove games without further permission, except where the Terms expressly provide creator coin credits (the 75% share as on-site credits, never cash-out; spendable on cloud computing, game credits, and other on-site services only). See LICENSE for the full assignment text.",
+        },
+        {
+          q: "Do I have to credit VibeCodeWorker?",
+          a: "Yes, when you used it. Games built or tested with VibeCodeWorker must carry a visible credit: Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker. Removing a required credit can lead to delisting.",
+        },
+        {
+          q: "What are the self-host seat limits?",
+          a: "Mid-tier is $420/mo per org including 100 seats; extra seats are $4.20/mo each. Metered API/compute carries a 15% markup. Enterprise/hyperscaler plans are custom-quoted (Talk to Sales) with markup down to as little as 9%.",
+        },
+        {
+          q: "What if I do not pay?",
+          a: "We prefer prepayment to avoid interruptions. Fees are due as quoted plus taxes, and late amounts may bear interest and collection costs where allowed. We reserve the right to collect amounts owed by any lawful means; including charging the method on file, suspending seats or keys, offsetting credits, or pursuing collections or court claims.",
+        },
+        {
+          q: "Do guests have to pay or watch ads?",
+          a: "Guests never pay and never need an account: they get free loads every day (IP-limited), then keep playing by viewing instantly-skippable house ads, with an ad banner every 30 minutes. Cloud saves, multiplayer, AI, and Buddy stay signed-in only - which is exactly why signing up beats ad-watching.",
+        },
+      ].map((item, i) => (
+        <CompactDetails key={item.q} summary={item.q} defaultOpen={i === 0}>
+          <p className="text-sm leading-relaxed text-slate-300">{item.a}</p>
+        </CompactDetails>
+      ))}
+    </div>
   );
 }
 
@@ -431,66 +503,9 @@ export default function Page() {
       {/* FAQ */}
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-5 sm:pb-24" aria-label="Pricing FAQ">
         <h2 className="text-2xl font-black sm:text-3xl">Questions, answered</h2>
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          {[
-            {
-              q: "Is the 25% added on top?",
-              a: "Never. Every coin price and every compute meter is gross - 25% cut already inside, never on top. 100 Vibe Coins = exactly $1.00.",
-            },
-            {
-              q: "Can compute ever bill above escrow?",
-              a: "No. Agent bookings escrow coins up front and heartbeats settle metered seconds downward. The 25/75 split applies to the metered gross only.",
-            },
-            {
-              q: "What does Self-Hosted $420/mo include?",
-              a: "Up to 100 seats per org (extra seats $4.20/mo each), unlimited workspaces, projects, messaging, cloud orchestration against your own keys, self-host help, and support. Compute itself bills your providers at cost plus the 15% API/compute markup. Enterprise quotes go down to 9% - Talk to Sales.",
-            },
-            {
-              q: "Can I switch between Cloud and BYOK?",
-              a: "Yes - per workspace. Burst on cloud, settle steady work on your own keys. Your coins, saves, clans, and leaderboards follow you.",
-            },
-            {
-              q: "How is game AI priced?",
-              a: "Games with required or optional AI (OpenAI dialogue bots, AI directors on rented RunPods, voice lines in 9 voices) meter per token, char, decision, or GPU minute with the same 25% cut included. The Gaming Buddy meters the same way - watch every cent on /my/usage/.",
-            },
-            {
-              q: "What voices does the Gaming Buddy use?",
-              a: "All 9 OpenAI voices: Alloy, Ash, Coral, Echo, Fable, Onyx, Nova, Sage, Shimmer - Nova by default - on tts-1 ($15/1M chars) or tts-1-hd ($30/1M chars) at 0.5x-2.0x speed. Every turn meters true upstream cost (chat tokens + voice chars + optional screen snapshot + database writes) in Coins + CentiCentCoins with the 25% cut included.",
-            },
-            {
-              q: "How does renting games work?",
-              a: "The first load costs a proportional fee for its exact fresh bytes (default 1 coin for 1 MiB - smaller loads pay the exact fraction, down to 1 centicentcoin), then running play bills the hourly rate (default 1 coin/hr) per second from the first second - about $0.01 per hour. Same-version replays are free for 24h, a still-playing check appears every 5 hours, and developers can set 0-100 coins per load/hour. Guests play free with skippable ads instead.",
-            },
-            {
-              q: "Can I really play 5 hours a day for free?",
-              a: "Yes. A 5-hour session on default rates costs about 6 coins (up to 1 coin load for a full 1 MiB plus 5 coins of per-second play) - covered by the 100-coin signup trial many times over, and streak bonuses pay up to 12 coins a day.",
-            },
-            {
-              q: "Who owns work I contribute?",
-              a: "You assign it to us on submission: games, code, art, and other contributions made through the platform are assigned to MattyJacks LLC (or exclusively licensed where assignment is not possible). Contributors do not retain ownership, and we may improve, modify, adapt, or remove games without further permission, except where the Terms expressly provide creator coin credits (the 75% share as on-site credits, never cash-out; spendable on cloud computing, game credits, and other on-site services only). See LICENSE for the full assignment text.",
-            },
-            {
-              q: "Do I have to credit VibeCodeWorker?",
-              a: "Yes, when you used it. Games built or tested with VibeCodeWorker must carry a visible credit: Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker. Removing a required credit can lead to delisting.",
-            },
-            {
-              q: "What are the self-host seat limits?",
-              a: "Mid-tier is $420/mo per org including 100 seats; extra seats are $4.20/mo each. Metered API/compute carries a 15% markup. Enterprise/hyperscaler plans are custom-quoted (Talk to Sales) with markup down to as little as 9%.",
-            },
-            {
-              q: "What if I do not pay?",
-              a: "We prefer prepayment to avoid interruptions. Fees are due as quoted plus taxes, and late amounts may bear interest and collection costs where allowed. We reserve the right to collect amounts owed by any lawful means; including charging the method on file, suspending seats or keys, offsetting credits, or pursuing collections or court claims.",
-            },
-            {
-              q: "Do guests have to pay or watch ads?",
-              a: "Guests never pay and never need an account: they get free loads every day (IP-limited), then keep playing by viewing instantly-skippable house ads, with an ad banner every 30 minutes. Cloud saves, multiplayer, AI, and Buddy stay signed-in only - which is exactly why signing up beats ad-watching.",
-            },
-          ].map((item, i) => (
-            <CompactDetails key={item.q} summary={item.q} defaultOpen={i === 0}>
-              <p className="text-sm leading-relaxed text-slate-300">{item.a}</p>
-            </CompactDetails>
-          ))}
-        </div>
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading questions…</p>}>
+          <PricingFaqList />
+        </Suspense>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/account"

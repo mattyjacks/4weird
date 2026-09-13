@@ -6,7 +6,6 @@ import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /**
  * DELETE /api/vault/shares/[id]; revoke a share link. Only someone who owns

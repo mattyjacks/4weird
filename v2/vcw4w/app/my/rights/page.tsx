@@ -1,19 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
-import { hasEnvVars } from "@/lib/utils";
-import { RightsClient } from "./rights-client";
-
-export const metadata: Metadata = {
-  title: "My Privacy Rights",
-  description: "Download or delete your 4weird Games data. Self-service privacy rights for your own account.",
-  robots: { index: false, follow: false },
-};
-
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { hasEnvVars } from "@/lib/utils";
@@ -25,7 +12,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const dynamic = "force-dynamic";
 
 // NOTE: no 'use cache' here — per-user session + export/delete tools stream
 // in Suspense so personal data is never cached.

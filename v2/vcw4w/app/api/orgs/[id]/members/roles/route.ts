@@ -5,12 +5,8 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
-function idFrom(url: string, back: number): string {
-  const parts = new URL(url).pathname.split("/").filter(Boolean);
-  return parts[parts.length - back] ?? "";
-}
+type Ctx = { params: Promise<{ id: string }> };
 
 /**
  * PUT /api/orgs/[id]/members/roles {user_id, roles: ["banker","watcher"]}
@@ -18,14 +14,14 @@ function idFrom(url: string, back: number): string {
  * per org; power is the UNION of the legacy single role and every preset.
  * Requires org.members.change_role (Lord/owner/admin…). Returns all keys.
  */
-export async function PUT(req: Request) {
+export async function PUT(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
-  const orgId = idFrom(req.url, 3);
+  const orgId = (await params).id;
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   const throttle = rateLimit(`org-roles:${u.id}`, 30, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

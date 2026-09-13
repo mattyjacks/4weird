@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/time/reports - Generate reports on hours and Ghost Cash 👻
 export async function GET(req: Request) {

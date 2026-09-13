@@ -12,7 +12,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Attach paid-but-unclaimed coin grants (matched by order email) to the

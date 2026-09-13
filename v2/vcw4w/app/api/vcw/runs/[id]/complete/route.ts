@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isRunUuid, isVcwVerdict } from "@/lib/vcw-runs";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vcw/runs/[id]/complete; close an open run with a summary

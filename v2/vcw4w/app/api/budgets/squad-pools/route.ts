@@ -9,7 +9,6 @@ import {
   USD_CENTS_PER_COIN,
 } from "@/lib/remastery-pricing";
 
-export const dynamic = "force-dynamic";
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 /** Bounded ledger pages so one org with deep history can't burst the route. */

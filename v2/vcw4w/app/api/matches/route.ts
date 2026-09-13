@@ -5,7 +5,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { clientIp, isSlug } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

@@ -3,7 +3,6 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { meshyWebhookSecret } from "@/lib/meshy";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/meshy/webhook - Meshy task status push receiver.

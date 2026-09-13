@@ -40,7 +40,6 @@ import { cleanAutoApproveMax, needsSpendPermission, spendPermissionMessage } fro
 import { VAULT_BUCKET, cleanVaultPath, vaultObjectKey } from "@/lib/blob-vault";
 import { falConfigured } from "@/lib/fal";
 
-export const dynamic = "force-dynamic";
 
 function isUuid(v: unknown): boolean {
   return typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v);

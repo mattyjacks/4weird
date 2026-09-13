@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Suspense } from "react";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Authentication error",
+  description: "Something went wrong signing you in. Check the error details and return to login.",
+  alternates: { canonical: "/auth/error" },
+};
 
 async function ErrorContent({
   searchParams,

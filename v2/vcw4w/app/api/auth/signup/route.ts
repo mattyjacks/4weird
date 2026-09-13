@@ -11,7 +11,6 @@ import { clientIp, isEmail, isPassword } from "@/lib/validate";
 import { cookies } from "next/headers";
 import { FULL_LOGIN_COOKIE, signFullLogin } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
 async function awardTrial(userId: string, email: string, req: Request): Promise<boolean> {
   const salt = process.env.SIGNUP_IP_HASH_SALT ?? "";

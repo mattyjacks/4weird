@@ -21,7 +21,6 @@ import {
   isNewBytes,
 } from "@/lib/game-rent";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Map play-session RPC failures to HTTP status so the play gate can split

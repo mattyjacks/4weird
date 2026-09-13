@@ -7,7 +7,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/bot/keys/[id]/revoke; revoke one of the caller's own keys.
 // Takes effect immediately. Supabase-login auth (NOT a bot key).

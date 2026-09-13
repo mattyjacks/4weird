@@ -11,7 +11,6 @@ import {
   splitRevenue,
 } from "@/lib/remastery-pricing";
 
-export const dynamic = "force-dynamic";
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 /** Bounded ledger read so one squad with deep history can't burst the route. */

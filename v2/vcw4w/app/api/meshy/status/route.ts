@@ -9,7 +9,6 @@ import { isUuid } from "@/lib/validate";
 import { meshyApiBase, meshyConfigured, meshyGameAdvice, meshyKey } from "@/lib/meshy";
 import { VAULT_BUCKET, vaultObjectKey } from "@/lib/blob-vault";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/meshy/status?job=<uuid>; poll a Meshy task; on SUCCEEDED the

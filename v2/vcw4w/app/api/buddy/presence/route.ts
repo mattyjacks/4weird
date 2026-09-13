@@ -7,7 +7,6 @@ import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import { quoteAvatarMinutes, quoteCameraFrames } from "@/lib/game-ai";
 
-export const dynamic = "force-dynamic";
 
 const FEATURES = ["avatar", "camera"] as const;
 type Feature = (typeof FEATURES)[number];

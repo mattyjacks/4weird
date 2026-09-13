@@ -4,7 +4,6 @@ import { clientIp } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { providerStatus } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 
 /** Provider catalog with server-side configured flags (booleans only; no
  *  keys ever leave the server). Powers the configured/unconfigured badges. */

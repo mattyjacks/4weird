@@ -9,7 +9,6 @@ import { hashKidPassword, randomDiscriminator } from "@/lib/kid-session";
 import { rpcStatus } from "@/lib/agent-market";
 import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/family/kids; the signed-in parent lists their child accounts

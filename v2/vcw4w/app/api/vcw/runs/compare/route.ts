@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { isRunUuid } from "@/lib/vcw-runs";
 
-export const dynamic = "force-dynamic";
 
 type CountMap = Record<string, number>;
 

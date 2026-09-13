@@ -3,7 +3,6 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 type UsageRow = {
   booking_id: string;

@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { BLENDER_BUCKET, BLENDER_MAX_SCENE_BYTES } from "@/lib/blender-render";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/blender/jobs/[id]/ready; confirm the browser's direct upload

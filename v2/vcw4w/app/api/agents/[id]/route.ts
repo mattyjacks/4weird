@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { clientIp, isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 /** Public: fetch one listing (available to all; paused only to its owner).
  *  Hourly prices are gross MAXIMUMS ($/hr, 25% cut included); metering bills

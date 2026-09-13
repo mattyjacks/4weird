@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // Ownership is enforced by the user_id predicate on every query; the route
 // adds defense in depth: strict uuid shape, and no false-success - zero

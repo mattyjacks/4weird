@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { GhostTimer } from "@/components/ghost/ghost-timer";
 import { BusinessCrosslinks } from "@/components/business/business-crosslinks";
 
@@ -7,6 +8,8 @@ export const metadata: Metadata = {
   description: "Org work clock with second-precision tracking and hypothetical Ghost Cash (👻) IOUs. Not money, no value; a ruler for debts.",
 };
 
+// NOTE: no 'use cache' here — per-user clock/session state streams in
+// Suspense; static shell (title/copy/crosslinks) prerenders.
 export default function TimerPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -27,7 +30,9 @@ export default function TimerPage() {
           <BusinessCrosslinks exclude={["/timer"]} />
         </div>
         <div className="mt-8">
-          <GhostTimer />
+          <Suspense fallback={<p className="rounded-2xl border border-white/10 bg-white/[.04] p-8 text-center text-sm text-slate-400">Loading timer…</p>}>
+            <GhostTimer />
+          </Suspense>
         </div>
       </section>
     </main>

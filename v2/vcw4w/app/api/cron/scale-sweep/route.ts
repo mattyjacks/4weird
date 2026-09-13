@@ -2,7 +2,6 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 
-export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 // GET|POST /api/cron/scale-sweep - daily Automated Member Pruning sweep:

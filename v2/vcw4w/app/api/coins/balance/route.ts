@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 
-export const dynamic = "force-dynamic";
 
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

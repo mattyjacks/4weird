@@ -5,7 +5,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isSlug, isSlot, jsonBytes } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 const slugPattern = /^[a-z0-9-]{1,64}$/;
 const maxBytes = 1024 * 1024;

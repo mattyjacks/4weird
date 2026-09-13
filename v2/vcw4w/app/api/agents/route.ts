@@ -12,7 +12,6 @@ import {
   parsePriceInput,
 } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
 /** Public: list available agent listings. Prices shown are gross MAXIMUMS
  *  per hour (include the 25% platform cut); metering bills per second. */

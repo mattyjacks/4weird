@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { cacheLife, cacheTag } from "next/cache";
 import { MarketingPage } from "@/components/site/marketing-page";
 
 export const metadata: Metadata = {
@@ -10,9 +12,13 @@ export const metadata: Metadata = {
 const h2 = "text-2xl font-bold text-white";
 const a = "text-cyan-200 underline";
 
-export default function TermsPage() {
+// Fully static legal copy: no cookies/headers/searchParams, so it is cached
+// ('max' profile: legal pages rarely change) and streamed via <Suspense>.
+async function CachedTermsBody() {
+  'use cache';
+  cacheLife('max');
+  cacheTag('site-legal');
   return (
-      <MarketingPage title="Terms of Use" intro="Effective September 13, 2026 · Please read these terms carefully.">
       <section className="space-y-6">
         <p>
           These Terms of Use (“Terms”) form a binding agreement between you and MattyJacks LLC, a New Hampshire
@@ -740,6 +746,15 @@ export default function TermsPage() {
           <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a>.
         </p>
       </section>
+  );
+}
+
+export default function TermsPage() {
+  return (
+      <MarketingPage title="Terms of Use" intro="Effective September 13, 2026 · Please read these terms carefully.">
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading terms…</p>}>
+        <CachedTermsBody />
+      </Suspense>
     </MarketingPage>
   );
 }

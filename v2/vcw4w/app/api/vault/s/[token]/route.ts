@@ -6,7 +6,6 @@ import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 import { clientIp } from "@/lib/validate";
 import { VAULT_BUCKET } from "@/lib/blob-vault";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vault/s/[token]; redeem a share link (public, no login).

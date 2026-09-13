@@ -23,7 +23,6 @@ import {
   quoteFalSplit,
 } from "@/lib/fal";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/fal/generate; run one of the 30 fal.ai media tools.

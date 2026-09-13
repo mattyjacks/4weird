@@ -7,7 +7,6 @@ import { clientIp, isSlug } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import { GAME_LOAD_COINS_DEFAULT, GAME_HOURLY_COINS_DEFAULT, isGameRate } from "@/lib/game-rent";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/games/rates; public price list for "renting games".

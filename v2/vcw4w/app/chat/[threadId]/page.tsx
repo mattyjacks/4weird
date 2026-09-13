@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Suspense, use, useEffect } from "react";
 import { ChatComposer } from "@/components/chat/chat-composer";

@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { falApiBase, falConfigured, falKey, isFalOp, modelForOp, opByKey } from "@/lib/fal";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/fal/status?op=<op>&id=<request_id>; poll a queued fal.ai run.

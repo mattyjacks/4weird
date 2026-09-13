@@ -11,11 +11,11 @@ import { CachedSiteFooter } from "@/components/site/site-footer-cached";
 import { SiteHeader } from "@/components/site/site-header";
 import { MenuSidebar } from "@/components/site/menu-sidebar";
 import { A11yProvider } from "@/components/site/a11y-provider";
-import { UsaFireworks } from "@/components/site/themes/usa-fireworks";
-import { GreenGuyCamo } from "@/components/site/themes/green-guy-camo";
+import { UsaFireworksLazy } from "@/components/site/themes/usa-fireworks-lazy";
+import { GreenGuyCamoLazy } from "@/components/site/themes/green-guy-camo-lazy";
 import { ColorblindFilters } from "@/components/a11y/colorblind-filters";
-import { EyeDwell } from "@/components/a11y/eye-dwell";
-import { SwitchScan } from "@/components/a11y/switch-scan";
+import { EyeDwellLazy } from "@/components/a11y/eye-dwell-lazy";
+import { SwitchScanLazy } from "@/components/a11y/switch-scan-lazy";
 import { PerfBootstrap } from "@/components/perf/perf-bootstrap";
 import {
   CORE_KEYWORDS,
@@ -141,8 +141,8 @@ export default function RootLayout({
               <CachedSiteFooter />
             </Suspense>
           </div>
-          <GreenGuyCamo />
-          <UsaFireworks />
+          <GreenGuyCamoLazy />
+          <UsaFireworksLazy />
         </ThemeProvider>
         </SiteThemeProvider>
         <Suspense fallback={null}>
@@ -151,8 +151,12 @@ export default function RootLayout({
         <PerfBootstrap />
         <ColorblindFilters />
         <A11yProvider />
-        <EyeDwell />
-        <SwitchScan />
+        {/* Below-fold / conditional overlays load client-only in split chunks
+            (see *-lazy wrappers): EyeDwell + SwitchScan stay mounted globally
+            for AT users, fireworks/camo only for their themes. GoogleAnalytics
+            stays consent-gated behind Suspense (gold standard). */}
+        <EyeDwellLazy />
+        <SwitchScanLazy />
         <Analytics />
         <CookieBanner />
       </body>

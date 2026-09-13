@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 function isClanSlug(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

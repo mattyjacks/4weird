@@ -3,7 +3,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clampLimit, clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/it/apps?category=&q= — public approved-app catalog, no auth.
 // Abuse hardening: per-IP throttle (60 GET/min), bounded + control-char

@@ -6,7 +6,6 @@ import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/clans/post/[id]/vote {value: 1|-1|0}; member-only, free.
 // Repeating the same value clears the vote (toggle); 0 clears explicitly.

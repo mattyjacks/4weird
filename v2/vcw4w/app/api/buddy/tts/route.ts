@@ -8,7 +8,6 @@ import { rpcStatus } from "@/lib/agent-market";
 import { cleanBuddyVoice, cleanBuddySpeed, formatBuddyCost, isBuddyModel, quoteBuddyTtsLeg } from "@/lib/game-ai";
 import { falConfigured, modelForOp, quoteFal } from "@/lib/fal";
 
-export const dynamic = "force-dynamic";
 
 function cleanText(value: unknown): string {
   return String(value ?? "").slice(0, 2000);

@@ -17,7 +17,15 @@ export default function Page() {
       title="Writing Tools"
       blurb="Name your game and sell it: a rerollable title generator plus a pitch builder that turns your hook into store-ready copy."
     >
-      <WritingTools />
+      <Suspense
+        fallback={
+          <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+            Loading writing tools…
+          </p>
+        }
+      >
+        <WritingTools />
+      </Suspense>
     </ToolShell>
   );
 }

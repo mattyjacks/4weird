@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
+import { cacheLife } from "next/cache";
 import {
   BUSINESS_APPS,
   BUSINESS_BLURB,
@@ -12,6 +14,32 @@ export const metadata: Metadata = {
   title: "Business & Teams",
   description: `${BUSINESS_NAME} - ${BUSINESS_TAGLINE} ${BUSINESS_BLURB}`,
 };
+
+// Fully static app catalog grid from lib/business ('days' profile).
+async function CachedBusinessApps() {
+  'use cache';
+  cacheLife('days');
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {BUSINESS_APPS.map((app) => (
+        <Link
+          key={app.label}
+          href={app.href}
+          className="group rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-xl hover:shadow-amber-500/10"
+        >
+          <p className="text-3xl transition group-hover:scale-110" aria-hidden="true">
+            {app.emoji}
+          </p>
+          <h2 className="mt-3 text-lg font-bold">{app.label}</h2>
+          <p className="mt-2 text-sm text-slate-300">{app.blurb}</p>
+          <p className="mt-3 font-mono text-xs font-bold text-amber-300">
+            {app.href} →
+          </p>
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 export default function BusinessPage() {
   return (
@@ -57,24 +85,9 @@ export default function BusinessPage() {
 
       {/* App grid */}
       <section className="mx-auto max-w-5xl px-5 pb-14" aria-label="Business apps">
-        <div className="grid gap-4 sm:grid-cols-2">
-          {BUSINESS_APPS.map((app) => (
-            <Link
-              key={app.label}
-              href={app.href}
-              className="group rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-xl hover:shadow-amber-500/10"
-            >
-              <p className="text-3xl transition group-hover:scale-110" aria-hidden="true">
-                {app.emoji}
-              </p>
-              <h2 className="mt-3 text-lg font-bold">{app.label}</h2>
-              <p className="mt-2 text-sm text-slate-300">{app.blurb}</p>
-              <p className="mt-3 font-mono text-xs font-bold text-amber-300">
-                {app.href} →
-              </p>
-            </Link>
-          ))}
-        </div>
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading apps…</p>}>
+          <CachedBusinessApps />
+        </Suspense>
         <p className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
           <Link href="/squads" className="text-amber-300 hover:underline">
             Squads →

@@ -11,7 +11,6 @@ import {
   isBlenderFilename,
 } from "@/lib/blender-render";
 
-export const dynamic = "force-dynamic";
 
 type BlenderRow = {
   id: string;

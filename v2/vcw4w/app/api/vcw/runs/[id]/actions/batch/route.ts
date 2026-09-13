@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { cleanBatchSteps, describeFalStep, isRunUuid } from "@/lib/vcw-runs";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vcw/runs/[id]/actions/batch; append 1-20 observe→reason→act

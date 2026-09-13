@@ -10,7 +10,6 @@ import { sameOriginOrBotKey } from "@/lib/csrf-bot";
 import { rateLimit } from "@/lib/rate-limit";
 import { bodyByteSize, clampLimit, clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 // Demo-safe: no auth, no persistence. GET serves sample rows;
 // POST validates and echoes back the built event (nothing stored).

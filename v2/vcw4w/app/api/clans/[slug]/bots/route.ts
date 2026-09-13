@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isBotUsername } from "@/lib/bot-validate";
 import { botDeploysAllowed } from "@/lib/clan-types";
 
-export const dynamic = "force-dynamic";
 
 function isClanSlug(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

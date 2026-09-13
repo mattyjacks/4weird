@@ -7,7 +7,6 @@ import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/b
 import { cleanDisplayName, cleanHandle, jsonBytes } from "@/lib/validate";
 import { isAgeBand } from "@/lib/family";
 
-export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 8192;
 

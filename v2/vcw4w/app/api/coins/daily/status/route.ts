@@ -3,7 +3,6 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 
-export const dynamic = "force-dynamic";
 
 function utcDateString(d: Date): string {
   return d.toISOString().slice(0, 10);

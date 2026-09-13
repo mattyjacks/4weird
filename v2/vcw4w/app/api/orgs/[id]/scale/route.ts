@@ -5,14 +5,8 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
-function idFrom(url: string): string {
-  const parts = new URL(url).pathname.split("/").filter(Boolean);
-  // /api/orgs/[id]/scale → the segment before "scale".
-  const i = parts.lastIndexOf("scale");
-  return parts[i - 1] ?? "";
-}
+type Ctx = { params: Promise<{ id: string }> };
 
 function statusOf(message: string): number {
   if (/forbidden|only the org creator/i.test(message)) return 403;
@@ -30,12 +24,12 @@ function isUuid(v: unknown): boolean {
  * GET /api/orgs/[id]/scale - member count, effective cap (10k + headroom,
  * or purchased seats on self-hosted servers), prune settings. Members only.
  */
-export async function GET(req: Request) {
+export async function GET(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
-  const orgId = idFrom(req.url);
+  const orgId = (await params).id;
   if (!isUuid(orgId)) return fail("Invalid org.", 400);
   const { data: scale, error } = await supabase.rpc("org_scale_status", { p_org: orgId });
   if (error) return rpcFail("api/orgs/scale", error, statusOf, "Unable to load scale status.");
@@ -49,14 +43,14 @@ export async function GET(req: Request) {
  *   (dry_run previews victims in strategy order without deleting).
  * { action: "headroom", slots } - prepay cloud compute: 10 coins/100 slots.
  */
-export async function POST(req: Request) {
+export async function POST(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
-  const orgId = idFrom(req.url);
+  const orgId = (await params).id;
   if (!isUuid(orgId)) return fail("Invalid org.", 400);
   const throttle = rateLimit(`org-scale:${u.id}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);

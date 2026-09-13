@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { runpodApiBase, runpodConfigured } from "@/lib/runpod";
 
-export const dynamic = "force-dynamic";
 
 const UPSTREAM_TIMEOUT_MS = 15_000;
 // Execution plane for serverless jobs (management plane lists endpoints,

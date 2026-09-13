@@ -1,20 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
-import { hasEnvVars } from "@/lib/utils";
-import { UsageClient } from "./usage-client";
-
-export const metadata: Metadata = {
-  title: "My Compute Usage",
-  description:
-    "Every Vibe Coin of compute in one place: Gaming Buddy sessions, game AI, agent rentals, UnitUnite workspaces, and function runs; with the 25% cut shown, never hidden.",
-  robots: { index: false, follow: false },
-};
-
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { hasEnvVars } from "@/lib/utils";
@@ -27,7 +13,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export const dynamic = "force-dynamic";
 
 // NOTE: no 'use cache' here — per-user session + ledger reads stream in
 // Suspense so personal spend data is never cached.

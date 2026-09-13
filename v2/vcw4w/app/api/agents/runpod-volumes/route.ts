@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { listNetworkVolumes, runpodConfigured } from "@/lib/runpod";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/agents/runpod-volumes; list REAL network volumes owned by the
 // RUNPOD_API_KEY account (GET /v2/network-volumes). Login required.

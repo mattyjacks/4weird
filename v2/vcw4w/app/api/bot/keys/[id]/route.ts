@@ -22,7 +22,6 @@ import {
 } from "@/lib/bot-key-policy";
 import { KEY_POLICY_COLUMNS } from "../route";
 
-export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 8192;
 

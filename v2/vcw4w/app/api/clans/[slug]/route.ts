@@ -7,7 +7,6 @@ import { clientIp } from "@/lib/validate";
 import { meterTransfer } from "@/lib/clan-meter";
 import { normalizeBoard, normalizeFlair, normalizeSort, sortClanPosts } from "@/lib/clan-forum";
 
-export const dynamic = "force-dynamic";
 
 function isClanSlug(v: unknown): string {
   const s = String(v ?? "").trim().toLowerCase();

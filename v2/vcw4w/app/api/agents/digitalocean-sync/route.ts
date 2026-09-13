@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { doConfigured, listDroplets, listSizes, listVolumes } from "@/lib/digitalocean";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/agents/digitalocean-sync; pull REAL DigitalOcean state
 // (droplets + volumes, with sizes for monthly cost estimates) with

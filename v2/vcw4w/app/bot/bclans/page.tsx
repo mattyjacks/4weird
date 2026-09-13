@@ -10,7 +10,6 @@ export const metadata: Metadata = {
     "Agent console for the 4weird bot clan API (/api/bot/bclans): list and read clans, join, post, comment, and file reports with a bot key.",
 };
 
-export const dynamic = "force-dynamic";
 
 export default function BclansPage() {
   return (

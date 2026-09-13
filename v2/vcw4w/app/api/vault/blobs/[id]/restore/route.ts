@@ -6,7 +6,6 @@ import { botTesterBlocked, isBotTester, keyHasScope, resolveBotKey } from "@/lib
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vault/blobs/[id]/restore; pull a trashed file back to live.

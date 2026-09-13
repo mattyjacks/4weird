@@ -56,4 +56,25 @@ if (!signupRoute.includes("3 of: lowercase, UPPERCASE, digits, symbols")) throw 
 for (const [name, src] of [["sign-up", signup], ["update-password", update]]) {
   if (!src.includes("lowercase, UPPERCASE, digits, symbols")) throw new Error(`${name} form must state the password rule upfront.`);
 }
+// A02 (Next 16 proxy gate, steward-owned): proxy.ts is the middleware
+// successor — Node runtime by default, minimal allowlist matcher, light
+// direct imports. Per node_modules/next/dist/docs/.../file-conventions/proxy.md:
+// Proxy defaults to Node.js; matcher values must be static constants; without
+// a matcher Proxy runs on EVERY request (incl. _next/static), so the matcher
+// stays a minimal allowlist and static/game/swarm-md traffic skips it by omission.
+const proxyTs = read("../proxy.ts");
+if (!/export\s+(async\s+)?function\s+proxy\b/.test(proxyTs) && !/export\s+default\s+function/.test(proxyTs)) throw new Error("proxy.ts must export a `proxy` function (Next 16 middleware-successor convention).");
+if (/export\s+(async\s+)?function\s+middleware\b/.test(proxyTs)) throw new Error("proxy.ts must not export legacy `middleware` (renamed to `proxy` in Next 16).");
+if (/runtime\s*=\s*['"]edge['"]/.test(proxyTs)) throw new Error("proxy.ts must stay on the Node.js runtime (no `runtime = 'edge'`).");
+for (const token of ['"/account/:path*"', '"/auth/:path*"', '"/api/:path*"', '"/bot/:path*"']) {
+  if (!proxyTs.includes(token)) throw new Error(`proxy.ts matcher must include ${token} (minimal allowlist).`);
+}
+if (proxyTs.includes("_next/static") || proxyTs.includes('"/:path*"') || /matcher\s*:\s*\[\s*["']\/\(\.\*\)["']/.test(proxyTs)) throw new Error("proxy.ts matcher must stay minimal (no _next/static catch-all, no global /:path*).");
+for (const heavy of ["tailwind-merge", "clsx", "@supabase/supabase-js", "service_role", "serviceRole"]) {
+  if (proxyTs.includes(heavy)) throw new Error(`proxy.ts must not directly import heavy dep ${heavy} (keep the proxy bundle light).`);
+}
+// Background work must never block the response: proxy.ts carries no floating
+// fetch today; when logging/metrics land they MUST go through
+// event.waitUntil()/after() (after.md: usable in Proxy). Tracked in QUEUE A02.
+if (/fetch\s*\(/.test(proxyTs) && !proxyTs.includes("waitUntil") && !proxyTs.includes("after(")) throw new Error("proxy.ts background fetch must use event.waitUntil()/after().");
 console.log("Auth route integrity OK.");

@@ -16,7 +16,6 @@ import {
 } from "@/lib/vcw-gateway";
 import { decideRoute, redactSecrets } from "@/lib/vcw-byok";
 
-export const dynamic = "force-dynamic";
 
 const COMPUTES = ["cpu", "gpu", "gpu-boosted"] as const;
 const MODES = ["hosted", "byok"] as const;

@@ -6,7 +6,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { gameSlugs } from "@/content/games";
 import { cleanGameSlug, isRunUuid, isVcwSeverity } from "@/lib/vcw-runs";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/bugs; list the caller's bug reports (authenticated).

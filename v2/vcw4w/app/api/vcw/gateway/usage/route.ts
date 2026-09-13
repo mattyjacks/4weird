@@ -3,7 +3,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { resolveVcwCaller } from "@/lib/vcw-gateway-auth";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/gateway/usage; latest gateway usage rows for the caller.

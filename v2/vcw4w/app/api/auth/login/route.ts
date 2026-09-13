@@ -9,7 +9,6 @@ import { clientIp, isEmail, isLoginPassword } from "@/lib/validate";
 import { cookies } from "next/headers";
 import { BOT_TESTER_COOKIE, FULL_LOGIN_COOKIE, signFullLogin } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
 // Consecutive-failure tracker: BotID only engages after 5 failed password
 // inputs in a row for the same account (or IP when the email shape is

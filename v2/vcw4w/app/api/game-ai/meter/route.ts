@@ -8,7 +8,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/game-ai/meter; meter game AI compute (dialogue bot, AI

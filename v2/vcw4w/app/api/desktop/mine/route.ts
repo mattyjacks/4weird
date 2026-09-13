@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { getPodLive } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 
 // Full column set, including the idle-lifecycle columns
 // (last_activity_at, warn_*, terminate_hours, image) added by a later

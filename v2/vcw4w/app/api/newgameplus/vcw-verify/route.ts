@@ -6,7 +6,6 @@ import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
 type VerifyCheck = { id?: unknown; label?: unknown; passed?: unknown; detail?: unknown };
 type VerifyFinding = { severity?: unknown; title?: unknown; description?: unknown };

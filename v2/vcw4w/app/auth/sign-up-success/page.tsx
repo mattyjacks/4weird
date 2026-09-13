@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   Card,
   CardContent,
@@ -6,6 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Sign-up successful",
+  description: "Your 4weird Games account is ready. Continue to login to start playing.",
+  alternates: { canonical: "/auth/sign-up-success" },
+};
 
 export default function Page() {
   return (

@@ -4,7 +4,6 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rpcStatus } from "@/lib/agent-market";
 
-export const dynamic = "force-dynamic";
 
 function isUuid(v: unknown): string {
   const s = String(v ?? "");

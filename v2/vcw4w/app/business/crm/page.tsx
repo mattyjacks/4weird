@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { CrmWorkspace } from "@/components/crm/crm-workspace";
 
 export const metadata: Metadata = {
@@ -18,7 +19,17 @@ export default function CrmPage() {
           gated per org, defensive when the API is still deploying.
         </p>
         <div className="mt-10">
-          <CrmWorkspace />
+          {/* Per-org workspace: never cached. Static header streams in the
+              shell; pipeline/contacts/activities resolve at request time. */}
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading your CRM workspace…
+              </p>
+            }
+          >
+            <CrmWorkspace />
+          </Suspense>
         </div>
       </section>
     </main>

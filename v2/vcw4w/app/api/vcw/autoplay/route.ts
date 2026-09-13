@@ -3,6 +3,7 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { gameSlugs } from "@/content/games";
 import {
@@ -17,7 +18,6 @@ import {
 import { getPodIdlePolicy, describePodIdlePolicy } from "@/lib/pod-idle";
 import { provisionAutoplayWorker } from "@/lib/compute";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vcw/autoplay; start a VibeCodeWorker autoplay remote.
@@ -183,7 +183,11 @@ export async function POST(req: Request) {
 }
 
 /** GET describes the rules without provisioning (login not required). */
-export async function GET() {
+export async function GET(req: Request) {
+  // Public descriptor (no session, never provisions): throttle per IP so
+  // rule polling cannot fan out. Still force-dynamic + no-store.
+  const rl = rateLimit(`vcw:autoplay:rules:${clientIp(req)}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   const idlePolicy = getPodIdlePolicy();
   return ok({
     computes: ["cpu", "gpu", "gpu-boosted"],

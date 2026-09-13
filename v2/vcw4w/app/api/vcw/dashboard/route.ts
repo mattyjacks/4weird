@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { gameSlugs } from "@/content/games";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/dashboard; consolidated agent view (authenticated).

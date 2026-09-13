@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { InvoiceManager } from "@/components/crm/invoice-manager";
 
 export const metadata: Metadata = {
@@ -34,7 +35,17 @@ export default function InvoicesPage() {
           .
         </p>
         <div className="mt-10">
-          <InvoiceManager />
+          {/* Per-user board: never cached. The static header above streams in
+              the shell; the invoice list resolves at request time. */}
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading your invoices…
+              </p>
+            }
+          >
+            <InvoiceManager />
+          </Suspense>
         </div>
       </section>
     </main>

@@ -22,7 +22,6 @@ import {
   type LoggingMode,
 } from "@/lib/bot-key-policy";
 
-export const dynamic = "force-dynamic";
 
 const maxRequestBytes = 8192;
 const MAX_ACTIVE_KEYS = 10;

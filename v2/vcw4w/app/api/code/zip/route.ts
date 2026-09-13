@@ -20,7 +20,6 @@ import {
 } from "@/lib/zip-submit";
 import { extractTextSamples } from "@/lib/server/zip-extract";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/code/zip; multipart { file (.zip), title?, game_root? }.

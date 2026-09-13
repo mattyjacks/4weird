@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { fetchRunpodBilling, type RunpodBillingKind } from "@/lib/runpod";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/agents/runpod-sync { days?: 1..31 }; pull REAL RunPod billing
 // history (pods + serverless endpoints + network volumes) with RUNPOD_API_KEY

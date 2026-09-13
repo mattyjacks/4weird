@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clampLimit, isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 const KINDS = new Set([
   "join", "leave", "kill", "boss", "loot", "chat", "emote", "win", "seed",

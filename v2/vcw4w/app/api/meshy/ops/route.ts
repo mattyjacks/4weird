@@ -1,7 +1,6 @@
 import { ok } from "@/lib/api-respond";
 import { MESHY_CUT_NOTE, MESHY_OPS, meshyConfigured } from "@/lib/meshy";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/meshy/ops; public catalog + configured flag (never the key).
 export async function GET() {

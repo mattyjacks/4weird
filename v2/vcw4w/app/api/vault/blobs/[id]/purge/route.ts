@@ -7,7 +7,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { VAULT_BUCKET } from "@/lib/blob-vault";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/vault/blobs/[id]/purge; permanently delete a TRASHED file.

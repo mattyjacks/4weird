@@ -7,7 +7,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
-export const dynamic = "force-dynamic";
 
 /**
  * Daily login bonus: 5 coins + 1 per consecutive UTC day, capped at 12.

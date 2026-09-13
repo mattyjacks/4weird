@@ -13,7 +13,6 @@ export const metadata: Metadata = {
     "Your RunPod control pane: rent CPU/GPU desktops or custom container images, test 4weird games on remote Kasm remotes, and manage every pod you created - stop, start, restart, terminate - with idle auto-stop. Only your pods, always.",
 };
 
-export const dynamic = "force-dynamic";
 
 /**
  * Static product copy for the desktop control pane: web-app testing guide,

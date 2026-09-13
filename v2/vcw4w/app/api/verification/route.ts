@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/verification; my verified status + pending request.
 export async function GET() {

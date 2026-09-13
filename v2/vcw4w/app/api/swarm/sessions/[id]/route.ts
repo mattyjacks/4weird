@@ -3,7 +3,6 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /** GET /api/swarm/sessions/[id]; swarm config + recent messages + children. */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {

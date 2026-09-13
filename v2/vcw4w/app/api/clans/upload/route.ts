@@ -6,7 +6,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 const MAX_BYTES = 1_048_576; // 1MB AFTER any client-side conversion.
 

@@ -3,7 +3,6 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/me/activity — the caller's own per-account audit log (age-band
 // changes first), newest first, capped at 100. Login required; the RLS

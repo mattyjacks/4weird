@@ -17,7 +17,6 @@ import { provisionDesktopWorker, getLiveCheapestQuotes } from "@/lib/compute";
 import { runpodConfigured } from "@/lib/runpod";
 import { getPodIdlePolicy, describePodIdlePolicy, validatePodPolicyInput } from "@/lib/pod-idle";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/desktop/provision; public plan catalog (no auth, no billing).

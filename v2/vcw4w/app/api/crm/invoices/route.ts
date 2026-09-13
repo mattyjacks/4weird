@@ -4,7 +4,6 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 // Compliance: invoices here are org memoranda for internal coin accounting
 // only (100 coins = $1.00). They are NOT tax invoices, VAT/GST invoices,

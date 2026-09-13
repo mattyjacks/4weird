@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /**
  * DELETE /api/vcw/gateway/providers/[id]; remove one BYOK ref.

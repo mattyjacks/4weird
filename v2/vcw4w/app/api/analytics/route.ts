@@ -2,7 +2,6 @@ import { hasServerSupabase, supabaseAnonKey, supabaseUrl } from "@/lib/supabase/
 import { createClient as createJsClient } from "@supabase/supabase-js";
 import { fail, ok } from "@/lib/api-respond";
 
-export const dynamic = "force-dynamic";
 
 export async function GET() {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

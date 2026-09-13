@@ -2392,7 +2392,7 @@ export function CrmWorkspace() {
                         aria-label={`Open ${c.name} details`}
                         className="flex min-w-0 flex-1 flex-wrap items-center gap-3 py-2 text-left text-sm"
                       >
-                        {fav ? <img src={fav} alt="" width={16} height={16} loading="lazy" className="h-4 w-4 rounded-sm" /> : null}
+                        {fav ? <img src={fav} alt="" width={16} height={16} loading="lazy" decoding="async" className="h-4 w-4 rounded-sm" /> : null}
                         <span className="font-semibold text-white">{c.name}</span>
                         <span className="text-slate-400">{c.domain ?? "no domain"}</span>
                         {c.industry ? <span className="rounded-full border border-white/15 px-2 py-0.5 text-xs text-slate-300">{c.industry}</span> : null}
@@ -2428,7 +2428,7 @@ export function CrmWorkspace() {
           {selectedCompany && selectedStats && (
             <div className="rounded-xl border border-cyan-300/20 bg-black/30 p-4" aria-label={`Company 360 for ${selectedCompany.name}`}>
               <div className="flex flex-wrap items-center gap-3">
-                {faviconFor(selectedCompany) ? <img src={faviconFor(selectedCompany)} alt="" width={32} height={32} loading="lazy" className="h-8 w-8 rounded-md" /> : null}
+                {faviconFor(selectedCompany) ? <img src={faviconFor(selectedCompany)} alt="" width={32} height={32} loading="lazy" decoding="async" className="h-8 w-8 rounded-md" /> : null}
                 <div>
                   <h3 className="text-lg font-bold text-white">{selectedCompany.name}</h3>
                   <p className="text-xs text-slate-400">

@@ -7,7 +7,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 import { NGP_PLAYTEST_SOURCE_MAX, ngpPlaytestConfigured, submitNgpPlaytest } from "@/lib/ngp-playtest";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/newgameplus/playtest-remote { submission_id }

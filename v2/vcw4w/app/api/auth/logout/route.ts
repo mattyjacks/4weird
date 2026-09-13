@@ -7,7 +7,6 @@ import { cookies } from "next/headers";
 import { BOT_TESTER_COOKIE, FULL_LOGIN_COOKIE } from "@/lib/bot-auth";
 import { clearKidSessionCookie } from "@/lib/kid-session";
 
-export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);

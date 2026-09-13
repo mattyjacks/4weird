@@ -3,6 +3,35 @@ import { withBotId } from "botid/next/config";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Explicit production defaults: gzip/brotli on Vercel's edge (default true,
+  // stated so a future edit can't silently drop it).
+  compress: true,
+  // Self-host/Docker path: emits .next/standalone + minimal server.js.
+  // Neutral on Vercel (its builder uses the standard .next output), required
+  // for `docker run` deploys. NOTE: standalone's server.js does NOT serve
+  // public/ — copy public/ + .next/static into the image (this app serves
+  // /games, /swarm, /workers from public/).
+  output: "standalone",
+  // Statically typed links (stable in Next 16, was experimental.typedRoutes).
+  // Route types generate into .next/types (already in tsconfig include).
+  // KNOWN GAP 2026-09-13: tsc shows ~60 strict-href errors (dynamic `string`
+  // hrefs + trailing-slash literals). Dedicated href-normalization pass queued;
+  // see public/swarm/QUEUE.md. Flag stays true (optimal target) until that pass.
+  typedRoutes: true,
+  // No remote images: the only next/image usage (ScreenTracker snapshot
+  // preview) renders blob/data URLs with `unoptimized`. Empty allowlist
+  // documents that AND fails closed if a remote <Image> is ever added
+  // without an explicit remotePatterns entry.
+  images: {
+    remotePatterns: [],
+  },
+  // Dev-only fetch logging with full URLs (never emitted in production
+  // builds; safe for secrets-free request lines during local dev).
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
   // Cache Components (Next 16.3): component/function-level caching via the
   // `use cache` directive + PPR shell streaming. Top-level key per
   // node_modules/next/dist/docs/.../05-config/01-next-config-js/cacheComponents.md

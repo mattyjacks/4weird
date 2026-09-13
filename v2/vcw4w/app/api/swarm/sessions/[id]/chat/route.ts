@@ -37,7 +37,6 @@ import {
   type SwarmBrain,
 } from "@/lib/swarm-brain";
 
-export const dynamic = "force-dynamic";
 
 type SwarmRow = {
   id: string;

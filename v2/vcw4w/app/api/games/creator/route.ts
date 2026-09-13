@@ -5,7 +5,6 @@ import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
 import { houseCreatorUserId } from "@/lib/support";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/games/creator?game_slug=<slug>; who to tip for a game.

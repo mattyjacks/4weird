@@ -62,4 +62,21 @@ must(buddy.includes("screenCache") || buddy.includes("document.hidden"), "gaming
 const ships = read("components/spaceships/spaceship-runtime.tsx");
 must(ships.includes("document.hidden"), "spaceship-runtime must skip readiness polls when hidden");
 
+// 7. A02 (Next 16 instrumentation-client + Turbopack gate, steward-owned).
+// instrumentation-client.ts is the Next 16 client bootstrap (runs before
+// hydration; keep it synchronous + lightweight per instrumentation-client.md).
+const instrumentation = read("instrumentation-client.ts");
+must(instrumentation.length > 0, "instrumentation-client.ts must exist (Next 16 client bootstrap).");
+// Turbopack is the Next 16 DEFAULT bundler (turbopack.md): `next dev` /
+// `next build` need no --turbo flag (removed), --webpack opts OUT. So the
+// repo must carry no webpack-only config and scripts stay flag-free.
+must(!nextConfig.includes("webpack(") && !nextConfig.includes("config.webpack"), "next.config.ts must not carry webpack() config (Turbopack is the Next 16 default)");
+const pkg = read("package.json");
+must(pkg.includes('"dev": "next dev"'), 'package.json dev script must be bare `next dev` (Turbopack default, no --turbo flag in Next 16)');
+must(pkg.includes('"build": "next build"'), 'package.json build script must be bare `next build` (Turbopack default)');
+must(!pkg.includes("--turbo"), "package.json must not use the removed --turbo flag (Next 16 defaults to Turbopack)");
+// Web Vitals/perf bootstrap inside instrumentation-client.ts (onRouterTransitionStart
+// / performance marks) is tracked as a QUEUE A02 wiring request to infra;
+// the PerfBootstrap layout mount above stays the enforced perf invariant.
+
 console.log("Perf checks OK: workers + GPU layer + component fan-out.");

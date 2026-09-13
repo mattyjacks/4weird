@@ -4,7 +4,6 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 // GET /api/projects/:id/issues - Issues tab list (RLS needs project.issues.view).
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {

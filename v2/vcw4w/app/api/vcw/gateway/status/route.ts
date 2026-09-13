@@ -2,7 +2,6 @@ import { dbFail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 
-export const dynamic = "force-dynamic";
 
 /**
  * GET /api/vcw/gateway/status; public Hybrid gateway descriptor.

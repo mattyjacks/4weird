@@ -6,7 +6,6 @@ import { clientIp, isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 import { globalBucket, ipBucketKey, throttleHeaders } from "@/lib/abuse-limit";
 
-export const dynamic = "force-dynamic";
 
 // POST /api/clans/report; anonymous allowed, strict rate limit.
 // { target_type: post|comment|image, target_id: uuid, category: csam|other, details? }

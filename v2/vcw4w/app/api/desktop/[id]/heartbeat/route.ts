@@ -5,7 +5,6 @@ import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
 import { rateLimit } from "@/lib/rate-limit";
 
-export const dynamic = "force-dynamic";
 
 /**
  * POST /api/desktop/[id]/heartbeat - the browser watchdog reports input
