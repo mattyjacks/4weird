@@ -123,9 +123,22 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="flex min-h-screen flex-col bg-background text-foreground">
-            <DailyBonusBanner />
-            <SiteHeader />
-            <MenuSidebar />
+            {/* usePathname() chrome streams after the PPR shell prerenders:
+                without Suspense every dynamic route fails prerender with
+                CLIENT_HOOK_DYNAMIC. Fallbacks are static shells (no hooks). */}
+            <Suspense fallback={null}>
+              <DailyBonusBanner />
+            </Suspense>
+            <Suspense
+              fallback={
+                <header aria-hidden="true" className="border-b py-4" />
+              }
+            >
+              <SiteHeader />
+            </Suspense>
+            <Suspense fallback={null}>
+              <MenuSidebar />
+            </Suspense>
             <div id="main-content" className="flex-1">
               {children}
             </div>

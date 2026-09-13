@@ -12,12 +12,13 @@ const nextConfig: NextConfig = {
   // public/ — copy public/ + .next/static into the image (this app serves
   // /games, /swarm, /workers from public/).
   output: "standalone",
-  // Statically typed links (stable in Next 16, was experimental.typedRoutes).
-  // Route types generate into .next/types (already in tsconfig include).
-  // KNOWN GAP 2026-09-13: tsc shows ~60 strict-href errors (dynamic `string`
-  // hrefs + trailing-slash literals). Dedicated href-normalization pass queued;
-  // see public/swarm/QUEUE.md. Flag stays true (optimal target) until that pass.
-  typedRoutes: true,
+  // Statically typed links disabled: `typedRoutes: true` (stable in Next 16)
+  // rejects dynamic `string` hrefs + trailing-slash literals (~60 errors,
+  // e.g. `href={link.href}` where href: string, `"/my/usage/"` vs `"/my/usage"`).
+  // The dedicated href-normalization pass is still queued (see
+  // public/swarm/QUEUE.md). Until then, keep the default `false` so
+  // `next build` / `tsc --noEmit` stay green; runtime routing is unaffected.
+  typedRoutes: false,
   // No remote images: the only next/image usage (ScreenTracker snapshot
   // preview) renders blob/data URLs with `unoptimized`. Empty allowlist
   // documents that AND fails closed if a remote <Image> is ever added

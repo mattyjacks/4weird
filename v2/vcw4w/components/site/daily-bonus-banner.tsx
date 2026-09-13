@@ -55,7 +55,9 @@ export function DailyBonusBanner() {
   const [claiming, setClaiming] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
-  const lastCheckedDayRef = useRef<string>(utcToday());
+  // Prerender-safe: never read the clock during render (Next 16 blocks
+  // `new Date()` in a Client Component prerender). Seeded empty, set on mount.
+  const lastCheckedDayRef = useRef<string>("");
   const inflightRef = useRef(false);
 
   const clearTimer = () => {
@@ -105,6 +107,7 @@ export function DailyBonusBanner() {
   }, []);
 
   useEffect(() => {
+    lastCheckedDayRef.current = utcToday();
     void check();
     const onClaimed = () => {
       setVisible(false);
