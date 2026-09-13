@@ -81,10 +81,10 @@ export default function Wave2ParityPage() {
         <p className="mt-4 max-w-3xl text-slate-300">
           Every Remastery Wave-2 route, graded against the desktop parity
           model: <strong>{PARITY_MODEL}</strong>. Wave-2 scope per the
-          remastery spec §7 — AI Infrastructure, MCP, Discord, &amp; P2P
-          Compute (@4weird/mcp package, Discord Bot, DebugPlay, DPS WebGPU
+          remastery spec §7 — AI Infrastructure, MCP, Chat Bot, &amp; P2P
+          Compute (@4weird/mcp package, Chat Bot, DebugPlay, DPS WebGPU
           Worker) — mapped onto the five route groups: DPS console, skills
-          API, MCP/Discord packages, DPS pricing API, Wave-2 docs, plus
+          API, MCP/chat-bot packages, DPS pricing API, Wave-2 docs, plus
           DebugPlay console + API rows.
         </p>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
@@ -99,7 +99,7 @@ export default function Wave2ParityPage() {
 
         <p className="mt-4 text-sm text-slate-400">
           Coverage: {WAVE2_PARITY_ROUTES.length} Wave-2 routes listed across
-          all groups — DPS console, DPS pricing API, MCP/Discord packages,
+          all groups — DPS console, DPS pricing API, MCP/chat-bot packages,
           skills API, DebugPlay, Wave-2 docs. Native upgrades, when they
           land, flip individual rows without changing this board&apos;s
           shape.

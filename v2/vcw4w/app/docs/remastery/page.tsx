@@ -19,7 +19,7 @@ const theme = {
 
 const WAVES: [string, string, string, string][] = [
   ["Wave 1", "Squads + invoicing + time", "SHIPPED IN THESE DOCS — squad workspaces, kanban sprints, time tracking, invoicing suite, notifications, 1-on-1 chat.", "🛠️"],
-  ["Wave 2", "AI infra + MCP + P2P", "PLANNED — @4weird/mcp package, Discord bot, DebugPlay visual QA, DPS WebGPU compute sharing.", "🤖"],
+  ["Wave 2", "AI infra + MCP + P2P", "PLANNED — @4weird/mcp package, chat bot, DebugPlay visual QA, DPS WebGPU compute sharing.", "🤖"],
   ["Wave 3", "Creative suite + NLE", "PLANNED — Media Mogul video timeline, DictatePic canvas, interop bus, .4weird container format.", "🎬"],
 ];
 

@@ -121,7 +121,7 @@ export function FavoritesPage() {
       <section aria-label="All pages you can favorite">
         <h2 className="flex items-center gap-1.5 text-lg font-black"><span aria-hidden="true">☆</span> Star a page · {directory.length}
           <InfoTip
-            text="Every internal page in the Menu sidebar can be starred. External links like GitHub can't. Use the filter to find pages fast."
+            text="Every internal page in the Menu sidebar can be starred. External links can't. Use the filter to find pages fast."
             label="About starring pages"
           />
         </h2>

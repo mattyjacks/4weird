@@ -111,7 +111,7 @@ def tool_change_framerate(ffmpeg: str, video_path: str, target_fps: int = 30, ou
 
 
 def tool_compress_video(ffmpeg: str, video_path: str, target_mb: float = 25.0, output_path: str = None) -> str:
-    """Compress video for sharing limits (Discord / email)."""
+    """Compress video for sharing limits (chat / email)."""
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video file not found: {video_path}")
     if not output_path:

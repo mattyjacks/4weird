@@ -3,10 +3,10 @@ import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
-  alternates: { canonical: "/docs/integrations/discord-bot" },
-  title: "Discord Bot Guide — Slash Commands & Token Setup",
+  alternates: { canonical: "/docs/integrations/chat-bot" },
+  title: "Chat Bot Guide — Slash Commands & Token Setup",
   description:
-    "Use the official 4weird Discord bot (discord.js v14): /leaderboard and /squad-status slash commands, plus env-only DISCORD_BOT_TOKEN setup for hosts.",
+    "Use the official 4weird chat bot (chat SDK v14): /leaderboard and /squad-status slash commands, plus env-only CHAT_BOT_TOKEN setup for hosts.",
 };
 
 const theme = {
@@ -16,13 +16,13 @@ const theme = {
   title: "bg-gradient-to-r from-indigo-300 via-sky-200 to-violet-300 bg-clip-text text-transparent",
 };
 
-export default function DiscordBotGuidePage() {
+export default function ChatBotGuidePage() {
   return (
     <article>
       <DocsHero
-        eyebrow="Docs · integrations discord"
-        title={<>Raids, leaderboards, <span className={theme.title}>right in Discord.</span></>}
-        lede={<>The official 4weird community bot (discord.js v14) brings clan raid coordination, arcade leaderboards, and squad sprint status to your server through slash commands. Members just type; only hosts ever touch a token — and only through environment.</>}
+        eyebrow="Docs · integrations chat"
+        title={<>Raids, leaderboards, <span className={theme.title}>right in chat.</span></>}
+        lede={<>The official 4weird community bot (chat SDK v14) brings clan raid coordination, arcade leaderboards, and squad sprint status to your server through slash commands. Members just type; only hosts ever touch a token — and only through environment.</>}
         stats={[
           ["/leaderboard", "top players"],
           ["/squad-status", "sprint progress"],
@@ -31,7 +31,7 @@ export default function DiscordBotGuidePage() {
         ]}
         glyph="💬"
         theme={theme}
-        crumb="Discord bot"
+        crumb="Chat bot"
         art={
           <div className="flex items-end gap-2" aria-hidden="true">
             {[44, 60, 38, 66, 52, 58, 70].map((h, i) => (
@@ -65,7 +65,7 @@ export default function DiscordBotGuidePage() {
         title="Two slash commands to learn"
         body="Every command is a guild slash command with typed options. Results render as a single reply — nothing is ever DM'd, nothing needs a follow-up command."
       />
-      <MockWindow title="discord — slash commands" badge="/ commands">
+      <MockWindow title="chat — slash commands" badge="/ commands">
         <div className="space-y-2 text-xs">
           <div className="rounded-lg bg-white/5 px-3 py-2">
             <p className="font-mono font-black text-indigo-300">/leaderboard game:&lt;slug&gt;</p>
@@ -89,17 +89,17 @@ export default function DiscordBotGuidePage() {
       <MockWindow title="host shell — token via environment" badge="server only">
         <pre className="overflow-x-auto font-mono text-xs leading-relaxed">
 {`# Set once in your host's secret / env management — never in code.
-export DISCORD_BOT_TOKEN="<paste-once-in-host-dashboard>"
+export CHAT_BOT_TOKEN="<paste-once-in-host-dashboard>"
 
 # The bot reads it at login and nothing else:
-# client.login(process.env.DISCORD_BOT_TOKEN);`}
+# client.login(process.env.CHAT_BOT_TOKEN);`}
         </pre>
       </MockWindow>
       <Callout tone="rose" title="Tokens never travel">
-        DISCORD_BOT_TOKEN lives in host environment configuration only. Never paste it into Discord chat, MCP configs, docs, logs, screenshots, or committed files. If a token leaks, rotate it in the Discord developer portal immediately.
+        CHAT_BOT_TOKEN lives in host environment configuration only. Never paste it into chat, MCP configs, docs, logs, screenshots, or committed files. If a token leaks, rotate it in the chat app portal immediately.
       </Callout>
 
-      <Pager current="/docs/integrations/discord-bot" />
+      <Pager current="/docs/integrations/chat-bot" />
     </article>
   );
 }

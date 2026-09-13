@@ -1,8 +1,8 @@
 /**
- * 4weird community / clan-raid Discord bot config + pure helpers.
+ * 4weird community / clan-raid chat bot config + pure helpers.
  * Remastery README Feature 19 (Wave 2).
  *
- * Pure schemas/builders only — no discord.js import, no network calls,
+ * Pure schemas/builders only — no chat SDK import, no network calls,
  * no window, no tokens/secrets. Safe for server + client bundling.
  */
 
@@ -30,7 +30,7 @@ const SLASH_NAME_RE = /^[\w-]{1,32}$/;
 const ALLOWED_OPTION_TYPES = new Set(["string", "integer", "boolean", "user", "channel"]);
 
 /**
- * Validate a slash command against Discord constraints.
+ * Validate a slash command against chat platform constraints.
  * Returns a list of human-readable error strings (empty = valid).
  */
 export function validateSlashCommand(cmd: SlashCommandSchema): string[] {

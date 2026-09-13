@@ -1,6 +1,7 @@
 import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
+  SlashCommandStringOption,
 } from "discord.js";
 
 /**
@@ -37,7 +38,7 @@ export function rankedSignups(guildId: string | null, raidId: string): string[] 
 export const raidSignupData = new SlashCommandBuilder()
   .setName("raid-signup")
   .setDescription("Sign up for a clan raid (STUB: in-memory, lost on restart)")
-  .addStringOption((opt) =>
+  .addStringOption((opt: SlashCommandStringOption) =>
     opt.setName("raid").setDescription("Raid id or name").setRequired(true),
   );
 

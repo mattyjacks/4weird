@@ -1796,10 +1796,10 @@ run().catch(console.error);
 
 ---
 
-## 4.6 Feature 19: Official 4weird Community & Clan Raid Discord Bot
+## 4.6 Feature 19: Official 4weird Community & Clan Raid Chat Bot
 
 ### Architectural Blueprint
-A Discord.js v14 bot providing slash commands for Clan raid coordination, arcade leaderboards, and squad task notifications.
+A chat SDK v14 bot providing slash commands for Clan raid coordination, arcade leaderboards, and squad task notifications.
 
 ```typescript
 import { Client, GatewayIntentBits, SlashCommandBuilder } from "discord.js";
@@ -1833,7 +1833,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-client.login(process.env.DISCORD_BOT_TOKEN);
+client.login(process.env.CHAT_BOT_TOKEN);
 ```
 
 ---

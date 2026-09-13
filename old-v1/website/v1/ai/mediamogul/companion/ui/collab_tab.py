@@ -120,7 +120,7 @@ def setup_collab_tab(parent_frame, app):
     c2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=3)
 
     tk.Label(c2, text="📦 Lightweight Collab (.zip)", font=("Segoe UI", 10, "bold"), fg="#34d399", bg="#1e293b").pack(anchor=tk.W)
-    tk.Label(c2, text="Packs .mlt projects, .srt, transcripts & system links (file:///). ZERO heavy videos/images. Instant Discord/Slack share!", font=("Segoe UI", 8), fg="#cbd5e1", bg="#1e293b", justify=tk.LEFT, wraplength=180).pack(anchor=tk.W, pady=(4, 8))
+    tk.Label(c2, text="Packs .mlt projects, .srt, transcripts & system links (file:///). ZERO heavy videos/images. Instant chat share!", font=("Segoe UI", 8), fg="#cbd5e1", bg="#1e293b", justify=tk.LEFT, wraplength=180).pack(anchor=tk.W, pady=(4, 8))
     tk.Button(c2, text="Export Lightweight Pack", font=("Segoe UI", 9, "bold"), bg="#059669", fg="#ffffff", relief=tk.FLAT, command=export_lightweight_pack).pack(fill=tk.X)
 
     # Card 3: Master Turnkey Archive

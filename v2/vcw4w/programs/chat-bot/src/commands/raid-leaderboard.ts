@@ -1,6 +1,7 @@
 import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
+  SlashCommandStringOption,
 } from "discord.js";
 import { rankedSignups } from "./raid-signup.js";
 
@@ -12,7 +13,7 @@ import { rankedSignups } from "./raid-signup.js";
 export const raidLeaderboardData = new SlashCommandBuilder()
   .setName("raid-leaderboard")
   .setDescription("Show the raid signup leaderboard (STUB: in-memory only)")
-  .addStringOption((opt) =>
+  .addStringOption((opt: SlashCommandStringOption) =>
     opt.setName("raid").setDescription("Raid id or name").setRequired(true),
   );
 

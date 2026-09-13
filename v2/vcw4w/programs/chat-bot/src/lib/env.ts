@@ -14,12 +14,12 @@ function cleanOptional(value: string | undefined): string | null {
 export function loadBotConfig(
   env: Record<string, string | undefined> = process.env,
 ): BotConfig {
-  const token = env["DISCORD_TOKEN"];
+  const token = env["CHAT_TOKEN"];
   const nodeEnv = cleanOptional(env["NODE_ENV"]);
   return {
     tokenPresent: typeof token === "string" && token.length > 0,
-    clientId: cleanOptional(env["DISCORD_CLIENT_ID"]),
-    guildId: cleanOptional(env["DISCORD_GUILD_ID"]),
+    clientId: cleanOptional(env["CHAT_CLIENT_ID"]),
+    guildId: cleanOptional(env["CHAT_GUILD_ID"]),
     nodeEnv: nodeEnv ?? "development",
   };
 }
@@ -27,10 +27,10 @@ export function loadBotConfig(
 export function validateBotConfig(cfg: BotConfig): string[] {
   const errors: string[] = [];
   if (!cfg.tokenPresent) {
-    errors.push("missing required env DISCORD_TOKEN");
+    errors.push("missing required env CHAT_TOKEN");
   }
   if (cfg.clientId === null) {
-    errors.push("missing required env DISCORD_CLIENT_ID");
+    errors.push("missing required env CHAT_CLIENT_ID");
   }
   return errors;
 }

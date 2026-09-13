@@ -17,6 +17,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
+  type CallToolRequest,
 } from "@modelcontextprotocol/sdk/types.js";
 
 export const MCP_SERVER_NAME = "@4weird/mcp" as const;
@@ -108,7 +109,7 @@ export function createServer(): Server {
     };
   });
 
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
     const { name, arguments: args } = request.params;
     const baseUrl = apiBaseUrl();
 

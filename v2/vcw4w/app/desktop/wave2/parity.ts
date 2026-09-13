@@ -1,9 +1,9 @@
 // DS-REMASTER-W2-DESKTOP — Remastery Wave-2 desktop parity board data.
 // NEW file only. No secrets. No Tauri/Rust surface.
 // Source of Wave-2 scope: v2/vcw4w/public/swarm/remastery/README.md §7
-// (WAVE 2: AI Infrastructure, MCP, Discord, & P2P Compute — @4weird/mcp
-// package, Discord Bot, DebugPlay, DPS WebGPU Worker) mapped onto the
-// envelope's five route groups (DPS console, skills API, MCP/Discord
+// (WAVE 2: AI Infrastructure, MCP, Chat Bot, & P2P Compute — @4weird/mcp
+// package, Chat Bot, DebugPlay, DPS WebGPU Worker) mapped onto the
+// envelope's five route groups (DPS console, skills API, MCP/chat-bot
 // packages, DPS pricing API, Wave-2 docs) plus DebugPlay rows.
 // Parity model: native-first + authenticated iframe/webview fallback
 // (per envelope goal; mirrors the Wave-1 board in ../remastery/parity.ts,
@@ -17,7 +17,7 @@ export interface ParityRoute {
   group:
     | "dps console"
     | "skills API"
-    | "mcp/discord packages"
+    | "mcp/chat-bot packages"
     | "dps pricing API"
     | "debug-play"
     | "wave-2 docs";
@@ -48,7 +48,7 @@ export const WAVE2_PARITY_ROUTES: ParityRoute[] = [
       "Last-synced price snapshot is display-only; no new quotes or provisioning estimates offline.",
   },
   {
-    group: "mcp/discord packages",
+    group: "mcp/chat-bot packages",
     label: "@4weird/mcp package",
     webRoute: "(@4weird/mcp npm package)",
     posture: "authenticated-webview-fallback",
@@ -56,8 +56,8 @@ export const WAVE2_PARITY_ROUTES: ParityRoute[] = [
       "Package docs render from the cached snapshot; installs and inspector sessions require connectivity.",
   },
   {
-    group: "mcp/discord packages",
-    label: "Discord bot status",
+    group: "mcp/chat-bot packages",
+    label: "Chat bot status",
     webRoute: "/bot/setup",
     posture: "authenticated-webview-fallback",
     offline:

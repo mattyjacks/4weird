@@ -28,7 +28,7 @@ const handlers: Record<string, (i: ChatInputCommandInteraction) => Promise<void>
 };
 
 export function commandPayloads(): unknown[] {
-  return commands.map((c) => c.toJSON());
+  return commands.map((c: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder) => c.toJSON());
 }
 
 export async function dispatch(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -42,11 +42,11 @@ export async function dispatch(interaction: ChatInputCommandInteraction): Promis
 
 /** One-shot slash-command registration (run via `npm run register`). */
 export async function registerCommands(): Promise<void> {
-  const token = process.env["DISCORD_TOKEN"];
-  const clientId = process.env["DISCORD_CLIENT_ID"];
-  const guildId = process.env["DISCORD_GUILD_ID"];
+  const token = process.env["CHAT_TOKEN"];
+  const clientId = process.env["CHAT_CLIENT_ID"];
+  const guildId = process.env["CHAT_GUILD_ID"];
   if (!token || !clientId) {
-    throw new Error("DISCORD_TOKEN and DISCORD_CLIENT_ID are required (see README).");
+    throw new Error("CHAT_TOKEN and CHAT_CLIENT_ID are required (see README).");
   }
   const rest = new REST({ version: "10" }).setToken(token);
   const body = commandPayloads();

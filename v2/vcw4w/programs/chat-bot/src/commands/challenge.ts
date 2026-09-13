@@ -1,6 +1,8 @@
 import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
+  SlashCommandStringOption,
+  SlashCommandUserOption,
 } from "discord.js";
 
 /**
@@ -12,10 +14,10 @@ import {
 export const challengeData = new SlashCommandBuilder()
   .setName("challenge")
   .setDescription("Challenge a rival to a 1v1 (STUB: declaration only, no funds move)")
-  .addUserOption((opt) =>
+  .addUserOption((opt: SlashCommandUserOption) =>
     opt.setName("rival").setDescription("The rival to challenge").setRequired(true),
   )
-  .addStringOption((opt) =>
+  .addStringOption((opt: SlashCommandStringOption) =>
     opt.setName("game").setDescription("Game or mode for the 1v1").setRequired(false),
   );
 

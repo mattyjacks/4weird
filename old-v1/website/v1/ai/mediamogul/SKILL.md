@@ -57,7 +57,7 @@ graph TD
   - Complete list of tracked media files with Windows system file URIs (`file:///...`).
 
 #### B. Lightweight Collaboration Pack (`.zip`)
-- **Featherweight archive for instant sharing** across Discord, Slack, or Email (usually < 500 KB).
+- **Featherweight archive for instant sharing** over chat or email (usually < 500 KB).
 - **Contains only lightweight files**:
   - Shotcut project files (`.mlt`)
   - Subtitle files (`.srt`)
@@ -117,7 +117,7 @@ The AI agent invokes real, physical media manipulations using structured tool ex
 4. `burn_subtitles(video_path, srt_path, output_path)`: Hardcodes styled subtitles directly onto video frames.
 5. `change_speed(video_path, speed, output_path)`: Accelerates or decelerates video and audio with pitch preservation.
 6. `extract_thumbnail(video_path, timestamp, output_path)`: Grabs high-res still frame at exact timestamp.
-7. `compress_video(video_path, target_mb, output_path)`: Optimizes video bitrate to fit Discord/email limits.
+7. `compress_video(video_path, target_mb, output_path)`: Optimizes video bitrate to fit chat/email limits.
 8. `modify_mlt(mlt_path, filter_type, properties, output_path)`: Injects native MLT XML filters directly into Shotcut projects.
 9. `generate_subtitles(media_path)`: Whisper AI speech-to-text with synchronized `.srt` generation.
 10. `generate_voiceover(text, voice, output_path)`: OpenAI studio TTS narration.
@@ -214,7 +214,7 @@ By default, conversational context is managed via token estimation (`len(text) /
 ### Workflow 2: Collaboration Handoff to Remote Video Editor
 1. In the **🤝 Collaboration & Packs** tab, click **Add Media File** to ensure all project assets are indexed.
 2. Click **Export Lightweight Collab Pack (.zip)**.
-3. Send the resulting small `.zip` file over Discord or Slack.
+3. Send the resulting small `.zip` file over chat.
 4. The receiving editor unzips the file; the included `media_manifest.json` provides all system URIs (`file:///...`) and MLT timeline mappings.
 
 ### Workflow 3: Analyzing Frame Composition on Raw Footage & Timeline Work-in-Progress

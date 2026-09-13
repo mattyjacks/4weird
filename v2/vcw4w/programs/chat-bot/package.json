@@ -1,8 +1,8 @@
 {
-  "name": "@4weird/discord-clan-raid-bot",
+  "name": "@4weird/chat-clan-raid-bot",
   "version": "0.1.0",
   "private": true,
-  "description": "4weird clan-raid Discord bot skeleton (Remastery Feature 19, Wave 2). discord.js v14 slash commands: raid signup/leaderboard, coin-balance lookup stub, clan roster stub.",
+  "description": "4weird clan-raid chat bot skeleton (Remastery Feature 19, Wave 2). Chat SDK v14 slash commands: raid signup/leaderboard, coin-balance lookup stub, clan roster stub.",
   "license": "UNLICENSED",
   "type": "commonjs",
   "main": "dist/index.js",

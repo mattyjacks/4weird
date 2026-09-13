@@ -1,8 +1,8 @@
 import { registerCommands } from "./commands/index.js";
 
 void registerCommands()
-  .then(() => console.log("[discord-bot] commands registered"))
+  .then(() => console.log("[chat-bot] commands registered"))
   .catch((err: unknown) => {
-    console.error("[discord-bot] registration failed:", err);
+    console.error("[chat-bot] registration failed:", err);
     process.exit(1);
   });

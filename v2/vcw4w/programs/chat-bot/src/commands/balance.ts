@@ -18,7 +18,7 @@ export const balanceData = new SlashCommandBuilder()
 
 export async function handleBalance(interaction: ChatInputCommandInteraction): Promise<void> {
   // TODO(clan-raids): map interaction.user.id -> 4weird user id (link table).
-  // Until linked, look up by the Discord id verbatim so a future reader can
+  // Until linked, look up by the chat id verbatim so a future reader can
   // resolve it; the STUB path below fires first anyway (no reader injected).
   const result = await lookupCoinBalance(interaction.user.id);
   if (!result.ok || !result.balance) {

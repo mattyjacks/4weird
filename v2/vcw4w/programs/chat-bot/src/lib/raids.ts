@@ -2,7 +2,7 @@
  * Pure raid-schedule helpers (STUB-free, zero deps).
  *
  * Complements `src/lib/ledger.ts` (coin-ledger reads) with time-only
- * raid scheduling math. No I/O, no Discord API, no database access.
+ * raid scheduling math. No I/O, no chat API, no database access.
  * All helpers are fail-open: garbage input yields safe defaults
  * (never throws).
  */
