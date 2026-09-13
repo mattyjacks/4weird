@@ -462,9 +462,9 @@ export function DesktopRental() {
             </p>
           )}
           <p className="mt-2">
-            <ProxyLink href={result.connection.endpointUrl} label="Open desktop" />
+            <ProxyLink href={result.connection.endpointUrl} label={desktopIsLive ? "● Live — click to open" : "Open desktop"} live={desktopIsLive} />
             {!desktopIsLive && !desktopIsGone && (
-              <span className="ml-2 text-slate-600 dark:text-slate-500">(may 404 until Live — keep retrying)</span>
+              <span className="ml-2 text-slate-600 dark:text-slate-500">(warming up — may 404)</span>
             )}
           </p>
           <p className="mt-1 text-slate-600 dark:text-slate-400">
@@ -484,6 +484,7 @@ export function DesktopRental() {
                 type="button"
                 onClick={() => void copyVncPassword()}
                 className="shrink-0 rounded-full bg-amber-300 px-3 py-1 text-xs font-bold text-slate-950 hover:bg-amber-200"
+                aria-label="Copy VNC password"
                 aria-live="polite"
               >
                 {vncCopied ? "Copied ✓" : "Copy"}

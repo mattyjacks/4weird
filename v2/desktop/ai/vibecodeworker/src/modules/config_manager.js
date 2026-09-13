@@ -5,6 +5,15 @@ const { loadCredentials, saveCredentials, getResolvedApiKey, isPlaceholderKey, r
 
 const configFilePath = path.join(__dirname, '..', '..', 'config', 'default.json');
 
+// Safe exe settings persisted to config/default.json (subset only):
+// opencode.enabled + opencode.mode ('cli'|'server') + 4weird base URL.
+// The bot key itself is NEVER persisted here: it stays in the Rust OS
+// app-data store (Tauri) / sessionStorage (browser fallback) owned by
+// bot_token.js. See sanitizeExeSettingsForPersist() below.
+const FOUR_WEIRD_DEFAULT_BASE_URL = 'https://4weird.com';
+const FIRST_RUN_OPENCODE_HINT = 'paste key at BOT TOKEN button → VERIFY → enable OpenCode';
+const BOT_KEY_RE = /^bot4weird_[A-Za-z0-9]{20}$/;
+
 const modelsByProvider = {
   openai: [
     { value: 'gpt-5.6-luna', text: 'GPT-5.6 Luna; current lowest-cost tier (Default)' },
@@ -125,16 +134,28 @@ function handleProviderChange(providerSelect, modelSelect, localUrlGroup, apiKey
 
 function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) {
   let settings = {};
+  let isFirstRun = false;
   try {
     if (fs.existsSync(configFilePath)) {
-      settings = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+      settings = JSON.parse(fs.readFileSync(configFilePath, 'utf8')) || {};
+      isFirstRun = !settings.opencode;
     } else {
-      settings = JSON.parse(localStorage.getItem('ai_debugger_settings') || '{}');
+      const fallback = localStorage.getItem('ai_debugger_settings') || '';
+      settings = JSON.parse(fallback || '{}') || {};
+      isFirstRun = !fallback;
     }
   } catch (e) {
     console.error("Failed to read settings config file", e);
-    settings = JSON.parse(localStorage.getItem('ai_debugger_settings') || '{}');
+    try {
+      settings = JSON.parse(localStorage.getItem('ai_debugger_settings') || '{}') || {};
+    } catch (_) {
+      settings = {};
+    }
+    isFirstRun = true;
   }
+  if (!settings || typeof settings !== 'object') settings = {};
+  // Normalize the safe 4weird base URL (never a secret; the bot key is not stored here).
+  settings.fourWeirdBaseUrl = normalizeFourWeirdBaseUrl(settings.fourWeirdBaseUrl);
 
   const prov = settings.provider || 'openai';
   settings.modelName = migrateLegacyDefaultModel(prov, settings.modelName || '');
@@ -250,11 +271,24 @@ function loadConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     applyLocalModelsSettings(elements, settings);
   } catch (e) { /* dashboard works fine without the local-models panel */ }
 
+  // 4weird base URL (safe exe setting; the bot key itself is never stored here).
+  // The input is optional: older dashboards have no field, so preserve on-disk.
+  if (elements.fourWeirdBaseUrlInput) {
+    elements.fourWeirdBaseUrlInput.value = settings.fourWeirdBaseUrl;
+  } else if (elements.botApiBaseInput) {
+    elements.botApiBaseInput.value = settings.fourWeirdBaseUrl;
+  }
+
   // OpenCode.ai bridge (optional); applied defensively so older configs still load.
   try {
     const { applyOpenCodeSettings } = require('../components/opencode_ui_controller');
     applyOpenCodeSettings(elements, settings);
-  } catch (e) { /* dashboard works fine without the bridge panel */ }
+  } catch (e) {
+    applyOpenCodeSettingsFallback(elements, settings);
+  }
+
+  // First-run guidance: point a fresh install at BOT TOKEN → VERIFY → OpenCode.
+  ensureFirstRunOpenCodeHint(elements, settings, isFirstRun);
 
   agentBrain.updateConfig({
     dataDir,
@@ -319,6 +353,9 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
     audioVoiceId: elements.audioVoiceId ? elements.audioVoiceId.value : '21m00Tcm4TlvDq8ikWAM',
     audioCommentary: elements.toggleAudioCommentary ? elements.toggleAudioCommentary.checked : false,
     audioNarrateBugs: elements.toggleAudioNarrateBugs ? elements.toggleAudioNarrateBugs.checked : false,
+    // Safe exe settings: OpenCode toggle + mode + 4weird base URL.
+    // The bot key itself is never stored here (Rust app-data / sessionStorage only).
+    fourWeirdBaseUrl: readFourWeirdBaseUrl(elements),
     // Local-model role assignments (owned by the dashboard panel; never wiped).
     localModels: readLocalModelsBlock(elements),
     // Preserve the OpenCode bridge block (managed by its own panel; never wiped).
@@ -326,6 +363,9 @@ function saveConfig(elements, audioModule, agentBrain, autoCodeSystem, dataDir) 
   };
   // Keys live exclusively in the encrypted, user-profile credential store.
   // Do not place them in config.json, localStorage, or a Git worktree.
+  // The 4weird bot key is additionally scrubbed: it lives only in the Rust
+  // OS app-data store / sessionStorage owned by bot_token.js.
+  sanitizeExeSettingsForPersist(settings);
   localStorage.setItem('ai_debugger_settings', JSON.stringify(settings));
 
   // Persist API key to OS-level storage across builds
@@ -486,6 +526,8 @@ function readLocalModelsBlock(elements) {
 
 // Read the live OpenCode panel controls, falling back to whatever is already
 // on disk so saveConfig never wipes the bridge block when the panel is absent.
+// Never carries the bot key: only enabled + mode (+ the bridge's own non-secret
+// fields) are persisted; the key stays in Rust app-data / sessionStorage only.
 function readExistingOpenCodeBlock(elements) {
   let onDisk = {};
   try {
@@ -496,14 +538,102 @@ function readExistingOpenCodeBlock(elements) {
   } catch (e) { /* defaults below */ }
   const block = {
     enabled: !!(elements.opencodeEnable ? elements.opencodeEnable.checked : onDisk.enabled),
-    mode: elements.opencodeMode ? elements.opencodeMode.value : (onDisk.mode || 'cli'),
+    mode: normalizeOpenCodeMode(elements.opencodeMode ? elements.opencodeMode.value : onDisk.mode),
     model: onDisk.model || '',
     agent: onDisk.agent || 'build',
     autoApprove: onDisk.autoApprove !== false,
     timeoutMs: onDisk.timeoutMs || 600000,
     serverUrl: onDisk.serverUrl || 'http://127.0.0.1:4096',
   };
+  sanitizeExeSettingsForPersist(block);
   return block;
+}
+
+// --- Safe exe-settings helpers (opencode toggle + mode + 4weird base URL) ---
+
+function normalizeOpenCodeMode(value) {
+  return String(value || '').trim().toLowerCase() === 'server' ? 'server' : 'cli';
+}
+
+function normalizeFourWeirdBaseUrl(value) {
+  const raw = String(value || '').trim().replace(/\/+$/, '');
+  if (!raw) return FOUR_WEIRD_DEFAULT_BASE_URL;
+  if (!/^https?:\/\/[^/\s]+/i.test(raw)) return FOUR_WEIRD_DEFAULT_BASE_URL;
+  return raw;
+}
+
+// Live 4weird base URL control → normalized value, else on-disk, else default.
+// Accepts either element id alias so older dashboards keep working.
+function readFourWeirdBaseUrl(elements) {
+  const live = elements
+    ? (elements.fourWeirdBaseUrlInput || elements.botApiBaseInput || null)
+    : null;
+  if (live && typeof live.value === 'string' && live.value.trim()) {
+    return normalizeFourWeirdBaseUrl(live.value);
+  }
+  try {
+    if (fs.existsSync(configFilePath)) {
+      const raw = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+      if (raw && raw.fourWeirdBaseUrl) return normalizeFourWeirdBaseUrl(raw.fourWeirdBaseUrl);
+    }
+  } catch (e) { /* default below */ }
+  return FOUR_WEIRD_DEFAULT_BASE_URL;
+}
+
+// Strip every bot-key-shaped field in place so saveConfig can never persist
+// the secret to config/default.json or localStorage. Returns the same object.
+function sanitizeExeSettingsForPersist(settings) {
+  if (!settings || typeof settings !== 'object') return settings;
+  const secretKeys = ['botKey', 'botToken', 'bot_token', 'botApiKey', 'bot_api_key', 'x-bot-key', 'vcw_bot_token', 'apiKey'];
+  for (const key of secretKeys) {
+    if (key in settings) delete settings[key];
+  }
+  if (settings.opencode && typeof settings.opencode === 'object') {
+    for (const key of secretKeys) {
+      if (key in settings.opencode) delete settings.opencode[key];
+    }
+  }
+  // Defense in depth: drop any stray value that looks like a live bot key.
+  for (const key of Object.keys(settings)) {
+    const value = settings[key];
+    if (typeof value === 'string' && BOT_KEY_RE.test(value.trim())) delete settings[key];
+  }
+  if (settings.opencode && typeof settings.opencode === 'object') {
+    for (const key of Object.keys(settings.opencode)) {
+      const value = settings.opencode[key];
+      if (typeof value === 'string' && BOT_KEY_RE.test(value.trim())) delete settings.opencode[key];
+    }
+  }
+  return settings;
+}
+
+// applyOpenCodeSettings pattern for when the bridge controller is unavailable
+// (older build / unit test): push saved enabled + mode onto the UI toggles.
+function applyOpenCodeSettingsFallback(elements, settings) {
+  try {
+    const oc = (settings && settings.opencode) || {};
+    if (elements.opencodeEnable) elements.opencodeEnable.checked = !!oc.enabled;
+    if (elements.opencodeMode) elements.opencodeMode.value = normalizeOpenCodeMode(oc.mode);
+  } catch (e) { /* defaults stand */ }
+}
+
+// First-run guidance: a fresh install has no saved opencode block, so point
+// the operator at the bot-key flow before they can enable OpenCode.
+function ensureFirstRunOpenCodeHint(elements, settings, isFirstRun) {
+  const fresh = !!isFirstRun || !(settings && settings.opencode);
+  if (!fresh) return false;
+  const target = (elements && (elements.opencodeStatusText || elements.botTokenStatus)) || null;
+  if (target) {
+    try {
+      // Only override the idle "Checking…" placeholder, never a live status.
+      const current = String(target.textContent || '');
+      if (!current || /checking/i.test(current)) {
+        target.textContent = FIRST_RUN_OPENCODE_HINT;
+        if (target.dataset) target.dataset.kind = 'info';
+      }
+    } catch (e) { /* hint best-effort only */ }
+  }
+  return true;
 }
 
 module.exports = {
@@ -519,5 +649,15 @@ module.exports = {
   maskApiKey,
   hasAnyApiKey,
   clearInvalidApiKeyProviders,
-  saveApiKeyBundle
+  saveApiKeyBundle,
+  // Safe exe settings (opencode toggle + mode + 4weird base URL; never the bot key).
+  FOUR_WEIRD_DEFAULT_BASE_URL,
+  FIRST_RUN_OPENCODE_HINT,
+  normalizeOpenCodeMode,
+  normalizeFourWeirdBaseUrl,
+  readFourWeirdBaseUrl,
+  sanitizeExeSettingsForPersist,
+  applyOpenCodeSettingsFallback,
+  ensureFirstRunOpenCodeHint,
+  readExistingOpenCodeBlock
 };

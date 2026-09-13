@@ -1,11 +1,44 @@
 /**
  * OpenCode.ai Bridge UI Controller (OPTIONAL integration).
  * Sidebar panel: enable toggle, status, export / fix / self-heal actions.
- * Talks to lib/opencode_bridge directly (renderer has nodeIntegration),
- * so the desktop app uses the exact same code path as headless/cloud.
+ * Inside the Windows (Tauri) exe: prefers invoke('opencode_status' /
+ * 'opencode_run') when window.__TAURI__ is present; otherwise falls back to
+ * lib/opencode_bridge directly (renderer has nodeIntegration), so the desktop
+ * app uses the exact same code path as headless/cloud. A missing binary never
+ * breaks the dashboard (status line shows install hint + Enable toggle).
  */
 
-const bridge = require('../../lib/opencode_bridge');
+const INSTALL_HINT_FALLBACK = 'opencode binary not found. Install: `npm i -g opencode-ai` (or `choco install opencode`), then tick Enable.';
+
+// Safe bridge load: the Tauri webview has no require(); browser/dev may lack the file.
+let bridge = null;
+try {
+  if (typeof require === 'function') bridge = require('../../lib/opencode_bridge');
+} catch (e) { bridge = null; }
+
+function isTauriRuntime() {
+  try {
+    return (typeof window !== 'undefined') && (!!window.__TAURI__ || !!window.__TAURI_INTERNALS__);
+  } catch (e) { return false; }
+}
+
+async function tauriInvoke(cmd, args) {
+  if (!isTauriRuntime()) return null;
+  try {
+    if (window.__TAURI__ && window.__TAURI__.core && typeof window.__TAURI__.core.invoke === 'function') {
+      return await window.__TAURI__.core.invoke(cmd, args || {});
+    }
+    if (window.__TAURI__ && typeof window.__TAURI__.invoke === 'function') {
+      return await window.__TAURI__.invoke(cmd, args || {});
+    }
+  } catch (e) { return null; } // command missing / backend offline -> caller falls back to bridge
+  return null;
+}
+
+function withInstallHint(text) {
+  const s = String(text || '');
+  return /npm i -g opencode-ai/.test(s) ? s : (s ? s + ' ' : '') + 'Install: `npm i -g opencode-ai`, then tick Enable.';
+}
 
 function deriveGameId(gameUrl) {
   const m = String(gameUrl || '').match(/games\/html\/([^/?#]+)/i);
@@ -28,11 +61,17 @@ function setBusy(el, busy, label) {
 
 async function refreshStatus({ el, logSystemMessage }) {
   try {
-    const s = await bridge.getStatus();
+    // (1) Inside the exe: prefer the Rust command when the Tauri runtime exists.
+    const tauriStatus = await tauriInvoke('opencode_status', {});
+    const s = tauriStatus || (bridge ? await bridge.getStatus() : null);
+    if (!s) {
+      setStatus(el, withInstallHint('OpenCode bridge unavailable in this view.'), 'warn');
+      return { enabled: false, available: false, source: isTauriRuntime() ? 'tauri' : 'bridge' };
+    }
     if (!s.enabled) {
       setStatus(el, 'Disabled; tick Enable to use OpenCode.', 'idle');
     } else if (!s.available) {
-      setStatus(el, 'Enabled but `opencode` not found. ' + (s.hint || ''), 'warn');
+      setStatus(el, withInstallHint('Enabled but `opencode` not found. ' + (s.hint || '')), 'warn');
     } else {
       const extra = s.mode === 'server'
         ? (s.serverReachable ? `server reachable (${s.serverUrl || ''})` : 'server UNREACHABLE; is `opencode serve` running?')
@@ -59,6 +98,11 @@ async function handleExport({ el, agentBrain, audio, logSystemMessage }) {
     return;
   }
   const gameId = deriveGameId(el.gameUrlInput && el.gameUrlInput.value);
+  if (!bridge) {
+    if (logSystemMessage) logSystemMessage('OpenCode export unavailable here: ' + INSTALL_HINT_FALLBACK, 'error');
+    setStatus(el, withInstallHint('Export unavailable.'), 'warn');
+    return;
+  }
   const res = bridge.exportBugReport({ bugs, gameId });
   if (res.success) {
     if (audio) audio.playClickSound();
@@ -78,7 +122,15 @@ async function handleFix({ el, agentBrain, audio, logSystemMessage }) {
   const gameId = deriveGameId(el.gameUrlInput && el.gameUrlInput.value);
   setBusy(el, true, `Asking OpenCode to fix ${bugs.length} bug(s)… (up to 10 min)`);
   try {
-    const res = await bridge.fixBugs({ bugs, gameId });
+    // Inside the exe: prefer the Rust command; fall back to the same bridge API.
+    const tauriRes = await tauriInvoke('opencode_run', { bugs, gameId });
+    const res = tauriRes || (bridge ? await bridge.fixBugs({ bugs, gameId }) : null);
+    if (!res) {
+      setBusy(el, false);
+      if (logSystemMessage) logSystemMessage('OpenCode fix unavailable here: ' + INSTALL_HINT_FALLBACK, 'error');
+      setStatus(el, withInstallHint('Fix unavailable.'), 'warn');
+      return;
+    }
     setBusy(el, false);
     if (res.success) {
       if (audio) audio.playClickSound();
@@ -98,6 +150,7 @@ async function handleFix({ el, agentBrain, audio, logSystemMessage }) {
 
 function pollHealRun({ el, logSystemMessage }, runId) {
   const timer = setInterval(() => {
+    if (!bridge) { clearInterval(timer); return; }
     const run = bridge.getHealRun(runId);
     if (!run) { clearInterval(timer); return; }
     const last = run.history[run.history.length - 1];
@@ -117,9 +170,15 @@ async function handleHeal({ el, agentBrain, audio, logSystemMessage }) {
   const bugs = collectBugs(agentBrain);
   const gameId = deriveGameId(el.gameUrlInput && el.gameUrlInput.value);
   const testCommand = (el.opencodeHealCmd && el.opencodeHealCmd.value.trim()) || 'node test_vibecodeworker.js';
-  const targetDir = process.cwd();
+  const targetDir = (typeof process !== 'undefined' && process.cwd) ? process.cwd() : '.';
   setBusy(el, true, 'Self-heal loop started in background…');
   try {
+    if (!bridge) {
+      setBusy(el, false);
+      if (logSystemMessage) logSystemMessage('OpenCode heal unavailable here: ' + INSTALL_HINT_FALLBACK, 'error');
+      setStatus(el, withInstallHint('Heal unavailable.'), 'warn');
+      return;
+    }
     const { runId } = bridge.startHealCycle({
       bugs, gameId, testCommand, dir: targetDir, maxIterations: 3, instance: 'same',
     });
@@ -197,7 +256,7 @@ function persistOpenCodeSettings(el) {
 /** Apply persisted opencode settings to the dashboard controls (called by config load). */
 function applyOpenCodeSettings(el, settings) {
   try {
-    const oc = (settings && settings.opencode) || bridge.getOpenCodeConfig();
+    const oc = (settings && settings.opencode) || (bridge ? bridge.getOpenCodeConfig() : { enabled: false, mode: 'cli' });
     if (el.opencodeEnable) el.opencodeEnable.checked = !!oc.enabled;
     if (el.opencodeMode) el.opencodeMode.value = oc.mode === 'server' ? 'server' : 'cli';
   } catch (e) { /* defaults stand */ }

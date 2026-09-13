@@ -36,7 +36,7 @@ if (!valleynet.includes('VALLEYNET_NAME = "Valley Net"')) fail('lib/valleynet.ts
 // *.legacy.* files, and the verify scripts themselves.
 const walk = (dirUrl, out) => {
   for (const entry of fs.readdirSync(dirUrl, { withFileTypes: true })) {
-    const entryUrl = new URL(`./${entry.name}`, dirUrl);
+    const entryUrl = new URL(`./${entry.name}${entry.isDirectory() ? "/" : ""}`, dirUrl);
     if (entry.isDirectory()) {
       if (entry.name === "public") continue;
       walk(entryUrl, out);

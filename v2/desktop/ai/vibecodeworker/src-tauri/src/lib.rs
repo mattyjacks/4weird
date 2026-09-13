@@ -192,10 +192,63 @@ mod commands {
         }
     }
 
+    // ─── Local secret files (restrictive perms, never logged) ───
+    // Secrets (bot token / keys) live in OS app-data files and must never be
+    // printed to stdout, stderr, or the JSONL log. Permissions are locked down
+    // best-effort per OS: 0o600 on unix (file created with mode 0o600, so no
+    // umask window); on Windows %APPDATA% is user-private by default and we
+    // further strip inheritance via icacls so only the current user retains
+    // access. `kind` ("token"/"key") only labels error strings, never values.
+    #[cfg(unix)]
+    fn write_secret_file(file: &std::path::Path, contents: &str, kind: &str) -> Result<(), String> {
+        use std::io::Write;
+        use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+        if let Some(parent) = file.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("{} dir: {}", kind, e))?;
+        }
+        let mut f = std::fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .mode(0o600)
+            .open(file)
+            .map_err(|e| format!("{} write: {}", kind, e))?;
+        f.write_all(contents.as_bytes()).map_err(|e| format!("{} write: {}", kind, e))?;
+        let _ = std::fs::set_permissions(file, std::fs::Permissions::from_mode(0o600));
+        Ok(())
+    }
+
+    #[cfg(not(unix))]
+    fn write_secret_file(file: &std::path::Path, contents: &str, kind: &str) -> Result<(), String> {
+        if let Some(parent) = file.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("{} dir: {}", kind, e))?;
+        }
+        std::fs::write(file, contents).map_err(|e| format!("{} write: {}", kind, e))?;
+        #[cfg(target_os = "windows")]
+        {
+            // Best-effort ACL lockdown: remove inheritance, grant full control
+            // to the current user only. Failures are ignored (APPDATA default
+            // ACLs are already user-private).
+            if let Ok(user) = std::env::var("USERNAME") {
+                if !user.trim().is_empty() {
+                    let grant = format!("{}:F", user.trim());
+                    let _ = std::process::Command::new("icacls")
+                        .arg(file)
+                        .arg("/inheritance:r")
+                        .arg("/grant:r")
+                        .arg(grant)
+                        .output();
+                }
+            }
+        }
+        Ok(())
+    }
+
     // ─── Bot API token (4weird bot key) ─────────────────
     // Lets the desktop app act as the user's bot on 4weird.com.
     // Keys are issued at https://4weird.com/bot/setup and look like
-    // `bot4weird_` + 20 chars from [A-Za-z0-9] (shown once, hashed server-side).
+    // `bot4weird_` + 20-32 chars from [A-Za-z0-9] (shown once, hashed server-side;
+    // legacy rows are 20, current rows are 32).
     // The secret is kept in a local-only file under the OS app-data dir and is
     // never logged; status calls report only whether a token is stored.
 
@@ -227,23 +280,25 @@ mod commands {
 
     pub fn is_valid_bot_token(token: &str) -> bool {
         let t = token.trim();
-        if t.len() != 30 || !t.starts_with("bot4weird_") {
+        if !t.starts_with("bot4weird_") {
             return false;
         }
-        t[10..].bytes().all(|b| b.is_ascii_alphanumeric())
+        let suffix = &t[10..];
+        if suffix.len() < 20 || suffix.len() > 32 {
+            return false;
+        }
+        suffix.bytes().all(|b| b.is_ascii_alphanumeric())
     }
 
     #[tauri::command]
     pub fn save_bot_token(token: String) -> Result<Value, String> {
         let t = token.trim().to_string();
         if !is_valid_bot_token(&t) {
-            return Err("That does not look like a 4weird bot key (bot4weird_ + 20 letters/digits).".to_string());
+            return Err("That does not look like a 4weird bot key (bot4weird_ + 20-32 letters/digits).".to_string());
         }
         let file = bot_token_path();
-        if let Some(parent) = file.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| format!("token dir: {}", e))?;
-        }
-        std::fs::write(&file, &t).map_err(|e| format!("token write: {}", e))?;
+        // Never log `t` — secret. Stored with restrictive perms (see helper).
+        write_secret_file(&file, &t, "token")?;
         Ok(json!({ "success": true, "message": "Bot token saved locally." }))
     }
 
@@ -349,10 +404,8 @@ mod commands {
             return Err("That does not look like a fal.ai key; paste the real key from fal.ai/dashboard/keys.".to_string());
         }
         let file = fal_key_path();
-        if let Some(parent) = file.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| format!("key dir: {}", e))?;
-        }
-        std::fs::write(&file, &t).map_err(|e| format!("key write: {}", e))?;
+        // Never log `t` — secret. Stored with restrictive perms (see helper).
+        write_secret_file(&file, &t, "key")?;
         Ok(json!({ "success": true, "message": "fal.ai key saved locally." }))
     }
 
@@ -393,6 +446,167 @@ mod commands {
         }
     }
 
+    // ─── opencode binary (PATH probe + runner) ──────────
+    // Frontend calls opencode_status to decide whether to show the OpenCode
+    // drawer, and opencode_run to execute `opencode <args>` without a shell
+    // (args array -> Command, no shell interpolation) with a timeout.
+    // stdout/stderr are truncated to MAX_OPENCODE_OUTPUT_CHARS chars each so a
+    // runaway command cannot blow up the IPC bridge. Nothing here logs
+    // secrets; callers must not put tokens into `args` (prefer env/file refs).
+
+    const MAX_OPENCODE_OUTPUT_CHARS: usize = 20_000;
+
+    fn truncate_chars(s: &str, max_chars: usize) -> (String, bool) {
+        if s.chars().count() <= max_chars {
+            return (s.to_string(), false);
+        }
+        (s.chars().take(max_chars).collect(), true)
+    }
+
+    pub fn find_opencode_binary() -> Option<std::path::PathBuf> {
+        #[cfg(target_os = "windows")]
+        let exe_names: &[&str] = &["opencode.exe", "opencode.cmd", "opencode.bat"];
+        #[cfg(not(target_os = "windows"))]
+        let exe_names: &[&str] = &["opencode"];
+        if let Some(paths) = std::env::var_os("PATH") {
+            for dir in std::env::split_paths(&paths) {
+                for name in exe_names {
+                    let candidate = dir.join(name);
+                    if candidate.is_file() {
+                        return Some(candidate);
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    struct RunOutcome {
+        code: Option<i32>,
+        stdout: String,
+        stderr: String,
+        timed_out: bool,
+    }
+
+    fn run_program_timeout(
+        program: &std::path::Path,
+        args: &[String],
+        timeout: std::time::Duration,
+    ) -> Result<RunOutcome, String> {
+        use std::io::Read;
+        let mut child = std::process::Command::new(program)
+            .args(args)
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .spawn()
+            .map_err(|e| format!("opencode spawn: {}", e))?;
+        // Drain pipes on threads so large output cannot block the child while
+        // the main thread polls try_wait for the timeout.
+        let mut out_handle = child.stdout.take();
+        let mut err_handle = child.stderr.take();
+        let out_thread = std::thread::spawn(move || {
+            let mut buf = Vec::new();
+            if let Some(mut h) = out_handle.take() {
+                let _ = h.read_to_end(&mut buf);
+            }
+            String::from_utf8_lossy(&buf).into_owned()
+        });
+        let err_thread = std::thread::spawn(move || {
+            let mut buf = Vec::new();
+            if let Some(mut h) = err_handle.take() {
+                let _ = h.read_to_end(&mut buf);
+            }
+            String::from_utf8_lossy(&buf).into_owned()
+        });
+        let start = std::time::Instant::now();
+        loop {
+            match child.try_wait().map_err(|e| format!("opencode wait: {}", e))? {
+                Some(status) => {
+                    let stdout = out_thread.join().unwrap_or_default();
+                    let stderr = err_thread.join().unwrap_or_default();
+                    return Ok(RunOutcome {
+                        code: status.code(),
+                        stdout,
+                        stderr,
+                        timed_out: false,
+                    });
+                }
+                None => {
+                    if start.elapsed() >= timeout {
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        let stdout = out_thread.join().unwrap_or_default();
+                        let stderr = err_thread.join().unwrap_or_default();
+                        return Ok(RunOutcome {
+                            code: None,
+                            stdout,
+                            stderr,
+                            timed_out: true,
+                        });
+                    }
+                    std::thread::sleep(std::time::Duration::from_millis(50));
+                }
+            }
+        }
+    }
+
+    #[tauri::command]
+    pub fn opencode_status() -> Value {
+        match find_opencode_binary() {
+            None => json!({ "found": false, "path": null, "version": null }),
+            Some(path) => {
+                // `opencode --version` is fast; 10 s cap so status never hangs IPC.
+                let version = run_program_timeout(
+                    &path,
+                    &["--version".to_string()],
+                    std::time::Duration::from_secs(10),
+                )
+                .ok()
+                .and_then(|o| {
+                    let combined = if !o.stdout.trim().is_empty() { o.stdout } else { o.stderr };
+                    let first = combined.lines().next().unwrap_or("").trim().to_string();
+                    let (v, _) = truncate_chars(&first, 500);
+                    if v.is_empty() { None } else { Some(v) }
+                });
+                json!({
+                    "found": true,
+                    "path": path.to_string_lossy().to_string(),
+                    "version": version
+                })
+            }
+        }
+    }
+
+    #[tauri::command]
+    pub fn opencode_run(args: Vec<String>, timeout_secs: Option<u64>) -> Result<Value, String> {
+        let program = find_opencode_binary().ok_or_else(|| {
+            "opencode binary not found on PATH (install opencode and restart the app).".to_string()
+        })?;
+        if args.len() > 100 {
+            return Err("Too many args (max 100).".to_string());
+        }
+        for a in &args {
+            if a.len() > 8_000 {
+                return Err("An arg is too long (max 8000 chars).".to_string());
+            }
+        }
+        let secs = timeout_secs.unwrap_or(120).clamp(1, 600);
+        let outcome =
+            run_program_timeout(&program, &args, std::time::Duration::from_secs(secs))?;
+        let (stdout, stdout_truncated) = truncate_chars(&outcome.stdout, MAX_OPENCODE_OUTPUT_CHARS);
+        let (stderr, stderr_truncated) = truncate_chars(&outcome.stderr, MAX_OPENCODE_OUTPUT_CHARS);
+        Ok(json!({
+            "success": !outcome.timed_out && outcome.code == Some(0),
+            "exit_code": outcome.code,
+            "stdout": stdout,
+            "stderr": stderr,
+            "stdout_truncated": stdout_truncated,
+            "stderr_truncated": stderr_truncated,
+            "timed_out": outcome.timed_out
+        }))
+    }
+
     // ─── CLI args (headfull/headless/game/autoplay/handoff) ──
     // Lets the exe run headfull from a terminal, e.g.:
     //   vibecodeworker-4weird.exe --headfull --game gravegain3d --autoplay
@@ -413,8 +627,9 @@ mod commands {
 
 pub use commands::{
     append_smart_log, clear_bot_token, clear_fal_key, get_bot_token, get_bot_token_status,
-    get_cli_args, get_fal_key, get_fal_key_status, get_gpu_info, get_log_dir, read_latest_handoff,
-    save_bot_token, save_fal_key, save_handoff_file, save_report_file, show_native_notification,
+    get_cli_args, get_fal_key, get_fal_key_status, get_gpu_info, get_log_dir, opencode_run,
+    opencode_status, read_latest_handoff, save_bot_token, save_fal_key, save_handoff_file,
+    save_report_file, show_native_notification,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -454,7 +669,9 @@ pub fn run() {
             commands::save_fal_key,
             commands::get_fal_key,
             commands::get_fal_key_status,
-            commands::clear_fal_key
+            commands::clear_fal_key,
+            commands::opencode_status,
+            commands::opencode_run
         ])
         .run(tauri::generate_context!())
         .expect("error while running 4WEIRD VibeCodeWorker Tauri application");

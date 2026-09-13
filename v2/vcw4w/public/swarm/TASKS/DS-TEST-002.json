@@ -1,0 +1,13 @@
+{
+  "id": "DS-TEST-002",
+  "title": "Sample: document public swarm queue page",
+  "goal": "The public swarm queue page renders the current open-task list from STATUS.json and TASKS envelopes with a readable empty state, and the page is linked from the site nav; verified by loading the page locally and by the web verify script.",
+  "lane": "web",
+  "scope": ["v2/vcw4w/app/swarm/**"],
+  "gates": ["node scripts/verify-web.mjs"],
+  "status": "open",
+  "owner": null,
+  "created": "2026-09-13T02:09:03.660Z",
+  "updated": "2026-09-13T02:09:03.660Z",
+  "log": ["2026-09-13T02:09:03.660Z unassigned: sample envelope created, stays open per TASKS README."]
+}

@@ -928,6 +928,7 @@ export function RunpodDashboard() {
       if (!ok) return;
     }
     setStopAllBusy(true);
+    setStopAllOk(null);
     setStopAllMsg(`Stopping ${targets.length} pod(s)…`);
     const results = await Promise.allSettled(targets.map((t) => postControl(t.kind, t.id, "stop")));
     let stopped = 0;
@@ -946,6 +947,7 @@ export function RunpodDashboard() {
         ? `Stopped ${stopped} of ${targets.length} pod(s). Billing paused; disks kept — Start any card to resume.`
         : `Stopped ${stopped} of ${targets.length}. These still need attention: ${failed.join(", ")}.`,
     );
+    setStopAllOk(failed.length === 0);
     setStopAllBusy(false);
     await load();
   }
@@ -1050,7 +1052,12 @@ export function RunpodDashboard() {
               </button>
               <InfoTip side="bottom" text="Stops every pod below at once: compute billing pauses, disks are kept so you can Start again. Terminate/Delete stay per-card." label="About Stop all" />
               {stopAllMsg && (
-                <p role="status" className="w-full text-xs text-amber-200">{stopAllMsg}</p>
+                <p
+                  role="status"
+                  className={`w-full text-xs ${stopAllOk ? "text-emerald-300" : "text-amber-200"}`}
+                >
+                  {stopAllOk ? `✅ ${stopAllMsg}` : stopAllMsg}
+                </p>
               )}
             </div>
           )}
@@ -1065,7 +1072,9 @@ export function RunpodDashboard() {
                 <p className="text-xs text-slate-600 dark:text-slate-400">Stop ends compute billing but keeps the disk so you can Start again later. Terminate or Delete ends billing permanently and the disk is lost.</p>
               </CompactDetails>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
-                {desktops.map((d) => (
+                {desktops.map((d) => {
+                  const dLive = isLivePod(d.podStatus);
+                  return (
                   <li key={d.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
                     <p className="font-bold text-slate-900 dark:text-white">
                       {d.kind === "gpu" ? "GPU" : "CPU"} Desktop · {d.interface === "gui" ? "Ubuntu GUI" : "Jupyter"}{" "}
@@ -1076,13 +1085,17 @@ export function RunpodDashboard() {
                       {d.podStatus ? ` · pod ${d.podStatus}` : ""} · {d.gpu || d.cpu || "…"} · ~${d.hourlyUsd.toFixed(2)}/hr ·
                       since {new Date(d.createdAt).toLocaleString()}
                     </p>
+                    <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-500">
+                      ≈ ${d.hourlyUsd.toFixed(2)}/hr · ${(d.hourlyUsd / 3600).toFixed(4)}/sec, billed per second
+                    </p>
                     {d.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-600 dark:text-slate-500">image: {d.image}</p>}
                     <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-500">last activity {fmtAgo(d.lastActivityAt)} · idle guard on{" "}
                       <InfoTip side="bottom" text="Idle guard: 60-min chime → +15-min stop → 24h terminate. Any input resets the clock." label="About idle guard" />
                     </p>
                     {d.endpointUrl && (
                       <p className="mt-2 text-xs">
-                        <ProxyLink href={d.endpointUrl} label={d.interface === "gui" ? "Open desktop" : "Open Jupyter"} />
+                        <ProxyLink href={d.endpointUrl} label={dLive ? "● Live — click to open" : d.interface === "gui" ? "Open desktop" : "Open Jupyter"} live={dLive} />
+                        {!dLive && <span className="ml-2 text-slate-600 dark:text-slate-500">(warming up — may 404)</span>}
                       </p>
                     )}
                     {d.status !== "deleted" && d.status !== "terminated" && (
@@ -1090,7 +1103,8 @@ export function RunpodDashboard() {
                     )}
                     {msg[`desktop:${d.id}`] && <p className="mt-1 text-xs text-amber-300">{msg[`desktop:${d.id}`]}</p>}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </section>
           )}
@@ -1102,7 +1116,9 @@ export function RunpodDashboard() {
                 Kasm desktops that test 4weird games remotely: open the stream, log in with your saved VNC password, and open the locked game URL in its Chromium. Same power controls + idle guard as desktops.
               </p>
               <ul className="mt-3 grid gap-3 md:grid-cols-2">
-                {autoplay.map((r) => (
+                {autoplay.map((r) => {
+                  const rLive = isLivePod(r.podStatus);
+                  return (
                   <li key={r.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
                     <p className="font-bold text-slate-900 dark:text-white">Test: {r.gameSlug} · {r.compute}{" "}<PodStatusBadge dbStatus={r.status} podStatus={r.podStatus} /></p>
                     <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
@@ -1110,11 +1126,15 @@ export function RunpodDashboard() {
                       {r.podStatus ? ` · pod ${r.podStatus}` : ""} · {r.siteMode} · {r.gpu || r.cpu || "…"} · ~${r.hourlyUsd.toFixed(2)}/hr ·
                       since {r.createdAt ? new Date(r.createdAt).toLocaleString() : "…"}
                     </p>
+                    <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-500">
+                      ≈ ${r.hourlyUsd.toFixed(2)}/hr · ${(r.hourlyUsd / 3600).toFixed(4)}/sec, billed per second
+                    </p>
                     {r.image && <p className="mt-1 break-all font-mono text-[11px] text-slate-600 dark:text-slate-500">image: {r.image}</p>}
                     <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-500">last activity {fmtAgo(r.lastActivityAt)} · idle guard on</p>
                     {r.endpointUrl && (
                       <p className="mt-2 text-xs">
-                        <ProxyLink href={r.endpointUrl} label="Open stream" />
+                        <ProxyLink href={r.endpointUrl} label={rLive ? "● Live — click to open" : "Open stream"} live={rLive} />
+                        {!rLive && <span className="ml-2 text-slate-600 dark:text-slate-500">(warming up — may 404)</span>}
                       </p>
                     )}
                     {r.status !== "deleted" && r.status !== "terminated" && (
@@ -1131,7 +1151,8 @@ export function RunpodDashboard() {
                       />
                     )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </section>
           )}
@@ -1181,6 +1202,11 @@ export function RunpodDashboard() {
                       {j.status} · {j.frameCount} frames · {j.gpu ?? "no GPU"}
                       {j.hourlyUsd > 0 ? ` · $${j.hourlyUsd.toFixed(2)}/hr` : ""}
                     </p>
+                    {j.hourlyUsd > 0 && (
+                      <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-500">
+                        ≈ ${j.hourlyUsd.toFixed(2)}/hr · ${(j.hourlyUsd / 3600).toFixed(4)}/sec, billed per second
+                      </p>
+                    )}
                     {j.podId && (
                       <p className="mt-2 text-xs">
                         <ProxyLink href={`https://${j.podId}-8888.proxy.runpod.net`} label="Open worker log" />

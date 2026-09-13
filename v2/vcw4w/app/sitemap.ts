@@ -65,6 +65,14 @@ const BUSINESS: Entry[] = [
   { path: "/docs/business", changeFrequency: "monthly", priority: 0.7 },
 ];
 
+// IT Command suite: boss/it/work consoles + guide (added with the routes;
+// verify-sitemap requires every indexable route to be listed).
+const IT_COMMAND: Entry[] = [
+  { path: "/boss", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/it", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/work", changeFrequency: "weekly", priority: 0.7 },
+];
+
 // Evergreen exhibits + explainers.
 const EXPLORE: Entry[] = [
   { path: "/ads", changeFrequency: "weekly", priority: 0.5 },
@@ -107,6 +115,8 @@ const DOCS: Entry[] = [
   { path: "/docs/clans", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/bots", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/agents-compute", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/runpod-vs-digitalocean", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/shadow-it", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/game-ai-buddy", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/vibecodeworker", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/explore-more", changeFrequency: "monthly", priority: 0.5 },
@@ -128,6 +138,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...COMMUNITY,
     ...SUPPORT,
     ...BUSINESS,
+    ...IT_COMMAND,
     ...EXPLORE,
     ...VCW_SECTIONS,
     ...VCW_STATIC,

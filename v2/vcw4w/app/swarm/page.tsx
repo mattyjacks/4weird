@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SwarmChat } from "@/components/swarm/swarm-chat";
+import dynamic from "next/dynamic";
 import { AgentBotNav } from "@/components/agents/agent-bot-nav";
+import DevSwarmPanel from "@/components/swarm/devswarm-panel";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/swarm" },
@@ -10,7 +11,26 @@ export const metadata: Metadata = {
     "Your OpenClaw-style agent on 4weird: a per-user internal brain with token-cheap memory, personal .txt file RAG, serverless chat or serverful RunPod runs, and auto-orchestrated child instances - metered per turn with the 25% cut included.",
 };
 
-export const dynamic = "force-dynamic";
+// Static shell: no force-dynamic. The copy above paints from the CDN/RSC
+// cache on first hit; the heavy interactive chat (787-line client widget +
+// lib/swarm + lib/agent-market + lib/game-ai) hydrates lazily below, so
+// time-to-first-paint never waits on the chat bundle.
+const SwarmChat = dynamic(
+  () => import("@/components/swarm/swarm-chat").then((m) => m.SwarmChat),
+  {
+    ssr: false,
+    loading: () => (
+      <div aria-busy="true" className="rounded-2xl border border-white/10 bg-white/[.03] p-5">
+        <div className="h-5 w-48 animate-pulse rounded bg-slate-800" />
+        <div className="mt-3 h-24 animate-pulse rounded-lg bg-slate-800/60" />
+        <div className="mt-3 flex gap-2">
+          <div className="h-10 flex-1 animate-pulse rounded-md bg-slate-800/60" />
+          <div className="h-10 w-20 animate-pulse rounded-md bg-slate-800/60" />
+        </div>
+      </div>
+    ),
+  },
+);
 
 export default function SwarmPage() {
   return (
@@ -34,6 +54,15 @@ export default function SwarmPage() {
         </p>
         <div className="mt-8">
           <SwarmChat />
+        </div>
+      </section>
+      <section className="mx-auto max-w-6xl px-5 pb-16">
+        <h2 className="text-2xl font-black">DevSwarm — repo swarm</h2>
+        <p className="mt-2 max-w-3xl text-slate-300">
+          The public build board behind 4weird: live counts and links into the repo swarm brain.
+        </p>
+        <div className="mt-6">
+          <DevSwarmPanel />
         </div>
       </section>
     </main>

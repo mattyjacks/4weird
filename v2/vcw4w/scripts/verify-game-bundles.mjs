@@ -36,6 +36,10 @@ const divergedPrefixes = [
   "battlesharks2/", // fullscreen/guard hardening wave
   "DiscoverAmerica/", // fullscreen/guard hardening wave
   "demolichdom/", // storage-guard hardening (private-mode/sandbox localStorage crashes)
+  "financialfreedom/", // fullscreen/guard hardening wave (overlay button/F/dblclick, overflow guards, control-bar button)
+  "friendslop/", // fullscreen/guard hardening wave (button upgrade, storage guards)
+  "fridgesimulator/", // fullscreen/guard hardening wave (HUD button, panel overflow guards)
+  "semester-survival/", // fullscreen/guard hardening wave (dead Expand button wired, copyGameLink dedupe, settings item)
 ];
 // Root-level shared files with intentional v2 divergence.
 const divergedFiles = new Set([

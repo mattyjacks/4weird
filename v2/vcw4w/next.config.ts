@@ -26,6 +26,10 @@ const nextConfig: NextConfig = {
     // Perf workers: immutable static JS, safe to cache for a year. They are
     // versioned by filename; bump the file when the protocol changes.
     { source: "/workers/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }, { key: "Content-Type", value: "application/javascript; charset=utf-8" }] },
+    // DevSwarm public bus: tiny Markdown/JSON, read by bots on every loop.
+    // Cache briefly at the edge (60s fresh + 5min stale) so STATUS.json +
+    // task envelopes load in ms instead of hitting origin each poll.
+    { source: "/swarm/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=60, stale-while-revalidate=300" }] },
     { source: "/(.*)", headers: [
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

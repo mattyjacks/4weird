@@ -1,0 +1,13 @@
+{
+  "id": "DS-0000",
+  "title": "Example task — replace with a short title",
+  "goal": "One paragraph describing the outcome: what is true in the repo when this task is done, and how a reviewer can tell.",
+  "lane": "docs",
+  "scope": ["v2/vcw4w/path/**"],
+  "gates": ["node scripts/verify-xxx.mjs"],
+  "status": "open",
+  "owner": null,
+  "created": "2026-09-13T02:09:03.660Z",
+  "updated": "2026-09-13T02:09:03.660Z",
+  "log": ["2026-09-13T02:09:03.660Z unassigned: envelope created from template, awaiting claim."]
+}

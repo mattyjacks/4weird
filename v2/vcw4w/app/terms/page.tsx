@@ -415,7 +415,8 @@ export default function TermsPage() {
           You own your prompts to the extent the law allows, subject to provider terms (OpenAI/OpenRouter/fal/Meshy
           and downstream model terms apply); we do not warrant outputs are original, non-infringing, or yours to
           commercialize. Do not clone a real person&apos;s voice/likeness, upload faces/voices/assets you lack
-          rights to, impersonate anyone, or create deepfake/NSFW content; you indemnify us for right-of-publicity
+          rights to, impersonate anyone, or create deepfake or sexually explicit content (never allowed on the
+          Service; removed, not rated); you indemnify us for right-of-publicity
           and IP claims from your AI use, and violations mean removal/termination. AI-generated code may be
           insecure or buggy: test before relying on it. Never rely on AI/Buddy in an emergency: call your local
           emergency number.

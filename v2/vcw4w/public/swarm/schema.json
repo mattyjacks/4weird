@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DevSwarm Task Envelope v0",
+  "description": "Machine-readable task envelope for the DevSwarm hybrid bus (markdown bus + JSON envelopes). Envelopes use EXACTLY the fields below — no extras.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "title", "goal", "lane", "scope", "gates", "status", "owner", "created", "updated", "log"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^DS-[A-Z0-9-]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lane": {
+      "type": "string",
+      "enum": ["web", "games", "desktop", "economy", "vcw", "docs", "infra"]
+    },
+    "scope": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "gates": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "claimed", "in_progress", "blocked", "done"]
+    },
+    "owner": {
+      "type": ["string", "null"]
+    },
+    "created": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "log": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

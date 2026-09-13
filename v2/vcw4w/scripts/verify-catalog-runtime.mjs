@@ -32,7 +32,12 @@ if (unbridged.length || relativeMeta.length) { console.error(JSON.stringify({ un
 const chromeElement = /<(header|aside|section|div|canvas)[^>]*(nav-placeholder|footer-placeholder|starfield|game-header|game-info-panel|credits-section|bio-section|more-games|more-kouzi|kouzi-cta|madi-cta)/i;
 const chromeLoad = /<(link|script)[^>]*(styles\.css|components\.js)/i;
 const chromed = [];
+// venturemechanically is intentionally exempt: sync-game-bundles keeps its
+// info panel (KEEP_INFO_PANEL_SLUGS) because its gameplay UI (cap-table
+// inputs, payout details) lives inside that aside.
+const CHROME_EXEMPT = new Set(["venturemechanically/index.html"]);
 for (const name of canonicalShells) {
+  if (CHROME_EXEMPT.has(name)) continue;
   const html = await readFile(join(process.cwd(), "public", "games", name), "utf8");
   const body = html.replace(/<style id="fourweird-game-only">[\s\S]*?<\/style>/, "");
   if (chromeElement.test(body) || chromeLoad.test(body)) chromed.push(name);

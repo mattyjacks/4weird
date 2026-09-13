@@ -1,0 +1,13 @@
+{
+  "id": "DS-TEST-001",
+  "title": "Sample: add pause overlay to arcade runner",
+  "goal": "The arcade runner game pauses when the player presses P or taps the pause button, showing a resume/restart overlay, and resumes cleanly without resetting the score; verified by manual playtest plus the game's existing verify script.",
+  "lane": "games",
+  "scope": ["v2/vcw4w/app/games/**"],
+  "gates": ["node scripts/verify-games.mjs"],
+  "status": "open",
+  "owner": null,
+  "created": "2026-09-13T02:09:03.660Z",
+  "updated": "2026-09-13T02:09:03.660Z",
+  "log": ["2026-09-13T02:09:03.660Z unassigned: sample envelope created, stays open per TASKS README."]
+}

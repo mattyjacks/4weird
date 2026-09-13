@@ -177,3 +177,10 @@ npm run build
 ```
 
 Supabase changes: add a rerunnable migration (`IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS` before every policy/trigger), regen the runbook bundle, and extend `scripts/verify-*.mjs` when you add a subsystem. Latest migration: `20261021000000_quantum_hardening.sql` (7-day kid sessions, quest no-self-mint) guarded by `scripts/verify-quantum-hardening.mjs`.
+
+## 10. DevSwarm
+
+- What: multi-agent orchestration layer whose brain lives in `v2/vcw4w/public/swarm/` so ANY bot (external agents, bot-key holders, VibeCodeWorker loops) reads swarm state over plain HTTPS with zero auth at `https://4weird.com/swarm/*`. Public = secret-free by construction.
+- Command: `/swarm` (Agent Swarm Chat: hire 1-5 agents as one chatbot; see §6) — repo-write agents coordinate through the public brain (BRAIN/LANES/QUEUE/MEMORY/STATUS/schema/TASKS/_template).
+- Envelope lifecycle: (1) claim an open envelope in `TASKS/` (`status` → claimed/in_progress, `owner` = you); (2) work its `scope` only until its gates pass; (3) set `status` (done/blocked) + append `log` lines + file shared wiring in `QUEUE.md`.
+- Bot entry point: `https://4weird.com/swarm/FOR-BOTS.md` (repo: `v2/vcw4w/public/swarm/FOR-BOTS.md`) — inventory, envelope v0, read/write protocols, NEVER rules. `old-v1/` stays read-only; parity-locked game bundles stay untouched.

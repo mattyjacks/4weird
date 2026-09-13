@@ -9,6 +9,7 @@ import { RatingBadge } from "@/components/games/rating-badge";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { GameA11yPanel } from "@/components/games/game-a11y-panel";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
+import { FullscreenHint } from "@/components/games/fullscreen-hint";
 import { GamingBuddy } from "@/components/buddy/gaming-buddy";
 import { GraveGainParty } from "@/components/games/gravegain-party";
 import { VcwAutoplay } from "@/components/games/vcw-autoplay";
@@ -94,6 +95,7 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
           >
             ⛶ Fullscreen (F)
           </a>
+          <FullscreenHint />
         </div>
       </div>
       <div className="mx-auto max-w-6xl px-4 pb-10 sm:px-5">

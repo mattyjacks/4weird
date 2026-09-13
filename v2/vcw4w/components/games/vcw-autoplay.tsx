@@ -263,6 +263,7 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           <p className="font-bold text-emerald-200">✅ Autoplay remote live</p>
           <p className="mt-1">
             <ProxyLink href={result.connection.endpointUrl} label="Open stream" />
+            <span className="ml-2 text-slate-500">(warming up — may 404)</span>
           </p>
           <p className="mt-1 text-slate-400">
             Pod {result.connection.podId} · {result.connection.kind === "cpu" ? `CPU ${result.connection.cpu}` : `GPU ${result.connection.gpu}`} ·
@@ -278,6 +279,7 @@ export function VcwAutoplay({ gameSlug, gameTitle }: { gameSlug: string; gameTit
                 type="button"
                 onClick={() => void copyVncPassword()}
                 className="shrink-0 rounded-full bg-amber-300 px-3 py-1 text-xs font-bold text-slate-950 hover:bg-amber-200"
+                aria-label="Copy VNC password"
                 aria-live="polite"
               >
                 {vncCopied ? "Copied ✓" : "Copy"}

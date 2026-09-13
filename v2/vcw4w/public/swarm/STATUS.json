@@ -1,0 +1,30 @@
+{
+    "version":  1,
+    "updated":  "2026-09-13T04:25:00.000Z",
+    "swarm":  "devswarm",
+    "counts":  {
+                   "open":  4,
+                   "claimed":  0,
+                   "in_progress":  0,
+                   "blocked":  0,
+                   "done":  5
+               },
+    "lanes":  [
+                  "web",
+                  "games",
+                  "desktop",
+                  "economy",
+                  "vcw",
+                  "docs",
+                  "infra"
+              ],
+  "links": {
+    "start": "/swarm/SwarmStart.md",
+    "brain": "/swarm/BRAIN.md",
+                  "lanes":  "/swarm/LANES.md",
+                  "queue":  "/swarm/QUEUE.md",
+                  "memory":  "/swarm/MEMORY.md",
+                  "tasks":  "/swarm/TASKS/",
+                  "for_bots":  "/swarm/FOR-BOTS.md"
+              }
+}
