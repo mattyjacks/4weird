@@ -53,8 +53,19 @@ export function LoginForm({
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
-      const body = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(body.error || "Invalid login credentials.");
+      const body = (await response.json().catch(() => ({}))) as { error?: unknown };
+      if (!response.ok) {
+        // Status-aware errors: the body can be unparsable ({}), and falling
+        // back to "Invalid login credentials." for every status would
+        // misreport a rate-limit (429) or origin (403) block as bad
+        // credentials, so the user retries the password instead of waiting.
+        // All texts stay generic — never an oracle for which half was wrong.
+        const serverText = typeof body.error === "string" && body.error ? body.error : null;
+        if (response.status === 429) throw new Error(serverText ?? "Too many attempts. Wait a minute and retry.");
+        if (response.status === 403) throw new Error(serverText ?? "Invalid request origin.");
+        if (response.status >= 500) throw new Error("Login temporarily unavailable. Try again shortly.");
+        throw new Error(serverText ?? "Invalid login credentials.");
+      }
       // The account page is the v2 authenticated destination; /protected is a legacy starter route.
       const next = safeNext(new URLSearchParams(window.location.search).get("next"));
       router.push(next);

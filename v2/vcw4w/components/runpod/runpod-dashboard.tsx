@@ -266,6 +266,19 @@ function PodStatusBadge({ dbStatus, podStatus }: { dbStatus: string; podStatus: 
 
 const TERMINAL_JOB = new Set(["COMPLETED", "FAILED", "CANCELLED", "TIMED_OUT"]);
 
+/** Live only when RunPod itself reports RUNNING — the proxy link 404s until then. */
+function isLivePod(podStatus: string | null): boolean {
+  return String(podStatus ?? "").toUpperCase().includes("RUNNING");
+}
+
+/** Non-terminal dashboard rows keep the 30s auto-refresh alive. */
+function isRowActive(status: string, podStatus: string | null): boolean {
+  const db = String(status ?? "").toLowerCase();
+  if (db === "terminated" || db === "deleted") return false;
+  if (/TERMINAT|DELETED/.test(String(podStatus ?? "").toUpperCase())) return false;
+  return true;
+}
+
 function ServerlessPanel() {
   const [status, setStatus] = useState<RunpodStatus | null>(null);
   const [statusMsg, setStatusMsg] = useState("");
@@ -765,6 +778,8 @@ export function RunpodDashboard() {
   const [tab, setTab] = useState<DashTab>("pods");
   const [stopAllBusy, setStopAllBusy] = useState(false);
   const [stopAllMsg, setStopAllMsg] = useState("");
+  const [stopAllOk, setStopAllOk] = useState<boolean | null>(null);
+  const loadFlightRef = useRef(false);
 
   const load = useCallback(async () => {
     // Per-source settle: one failing lane (desktops, autoplay, rentals, or
@@ -814,6 +829,32 @@ export function RunpodDashboard() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const hasActivePods =
+    (desktops ?? []).some((d) => isRowActive(d.status, d.podStatus)) ||
+    (autoplay ?? []).some((r) => isRowActive(r.status, r.podStatus)) ||
+    (rentals ?? []).some((b) => Boolean(b.pod_id)) ||
+    (jobs ?? []).some((j) => !TERMINAL_JOB.has(String(j.status ?? "").toUpperCase()));
+
+  // Pods-tab auto-refresh: re-run load() every 30s while at least one pod
+  // is non-terminal. Gated on document visibility (no polling when the tab
+  // is hidden) and never fights the user: ticks are skipped while a
+  // per-card control (busy), the bulk stop (stopAllBusy), or a previous
+  // load is still in flight.
+  useEffect(() => {
+    if (tab !== "pods" || !hasActivePods) return;
+    const id = window.setInterval(() => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      if (busy !== "" || stopAllBusy || loadFlightRef.current) return;
+      loadFlightRef.current = true;
+      void load().finally(() => {
+        loadFlightRef.current = false;
+      });
+    }, 30_000);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [tab, hasActivePods, busy, stopAllBusy, load]);
 
   type PodKind = "desktop" | "autoplay" | "booking" | "blender";
 
