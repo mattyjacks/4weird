@@ -16,6 +16,8 @@ const GAME_LABEL: Record<MmorpgServer["game"], string> = {
   "1d": "1D",
   "2d": "2D",
   "3d": "3D",
+  "4d": "Dream Golf 4D",
+  "5d": "Multiverse 5D",
 };
 
 /**
@@ -40,7 +42,7 @@ export function ServerCard({
   const allowed = userBand ? canEnterServer(userBand, server?.ageBand) : true;
   const joinable = allowed && !full;
   const hint = ageGateHint(server?.ageBand);
-  const gameLabel = server && (server.game === "1d" || server.game === "2d" || server.game === "3d")
+  const gameLabel = server && (server.game === "1d" || server.game === "2d" || server.game === "3d" || server.game === "4d" || server.game === "5d")
     ? GAME_LABEL[server.game]
     : "2D";
 

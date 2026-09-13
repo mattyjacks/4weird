@@ -115,8 +115,9 @@
         return {
             forward: (k.KeyW ? 1 : 0) - (k.KeyS ? 1 : 0),
             strafe: (k.KeyD ? 1 : 0) - (k.KeyA ? 1 : 0),
-            // Q = ana (-w), E = kata (+w).
-            w: (k.KeyE ? 1 : 0) - (k.KeyQ ? 1 : 0),
+            // Canon keymap (see combat/keymap4d.js): Q = potion/juice, F =
+            // class ability (owned by combat/abilities4d.js), R/E = ana/kata.
+            w: (k.KeyE ? 1 : 0) - (k.KeyR ? 1 : 0),
             jump: !!k.Space || this.jumpPressed,
             rewind: this.rewindHeld || !!k.KeyT
         };

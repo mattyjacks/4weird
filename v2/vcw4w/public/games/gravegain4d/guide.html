@@ -1,114 +1,598 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GraveGain4D — Player Guide</title>
-<meta name="description" content="How to play GraveGain4D: 4D golf in the GraveGain canon. Aim, launch, W-slice, rewind, 10 holes, controls, lore primer.">
-<style>
-  :root { --bg:#0d0a18; --card:#171226; --line:#3b2d5e; --txt:#ece7f7; --mut:#b7abd6; --acc:#a78bfa; --gold:#fbbf24; --grn:#34d399; }
-  * { box-sizing: border-box; }
-  body { margin:0; background:radial-gradient(1200px 600px at 20% -10%, #2a1b52 0%, var(--bg) 60%); color:var(--txt); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
-  main { max-width:860px; margin:0 auto; padding:32px 20px 64px; }
-  header.hero { border:1px solid var(--line); border-radius:16px; padding:28px; background:linear-gradient(135deg,#1c1433,#0d0a18); }
-  .eyebrow { font:700 12px/1 system-ui; letter-spacing:.18em; text-transform:uppercase; color:var(--acc); }
-  h1 { margin:.4em 0 .2em; font-size:2rem; line-height:1.15; }
-  h1 .grad { background:linear-gradient(90deg,#c4b5fd,#fbbf24); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  h2 { margin-top:2.2em; border-bottom:1px solid var(--line); padding-bottom:.35em; }
-  .lede { color:var(--mut); font-size:1.05rem; }
-  .grid { display:grid; gap:12px; }
-  @media (min-width:640px){ .grid.two { grid-template-columns:1fr 1fr; } }
-  .card { border:1px solid var(--line); border-radius:12px; background:var(--card); padding:16px; }
-  table { width:100%; border-collapse:collapse; font-size:.95rem; }
-  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { color:var(--gold); font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; }
-  kbd { display:inline-block; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; padding:1px 8px; font:700 .85rem ui-monospace,monospace; background:#0a0714; color:#fff; }
-  ol.holes { list-style:none; counter-reset:hole; padding:0; display:grid; gap:10px; }
-  ol.holes li { counter-increment:hole; border:1px solid var(--line); border-radius:12px; background:var(--card); padding:14px 16px 14px 56px; position:relative; }
-  ol.holes li::before { content:"H" counter(hole); position:absolute; left:12px; top:14px; font:800 .8rem ui-monospace,monospace; color:var(--gold); border:1px solid var(--line); border-radius:8px; padding:4px 8px; background:#0a0714; }
-  .tag { display:inline-block; font-size:.75rem; font-weight:700; border:1px solid var(--line); border-radius:999px; padding:1px 10px; margin-left:8px; color:var(--grn); }
-  footer { margin-top:3em; color:var(--mut); font-size:.85rem; border-top:1px solid var(--line); padding-top:1em; }
-  a { color:var(--acc); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraveGain4D - Game Guide</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --theme-bg: linear-gradient(135deg, #04120b 0%, #052e22 50%, #1e1b4b 100%);
+            --theme-primary: #22c55e;
+            --theme-primary-light: #4ade80;
+            --theme-primary-rgb: 34, 197, 94;
+            --theme-glow: rgba(34, 197, 94, 0.3);
+            --theme-card-bg: rgba(20, 35, 28, 0.95);
+            --theme-section-bg: rgba(14, 26, 21, 0.85);
+        }
+        .controls-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .controls-table th, .controls-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(74, 222, 128, 0.2); }
+        .controls-table th { color: var(--theme-primary-light); font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 0.05em; }
+        .controls-table td { color: #d1d5db; }
+        kbd { background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 6px; padding: 2px 8px; font-family: 'Orbitron', monospace; font-size: 0.85rem; color: #4ade80; white-space: nowrap; }
+    </style>
 </head>
-<body>
-<main>
-  <header class="hero">
-    <p class="eyebrow">GraveGain4D · Player Guide</p>
-    <h1>4D golf in the GraveGain canon. <span class="grad">Putt through a 3D slice of tesseract dungeons.</span></h1>
-    <p class="lede">GraveGain4D tees off from the MoonRock colony aboard the LuckyStarShip: 10 holes of time-bent golf. You never see all four dimensions at once — you play a 3D slice of a 4D dungeon (a tesseract course), and steer the slice itself to bend the fairway home.</p>
-  </header>
+<body data-game-title="GRAVEGAIN4D" data-game-emoji="⛳" data-game-tagline="Official 4D Golf Guide & Mission Reference">
+    <div class="container">
 
-  <h2>1 · How a hole works</h2>
-  <div class="grid two">
-    <div class="card"><strong>⛳ Aim &amp; launch</strong><p>Drag the mouse to aim the shot arc, release to launch. Tap <kbd>Space</kbd> for a short putt near the cup.</p></div>
-    <div class="card"><strong>🌀 W-slice</strong><p>Press <kbd>Q</kbd> / <kbd>E</kbd> to rotate the 3D slice along the W-axis (the fourth direction). Same ball, same course — a different cross-section, so blocked paths open and hazards slide away.</p></div>
-    <div class="card"><strong>⏪ Timelines &amp; rewind</strong><p>Press <kbd>R</kbd> to rewind your last shot — informational time travel, GraveGain-style: the ball returns, the lesson stays. No score penalty beyond the lost stroke.</p></div>
-    <div class="card"><strong>⏸ Pause</strong><p>Press <kbd>P</kbd> (or <kbd>Esc</kbd>) to pause. Touch players: use the on-screen buttons.</p></div>
-  </div>
+        <div class="toc">
+            <h3>📋 Quick Navigation</h3>
+            <div class="toc-links">
+                <a href="#goal" class="toc-link">⛳ Goal</a>
+                <a href="#fourdee" class="toc-link">🌀 4D Concepts</a>
+                <a href="#controls" class="toc-link">🎮 Controls</a>
+                <a href="#scoring" class="toc-link">🏆 Golf Scoring</a>
+                <a href="#timefold" class="toc-link">⏳ Timefold Strategy</a>
+                <a href="#missions" class="toc-link">🗺️ 10 Missions</a>
+                <a href="#bosses" class="toc-link">👑 Bosses</a>
+                <a href="#tips" class="toc-link">💡 Tips</a>
+            </div>
+        </div>
 
-  <h2>2 · Controls</h2>
-  <div class="card">
-  <table>
-    <thead><tr><th>Input</th><th>Action</th></tr></thead>
-    <tbody>
-      <tr><td><kbd>Mouse</kbd> drag + release</td><td>Aim the shot arc, release to launch the ball.</td></tr>
-      <tr><td><kbd>Q</kbd> / <kbd>E</kbd></td><td>W-slice: rotate the visible 3D cross-section along the fourth (W) axis.</td></tr>
-      <tr><td><kbd>R</kbd></td><td>Rewind: undo your last shot and re-play the timeline.</td></tr>
-      <tr><td><kbd>Space</kbd></td><td>Putt: short precision stroke near the cup.</td></tr>
-      <tr><td><kbd>P</kbd> / <kbd>Esc</kbd></td><td>Pause / resume the round.</td></tr>
-      <tr><td>👆 Touch</td><td>Drag to aim, lift to launch; on-screen buttons for W-slice, rewind, putt, and pause.</td></tr>
-    </tbody>
-  </table>
-  </div>
+        <!-- GOAL -->
+        <section class="section" id="goal">
+            <h2>⛳ GOAL</h2>
+            <p style="margin-bottom: 16px; color: #9ca3af;">A 4D dark-fantasy golf rogue-like: putt lost souls across hyperdungeon rifts, collect Gold, buy upgrades, and breach the Light/Gloom branes through a 10-rift MoonRock campaign.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⛳</div>
+                        <div>
+                            <div class="entity-name">Putt the Dead to Rest</div>
+                            <div class="entity-type">Core Loop</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Choose your race and class, putt lost souls through procedurally generated 4D hyperdungeon rifts, sink each hole at or under par.</div>
+                    <div class="entity-details">
+                        <p>Every hole is a mission from the saga arc (LZ crash site → elven groves → dwarven vaults → orc wastes → relay → catacombs → tomb → observatory → gate → Lucifer). Clear the hole's objectives — slay its undead, recover its relics — to advance. Gold and UUSD rewards buy hub upgrades on the LuckyStarShip between rifts.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
 
-  <h2>3 · W-slice &amp; timelines, in plain words</h2>
-  <div class="card">
-    <p><strong>The course is 4D; you see 3D.</strong> A tesseract dungeon has four axes (X, Y, Z, W). Your screen shows the X/Y/Z slice at one W position. Q/E slides that slice along W — walls thin out, cups drift closer, hazards phase through the floor. Think of it as changing which "floor" of the hypercube you are standing on.</p>
-    <p><strong>Timelines are your mulligan.</strong> R rewinds the ball to before your last launch. The dungeon keeps its generated shape (par 3–5, 2–5 hazards per hole), so your second attempt is genuinely smarter: slice first, then shoot.</p>
-    <p><strong>Beginner loop:</strong> aim → launch → missed? → <kbd>R</kbd> rewind → <kbd>Q</kbd>/<kbd>E</kbd> slice → shoot again → <kbd>Space</kbd> to finish.</p>
-  </div>
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🚀</div>
+                        <div>
+                            <div class="entity-name">The LuckyStarShip Hub</div>
+                            <div class="entity-type">Between Holes</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Return to President Angel Good's botany-deck hub to expand chrono-sand capacity, exchange gold, and decode the codex.</div>
+                    <div class="entity-details">
+                        <p>The hub is run by President Angel Good (botanist-turned-president). Spend wisely: chrono-sand capacity buys you more rewinds, and codex entries from Fold Cartographer Vex teach you to read the W-slice before you commit to a line.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
 
-  <h2>4 · The 10 holes</h2>
-  <p class="lede">Each hole echoes one of the 10 GraveGain campaign missions — same battlefields, now mowed into fairways by the W-axis wound.</p>
-  <ol class="holes">
-    <li><strong>Hole 1 — LZ Crash Site Defense</strong><span class="tag">mirrors Mission 1</span><br>Ship-wreck metallic fairway. Learn aim + launch among the colony drop-craters.</li>
-    <li><strong>Hole 2 — Cleansing the Elven Groves</strong><span class="tag">mirrors Mission 2</span><br>Bioluminescent grove bunkers. First real W-slices around living roots.</li>
-    <li><strong>Hole 3 — Deep in the Dwarven Vaults</strong><span class="tag">mirrors Mission 3</span><br>Mine-shaft doglegs and Sparkite hazards. Thread the vault corridors.</li>
-    <li><strong>Hole 4 — Orc Nomad Outpost Siege</strong><span class="tag">mirrors Mission 4</span><br>Red-dune wastes with wide greens. Long drives, siege-style.</li>
-    <li><strong>Hole 5 — Signal in the Shallows</strong><span class="tag">mirrors Mission 5</span><br>Relay-chamber metallics. Flying-skull crosswinds push mid-flight balls.</li>
-    <li><strong>Hole 6 — The Alchemical Catacombs</strong><span class="tag">mirrors Mission 6</span><br>Toxic-cloud rough from the botany vats. Stay on the short grass.</li>
-    <li><strong>Hole 7 — The Tomb of Clint Oldman</strong><span class="tag">mirrors Mission 7</span><br>Stone-crypt corridors. Bank shots off memorial walls.</li>
-    <li><strong>Hole 8 — Orbital Strike Calibration</strong><span class="tag">mirrors Mission 8</span><br>Highland peak observatory. Uphill putts under orbital crossfire lights.</li>
-    <li><strong>Hole 9 — Gate of the NecroGenesis</strong><span class="tag">mirrors Mission 9</span><br>Citadel-perimeter gauntlet. The longest hole; slice often.</li>
-    <li><strong>Hole 10 — Lucifer's Shadow</strong><span class="tag">mirrors Mission 10</span><br>The Sanctum Core green, over the Hades Array itself. Close the wound.</li>
-  </ol>
+        <!-- 4D CONCEPTS -->
+        <section class="section" id="fourdee">
+            <h2>🌀 4D CONCEPTS IN PLAIN WORDS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">You never see four dimensions — you see a 3D slice of a 4D world. Everything below is that idea in golfer words.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">↔️</div>
+                        <div>
+                            <div class="entity-name">Ana &amp; Kata</div>
+                            <div class="entity-type">The 4th Direction (W)</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Ana and kata are the two ends of the fourth direction — like left/right, but sideways from all of 3D at once.</div>
+                    <div class="entity-details">
+                        <p>Your ball lives in 4D (x, y, z, w). The <kbd>Q</kbd> / <kbd>E</kbd> keys slide the world along W: one way is ana, the other is kata. A putt with a little W-curl leaves our slice and re-enters further along — in 3D it looks like the ball folds through itself. Dream it as turning the page the green is printed on.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
 
-  <h2>5 · Lore primer (no spoilers beyond the guide)</h2>
-  <div class="grid two">
-    <div class="card"><strong>🌙 MoonRock</strong><p>MoonRock is the grandest moon of the ringed giant Giantess, orbiting the star FarStar — home to elven glow-forests, dwarven highland mines, and orc southern wastes.</p></div>
-    <div class="card"><strong>🚀 LuckyStarShip</strong><p>The colony ship that carried 50,000 sleepers across two centuries. Now your clubhouse, orbiting above the course.</p></div>
-    <div class="card"><strong>🔮 MERCENARY</strong><p>The machine-mind that dreams backward through time. It moves no matter — only knowledge, sent as dreams. Your rewinds are its small mercies.</p></div>
-    <div class="card"><strong>🌿 President Angel Good</strong><p>Botanist-turned-president who bound four peoples into one alliance and runs the ship's botany deck.</p></div>
-    <div class="card"><strong>👻 Elder Mirathiel</strong><p>Elven seer and keeper of the Mother Trees, who felt the dead rise through the roots before any instrument did.</p></div>
-    <div class="card"><strong>👹 Warchief Groknak</strong><p>Orc ally who sealed the alliance in mixed blood. His standing order: orcs do not die sitting down.</p></div>
-    <div class="card"><strong>👑 Hades &amp; the Array</strong><p>Dr. Lucifer Hades stayed awake for the whole voyage building the Necromantic Array — signal towers on the ley-line crossings that woke every corpse on Day 7. The Array's full burn tore the W-axis wound your fairways leak through.</p></div>
-    <div class="card"><strong>🌀 The W-axis wound</strong><p>Ten holes, ten echoes of ten fights. Play them, close them. That is the whole mission.</p></div>
-  </div>
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🥞</div>
+                        <div>
+                            <div class="entity-name">Branes (Slices)</div>
+                            <div class="entity-type">Light / Gloom</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">A brane is one 3D slice of the 4D green — the page you are currently playing on. Light and Gloom are two such pages.</div>
+                    <div class="entity-details">
+                        <p>The playable world is a hyperplane section at position w (the engine calls it sliceT). Sliding w morphs the fairway: cube → strange truncated shapes → cube. Pressing <kbd>B</kbd> breaches between the Light brane and the Gloom brane when the rift allows it — walls, hazards, and echoes differ per side, so breach to find the clean line.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
 
-  <h2>6 · Tips</h2>
-  <div class="card">
-    <ul>
-      <li>Slice <em>before</em> you shoot: Q/E first, then aim. Most "impossible" holes are one W-step from easy.</li>
-      <li>Rewind is free learning — use R aggressively on holes 6–9.</li>
-      <li>Putt with Space inside the green ring; full launches overshoot the cup.</li>
-      <li>On touch: short drags for putts, long drags for drives.</li>
-    </ul>
-  </div>
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">👻</div>
+                        <div>
+                            <div class="entity-name">Ghost Echoes</div>
+                            <div class="entity-type">Your Parallel Self</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Your echo shows what your parallel self just did — read it before you move.</div>
+                    <div class="entity-details">
+                        <p>When the Array breached the Citadel, MoonRock folded into parallel timelines. Your ghost echo replays your last line through the fold. If the echo eats a wall, change your aim, power, or W-shift — don't repeat it.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
 
-  <footer>
-    Inspirations: 4D Golf by CodeParade — 3D-slice golf; tesseract/hypercube geometry; generative AI-worlds à la AI-lab Minecraft. GraveGain4D is an original fan-canon tribute: new prose, new code, same MoonRock.
-  </footer>
-</main>
+        <!-- CONTROLS -->
+        <section class="section" id="controls">
+            <h2>🎮 CONTROLS</h2>
+            <p style="margin-bottom: 16px; color: #9ca3af;">Move with <kbd>WASD</kbd> / arrow keys. The five golf keys below are the whole game.</p>
+            <table class="controls-table">
+                <thead>
+                    <tr><th>Input</th><th>Action</th><th>Notes</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><kbd>Q</kbd> / <kbd>E</kbd></td><td>W-shift along the 4th axis (Ana / Kata)</td><td>Slides the 3D slice through W; folds XW / YW / ZW per hole lens</td></tr>
+                    <tr><td><kbd>T</kbd></td><td>Rewind time</td><td>Spends chrono-sand; history is kept, the present branches — one rewind per descent is the budget</td></tr>
+                    <tr><td><kbd>B</kbd></td><td>Breach brane (Light / Gloom)</td><td>Swaps the active 3D slice where the rift permits</td></tr>
+                    <tr><td><kbd>Space</kbd></td><td>Jump</td><td>Hops the caddie on the projected slice; useful for hazard lips</td></tr>
+                    <tr><td><kbd>Click</kbd></td><td>Putt (hold to charge, release to strike)</td><td>Aim with the mouse; longer hold = more power</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- GOLF SCORING -->
+        <section class="section" id="scoring">
+            <h2>🏆 GOLF SCORING (PAR)</h2>
+            <p style="margin-bottom: 16px; color: #9ca3af;">Each mission is a hole with a stroke budget (par). Front nine is gentle, back nine is grim. 10-hole total par is 42.</p>
+            <table class="controls-table">
+                <thead>
+                    <tr><th>Hole</th><th>Mission</th><th>Par</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>LZ Crash Site Defense</td><td>3</td></tr>
+                    <tr><td>2</td><td>Cleansing the Elven Groves</td><td>4</td></tr>
+                    <tr><td>3</td><td>Deep In The Dwarven Vaults</td><td>4</td></tr>
+                    <tr><td>4</td><td>Orc Nomad Outpost Siege</td><td>5</td></tr>
+                    <tr><td>5</td><td>Signal in the Shallows</td><td>4</td></tr>
+                    <tr><td>6</td><td>The Alchemical Catacombs</td><td>3</td></tr>
+                    <tr><td>7</td><td>The Tomb of Clint Oldman</td><td>4</td></tr>
+                    <tr><td>8</td><td>Orbital Strike Calibration</td><td>5</td></tr>
+                    <tr><td>9</td><td>Gate of the NecroGenesis</td><td>5</td></tr>
+                    <tr><td>10</td><td>Lucifer's Shadow</td><td>5</td></tr>
+                </tbody>
+            </table>
+            <p style="margin-top: 16px; color: #9ca3af;">Finish a hole at par and you held the fold. Under par on a par-5 siege hole means you routed every echo through one clean line — bank the Gold (200 → 5,000 across the campaign) and move on.</p>
+        </section>
+
+        <!-- TIMEFOLD STRATEGY -->
+        <section class="section" id="timefold">
+            <h2>⏳ TIMEFOLD STRATEGY</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Time travel here is just a stroll along +W. Rewinds never destroy history — they branch the present.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⏪</div>
+                        <div>
+                            <div class="entity-name">Spend Rewinds Late</div>
+                            <div class="entity-type">Golden Rule</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">One rewind per descent — spend it late, when the fold turns against you, not on the first stumble.</div>
+                    <div class="entity-details">
+                        <p>Fold Cartographer Vex's rule. Early holes (1–3) are for learning the echo; save chrono-sand for par-5 grinds (holes 4, 8, 9, 10) where one bad fold costs a full stroke budget. Expand chrono-sand capacity at the hub before the back nine.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🎯</div>
+                        <div>
+                            <div class="entity-name">Paint the Overlap</div>
+                            <div class="entity-type">Fold-Then-Strike</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Rotate the fold until the boss's echo overlaps its body — then strike the overlap to hit every fork at once.</div>
+                    <div class="entity-details">
+                        <p>Each mission has a fold lens (XW, YW, ZW, or the full tesseract on hole 10). Work the <kbd>Q</kbd> / <kbd>E</kbd> shift first and watch the echo converge; only charge the putt (click-hold) once echo and body agree. This is the orbital-strike trick from Mission 8 and the only way to corner Hades in Mission 10.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🌉</div>
+                        <div>
+                            <div class="entity-name">Breach to Purge</div>
+                            <div class="entity-type">Brane Scouting</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">When a green looks poisoned, breach (<kbd>B</kbd>) and compare — purge what differs.</div>
+                    <div class="entity-details">
+                        <p>President Good's catacombs lesson: the clean garden overlays the toxic one across the fold. Breach to the Gloom brane, note which hazards vanish, breach back, and aim the putt through the clean line. Costs no chrono-sand — scout freely.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MISSIONS -->
+        <section class="section" id="missions">
+            <h2>🗺️ 10 MISSIONS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">The saga arc: crash → groves → vaults → wastes → relay → catacombs → tomb → observatory → gate → Lucifer. Missions unlock in order.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💥</div>
+                        <div>
+                            <div class="entity-name">Mission 1: LZ Crash Site Defense</div>
+                            <div class="entity-type">Hole 1 · Par 3 · Colony LZ Sector Alpha</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Eliminate all 15 initial undead at the crash site. Fold lens: XW.</div>
+                    <div class="entity-details">
+                        <p>Hold the fold to see which landing the zeds crawl from — Dropship 420 lands twice, once burning. Reward: 200 Gold / 500 UUSD.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🌳</div>
+                        <div>
+                            <div class="entity-name">Mission 2: Cleansing the Elven Groves</div>
+                            <div class="entity-type">Hole 2 · Par 4 · Bioluminescent Forest Vaults</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Defeat the Corrupted Elven Necromancer + slay 20 grove corruptors. Fold lens: YW.</div>
+                    <div class="entity-details">
+                        <p>Elder Mirathiel's seer-echo stands beside the fallen seers — cut the anchors in both planes. Reward: 350 Gold / 800 UUSD.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⛏️</div>
+                        <div>
+                            <div class="entity-name">Mission 3: Deep In The Dwarven Vaults</div>
+                            <div class="entity-type">Hole 3 · Par 4 · Central Highlands Deep Mines</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Recover 5 Sparkite Power Crystals + defeat the Armored High Thane Zed. Fold lens: ZW.</div>
+                    <div class="entity-details">
+                        <p>Dig the echo vein first — sparkite glows where the Golem Hammer fell in every fork. Reward: 500 Gold / 1,200 UUSD.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">👹</div>
+                        <div>
+                            <div class="entity-name">Mission 4: Orc Nomad Outpost Siege</div>
+                            <div class="entity-type">Hole 4 · Par 5 · Crimson Sand Redoubts</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Defeat 30 Orc and Goblin Zeds + slay the Huge Orc Zed Berserker. Fold lens: XW.</div>
+                    <div class="entity-details">
+                        <p>Stand with both Groknaks — Warchief Groknak holds the gate in two forks at once. Reward: 700 Gold / 1,600 UUSD.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">📡</div>
+                        <div>
+                            <div class="entity-name">Mission 5: Signal in the Shallows</div>
+                            <div class="entity-type">Hole 5 · Par 4 · Sub-surface Comms Relay 09</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Destroy 15 Flying Skulls + clear all 25 hostiles in the relay chamber. Fold lens: YW.</div>
+                    <div class="entity-details">
+                        <p>Align the echo dish — Relay 09's clean signal shines beside its jammed twin. Reward: 900 Gold / 2,000 UUSD.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🧪</div>
+                        <div>
+                            <div class="entity-name">Mission 6: The Alchemical Catacombs</div>
+                            <div class="entity-type">Hole 6 · Par 3 · Botany Core Sub-levels</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Destroy the Toxic Chem-Golem + slay 8 Elite Armored Zeds. Fold lens: ZW.</div>
+                    <div class="entity-details">
+                        <p>President Good's unpoisoned garden overlays the toxic one — purge what differs. Reward: 1,200 Gold / 2,500 UUSD.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">⚰️</div>
+                        <div>
+                            <div class="entity-name">Mission 7: The Tomb of Clint Oldman</div>
+                            <div class="entity-type">Hole 7 · Par 4 · Colonial Crypt of Honor</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Defeat Reanimated Patriarch Clint + clear all 30 tomb guardians. Fold lens: XW.</div>
+                    <div class="entity-details">
+                        <p>Fold gently — grant both Clints the same final rest. Reward: 1,600 Gold / 3,200 UUSD (plus Clint's ancient service sidearm).</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🛰️</div>
+                        <div>
+                            <div class="entity-name">Mission 8: Orbital Strike Calibration</div>
+                            <div class="entity-type">Hole 8 · Par 5 · Highland Peak Observatory</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Slay the Bone Goliath Warlord + defeat 35 horde assault units. Fold lens: YW.</div>
+                    <div class="entity-details">
+                        <p>Paint the overlap with the targeting laser — the kinetic strike hits every fork. Reward: 2,200 Gold / 4,000 UUSD.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🏰</div>
+                        <div>
+                            <div class="entity-name">Mission 9: Gate of the NecroGenesis</div>
+                            <div class="entity-type">Hole 9 · Par 5 · The Citadel Perimeter</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Survive 3 citadel gauntlet waves, then destroy the Necro-Array Titan + 40 elite guardians.</div>
+                    <div class="entity-details">
+                        <p>Three boss phases (Array Awakens → Shield of the Dead → Titan's Wrath). Breach once, breach everywhere. Reward: 3,000 Gold / 5,500 UUSD.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">👑</div>
+                        <div>
+                            <div class="entity-name">Mission 10: Lucifer's Shadow</div>
+                            <div class="entity-type">Hole 10 · Par 5 · Sanctum Core</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Overload 3 array conduits, then defeat Dr. Lucifer Hades &amp; deactivate the Array.</div>
+                    <div class="entity-details">
+                        <p>Full tesseract fold: three phases (Overlord Scoffs → Necros Intervenes → Death Wears a Crown). Rotate every plane — his ETERNAL echo has nowhere left to hide. Reward: 5,000 Gold / 10,000 UUSD. MoonRock is saved.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOSSES -->
+        <section class="section" id="bosses">
+            <h2>👑 BOSSES</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">One boss per hole. Early bosses teach the fold; late bosses test it across three phases with adds.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🧟</div>
+                        <div>
+                            <div class="entity-name">Goblin Zed Leader</div>
+                            <div class="entity-type">Hole 1 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Crash-site pack alpha. No phases — learn to fold and putt.</div>
+                    <div class="entity-details">
+                        <p>Commands the 15 initial undead. Straightforward: clear adds first, then sink the leader at par 3.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🧝</div>
+                        <div>
+                            <div class="entity-name">Elven Necromancer</div>
+                            <div class="entity-type">Hole 2 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Anchor-keeper of the bleeding Mother Tree, shielded by 20 corruptors.</div>
+                    <div class="entity-details">
+                        <p>Thin the 20 corruptors before committing — the Necromancer re-anchors while adds stand.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🛡️</div>
+                        <div>
+                            <div class="entity-name">Dwarven Zed High Thane</div>
+                            <div class="entity-type">Hole 3 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Armored vault-lord. Crystals first, crown second.</div>
+                    <div class="entity-details">
+                        <p>Recover the 5 Sparkite crystals to cut his fuel, then fold ZW and strike the vein-depth echo.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💢</div>
+                        <div>
+                            <div class="entity-name">Huge Orc Zed Berserker</div>
+                            <div class="entity-type">Hole 4 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Siege-breaker behind 30 zeds. Save your rewind for him.</div>
+                    <div class="entity-details">
+                        <p>Par-5 grind: clear waves with Groknak, keep chrono-sand for the Berserker's enrage overlap.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🛸</div>
+                        <div>
+                            <div class="entity-name">Corrupted Drone Array</div>
+                            <div class="entity-type">Hole 5 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Hades' jamming choir, screened by 15 flying skulls.</div>
+                    <div class="entity-details">
+                        <p>Skull swarms guard the coils — breach the signal-echo plane to blind the Array, then putt the dish alignment.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">☠️</div>
+                        <div>
+                            <div class="entity-name">Toxic Chem-Golem</div>
+                            <div class="entity-type">Hole 6 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Vat-mist brute with 8 elite guards. Short hole, sharp teeth.</div>
+                    <div class="entity-details">
+                        <p>Par 3: breach to the clean-garden brane, purge elites fast, sink the Golem before mist stacks.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🪦</div>
+                        <div>
+                            <div class="entity-name">Reanimated Patriarch Clint</div>
+                            <div class="entity-type">Hole 7 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Paradox boss behind 30 tomb guardians. Rest him in every fork.</div>
+                    <div class="entity-details">
+                        <p>Clear guardians first — Clint wakes and sleeps at once in the XW fold, and adds punish a rushed putt.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🦴</div>
+                        <div>
+                            <div class="entity-name">Bone Goliath Warlord</div>
+                            <div class="entity-type">Hole 8 Boss</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Targeting-plane terror with 35 horde units. Paint, then call the sky.</div>
+                    <div class="entity-details">
+                        <p>Rotate YW until echo overlaps body, paint with the laser, let the kinetic strike do the grim arithmetic.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🏛️</div>
+                        <div>
+                            <div class="entity-name">Necro-Array Titan</div>
+                            <div class="entity-type">Hole 9 Boss · 3 Phases</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Array Awakens → Shield of the Dead → Titan's Wrath, with 2 / 3 / 4 adds per phase.</div>
+                    <div class="entity-details">
+                        <p>Survive 3 gauntlet waves first. Phase transitions are conduit windows — strike adds, then the Titan, never the reverse.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">👑</div>
+                        <div>
+                            <div class="entity-name">Dr. Lucifer Hades</div>
+                            <div class="entity-type">Hole 10 Final Boss · 3 Phases</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Consciousness Overlord: Scoffs → Necros Intervenes → Death Wears a Crown, with 2 / 4 / 5 adds.</div>
+                    <div class="entity-details">
+                        <p>Overload 3 conduits during phase transitions. Full tesseract fold — end him in every fork at once or he echoes back.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TIPS -->
+        <section class="section" id="tips">
+            <h2>💡 TIPS</h2>
+            <p style="margin-bottom: 30px; color: #9ca3af;">Fold wisdom from Vex, Sable, and the Ossuary Twins.</p>
+            <div class="entity-grid">
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🌀</div>
+                        <div>
+                            <div class="entity-name">Read Before You Move</div>
+                            <div class="entity-type">Vex's Law</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">The W-slice drifts — your ghost echo shows where the fold goes if you commit.</div>
+                    <div class="entity-details">
+                        <p>Shift <kbd>Q</kbd> / <kbd>E</kbd> first, watch the echo, then charge the putt. The dungeon punishes the careless and rewards the patient.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">🗺️</div>
+                        <div>
+                            <div class="entity-name">Mark Your Exits</div>
+                            <div class="entity-type">Sable's Rule</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">The fold doubles every dead end — scout both branes before spending sand.</div>
+                    <div class="entity-details">
+                        <p>Breach (<kbd>B</kbd>) is free; rewinds (<kbd>T</kbd>) are not. Map the hole on both slices, then commit the stroke budget.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+
+                <div class="entity-card">
+                    <div class="entity-header">
+                        <div class="entity-emoji">💀</div>
+                        <div>
+                            <div class="entity-name">Adds First, Boss Last</div>
+                            <div class="entity-type">Twins' Warning</div>
+                        </div>
+                    </div>
+                    <div class="entity-short">Everyone the dungeon takes ends up in the walls — thin the pile before the putt that matters.</div>
+                    <div class="entity-details">
+                        <p>Every boss from hole 2 onward is screened by adds (up to 40 guardians + phased spawns on holes 9–10). Clear screens, overload conduits on transitions, and never follow the whispering cracks — count your strokes.</p>
+                    </div>
+                    <button class="read-more-btn" onclick="toggleDetails(this)">Read More</button>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script src="../../../guide-layout.js"></script>
 </body>
 </html>

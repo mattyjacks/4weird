@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ServerCard, type MmoServer } from "./server-card";
 
-type DimensionFilter = "" | "1d" | "2d" | "3d";
+type DimensionFilter = "" | "1d" | "2d" | "3d" | "4d" | "5d";
 
 const OFFLINE_COPY =
   "You're offline or the server list didn't load. Showing an empty lobby — check your connection and hit Refresh. Your game progress is safe.";
@@ -18,7 +18,7 @@ function toServers(body: unknown): MmoServer[] {
 }
 
 /**
- * ServerBrowser — client list: dimension filter (1d/2d/3d), age-band badges,
+ * ServerBrowser - client list: dimension filter (1d/2d/3d/4d/5d), age-band badges,
  * players/max, coin/min quote, host-free badge, join links.
  * SSR-safe (renders loading state on server) and fail-open offline: a failed
  * GET /api/mmorpg/servers shows OFFLINE_COPY instead of throwing.
@@ -26,7 +26,7 @@ function toServers(body: unknown): MmoServer[] {
 function initialDimension(): DimensionFilter {
   if (typeof window === "undefined") return "";
   const hint = new URLSearchParams(window.location.search).get("dimension")?.toLowerCase() ?? "";
-  return hint === "1d" || hint === "2d" || hint === "3d" ? hint : "";
+  return hint === "1d" || hint === "2d" || hint === "3d" || hint === "4d" || hint === "5d" ? hint : "";
 }
 
 export function ServerBrowser() {
@@ -90,6 +90,8 @@ export function ServerBrowser() {
             <option value="1d">1D games</option>
             <option value="2d">2D games</option>
             <option value="3d">3D games</option>
+            <option value="4d">4D games</option>
+            <option value="5d">5D games</option>
           </select>
           <button
             type="button"

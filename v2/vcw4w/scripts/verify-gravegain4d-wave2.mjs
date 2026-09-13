@@ -142,7 +142,8 @@ if (!holesOk) {
   check("holes span 4+ worldIds", false, "skipped: file missing");
 } else {
   const src = readAbs(holesAbs);
-  const pars = [...src.matchAll(/par\s*:\s*(\d+)/g)].map((m) => Number(m[1]));
+  // Trailing comma required: excludes the `par: 3 | 4 | 5;` type union.
+  const pars = [...src.matchAll(/par\s*:\s*(\d+)\s*,/g)].map((m) => Number(m[1]));
   check(
     "holes carry 18 par entries",
     pars.length === 18,

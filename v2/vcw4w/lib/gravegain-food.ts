@@ -1,6 +1,7 @@
 // GraveGain shared food-consumable model (v2 layer).
 //
-// Every food emoji in gravegain1d / gravegain2d / gravegain3d resolves to ONE
+// Every food emoji in gravegain1d / gravegain2d / gravegain3d / gravegain4d /
+// gravegain5d resolves to ONE
 // effect kind with a tier (1 common, 2 uncommon, 3 rare). The SAME emoji has
 // the SAME effect in every game and mode — only the numbers move, via
 // deriveFoodStats(), so balance is per-game/per-mode while identity is global.
@@ -23,6 +24,8 @@ export const GRAVEGAIN_FOOD_GAMES = [
   "gravegain1d",
   "gravegain2d",
   "gravegain3d",
+  "gravegain4d",
+  "gravegain5d",
 ] as const;
 export type GraveGainFoodGame = (typeof GRAVEGAIN_FOOD_GAMES)[number];
 
@@ -88,11 +91,13 @@ export interface GraveGainFoodItemDef extends GraveGainFoodRosterEntry {
 /** V2 runtime overlay bundle that will consume these tables (integrator wiring). */
 export const GRAVEGAIN_FOOD_RUNTIME_FILES = ["gravegain-loot.js"] as const;
 
-/** Per-game stat scale: 1d runs small numbers, 2d baseline, 3d dungeon-scale. */
+/** Per-game stat scale: 1d runs small numbers, 2d baseline, 3d dungeon-scale, 4d dream-scale above 3d, 5d multiverse highest. */
 const GAME_SCALE: Record<GraveGainFoodGame, number> = {
   gravegain1d: 0.7,
   gravegain2d: 1.0,
   gravegain3d: 1.4,
+  gravegain4d: 1.8,
+  gravegain5d: 2.2,
 };
 
 interface BaseLine {
@@ -186,7 +191,7 @@ export function deriveFoodStats(
   return out;
 }
 
-/** Build the full 3-games x 3-modes table for a roster entry (notes added by batch files). */
+/** Build the full 5-games x 3-modes table for a roster entry (notes added by batch files). */
 export function buildFoodStatsTable(
   effect: GraveGainFoodEffect,
   tier: GraveGainFoodTier,

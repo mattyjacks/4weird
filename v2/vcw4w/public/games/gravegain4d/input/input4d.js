@@ -1,301 +1,173 @@
 (function () {
     'use strict';
 
-    // GraveGain4D input: WASD/arrows + mouse + touch, plus 4D bindings.
-    //
-    // KEY MAP (canon, do not remap without updating game.js + docs):
-    //   WASD / Arrows .... move (W/S = forward/back, A/D = strafe)
-    //   Mouse move ........ look/aim (pointer-locked on canvas container)
-    //   Left click ........ attack normally, PUTT when puttMode is on
-    //   Middle click / J .. ability (always; never w-shift)
-    //   Q / E ............. ana / kata plane rotation hold
-    //   R ................. w+ (ana-direction nudge / putt w-aim in putt mode)
-    //   F ................. CONTEXT: w- ONLY while puttMode is on,
-    //                       ABILITY otherwise (3D canon: F = ability).
-    //                       R/F w-shift ONLY in putt mode, F ability otherwise.
-    //   T ................. timeline rewind / reverse time (edge, anytime)
-    //   V ................. DEPRECATED (was world-hop; alternate worlds moved
-    //                       to GraveGain5D). V is a no-op in 4D, kept as an edge
-    //                       for save-compat only.
-    //   G ................. putt-mode toggle (edge)
-    //   Space ............. jump (held + edge)
-    //   P / Esc ........... pause toggle (edge)
-    //
-    // Touch: left-half virtual joystick = move, right-half drag = look,
-    // action buttons (ATK/PUTT, ABILITY, JUMP, W+/W-, MODE) set the same
-    // flags as their desktop twins; a W-slider element may be bound via
-    // bindWSlider(el) to drive wAxis directly.
-    //
-    // Frame protocol: game calls poll() for held state, then consume()
-    // for edge events (consume clears the edge queue).
+    // GraveGain4D — input4d: WASD move, pointer-lock mouse-look, Q/E ana/kata
+    // w-shift, Space jump, T rewind, B brane-flip, click putt.
+    // NOTE: KeyF is deliberately ability-free here — it is never bound.
+    // No fullscreen bindings, no dblclick listeners.
 
     function requestPointerLockSafely(element) {
-        if (!element?.requestPointerLock || document.body.classList.contains('touch-enabled')) return;
+        if (!element || !element.requestPointerLock) return;
+        if (document.body && document.body.classList.contains('touch-enabled')) return;
         try {
-            const request = element.requestPointerLock();
-            if (request && typeof request.catch === 'function') request.catch(() => {});
-        } catch (_) { /* embedded players may deny pointer lock */ }
+            var request = element.requestPointerLock();
+            if (request && typeof request.catch === 'function') request.catch(function () {});
+        } catch (_) { /* Embedded players may deny pointer lock. */ }
     }
 
-    class Input4D {
-        constructor() {
-            this.keys = {};
-            this.look = { dx: 0, dy: 0 };
-            this.lookSensitivity = 0.0022;
-            this.invertY = false;
-            this.puttMode = false;
-            this.wAxis = 0; // -1..1 held intent (R+/F- or touch buttons/slider)
-            this.wSliderValue = 0;
-
-            // Edge queue drained by consume()
-            this._edges = {
-                attack: 0, putt: 0, ability: 0, rewind: 0,
-                worldHop: 0, jump: 0, puttModeToggled: 0, pause: 0
-            };
-            this.jumpHeld = false;
-            this.aimHeld = false;
-            this.attackHeld = false;
-
-            this.joystick = { active: false, id: -1, x: 0, y: 0, originX: 0, originY: 0 };
-            this.touchLook = { active: false, id: -1, lastX: 0, lastY: 0 };
-            this.touch = { wPlus: false, wMinus: false };
-            this._container = null;
-
-            this.setupDesktopControls();
-            this.setupMobileControls();
-        }
-
-        get isPuttMode() { return this.puttMode; }
-
-        _emit(name) { this._edges[name] = (this._edges[name] || 0) + 1; }
-
-        _togglePuttMode() {
-            this.puttMode = !this.puttMode;
-            this._emit('puttModeToggled');
-        }
-
-        _pause() {
-            this._emit('pause');
-            if (window.GraveGain4D && typeof window.GraveGain4D.togglePause === 'function') {
-                try { window.GraveGain4D.togglePause(); } catch (_) {}
-            } else if (window.GraveGainGame && typeof window.GraveGainGame.togglePause === 'function') {
-                try { window.GraveGainGame.togglePause(); } catch (_) {}
-            }
-        }
-
-        setupDesktopControls() {
-            window.addEventListener('keydown', (e) => {
-                if (e.repeat) {
-                    this.keys[e.code] = true;
-                    return;
-                }
-                this.keys[e.code] = true;
-                switch (e.code) {
-                    case 'KeyG': this._togglePuttMode(); break;
-                    case 'KeyT': this._emit('rewind'); break;
-                    case 'KeyV': this._emit('worldHop'); break; // deprecated no-op: 4D ignores worldHop (5D feature)
-                    case 'KeyJ': this._emit('ability'); break;
-                    case 'Space':
-                        this.jumpHeld = true;
-                        this._emit('jump');
-                        if (e.target === document.body) e.preventDefault();
-                        break;
-                    case 'KeyF':
-                        // Context key: w- in putt mode, ability otherwise.
-                        if (this.puttMode) { this.keys.__wMinus = true; }
-                        else this._emit('ability');
-                        break;
-                    case 'KeyR': this.keys.__wPlus = true; break;
-                    case 'KeyP': case 'Escape': this._pause(); break;
-                    default: break;
-                }
-            });
-
-            window.addEventListener('keyup', (e) => {
-                this.keys[e.code] = false;
-                if (e.code === 'Space') this.jumpHeld = false;
-                if (e.code === 'KeyR') this.keys.__wPlus = false;
-                if (e.code === 'KeyF') this.keys.__wMinus = false;
-            });
-
-            window.addEventListener('blur', () => {
-                this.keys = {};
-                this.jumpHeld = false;
-                this.aimHeld = false;
-                this.attackHeld = false;
-            });
-
-            const container = document.getElementById('canvasContainer') || document.getElementById('gameContainer');
-            if (!container) return;
-            this._container = container;
-            container.addEventListener('contextmenu', (e) => e.preventDefault());
-
-            container.addEventListener('mousedown', (e) => {
-                const botDriven = e.isTrusted === false ||
-                    (window.GraveGainBotInput && typeof window.GraveGainBotInput.isBotControl === 'function' && window.GraveGainBotInput.isBotControl());
-                if (document.pointerLockElement !== container && !botDriven) {
-                    requestPointerLockSafely(container);
-                }
-                if (e.button === 0) {
-                    this.attackHeld = true;
-                    if (this.puttMode) this._emit('putt');
-                    else this._emit('attack');
-                } else if (e.button === 1) {
-                    this._emit('ability');
-                    e.preventDefault();
-                } else if (e.button === 2) {
-                    this.aimHeld = true;
-                }
-            });
-            window.addEventListener('mouseup', (e) => {
-                if (e.button === 0) this.attackHeld = false;
-                if (e.button === 2) this.aimHeld = false;
-            });
-            document.addEventListener('mousemove', (e) => {
-                if (document.pointerLockElement === this._container) {
-                    this.look.dx += e.movementX * this.lookSensitivity;
-                    this.look.dy += e.movementY * this.lookSensitivity * (this.invertY ? -1 : 1);
-                }
-            });
-        }
-
-        setupMobileControls() {
-            const opts = { passive: false };
-            window.addEventListener('touchstart', (e) => {
-                document.body.classList.add('touch-enabled');
-                for (const t of e.changedTouches) {
-                    if (t.clientX < window.innerWidth * 0.45 && !this.joystick.active) {
-                        this.joystick.active = true;
-                        this.joystick.id = t.identifier;
-                        this.joystick.originX = t.clientX;
-                        this.joystick.originY = t.clientY;
-                        this.joystick.x = 0;
-                        this.joystick.y = 0;
-                    } else if (!this.touchLook.active) {
-                        this.touchLook.active = true;
-                        this.touchLook.id = t.identifier;
-                        this.touchLook.lastX = t.clientX;
-                        this.touchLook.lastY = t.clientY;
-                    }
-                }
-            }, opts);
-            window.addEventListener('touchmove', (e) => {
-                for (const t of e.changedTouches) {
-                    if (this.joystick.active && t.identifier === this.joystick.id) {
-                        const R = 60;
-                        let dx = (t.clientX - this.joystick.originX) / R;
-                        let dy = (t.clientY - this.joystick.originY) / R;
-                        const m = Math.hypot(dx, dy) || 1;
-                        if (m > 1) { dx /= m; dy /= m; }
-                        this.joystick.x = dx;
-                        this.joystick.y = dy;
-                        e.preventDefault();
-                    } else if (this.touchLook.active && t.identifier === this.touchLook.id) {
-                        this.look.dx += (t.clientX - this.touchLook.lastX) * this.lookSensitivity * 1.4;
-                        this.look.dy += (t.clientY - this.touchLook.lastY) * this.lookSensitivity * 1.4 * (this.invertY ? -1 : 1);
-                        this.touchLook.lastX = t.clientX;
-                        this.touchLook.lastY = t.clientY;
-                    }
-                }
-            }, opts);
-            const endTouch = (e) => {
-                for (const t of e.changedTouches) {
-                    if (this.joystick.active && t.identifier === this.joystick.id) {
-                        this.joystick.active = false;
-                        this.joystick.id = -1;
-                        this.joystick.x = 0;
-                        this.joystick.y = 0;
-                    }
-                    if (this.touchLook.active && t.identifier === this.touchLook.id) {
-                        this.touchLook.active = false;
-                        this.touchLook.id = -1;
-                    }
-                }
-            };
-            window.addEventListener('touchend', endTouch);
-            window.addEventListener('touchcancel', endTouch);
-        }
-
-        // Touch action buttons: call from UI (ATK, ABILITY, JUMP, W+/W-, MODE).
-        pressAction(name) {
-            switch (name) {
-                case 'attack': case 'putt':
-                    if (this.puttMode) this._emit('putt');
-                    else this._emit('attack');
-                    break;
-                case 'ability': this._emit('ability'); break;
-                case 'jump': this.jumpHeld = true; this._emit('jump'); break;
-                case 'releaseJump': this.jumpHeld = false; break;
-                case 'wPlus': this.touch.wPlus = true; break;
-                case 'releaseWPlus': this.touch.wPlus = false; break;
-                case 'wMinus': this.touch.wMinus = true; break;
-                case 'releaseWMinus': this.touch.wMinus = false; break;
-                case 'puttMode': this._togglePuttMode(); break;
-                case 'rewind': this._emit('rewind'); break;
-                case 'worldHop': this._emit('worldHop'); break; // deprecated: 4D runtime ignores worldHop (5D feature)
-                case 'pause': this._pause(); break;
-                default: break;
-            }
-        }
-
-        // Bind an <input type="range" min="-1" max="1"> as the W driver.
-        bindWSlider(el) {
-            if (!el || typeof el.addEventListener !== 'function') return;
-            const read = () => { this.wSliderValue = Math.max(-1, Math.min(1, Number(el.value) || 0)); };
-            el.addEventListener('input', read);
-            read();
-        }
-
-        _heldW() {
-            // Keyboard R/F drive w ONLY in putt mode (F is ability otherwise);
-            // touch W-buttons / W-slider have no key conflict so always apply.
-            let w = 0;
-            if (this.puttMode) {
-                if (this.keys.__wPlus || this.keys.KeyR) w += 1;
-                if (this.keys.__wMinus) w -= 1;
-            }
-            if (this.touch.wPlus) w += 1;
-            if (this.touch.wMinus) w -= 1;
-            if (w === 0 && this.wSliderValue) w = this.wSliderValue;
-            return Math.max(-1, Math.min(1, w));
-        }
-
-        // Held-state snapshot for the frame (no clearing).
-        poll() {
-            const k = this.keys;
-            let mx = 0, mz = 0;
-            if (k.KeyW || k.ArrowUp) mz += 1;
-            if (k.KeyS || k.ArrowDown) mz -= 1;
-            if (k.KeyA || k.ArrowLeft) mx -= 1;
-            if (k.KeyD || k.ArrowRight) mx += 1;
-            mx += this.joystick.x;
-            mz -= this.joystick.y;
-            const m = Math.hypot(mx, mz);
-            if (m > 1) { mx /= m; mz /= m; }
-            const dx = this.look.dx;
-            const dy = this.look.dy;
-            this.look.dx = 0;
-            this.look.dy = 0;
-            return {
-                move: { x: mx, z: mz },
-                look: { dx, dy },
-                w: this._heldW(),
-                ana: !!k.KeyQ,
-                kata: !!k.KeyE,
-                puttMode: this.puttMode,
-                jumpHeld: this.jumpHeld || !!k.Space,
-                aimHeld: this.aimHeld || !!k.ShiftLeft || !!k.ShiftRight,
-                attackHeld: this.attackHeld
-            };
-        }
-
-        // Edge events since last consume(); clears the queue.
-        consume() {
-            const out = { ...this._edges };
-            for (const key of Object.keys(this._edges)) this._edges[key] = 0;
-            return out;
+    function Input4D(opts) {
+        opts = opts || {};
+        this.keys = {};
+        this.lookSensitivity = opts.lookSensitivity || 0.0022;
+        this.invertY = !!opts.invertY;
+        this.lastLookDelta = 0;
+        this.yaw = opts.yaw || 0;
+        this.pitch = opts.pitch || 0;
+        // W-look: Q/E also nudge w-aim; Space jump edge flag.
+        this.wShift = 0;
+        this.jumpPressed = false;
+        this.rewindHeld = false;
+        this.puttCharging = false;
+        // Bridges to engine modules when present (set by game bootstrap).
+        this.putt = opts.putt || null;       // GG4D_Putt instance
+        this.timefold = opts.timefold || null;
+        this.branes = opts.branes || null;
+        this.playerPos = opts.playerPos || null; // fn() -> {x,y,z,w} for brane flip
+        this.container = null;
+        this._bound = false;
+        if (opts.container) this.attach(opts.container);
+        else if (typeof document !== 'undefined') {
+            var el = document.getElementById('canvasContainer');
+            if (el) this.attach(el);
         }
     }
 
-    if (!window.GraveGain4DInput) window.GraveGain4DInput = new Input4D();
+    Input4D.prototype.attach = function (container) {
+        if (this._bound || !container) return;
+        this._bound = true;
+        this.container = container;
+        var self = this;
+
+        window.addEventListener('keydown', function (e) {
+            // F stays ability-free: never bind KeyF to anything.
+            if (e.code === 'KeyF') return;
+            self.keys[e.code] = true;
+            if (e.code === 'Space') self.jumpPressed = true;
+            if (e.code === 'KeyT' && !self.rewindHeld) {
+                self.rewindHeld = true;
+                if (self.timefold && typeof self.timefold.beginRewind === 'function') {
+                    self.timefold.beginRewind();
+                }
+            }
+            if (e.code === 'KeyB') self.tryBraneFlip();
+        });
+
+        window.addEventListener('keyup', function (e) {
+            if (e.code === 'KeyF') return;
+            self.keys[e.code] = false;
+            if (e.code === 'Space') self.jumpPressed = false;
+            if (e.code === 'KeyT' && self.rewindHeld) {
+                self.rewindHeld = false;
+                if (self.timefold && typeof self.timefold.endRewind === 'function') {
+                    self.timefold.endRewind();
+                }
+            }
+        });
+
+        container.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+        // Pointer-lock-safe click (same pattern as GG3D input-manager):
+        // first click locks; only putt when locked. Synthetic/bot presses
+        // bypass the lock gate like GG3D does.
+        container.addEventListener('mousedown', function (e) {
+            var botDriven = e.isTrusted === false ||
+                (window.GraveGainBotInput && window.GraveGainBotInput.isBotControl &&
+                    window.GraveGainBotInput.isBotControl());
+            if (document.pointerLockElement !== container && !botDriven) {
+                requestPointerLockSafely(container);
+            } else if (e.button === 0) {
+                self.startPuttCharge();
+            }
+        });
+
+        window.addEventListener('mouseup', function (e) {
+            if (e.button === 0 && self.puttCharging) self.releasePutt();
+        });
+
+        document.addEventListener('mousemove', function (e) {
+            if (document.pointerLockElement !== container) return;
+            var dx = e.movementX || 0;
+            var dy = e.movementY || 0;
+            self.yaw -= dx * self.lookSensitivity;
+            var moveY = self.invertY ? -dy : dy;
+            self.pitch -= moveY * self.lookSensitivity;
+            var lim = Math.PI / 2.3;
+            self.pitch = Math.max(-lim, Math.min(lim, self.pitch));
+            self.lastLookDelta += Math.abs(dx) + Math.abs(dy);
+            // Mirror onto a GG3D-style player object when the game provides one.
+            var p = window.GG4D_Game && window.GG4D_Game.player;
+            if (p) { p.yaw = self.yaw; p.pitch = self.pitch; }
+        });
+    };
+
+    Input4D.prototype.moveAxes = function () {
+        var k = this.keys;
+        return {
+            forward: (k.KeyW ? 1 : 0) - (k.KeyS ? 1 : 0),
+            strafe: (k.KeyD ? 1 : 0) - (k.KeyA ? 1 : 0),
+            // Canon keymap (see combat/keymap4d.js): Q = potion/juice, F =
+            // class ability (owned by combat/abilities4d.js), R/E = ana/kata.
+            w: (k.KeyE ? 1 : 0) - (k.KeyR ? 1 : 0),
+            jump: !!k.Space || this.jumpPressed,
+            rewind: this.rewindHeld || !!k.KeyT
+        };
+    };
+
+    Input4D.prototype.consumeJump = function () {
+        var j = this.jumpPressed || !!this.keys.Space;
+        this.jumpPressed = false;
+        return j;
+    };
+
+    Input4D.prototype.startPuttCharge = function () {
+        this.puttCharging = true;
+        if (this.putt && typeof this.putt.startCharge === 'function') {
+            return this.putt.startCharge();
+        }
+        return true;
+    };
+
+    Input4D.prototype.releasePutt = function () {
+        this.puttCharging = false;
+        if (this.putt && typeof this.putt.releasePutt === 'function') {
+            return this.putt.releasePutt();
+        }
+        return null;
+    };
+
+    Input4D.prototype.tryBraneFlip = function () {
+        if (!this.branes || typeof this.branes.tryFlip !== 'function') return null;
+        var pos = typeof this.playerPos === 'function' ? this.playerPos() : this.playerPos;
+        return this.branes.tryFlip(pos);
+    };
+
+    // Programmatic bot path (mirrors GG3D input-manager bot hooks).
+    Input4D.prototype.botPress = function (code, holdMs) {
+        // F stays ability-free even for bots.
+        if (code === 'KeyF') return;
+        var self = this;
+        this.keys[code] = true;
+        setTimeout(function () {
+            self.keys[code] = false;
+            if (code === 'Space') self.jumpPressed = false;
+            if (code === 'KeyT') {
+                self.rewindHeld = false;
+                if (self.timefold && typeof self.timefold.endRewind === 'function') {
+                    self.timefold.endRewind();
+                }
+            }
+        }, holdMs || 220);
+    };
+
+    window.GG4D_Input4D = Input4D;
 })();

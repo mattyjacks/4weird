@@ -11,7 +11,8 @@ import { fail, ok } from "@/lib/api-respond";
  * economy migration + RPC; this route only answers "what would it cost".
  *
  * Rate card (mirrors the `../servers` foundation stub's demo numbers:
- * `costPerMin` kids 0 / teens 2 / adults 5, kids rooms host-free):
+ * `costPerMin` kids 0 / teens 2 / adults 5, gravegain4d 7-8, gravegain5d
+ * 8-9 — 4d above the 3d tier, 5d highest; kids rooms host-free):
  *   - `perPlayerPerMin`: whole coins per player per minute for the
  *     requested ageBand (kids sessions are fully subsidized: 0).
  *   - `hostTotalCoins`: `hostFree ? 0 : perPlayerPerMin * minutesBilled`.
@@ -28,12 +29,14 @@ import { fail, ok } from "@/lib/api-respond";
 type AgeBand = "kids" | "teens" | "adults";
 
 /** Demo games known to the `../servers` foundation stub. */
-const DEMO_GAMES = ["emberhold", "dreadhollow"] as const;
+const DEMO_GAMES = ["emberhold", "dreadhollow", "gravegain4d", "gravegain5d"] as const;
 
 /** Minimum room band per demo game (mirrors `../servers` GAME_MIN_BAND). */
 const GAME_MIN_BAND: Readonly<Record<string, AgeBand>> = {
   emberhold: "kids",
   dreadhollow: "teens",
+  gravegain4d: "teens",
+  gravegain5d: "adults",
 };
 
 const BAND_RANK: Readonly<Record<AgeBand, number>> = {
@@ -44,14 +47,24 @@ const BAND_RANK: Readonly<Record<AgeBand, number>> = {
 
 /**
  * Whole coins per player per minute (mirrors `../servers` stub create:
- * kids 0 / teens 2 / adults 5). Integer only — quotes never touch float
- * money math until the final display division.
+ * kids 0 / teens 2 / adults 5, with the premium dimensions layered on top:
+ * gravegain4d teens 7 / adults 8 sits above the 3d tier and gravegain5d
+ * teens 8 / adults 9 is the highest). Integer only — quotes never touch
+ * float money math until the final display division.
  */
 const RATE_COINS_PER_PLAYER_MIN: Readonly<Record<AgeBand, number>> = {
   kids: 0,
   teens: 2,
   adults: 5,
 };
+
+/** Per-minute rate for a (game, ageBand) pair; kids rooms stay subsidized at 0. */
+function rateForGameBand(game: string, ageBand: AgeBand): number {
+  if (ageBand === "kids") return 0;
+  if (game === "gravegain5d") return ageBand === "teens" ? 8 : 9;
+  if (game === "gravegain4d") return ageBand === "teens" ? 7 : 8;
+  return RATE_COINS_PER_PLAYER_MIN[ageBand];
+}
 
 /** 100 coins = exactly $1.00 USD (1 coin = 1 cent). */
 const COINS_PER_USD = 100;
@@ -99,16 +112,17 @@ export async function POST(req: Request) {
   }
 
   // In-memory age check (mirrors `../servers` POST create): the requested
-  // band must clear the game's floor (dreadhollow is teens+).
+  // band must clear the game's floor (dreadhollow/gravegain4d are teens+,
+  // gravegain5d is adults+). Denied bands get 403 like the sibling stub.
   const min = GAME_MIN_BAND[game] ?? "kids";
   if (BAND_RANK[ageBand] < BAND_RANK[min]) {
     return fail(
       `Game "${game}" requires a ${min}+ room; "${ageBand}" is below the minimum band.`,
-      400,
+      403,
     );
   }
 
-  const perPlayerPerMin = RATE_COINS_PER_PLAYER_MIN[ageBand];
+  const perPlayerPerMin = rateForGameBand(game, ageBand);
   const minutesBilled = Math.max(1, Math.round(hours * 60));
   const grossCoins = perPlayerPerMin * minutesBilled;
   const hostTotalCoins = hostFree ? 0 : grossCoins;

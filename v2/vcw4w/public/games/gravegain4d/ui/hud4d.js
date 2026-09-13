@@ -1,328 +1,236 @@
-/* GraveGain4D HUD shell bridge (DS-GRAV4D-08, lane games).
- * Extends window.GraveGain4DUI ADDITIVELY (hud-4d.js owns the trippy W-slice
- * overlay; this module owns the 3D-shell stat bridge + strokes/par/W-meter /
- * timeline/world badges + boss bar + combat text + notifications + 4D->2D
- * radar + mobile mini-HUD). All DOM lookups are null-guarded: if the 3D
- * shell IDs are absent (4D index.html only mounts #g4d-hud), this module
- * builds its own lightweight overlay and keeps every method a safe no-op
- * rather than throwing.
- */
 (function () {
-  'use strict';
+    'use strict';
+    if (window.GG4D_HUD) return;
 
-  var NS = (window.GraveGain4DUI = window.GraveGain4DUI || {});
-  if (NS.__shellLoaded) return;
-  NS.__shellLoaded = true;
+    // GraveGain4D HUD — HP/stamina/gold/KillCredits + 4D meters.
+    // Same popup style as gravegain3d/ui/combat-text.js: absolutely-
+    // positioned divs with class "combat-text <type>", removed after ~850ms,
+    // plus a #hudNotification-style banner hook. Never throws; all DOM
+    // access is guarded so the module is safe headless / pre-DOM.
 
-  // 3D shell IDs we mirror when present (see gravegain3d/index.html L63-115).
-  var SHELL_IDS = {
-    hpBar: 'hudHpBar', hpText: 'hudHpText',
-    staminaBar: 'hudStaminaBar', staminaText: 'hudStaminaText',
-    resBar: 'hudResourceBar', resText: 'hudResourceText', resLabel: 'hudResourceLabel',
-    xpBar: 'hudXpBar', xpText: 'hudXpText', levelBadge: 'hudLevelBadge',
-    gold: 'hudGoldText', uusd: 'hudUusdText', floor: 'hudFloorText',
-    potions: 'hudPotionCount'
-  };
+    var CSS_ID = 'gg4d-hud-style';
 
-  var S = {
-    bound: false,
-    shell: {},          // cached shell elements (may be empty)
-    root: null,         // own overlay root (built only if needed)
-    els: {},            // own overlay elements
-    radar: null, radarCtx: null,
-    boss: null, bossEls: {},
-    combatLayer: null, notifyLayer: null, miniHud: null,
-    state: {
-      hp: 100, hpMax: 100, stamina: 100, staminaMax: 100,
-      resource: 0, resourceMax: 100, resourceName: 'W-Echo',
-      xp: 0, xpMax: 100, level: 1, gold: 0, uusd: 0,
-      floor: 'Hole 1', strokes: 0, par: 3,
-      w: 0, wMin: -2, wMax: 2, timeline: 'Prime', world: 'MoonRock'
+    var CSS =
+        '.gg4d-hud{position:fixed;inset:0;pointer-events:none;z-index:40;' +
+        'font-family:system-ui,sans-serif;color:#e8e6df;font-size:13px}' +
+        '.gg4d-tl{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:6px}' +
+        '.gg4d-bar{width:200px;height:14px;background:rgba(0,0,0,.55);border:1px solid #555;border-radius:3px;overflow:hidden}' +
+        '.gg4d-bar>i{display:block;height:100%;width:100%}' +
+        '.gg4d-hp>i{background:linear-gradient(90deg,#c0392b,#e74c3c)}' +
+        '.gg4d-st>i{background:linear-gradient(90deg,#1e8449,#58d68d)}' +
+        '.gg4d-row{display:flex;gap:10px;align-items:center;text-shadow:0 1px 2px #000}' +
+        '.gg4d-w{width:200px;height:12px;background:rgba(0,0,0,.55);border:1px solid #7d6cf0;border-radius:6px;position:relative;overflow:hidden}' +
+        '.gg4d-w>i{position:absolute;top:0;bottom:0;left:50%;width:4px;margin-left:-2px;background:#b9aaff}' +
+        '.gg4d-wlbl{display:flex;justify-content:space-between;width:200px;font-size:11px;opacity:.9}' +
+        '.gg4d-sand{width:200px;height:10px;background:rgba(0,0,0,.55);border:1px solid #d4ac0d;border-radius:3px;overflow:hidden}' +
+        '.gg4d-sand>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#7e5109,#f9e79f)}' +
+        '.gg4d-brane{padding:2px 8px;border:1px solid #888;border-radius:10px;background:rgba(0,0,0,.5);display:inline-block}' +
+        '.gg4d-boss{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(480px,70vw);display:none}' +
+        '.gg4d-boss.on{display:block}' +
+        '.gg4d-boss .nm{text-align:center;margin-bottom:3px;text-shadow:0 1px 2px #000}' +
+        '.gg4d-boss .gg4d-bar{width:100%;height:12px;border-color:#a00}' +
+        '.gg4d-boss .gg4d-bar>i{background:linear-gradient(90deg,#7b241c,#ff5b4d)}' +
+        '.gg4d-mission{position:absolute;top:10px;right:10px;max-width:240px;background:rgba(0,0,0,.5);' +
+        'border:1px solid #666;border-radius:4px;padding:6px 8px}' +
+        '.gg4d-mission h4{margin:0 0 4px;font-size:12px}' +
+        '.gg4d-mission ul{margin:0;padding-left:16px;font-size:12px}' +
+        '.gg4d-pop{position:absolute;transform:translate(-50%,-50%);pointer-events:none}' +
+        '.combat-text{position:absolute;transform:translate(-50%,-50%);font-weight:700;' +
+        'text-shadow:0 1px 2px #000,-1px 0 2px #000;animation:gg4d-rise .85s ease-out forwards}' +
+        '.combat-text.damage{color:#ff6b5e}.combat-text.crit{color:#ffd24d;font-size:1.3em}' +
+        '.combat-text.heal{color:#7dffa8}.combat-text.gold{color:#ffe98a}' +
+        '.combat-text.wshift{color:#b9aaff}.combat-text.info{color:#cfe3ff}' +
+        '@keyframes gg4d-rise{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-42px}}' +
+        '.gg4d-banner{position:absolute;top:22%;left:50%;transform:translateX(-50%);font-size:22px;' +
+        'font-weight:800;text-shadow:0 2px 4px #000;background:rgba(0,0,0,.55);padding:8px 18px;' +
+        'border:1px solid #999;border-radius:6px;display:none}' +
+        '.gg4d-banner.on{display:block}';
+
+    function el(tag, cls, parent) {
+        var d = document.createElement(tag);
+        if (cls) d.className = cls;
+        if (parent) parent.appendChild(d);
+        return d;
     }
-  };
 
-  function $(id) {
-    if (!id) return null;
-    try { return document.getElementById(id); } catch (e) { return null; }
-  }
-
-  function mk(tag, cls, parent) {
-    var n = document.createElement(tag);
-    if (cls) n.className = cls;
-    if (parent) parent.appendChild(n);
-    return n;
-  }
-
-  function pct(a, b) {
-    b = b || 0;
-    if (!b || b <= 0) return 0;
-    return Math.max(0, Math.min(100, (a / b) * 100));
-  }
-
-  function setBar(elm, v, max) {
-    if (!elm) return;
-    try { elm.style.width = pct(v, max) + '%'; } catch (e) {}
-  }
-
-  function setText(elm, t) {
-    if (!elm) return;
-    try { elm.textContent = t; } catch (e) {}
-  }
-
-  function ensureRoot() {
-    if (S.root) return S.root;
-    var mount = $('g4d-hud') || $('g4d-stage') || document.body;
-    if (!mount) return null;
-    var root = mk('div', 'g4d-shell-hud');
-    root.id = 'g4d-shell-hud';
-    root.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:30;' +
-      'font-family:Outfit,Inter,system-ui,sans-serif;color:#e8f4ff;font-size:12px;';
-    try { mount.appendChild(root); } catch (e) { return null; }
-    S.root = root;
-
-    // Top stat strip (own overlay; shell IDs take precedence when present).
-    var strip = mk('div', 'g4d-stat-strip', root);
-    strip.style.cssText = 'position:absolute;top:8px;left:8px;right:8px;display:flex;gap:8px;flex-wrap:wrap;';
-    S.els.strip = strip;
-    ['hp', 'stamina', 'resource', 'xp'].forEach(function (k) {
-      var card = mk('div', 'g4d-stat-card', strip);
-      card.style.cssText = 'background:rgba(8,12,24,.72);border:1px solid rgba(120,200,255,.25);' +
-        'border-radius:8px;padding:4px 8px;min-width:130px;pointer-events:none;';
-      var label = mk('div', 'g4d-stat-label', card);
-      label.style.cssText = 'opacity:.75;font-size:10px;letter-spacing:.08em;text-transform:uppercase;';
-      var bar = mk('div', 'g4d-stat-bar', card);
-      bar.style.cssText = 'height:6px;background:rgba(255,255,255,.12);border-radius:4px;margin:3px 0;overflow:hidden;';
-      var fill = mk('div', 'g4d-stat-fill', bar);
-      fill.style.cssText = 'height:100%;width:50%;background:#5ec8ff;border-radius:4px;';
-      var val = mk('div', 'g4d-stat-val', card);
-      S.els[k + 'Card'] = card; S.els[k + 'Label'] = label;
-      S.els[k + 'Fill'] = fill; S.els[k + 'Val'] = val;
-    });
-
-    // Economy / mission strip: gold, uusd, floor, strokes/par, W-meter, badges.
-    var meta = mk('div', 'g4d-meta-strip', root);
-    meta.style.cssText = 'position:absolute;top:8px;right:8px;display:flex;gap:6px;align-items:center;' +
-      'background:rgba(8,12,24,.72);border:1px solid rgba(120,200,255,.25);border-radius:8px;padding:4px 8px;';
-    S.els.meta = meta;
-    ['gold', 'uusd', 'floor', 'strokes', 'wmeter', 'timeline', 'world'].forEach(function (k) {
-      var s = mk('span', 'g4d-meta-' + k, meta);
-      s.style.cssText = 'margin:0 4px;white-space:nowrap;';
-      S.els['meta_' + k] = s;
-    });
-
-    // Layers: boss bar, combat text, notifications, radar, mini-HUD.
-    var boss = mk('div', 'g4d-boss-bar', root);
-    boss.style.cssText = 'position:absolute;top:64px;left:50%;transform:translateX(-50%);width:min(520px,80%);' +
-      'display:none;background:rgba(8,12,24,.8);border:1px solid rgba(255,90,120,.5);border-radius:8px;padding:4px 10px;';
-    var bossName = mk('div', 'g4d-boss-name', boss);
-    bossName.style.cssText = 'font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#ffb3c2;';
-    var bossTrack = mk('div', 'g4d-boss-track', boss);
-    bossTrack.style.cssText = 'height:8px;background:rgba(255,255,255,.12);border-radius:4px;overflow:hidden;margin:3px 0;';
-    var bossFill = mk('div', 'g4d-boss-fill', bossTrack);
-    bossFill.style.cssText = 'height:100%;width:100%;background:linear-gradient(90deg,#ff5a78,#ff9a5a);';
-    var bossPhase = mk('div', 'g4d-boss-phase', boss);
-    bossPhase.style.cssText = 'font-size:10px;opacity:.8;';
-    S.boss = boss; S.bossEls = { name: bossName, fill: bossFill, phase: bossPhase };
-
-    S.combatLayer = mk('div', 'g4d-combat-layer', root);
-    S.combatLayer.style.cssText = 'position:absolute;inset:0;overflow:hidden;';
-    S.notifyLayer = mk('div', 'g4d-notify-layer', root);
-    S.notifyLayer.style.cssText = 'position:absolute;left:8px;bottom:8px;display:flex;flex-direction:column;gap:6px;max-width:min(360px,80vw);';
-
-    var radar = document.createElement('canvas');
-    radar.id = 'g4d-radar';
-    radar.width = 132; radar.height = 132;
-    radar.style.cssText = 'position:absolute;right:8px;bottom:8px;width:132px;height:132px;border-radius:50%;' +
-      'background:rgba(6,10,20,.78);border:1px solid rgba(120,200,255,.35);';
-    try { root.appendChild(radar); } catch (e) {}
-    S.radar = radar;
-    try { S.radarCtx = radar.getContext('2d'); } catch (e) { S.radarCtx = null; }
-
-    var mini = mk('div', 'g4d-mini-hud', root);
-    mini.id = 'g4d-mini-hud';
-    mini.style.cssText = 'position:absolute;left:50%;bottom:8px;transform:translateX(-50%);display:none;' +
-      'background:rgba(8,12,24,.8);border:1px solid rgba(120,200,255,.3);border-radius:10px;padding:4px 10px;gap:8px;';
-    S.miniHud = mini;
-    return root;
-  }
-
-  /** Bind 3D-shell IDs when present. Safe to call repeatedly; never throws. */
-  NS.bindShell = function () {
-    Object.keys(SHELL_IDS).forEach(function (k) { S.shell[k] = $(SHELL_IDS[k]); });
-    S.bound = true;
-    return S.shell;
-  };
-
-  /** Push a full state snapshot into shell IDs (if present) + own overlay. */
-  NS.update = function (patch) {
-    if (patch && typeof patch === 'object') {
-      Object.keys(patch).forEach(function (k) { S.state[k] = patch[k]; });
-    }
-    if (!S.bound) NS.bindShell();
-    var st = S.state, sh = S.shell;
-    setBar(sh.hpBar, st.hp, st.hpMax);
-    setText(sh.hpText, st.hp + '/' + st.hpMax);
-    setBar(sh.staminaBar, st.stamina, st.staminaMax);
-    setText(sh.staminaText, st.stamina + '/' + st.staminaMax);
-    setBar(sh.resBar, st.resource, st.resourceMax);
-    setText(sh.resText, st.resource + '/' + st.resourceMax);
-    if (sh.resLabel) setText(sh.resLabel, st.resourceName || 'W-Echo');
-    setBar(sh.xpBar, st.xp, st.xpMax);
-    setText(sh.xpText, st.xp + '/' + st.xpMax);
-    setText(sh.levelBadge, 'LV ' + st.level);
-    setText(sh.gold, String(st.gold));
-    setText(sh.uusd, String(st.uusd));
-    setText(sh.floor, st.floor);
-
-    // Own overlay mirrors (built lazily; skipped if no mount exists).
-    if (!ensureRoot()) return st;
-    var E = S.els;
-    var rows = [
-      ['hp', 'HP', st.hp + '/' + st.hpMax, st.hp, st.hpMax, '#ff6b81'],
-      ['stamina', 'STAMINA', st.stamina + '/' + st.staminaMax, st.stamina, st.staminaMax, '#ffd35e'],
-      ['resource', st.resourceName || 'W-ECHO', st.resource + '/' + st.resourceMax, st.resource, st.resourceMax, '#b48cff'],
-      ['xp', 'XP LV ' + st.level, st.xp + '/' + st.xpMax, st.xp, st.xpMax, '#5eff9a']
-    ];
-    rows.forEach(function (r) {
-      setText(E[r[0] + 'Label'], r[1]);
-      setText(E[r[0] + 'Val'], r[2]);
-      if (E[r[0] + 'Fill']) {
+    function setWidth(bar, frac) {
         try {
-          E[r[0] + 'Fill'].style.width = pct(r[3], r[4]) + '%';
-          E[r[0] + 'Fill'].style.background = r[5];
-        } catch (e) {}
-      }
-    });
-    setText(E.meta_gold, 'Gold ' + st.gold);
-    setText(E.meta_uusd, '$UUSD ' + st.uusd);
-    setText(E.meta_floor, String(st.floor));
-    setText(E.meta_strokes, 'Strokes ' + st.strokes + ' / Par ' + st.par);
-    setText(E.meta_wmeter, 'W ' + st.w + ' [' + st.wMin + '..' + st.wMax + ']');
-    setText(E.meta_timeline, 'Timeline ' + st.timeline);
-    setText(E.meta_world, 'World ' + st.world);
-    NS.updateMiniHud(st);
-    return st;
-  };
-
-  NS.getState = function () { return Object.assign({}, S.state); };
-
-  // ---- Boss bar (phased) ----
-  NS.bossBar = function (opts) {
-    opts = opts || {};
-    if (!ensureRoot()) return;
-    var name = opts.name || 'Warden of the Fold';
-    var hp = (opts.hp != null ? opts.hp : 100);
-    var max = (opts.max != null ? opts.max : 100);
-    var phase = (opts.phase != null ? opts.phase : 1);
-    var phases = (opts.phases != null ? opts.phases : 3);
-    try {
-      S.boss.style.display = (opts.hide ? 'none' : 'block');
-      S.bossEls.name.textContent = name;
-      S.bossEls.fill.style.width = pct(hp, max) + '%';
-      S.bossEls.phase.textContent = 'Phase ' + phase + ' / ' + phases + ' — ' + hp + '/' + max;
-    } catch (e) {}
-  };
-  NS.hideBoss = function () { NS.bossBar({ hide: true }); };
-
-  // ---- Combat text ----
-  NS.combatText = function (text, kind, x, y) {
-    if (!ensureRoot() || text == null) return;
-    var colors = { dmg: '#ff7a8a', heal: '#6dffa8', w: '#c9a6ff', gold: '#ffd35e', info: '#9adcff' };
-    var n = mk('div', 'g4d-combat-text', S.combatLayer);
-    n.textContent = String(text);
-    n.style.cssText = 'position:absolute;left:' + (x != null ? x : 50) + '%;top:' + (y != null ? y : 42) +
-      '%;transform:translate(-50%,-50%);font-weight:800;font-size:15px;color:' + (colors[kind] || colors.info) +
-      ';text-shadow:0 2px 6px #000;transition:all .9s ease-out;';
-    try {
-      requestAnimationFrame(function () {
-        n.style.transform = 'translate(-50%,-160%)';
-        n.style.opacity = '0';
-      });
-    } catch (e) {}
-    setTimeout(function () { try { n.remove(); } catch (e) {} }, 950);
-  };
-
-  // ---- Notifications ----
-  NS.notify = function (msg, kind) {
-    if (!ensureRoot() || msg == null) return;
-    var n = mk('div', 'g4d-notify g4d-notify-' + (kind || 'info'), S.notifyLayer);
-    n.textContent = String(msg);
-    n.style.cssText = 'background:rgba(8,12,24,.85);border:1px solid rgba(120,200,255,.35);' +
-      'border-left:3px solid ' + (kind === 'warn' ? '#ff9a5a' : kind === 'bad' ? '#ff5a78' : '#5ec8ff') + ';' +
-      'border-radius:6px;padding:5px 9px;font-size:12px;';
-    setTimeout(function () { try { n.remove(); } catch (e) {} }, 4200);
-  };
-
-  // ---- Radar: project 4D -> 2D (x/z plane, w as ring radius + hue) ----
-  NS.radar = function (player, entities) {
-    if (!ensureRoot() || !S.radarCtx) return;
-    var ctx = S.radarCtx, W = S.radar.width, H = S.radar.height;
-    var cx = W / 2, cy = H / 2, R = W / 2 - 6;
-    var range = 40; // world units mapped to edge
-    function proj(p) {
-      var dx = ((p && p.x) || 0) - (((player && player.x) || 0));
-      var dz = ((p && p.z) || 0) - (((player && player.z) || 0));
-      return { dx: dx, dz: dz, w: (p && p.w) || 0 };
+            frac = Math.max(0, Math.min(1, Number(frac) || 0));
+            bar.style.width = (frac * 100).toFixed(1) + '%';
+        } catch (e) { /* ignore */ }
     }
-    function dot(q, color, ring) {
-      var sx = cx + (q.dx / range) * R;
-      var sy = cy + (q.dz / range) * R;
-      var d = Math.hypot(sx - cx, sy - cy);
-      if (d > R) { sx = cx + ((sx - cx) / d) * R; sy = cy + ((sy - cy) / d) * R; }
-      try {
-        if (ring) {
-          var wSpan = (S.state.wMax - S.state.wMin) || 1;
-          var wn = ((q.w - S.state.wMin) / wSpan);
-          ctx.beginPath();
-          ctx.strokeStyle = 'hsla(' + Math.round(200 + wn * 100) + ',90%,65%,.9)';
-          ctx.lineWidth = 2;
-          ctx.arc(sx, sy, 4 + wn * 6, 0, Math.PI * 2);
-          ctx.stroke();
-        } else {
-          ctx.beginPath();
-          ctx.fillStyle = color || '#fff';
-          ctx.arc(sx, sy, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      } catch (e) {}
+
+    function HUD4D(opts) {
+        opts = opts || {};
+        this.root = null;
+        this.hpFill = null; this.stFill = null; this.sandFill = null;
+        this.wNeedle = null; this.goldEl = null; this.kcEl = null;
+        this.strokeEl = null; this.braneEl = null; this.bossWrap = null;
+        this.bossFill = null; this.bossName = null; this.popLayer = null;
+        this.bannerEl = null; this.missionEl = null; this.missionBody = null;
+        this.bannerTimer = null;
+        this.container = opts.container || null;
     }
-    try {
-      ctx.clearRect(0, 0, W, H);
-      ctx.beginPath(); ctx.strokeStyle = 'rgba(120,200,255,.25)';
-      ctx.arc(cx, cy, R * 0.5, 0, Math.PI * 2); ctx.stroke();
-      ctx.beginPath(); ctx.strokeStyle = 'rgba(120,200,255,.4)';
-      ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
-      (entities || []).forEach(function (e) {
-        if (!e) return;
-        var kind = e.kind || e.type || 'mob';
-        var col = kind === 'exit' || kind === 'hole' ? '#6dffa8'
-          : kind === 'boss' ? '#ff5a78' : kind === 'loot' ? '#ffd35e' : '#9adcff';
-        dot(proj(e), col, true);
-      });
-      dot({ dx: 0, dz: 0, w: (player && player.w) || 0 }, '#ffffff', false);
-      // North tick = -z.
-      ctx.beginPath(); ctx.strokeStyle = '#5ec8ff'; ctx.lineWidth = 2;
-      ctx.moveTo(cx, cy - R - 2); ctx.lineTo(cx, cy - R + 6); ctx.stroke();
-    } catch (e) {}
-  };
 
-  // ---- Mobile mini-HUD ----
-  NS.updateMiniHud = function (st) {
-    if (!ensureRoot()) return;
-    st = st || S.state;
-    var small = false;
-    try { small = window.innerWidth < 760 || !!window.GraveGain4DInput?.touchMode; } catch (e) {}
-    try {
-      S.miniHud.style.display = small ? 'flex' : 'none';
-      if (small) S.miniHud.textContent = 'HP ' + st.hp + '/' + st.hpMax + ' · W ' + st.w +
-        ' · Strokes ' + st.strokes + '/' + st.par + ' · ' + st.floor;
-      if (S.els.strip) S.els.strip.style.display = small ? 'none' : 'flex';
-    } catch (e) {}
-  };
+    HUD4D.prototype.mount = function (container) {
+        try {
+            if (this.root) return this.root;
+            var doc = (container && container.ownerDocument) || document;
+            var host = container || this.container || doc.body;
+            if (!host) return null;
+            if (!doc.getElementById(CSS_ID)) {
+                var st = doc.createElement('style');
+                st.id = CSS_ID;
+                st.textContent = CSS;
+                (doc.head || doc.documentElement).appendChild(st);
+            }
+            var root = el('div', 'gg4d-hud', host);
+            var tl = el('div', 'gg4d-tl', root);
+            var hp = el('div', 'gg4d-bar gg4d-hp', tl); this.hpFill = el('i', '', hp);
+            var stm = el('div', 'gg4d-bar gg4d-st', tl); this.stFill = el('i', '', stm);
+            var row = el('div', 'gg4d-row', tl);
+            this.goldEl = el('span', '', row); this.kcEl = el('span', '', row);
+            this.strokeEl = el('span', '', row);
+            var wlbl = el('div', 'gg4d-wlbl', tl);
+            wlbl.appendChild(doc.createTextNode('ana'));
+            wlbl.appendChild(doc.createTextNode('W-slice'));
+            wlbl.appendChild(doc.createTextNode('kata'));
+            var w = el('div', 'gg4d-w', tl); this.wNeedle = el('i', '', w);
+            var sand = el('div', 'gg4d-sand', tl); this.sandFill = el('i', '', sand);
+            this.braneEl = el('span', 'gg4d-brane', tl);
+            var boss = el('div', 'gg4d-boss', root);
+            this.bossName = el('div', 'nm', boss);
+            var bb = el('div', 'gg4d-bar', boss); this.bossFill = el('i', '', bb);
+            var mission = el('div', 'gg4d-mission', root);
+            el('h4', '', mission).textContent = 'Mission';
+            this.missionBody = el('ul', '', mission);
+            this.missionEl = mission;
+            this.bannerEl = el('div', 'gg4d-banner', root);
+            this.popLayer = el('div', 'gg4d-pop', root);
+            this.popLayer.style.cssText = 'position:absolute;inset:0;overflow:hidden';
+            this.root = root;
+            this.update({});
+            return root;
+        } catch (e) { return null; }
+    };
 
-  // Keep mini-HUD responsive without a game-loop dependency.
-  try {
-    window.addEventListener('resize', function () { NS.updateMiniHud(); });
-  } catch (e) {}
+    // state: {hp,maxHp,stamina,maxStamina,gold,killCredits,w,wMin,wMax,
+    //         strokes,par,chronoSand(0..1),brane,boss:{name,hp,maxHp}|null}
+    HUD4D.prototype.update = function (s) {
+        try {
+            s = s || {};
+            if (!this.root) return;
+            setWidth(this.hpFill, s.maxHp ? s.hp / s.maxHp : (s.hpFrac !== undefined ? s.hpFrac : 1));
+            setWidth(this.stFill, s.maxStamina ? s.stamina / s.maxStamina : (s.stFrac !== undefined ? s.stFrac : 1));
+            setWidth(this.sandFill, s.chronoSand !== undefined ? s.chronoSand : 1);
+            if (this.goldEl) this.goldEl.textContent = '🪙 ' + (s.gold | 0 || 0);
+            if (this.kcEl) this.kcEl.textContent = '💀 ' + (s.killCredits | 0 || 0);
+            if (this.strokeEl) this.strokeEl.textContent = '⛳ ' + (s.strokes | 0 || 0) + '/' + (s.par !== undefined ? s.par : '–');
+            if (this.wNeedle) {
+                var lo = (s.wMin !== undefined ? s.wMin : 0), hi = (s.wMax !== undefined ? s.wMax : 3);
+                var wv = (s.w !== undefined ? s.w : (lo + hi) / 2);
+                var f = hi > lo ? (wv - lo) / (hi - lo) : 0.5;
+                f = Math.max(0, Math.min(1, f));
+                this.wNeedle.style.left = (f * 100).toFixed(1) + '%';
+            }
+            if (this.braneEl) this.braneEl.textContent = 'brane: ' + (s.brane || 'prime');
+            this.setBoss(s.boss || null);
+        } catch (e) { /* ignore */ }
+    };
 
-})(typeof window !== 'undefined' ? window : this);
+    HUD4D.prototype.setBoss = function (boss) {
+        try {
+            if (!this.root) return;
+            if (!boss) { this.bossFill.parentNode.parentNode.classList.remove('on'); return; }
+            var wrap = this.bossFill.parentNode.parentNode;
+            wrap.classList.add('on');
+            if (this.bossName) this.bossName.textContent = boss.name || 'Boss';
+            setWidth(this.bossFill, boss.maxHp ? boss.hp / boss.maxHp : 1);
+        } catch (e) { /* ignore */ }
+    };
+
+    // Combat-text popup at screen px (x,y) within the HUD root.
+    // Falls back to container centre when coords omitted.
+    HUD4D.prototype.popup = function (text, type, x, y) {
+        try {
+            var layer = this.popLayer || (this.root ? this.root : null);
+            if (!layer || !document.createElement) return null;
+            var rect = layer.getBoundingClientRect ? layer.getBoundingClientRect() : { width: 640, height: 400 };
+            var d = document.createElement('div');
+            d.className = 'combat-text ' + (type || 'damage');
+            d.style.left = ((x !== undefined ? x : rect.width / 2)) + 'px';
+            d.style.top = ((y !== undefined ? y : rect.height / 2)) + 'px';
+            d.textContent = String(text);
+            layer.appendChild(d);
+            setTimeout(function () { try { d.remove(); } catch (e) { /* ignore */ } }, 850);
+            return d;
+        } catch (e) { return null; }
+    };
+
+    // Project a world XYZ through a THREE camera into HUD px, then popup.
+    HUD4D.prototype.popupWorld = function (camera, wx, wy, wz, text, type) {
+        try {
+            var T = window.THREE;
+            if (!camera || !T || !T.Vector3) return this.popup(text, type);
+            var layer = this.popLayer || this.root;
+            var v = new T.Vector3(wx, (wy || 0) + 14, wz).project(camera);
+            if (v.z > 1) return null;
+            var rect = layer.getBoundingClientRect();
+            return this.popup(text, type,
+                (v.x * 0.5 + 0.5) * rect.width,
+                (-v.y * 0.5 + 0.5) * rect.height);
+        } catch (e) { return null; }
+    };
+
+    HUD4D.prototype.banner = function (text, duration) {
+        try {
+            // Prefer the host page banner when present (3D parity).
+            var ext = document.getElementById('hudNotification');
+            if (ext) {
+                ext.textContent = String(text);
+                ext.classList.remove('hidden');
+                clearTimeout(this.bannerTimer);
+                this.bannerTimer = setTimeout(function () {
+                    try { ext.classList.add('hidden'); } catch (e) { /* ignore */ }
+                }, duration || 2500);
+                return;
+            }
+            if (!this.bannerEl) return;
+            this.bannerEl.textContent = String(text);
+            this.bannerEl.classList.add('on');
+            clearTimeout(this.bannerTimer);
+            var self = this;
+            this.bannerTimer = setTimeout(function () {
+                try { self.bannerEl.classList.remove('on'); } catch (e) { /* ignore */ }
+            }, duration || 2500);
+        } catch (e) { /* ignore */ }
+    };
+
+    // Mission tracker hook: setMission(title, [{desc,current,count, done}])
+    HUD4D.prototype.setMission = function (title, objectives) {
+        try {
+            if (!this.missionBody) return;
+            while (this.missionBody.firstChild) this.missionBody.removeChild(this.missionBody.firstChild);
+            var h = this.missionEl ? this.missionEl.querySelector('h4') : null;
+            if (h) h.textContent = title || 'Mission';
+            (objectives || []).forEach(function (o) {
+                var li = document.createElement('li');
+                var mark = o.done ? '✔ ' : '• ';
+                var prog = (o.count ? ' (' + (o.current | 0) + '/' + o.count + ')' : '');
+                li.textContent = mark + (o.desc || o.text || '') + prog;
+                this.missionBody.appendChild(li);
+            }, this);
+            if (this.missionEl) this.missionEl.style.display = (!title && !(objectives && objectives.length)) ? 'none' : '';
+        } catch (e) { /* ignore */ }
+    };
+
+    HUD4D.prototype.destroy = function () {
+        try {
+            clearTimeout(this.bannerTimer);
+            if (this.root && this.root.parentNode) this.root.parentNode.removeChild(this.root);
+        } catch (e) { /* ignore */ }
+        this.root = null;
+    };
+
+    try { window.GG4D_HUD = HUD4D; } catch (e) { /* ignore */ }
+})();

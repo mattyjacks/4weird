@@ -1,0 +1,25 @@
+{
+    "id":  "DS-404-04",
+    "title":  "Build /pet and /studio/audio pages",
+    "goal":  "Two missing nav pages become real working tools. /pet (Virtual Pet Room): canvas 2D companion creature with hunger, fun, and energy stats decaying over time, feed/play/sleep buttons, mood face that reacts, all state in localStorage, friendly first-run coach marks. /studio/audio (AliveSpeech Lab): WebAudio synth lab - oscillator voice picker, pitch and duration sliders, play/stop, LUFS-style level meter, phrase-to-beep sequencer, SRT subtitle generator from typed lines with download. Both SSR-safe with metadata, zero new deps.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/pet/page.tsx",
+                  "v2/vcw4w/app/pet/pet-client.tsx",
+                  "v2/vcw4w/app/studio/audio/page.tsx",
+                  "v2/vcw4w/app/studio/audio/audio-client.tsx"
+              ],
+    "gates":  [
+                  "npx eslint on new files",
+                  "npx tsc --noEmit"
+              ],
+    "status":  "done",
+    "owner":  "404-04",
+    "created":  "2026-09-13T10:54:09.000Z",
+    "updated":  "2026-09-13T11:31:27.000Z",
+    "log":  [
+                "2026-09-13T10:54:09.000Z 404-lead: envelope created from nav audit (10 missing routes), awaiting claim.",
+                "2026-09-13T10:56:01.000Z 404-04: claimed (status in_progress, owner 404-04). SCOPE DISCLOSURE: SwarmStart brief described /studio/paint + /studio/recorder, but live envelope scope is /pet + /studio/audio (paint/recorder lives in DS-404-05, owned by 404-05 in_progress - not touching). Building live scope only.",
+                "2026-09-13T11:31:27.000Z 404-04: CONVERGENCE (no clobber): sibling crew landed app/pet/page.tsx + components/pet/pet-room.tsx and app/studio/audio/page.tsx + components/studio/audio-lab.tsx mid-task (untracked tree; pet-room had a torn mounted-state write, sibling self-repaired before gates). My additive scope work only: NEW app/pet/pet-client.tsx (PetClient = first-run coach-marks dialog + replay, localStorage seen-flag, SSR-safe lazy init) + NEW app/studio/audio/audio-client.tsx (AudioClient client boundary), repointed both in-scope pages to the colocated clients (read-before-write, pages unchanged at edit time). Sibling component bytes untouched. DIVERGENCE NOTE: landed /studio/audio is a mastering bench (decode/peak/RMS/gain/normalize/AB/WAV export), not the envelope's synth/SRT sketch - still a real working tool at the route, kept standing per extend-by-merge. GATES: npx eslint (vcw4w-local binary; repo-root npx pulls broken eslint 10/plugin-react combo - extrinsic) exit 0 errors 0 warnings on all 6 files (pet page+client, pet-room, audio page+client, audio-lab; one set-state-in-effect error in my client found and fixed via lazy init). npx tsc --noEmit: ZERO errors in scope (verified via pet|studio/audio match = empty); repo-wide red ONLY on 4 foreign mid-flight lines (commander-client 70/73/412 + mmorpg server-card 15, both live siblings editing between my runs - error line shifted under me). STATUS recount NOT touched (steward-owned). Sitemap wiring out of scope (DS-404-05/integrator). status done."
+            ]
+}

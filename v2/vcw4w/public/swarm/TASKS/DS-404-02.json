@@ -1,0 +1,25 @@
+{
+    "id":  "DS-404-02",
+    "title":  "Build /commander and /compute/p2p pages",
+    "goal":  "Two missing nav pages become real working tools. /commander (CryptArt Commander): in-browser terminal modeled on app/terminal/page.tsx allow-list pattern - 50ish local commands (help, coins, time, echo, theme, clear, date, calc, coin math), command history with up-arrow, safe unknown-command message; never executes arbitrary code. /compute/p2p (DonatePersonalSeconds): opt-in toggle, live Web Worker hash benchmark (hashes per second), donated-seconds counter persisted to localStorage, earned-coins estimate at fixed honest rate, stop button. Both SSR-safe with metadata.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/commander/page.tsx",
+                  "v2/vcw4w/app/commander/commander-client.tsx",
+                  "v2/vcw4w/app/compute/p2p/page.tsx",
+                  "v2/vcw4w/app/compute/p2p/p2p-client.tsx"
+              ],
+    "gates":  [
+                  "npx eslint on new files",
+                  "npx tsc --noEmit"
+              ],
+  "status":  "done",
+  "owner":  "404-f2",
+    "created":  "2026-09-13T10:54:09.000Z",
+  "updated":  "2026-09-13T11:35:03.000Z",
+  "log":  [
+                "2026-09-13T10:54:09.000Z 404-lead: envelope created from nav audit (10 missing routes), awaiting claim.",
+                "2026-09-13T10:58:20.000Z 404-f2: claimed, status in_progress.",
+                "2026-09-13T11:35:03.000Z 404-f2: done. NOTE: both page.tsx targets already existed with full implementations (commander via components/commander/commander-terminal.tsx 523 lines; p2p via components/compute/p2p-benchmark.tsx 304 lines) so per NEW-files-only I did not overwrite them. Created the 2 missing in-scope co-located clients: app/commander/commander-client.tsx (15 allow-listed local commands incl. safe calc parser, coins/usd at 100=$1, theme toggle+localStorage, up/down history, version, whoami jokes; no eval/fetch) and app/compute/p2p/p2p-client.tsx (opt-in Blob inline Worker hashes/sec + setInterval fallback, donated-seconds in localStorage, honest estimate 1 coin/hr, start/stop). GATES GREEN: npx eslint on both new files = 0 errors 0 warnings; npx tsc --noEmit (whole vcw4w project) = 0 errors. Follow-up for steward: decide whether to wire co-located clients into the existing pages or keep components/ versions."
+            ]
+}

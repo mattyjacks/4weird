@@ -126,7 +126,7 @@ export default function FaqPage() {
           ["/terms", "📜 Terms"],
           ["/privacy", "🔒 Privacy"],
           ["/my/rights", "🛡️ My Rights"],
-          ["/my/usage/", "🧾 My Usage"],
+          ["/my/usage", "🧾 My Usage"],
           ["/accessibility", "♿ Accessibility"],
         ].map(([href, label]) => (
           <Link
@@ -150,7 +150,7 @@ export default function FaqPage() {
           [
             "Read the receipt",
             <>
-              Open <Link className="font-bold underline" href="/my/usage/">/my/usage/</Link> first:
+              Open <Link className="font-bold underline" href="/my/usage">/my/usage</Link> first:
               session + total + 1h/24h, by-kind + by-game, recent turns, rentals, clan fees,
               workspace cloud, combined 25/75 totals. Screenshot anything odd — support
               will ask for it anyway.
@@ -188,7 +188,7 @@ export default function FaqPage() {
 
       <Callout tone="gold" title="The two coin answers, shortest version.">
         Grant missing → <Link className="underline" href="/account">/account</Link> recovery by order
-        email. Price confusion → <Link className="underline" href="/my/usage/">/my/usage/</Link> receipt:
+        email. Price confusion → <Link className="underline" href="/my/usage">/my/usage</Link> receipt:
         every price already includes the 25% cut, and $1.00 always buys exactly 100 coins.
       </Callout>
 

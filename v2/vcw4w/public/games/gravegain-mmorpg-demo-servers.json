@@ -1,8 +1,8 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "updated": "2026-09-13",
   "note": "Demo-only shard list for GraveGain MMORPG playtests. Hosts are local demo endpoints (demo.4weird.local) — never production. Bands follow the GraveGain content-mode contract: kids (cozy copies), teens (standard), adults (full). hostFree shards cost nothing to spin up; paid shards show demo rental cost in USD cents.",
-  "games": ["gravegain1d", "gravegain2d", "gravegain3d"],
+  "games": ["gravegain1d", "gravegain2d", "gravegain3d", "gravegain4d", "gravegain5d"],
   "bands": ["kids", "teens", "adults"],
   "servers": [
     {
@@ -82,6 +82,45 @@
       "costLabel": "$4.99/hr demo rental",
       "capacity": 200,
       "motd": "Hardcore 3D shard. The Array watches. Bring friends."
+    },
+    {
+      "id": "gg4d-dream-shallows",
+      "name": "Dream Shallows",
+      "game": "gravegain4d",
+      "band": "kids",
+      "host": "demo.4weird.local",
+      "port": 3107,
+      "hostFree": true,
+      "costCents": 0,
+      "costLabel": "FREE demo",
+      "capacity": 150,
+      "motd": "Cozy 4D shard. Sleepy star dreams and giggle holes."
+    },
+    {
+      "id": "gg5d-prism-expanse",
+      "name": "Prism Expanse",
+      "game": "gravegain5d",
+      "band": "teens",
+      "host": "demo.4weird.local",
+      "port": 3108,
+      "hostFree": true,
+      "costCents": 0,
+      "costLabel": "FREE demo",
+      "capacity": 200,
+      "motd": "Standard 5D shard. Hop universes, dodge paradox storms."
+    },
+    {
+      "id": "gg5d-void-maw",
+      "name": "Void Maw",
+      "game": "gravegain5d",
+      "band": "adults",
+      "host": "demo.4weird.local",
+      "port": 3109,
+      "hostFree": false,
+      "costCents": 599,
+      "costLabel": "$5.99/hr demo rental",
+      "capacity": 200,
+      "motd": "Full-intensity 5D shard. Paradox storms, no mercy."
     }
   ]
 }

@@ -1,7 +1,7 @@
 // GraveGain food index: union of all 15 batch tables (v2 layer catalog truth).
 //
 // 127 consumables, one per food emoji, each served in gravegain1d,
-// gravegain2d and gravegain3d across endless, mission and mmorpg modes with
+// gravegain2d, gravegain3d, gravegain4d and gravegain5d across endless, mission and mmorpg modes with
 // per-game/per-mode balanced numbers from deriveFoodStats() (see
 // lib/gravegain-food.ts). Runtime overlay bundle (gravegain-loot.js) and
 // catalog/PlayGate wiring go through the integrator QUEUE.md request — this

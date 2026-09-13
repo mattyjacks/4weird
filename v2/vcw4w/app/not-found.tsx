@@ -14,7 +14,7 @@ export default function NotFound() {
       <p className="mt-4 max-w-md text-lg text-slate-300">
         This page drifted somewhere strange. The game you are looking for does not exist here.
       </p>
-      <div className="mt-8 flex gap-4">
+      <div className="mt-8 flex flex-wrap justify-center gap-4">
         <Link className="rounded-full bg-cyan-300 px-6 py-3 font-bold text-slate-950" href="/games">
           Browse the arcade
         </Link>
@@ -22,6 +22,16 @@ export default function NotFound() {
           Go home
         </Link>
       </div>
+      <p className="mt-6 text-sm text-slate-400">
+        Need a hand?{" "}
+        <Link className="font-semibold text-cyan-300 hover:underline" href="/docs">
+          Docs hub
+        </Link>{" "}
+        ·{" "}
+        <Link className="font-semibold text-cyan-300 hover:underline" href="/docs/faq">
+          FAQ
+        </Link>
+      </p>
     </main>
   );
 }

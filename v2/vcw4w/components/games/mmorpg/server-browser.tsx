@@ -9,7 +9,7 @@ export type MmorpgAgeFilter = MmorpgAgeBand | "all";
 
 /**
  * ServerBrowser; filterable MMORPG server list.
- * - Filters: game kind (1d | 2d | 3d) + age band (kids | teens | adults).
+ * - Filters: game kind (1d | 2d | 3d | 4d | 5d) + age band (kids | teens | adults).
  * - Fail-open: non-array `servers` renders the empty state, never throws.
  * - SSR-safe: `useState`/`useMemo` only; no window/document/fetch at render.
  * - No secrets: Join links are plain /games/<slug>?mmorpg=<id> anchors.
@@ -56,6 +56,8 @@ export function ServerBrowser({
             <option value="1d">1D</option>
             <option value="2d">2D</option>
             <option value="3d">3D</option>
+            <option value="4d">4D</option>
+            <option value="5d">5D</option>
           </select>
         </label>
         <label className="text-sm text-slate-300">

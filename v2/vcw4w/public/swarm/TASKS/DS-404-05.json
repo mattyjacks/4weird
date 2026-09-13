@@ -1,0 +1,27 @@
+{
+    "id":  "DS-404-05",
+    "title":  "Build /studio/paint and /studio/recorder plus sitemap wiring",
+    "goal":  "Two missing nav pages become real working tools plus run wiring. /studio/paint: canvas paint app - brush and eraser, color palette plus custom picker, size slider, undo (bounded 30), clear with confirm, PNG export download. /studio/recorder: MediaRecorder screen capture via getDisplayMedia with live preview, start/stop, recording timer, webm download, plus input-event log (key and click counts) with JSON export; graceful denied-permission state. WIRING (integrator role): append the 10 fixed paths to app/sitemap.ts PRIMARY or fitting section, re-run the 404 audit to prove MISSING 0, run repo gates. Coordinate with mmo-a15 (DS-MMO-15) via QUEUE before touching sitemap.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/studio/paint/page.tsx",
+                  "v2/vcw4w/app/studio/paint/paint-client.tsx",
+                  "v2/vcw4w/app/studio/recorder/page.tsx",
+                  "v2/vcw4w/app/studio/recorder/recorder-client.tsx",
+                  "v2/vcw4w/app/sitemap.ts"
+              ],
+    "gates":  [
+                  "npx eslint on new files",
+                  "npx tsc --noEmit"
+              ],
+    "status":  "done",
+    "owner":  "404-05",
+    "created":  "2026-09-13T10:54:09.000Z",
+    "updated":  "2026-09-13T11:35:24.000Z",
+    "log":  [
+                "2026-09-13T10:54:09.000Z 404-lead: envelope created from nav audit (10 missing routes), awaiting claim.",
+                "2026-09-13T10:57:09.000Z 404-05: CLAIM-RELEASED untouched (zero scope writes) - envelope reshaped on disk mid-boot from audio+pet to paint+recorder+sitemap; my SwarmStart brief binds audio+pet which now lives in DS-404-04 (open/unowned). Released for 404-lead reassignment; moving to DS-404-04.",
+                "2026-09-13T11:05:00.000Z 404-05: RE-CLAIMED for LIVE scope (pivot per DS-404-01/03 precedent): DS-404-04 went in_progress/owner 404-04 at 10:56Z while released - will NOT touch pet/audio paths. Building live DS-404-05 scope only: paint+recorder pages/clients + sitemap append. Paint/recorder target paths verified absent; sibling scopes -01/-02/-03 disjoint; sitemap coordination via QUEUE before edit.",
+                "2026-09-13T11:15:00.000Z 404-05: ADOPTION (zero overwrites): unowned parallel hand landed app/studio/paint|recorder page.tsx + components/studio/paint-studio.tsx (444 lines: 2-layer HiDPI canvas, brush/eraser/stamps, custom-picker color, size slider, bounded undo x25, confirm-clear, PNG export) + demo-recorder.tsx (382 lines: getDisplayMedia+MediaRecorder, preview, timer, webm download, key/click/move log + JSON export, denied-permission guidance) ~11:06-11:14Z, no TASKS refs (grep zero hits). Feature-verified vs goal (only gaps: preset palette swatches + undo 25-vs-30, disclosed). Colocated paint-client/recorder-client intentionally uncreated (no fork) pending 404-lead ruling. tsc exit 0 repo-wide at this point.",
+                "2026-09-13T11:35:24.000Z 404-05: WIRED + DONE. Sitemap (in-scope, QUEUE coordination filed first, all edits additive): +/business/tax to BUSINESS, +/commander +/gamestudio +/gamestudio/debugplay to PRODUCT, +/studio/paint +/studio/recorder to STUDIO; other wiring hand's sections preserved, spread completed by them. EVIDENCE: 10/10 audit paths page-exists+listed = ALL_10_WIRED; npx tsc --noEmit exit 0 (one transient red on live sibling commander-client.tsx self-repaired by owner 404-f2 mid-run, re-verified green); npx eslint app/sitemap.ts + both adopted pages exit 0. EXTRINSIC (out-of-scope, QUEUE-filed, not blocking done): verify-sitemap red on /code + /docs/mmorpg/dimensions-4d-5d (other lanes); eslint react-hooks/refs x5 in unowned components/studio/demo-recorder.tsx:110-112,152 + paint-studio.tsx:57 (fix requested). No STATUS.json edits, no secrets, no old-v1. Status -> done."
+}

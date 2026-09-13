@@ -1,8 +1,8 @@
-// Verifies the GraveGain MMORPG layer (gravegain1d/2d/3d, v2 only).
+// Verifies the GraveGain MMORPG layer (gravegain1d/2d/3d/4d/5d, v2 only).
 //
 // Asserts:
 //   1. Shared net core exists + exposes costPerPlayer/canEnter + node --check passes.
-//   2. mmorpg-1d/2d/3d adapters exist + solo-safe markers (?mmorpg dormant).
+//   2. mmorpg-1d/2d/3d/4d/5d adapters exist + solo-safe markers (?mmorpg dormant).
 //   3. lib/mmorpg-economy.ts exports quoteSession + 100-coins=$1 parity.
 //   4. Migration file exists with mmorpg_servers age_band check.
 //   5. No edits to parity-locked bundles (game.js untouched).
@@ -84,8 +84,8 @@ if (!netRel) {
   }
 }
 
-// ---- 2. mmorpg-1d/2d/3d adapters (solo-safe, ?mmorpg dormant) ----
-console.log("[2] mmorpg-1d/2d/3d adapters (solo-safe, ?mmorpg dormant)");
+// ---- 2. mmorpg-1d/2d/3d/4d/5d adapters (solo-safe, ?mmorpg dormant) ----
+console.log("[2] mmorpg-1d/2d/3d/4d/5d adapters (solo-safe, ?mmorpg dormant)");
 const adapterCandidates = {
   "1d": [
     "public/games/gravegain1d/mmorpg-1d.js",
@@ -105,8 +105,20 @@ const adapterCandidates = {
     "public/games/html/mmorpg-3d.js",
     "public/games/html/gravegain-mmorpg-3d.js",
   ],
+  "4d": [
+    "public/games/gravegain4d/mmorpg-4d.js",
+    "public/games/html/gravegain4d/mmorpg-4d.js",
+    "public/games/html/mmorpg-4d.js",
+    "public/games/html/gravegain-mmorpg-4d.js",
+  ],
+  "5d": [
+    "public/games/gravegain5d/mmorpg-5d.js",
+    "public/games/html/gravegain5d/mmorpg-5d.js",
+    "public/games/html/mmorpg-5d.js",
+    "public/games/html/gravegain-mmorpg-5d.js",
+  ],
 };
-for (const mode of ["1d", "2d", "3d"]) {
+for (const mode of ["1d", "2d", "3d", "4d", "5d"]) {
   const rel = firstExisting(adapterCandidates[mode]);
   if (!rel) {
     skip(`mmorpg-${mode} adapter absent (other lane not landed)`, adapterCandidates[mode].join(", "));

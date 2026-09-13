@@ -74,7 +74,7 @@ export default function BotsPage() {
         prefilled prompt with the real key right after you issue one. Keep the key in{" "}
         <code className="font-mono">FOURWEIRD_BOT_KEY</code> (Windows leak-free code on{" "}
         <Link className="font-bold underline" href="/bot/setup">/bot/setup</Link> +{" "}
-        <a className="font-bold underline" href="/bot/skill.md">/bot/skill.md</a>) - never paste it into posts,
+        <a className="font-bold underline" href="/skill.md">/skill.md</a>) - never paste it into posts,
         chat, logs, or git. Want it running 24/7? Rent a NanoClaw on{" "}
         <Link className="font-bold underline" href="/agents">/agents</Link> (serverful pod or serverless endpoint,
         website chat + Telegram) - full path in{" "}
@@ -142,7 +142,7 @@ export default function BotsPage() {
         <Link className="underline" href="/runpods">/runpods</Link>. Cloud mechanics in{" "}
         <Link className="font-bold underline" href="/docs/agents-compute">Agents &amp; cloud</Link>; live console at{" "}
         <Link className="underline" href="/bot/bclans">/bot/bclans</Link>; skill at{" "}
-        <a className="underline" href="/bot/skill.md">/bot/skill.md</a>.
+        <a className="underline" href="/skill.md">/skill.md</a>.
       </Callout>
 
       <SectionHead

@@ -41,8 +41,68 @@ type MmorpgServerRow = {
  * (c) bumps `mmorpg_sessions.minutes_billed`; then this route calls it
  * instead of returning `charged: false`. Until that RPC lands this route
  * quotes only and settles nothing.
+ *
+ * DEMO STUB (fail-open, zero writes): known demo server ids (the
+ * `../servers` stub rows, including gravegain4d/gravegain5d) short-circuit
+ * below with a consent-checked quote — no Supabase, no ledger reads, no
+ * writes. Unknown non-UUID ids still 400; UUID ids take the DB path.
  */
+
+// Demo mirror of `../servers` stub rows (id -> per-minute rate + host flag).
+// gravegain4d sits above the 3d tier (7), gravegain5d is highest (9).
+const DEMO_SERVER_RATES: Readonly<Record<string, { costPerMin: number; hostFree: boolean }>> = {
+  "emberhold-kids-1": { costPerMin: 0, hostFree: true },
+  "emberhold-teens-1": { costPerMin: 2, hostFree: false },
+  "emberhold-adults-1": { costPerMin: 5, hostFree: false },
+  "dreadhollow-teens-1": { costPerMin: 3, hostFree: false },
+  "gravegain4d-teens-1": { costPerMin: 7, hostFree: false },
+  "gravegain5d-adults-1": { costPerMin: 9, hostFree: false },
+};
 export async function POST(req: Request) {
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return fail("Invalid JSON body.", 400);
+  }
+  const input = (body ?? {}) as Record<string, unknown>;
+  if (typeof input.serverId !== "string" || input.serverId.trim() === "") {
+    return fail("Invalid server.", 400);
+  }
+  const minutes = Math.floor(Number(input.minutes));
+  if (!Number.isInteger(minutes) || minutes < 1 || minutes > MMO_MAX_BILLABLE_MINUTES) {
+    return fail(`Minutes must be 1-${MMO_MAX_BILLABLE_MINUTES}.`, 400);
+  }
+
+  // Fail-open demo stub: known demo ids quote with zero writes and no
+  // Supabase/ledger contact. Consent-checked like the DB path.
+  const demo = DEMO_SERVER_RATES[input.serverId];
+  if (demo !== undefined) {
+    const demoQuote = quoteMmoSessionMinutes({
+      costPerMin: demo.costPerMin,
+      loadPerMin: 0,
+      rentalPerHour: 0,
+      minutes,
+      flags: { freeServer: demo.hostFree, freeLoad: demo.hostFree, freeRental: demo.hostFree },
+    });
+    const acceptedDemo = Math.round(Number(input.acceptedQuote) * 100) / 100;
+    if (!Number.isFinite(acceptedDemo) || acceptedDemo !== demoQuote.playerTotal) {
+      return fail("Quote mismatch: confirm the shown total and retry.", 400);
+    }
+    return ok({
+      serverId: input.serverId,
+      minutes: demoQuote.minutes,
+      serverCost: demoQuote.serverCost,
+      loadCost: demoQuote.loadCost,
+      rentalFee: demoQuote.rentalFee,
+      hostTotal: demoQuote.hostTotal,
+      playerTotal: demoQuote.playerTotal,
+      quotedFrom: "mmorpg-demo-rate-card",
+      charged: false,
+      demo: true,
+    });
+  }
+
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
@@ -53,18 +113,7 @@ export async function POST(req: Request) {
   const rl = rateLimit(`mmorpg-billing:${user.id}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 
-  let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return fail("Invalid JSON body.", 400);
-  }
-  const input = (body ?? {}) as Record<string, unknown>;
   if (!isUuid(input.serverId)) return fail("Invalid server.", 400);
-  const minutes = Math.floor(Number(input.minutes));
-  if (!Number.isInteger(minutes) || minutes < 1 || minutes > MMO_MAX_BILLABLE_MINUTES) {
-    return fail(`Minutes must be 1-${MMO_MAX_BILLABLE_MINUTES}.`, 400);
-  }
 
   const { data: server, error: serverError } = await supabase
     .from("mmorpg_servers")

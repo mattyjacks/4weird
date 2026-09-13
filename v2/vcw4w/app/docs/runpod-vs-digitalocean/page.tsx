@@ -162,7 +162,7 @@ export default function RunpodVsDigitaloceanPage() {
           ["Needs a GPU, or lives under a day?", <>RunPod. Rent from <Link className="font-bold underline" href="/agents">/agents</Link> (<code className="font-mono">runpod:auto</code> picks the cheapest Secure GPU with live stock at or under the listing&apos;s max $/hr) or <Link className="font-bold underline" href="/desktop">/desktop</Link>. Set a max budget; end when done — closing the tab doesn&apos;t stop the meter.</>],
           ["Stays up for days/weeks, CPU-shaped?", <>DigitalOcean. Provision the Droplet, attach a volume for data that must survive, snapshot before risky changes. Bring its <code className="font-mono">https://</code> URL back as the listing endpoint.</>],
           ["Bursty inference with idle gaps?", <>RunPod serverless endpoints: scale-to-zero workers, billed per execution instead of per uptime-hour. Same billing mirror, same honesty.</>],
-          ["Still unsure?", <>Start on RunPod for a short session, watch <Link className="font-bold underline" href="/my/usage/">/my/usage/</Link>, then graduate to a Droplet once the workload proves it&apos;s permanent. Estimates aren&apos;t guarantees — capacity and prices shift.</>],
+          ["Still unsure?", <>Start on RunPod for a short session, watch <Link className="font-bold underline" href="/my/usage">/my/usage</Link>, then graduate to a Droplet once the workload proves it&apos;s permanent. Estimates aren&apos;t guarantees — capacity and prices shift.</>],
         ]}
       />
 
@@ -174,7 +174,7 @@ export default function RunpodVsDigitaloceanPage() {
       />
       <Callout tone="cyan" title="What honesty looks like in practice.">
         <span className="mb-2 block">No key → provider badge reads unconfigured, provision refuses with <code className="font-mono">unconfigured</code> (nothing rented, nothing faked). No GPU stock → the booking exists but carries the honest error. Over budget → the message names the cheapest available card and its $/hr so you can decide. DigitalOcean blank endpoint → “auto-provision is not wired yet; supply an https endpoint or use RunPod.” Coin figures for direct provider spend are display equivalents only (100 coins = $1.00) — RunPod bills your card, 4weird only mirrors it.</span>
-        <span>When a number surprises you, walk it backwards on <Link className="underline" href="/my/usage/">/my/usage/</Link> and compare the mirror against the provider console (RunPod console, DigitalOcean control panel) before assuming the worst. Details live in <Link className="font-bold underline" href="/docs/agents-compute">Agents &amp; cloud</Link>.</span>
+        <span>When a number surprises you, walk it backwards on <Link className="underline" href="/my/usage">/my/usage</Link> and compare the mirror against the provider console (RunPod console, DigitalOcean control panel) before assuming the worst. Details live in <Link className="font-bold underline" href="/docs/agents-compute">Agents &amp; cloud</Link>.</span>
       </Callout>
 
       <AgentBotNav current="/docs/runpod-vs-digitalocean" />

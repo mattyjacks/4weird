@@ -23,6 +23,7 @@ const bundles = [
   ["battlesharks2", "battlesharks2"],
   ["gravegain2d", "gravegain2d"],
   ["gravegain3d", "gravegain3d"],
+  ["gravegain4d", "gravegain4d"],
   ["gravegain1d", "gravegain1d"],
   ["demolichdom", "demolichdom"],
   ["fridgesimulator", "fridgesimulator"],

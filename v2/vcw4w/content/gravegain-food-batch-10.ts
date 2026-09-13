@@ -30,7 +30,13 @@ export const GRAVE_GAIN_FOOD_BATCH_10_IDS = [
   "fortune-cookie",
 ] as const;
 
-type DropNotes = Record<GraveGainFoodGame, Record<GraveGainFoodMode, string>>;
+type ExtraGame = "gravegain4d" | "gravegain5d";
+type DropNotes = Record<
+  GraveGainFoodGame | ExtraGame,
+  Record<GraveGainFoodMode, string>
+>;
+
+const EXTRA_GAMES: ExtraGame[] = ["gravegain4d", "gravegain5d"];
 
 function makeItem(
   id: (typeof GRAVE_GAIN_FOOD_BATCH_10_IDS)[number],
@@ -40,6 +46,11 @@ function makeItem(
   if (!entry) throw new Error(`missing roster entry ${id}`);
   const stats = buildFoodStatsTable(entry.effect, entry.tier);
   for (const game of GRAVEGAIN_FOOD_GAMES) {
+    for (const mode of GRAVEGAIN_FOOD_MODES) {
+      stats[game][mode].note = notes[game][mode];
+    }
+  }
+  for (const game of EXTRA_GAMES) {
     for (const mode of GRAVEGAIN_FOOD_MODES) {
       stats[game][mode].note = notes[game][mode];
     }
@@ -63,6 +74,16 @@ const ASH_POTATO_NOTES: DropNotes = {
     mission: "Reward for Deep Hearth delve 8.",
     mmorpg: "Guild caravans haul it by the sack.",
   },
+  gravegain4d: {
+    endless: "Dream fairway bunkers hide ash-potatoes; sand-trap moles drop them.",
+    mission: "Reward for Bunker Putt mission 5 on the dream fairway.",
+    mmorpg: "Caddie stalls trade them near the W-hazard clubhouse.",
+  },
+  gravegain5d: {
+    endless: "Prime-universe ember foes drop it; echo hops scatter more.",
+    mission: "Reward for Ember Paradox mission 4 across two hops.",
+    mmorpg: "Void-market vendors bundle it for universe hoppers.",
+  },
 };
 
 const SKEWER_STICKS_NOTES: DropNotes = {
@@ -80,6 +101,16 @@ const SKEWER_STICKS_NOTES: DropNotes = {
     endless: "War-camp scouts drop them in vaults 7-13.",
     mission: "Reward for Vanguard Mess delve 3.",
     mmorpg: "Runner favorite; always in demand.",
+  },
+  gravegain4d: {
+    endless: "Dream fairway grill sprites drop skewers near hole 3 W-hazard.",
+    mission: "Reward for Picnic Putt mission 2 by the fairway grill.",
+    mmorpg: "Fairway snack carts sell skewer stacks to putters.",
+  },
+  gravegain5d: {
+    endless: "Bloom-universe trail raiders drop them across one hop.",
+    mission: "Reward for Skewer Paradox mission 3 in echo universe.",
+    mmorpg: "Static-market traders flip bundles to traveling cooks.",
   },
 };
 
@@ -99,6 +130,16 @@ const RONIN_SUSHI_NOTES: DropNotes = {
     mission: "Reward for Moonlit Dock delve 9.",
     mmorpg: "Collectors pay premium for full sets.",
   },
+  gravegain4d: {
+    endless: "Dream fairway pond duelists drop sushi by the water hazard.",
+    mission: "Reward for Stillwater Putt mission 7 at hole 9.",
+    mmorpg: "Clubhouse sushi bar auctions fresh sets to golfers.",
+  },
+  gravegain5d: {
+    endless: "Dream-universe blade ronin drop it after void hops.",
+    mission: "Reward for Lone Tide Paradox mission 6 in prime universe.",
+    mmorpg: "Echo-market collectors pay premium for full sushi sets.",
+  },
 };
 
 const GOLDEN_SHRIMP_NOTES: DropNotes = {
@@ -116,6 +157,16 @@ const GOLDEN_SHRIMP_NOTES: DropNotes = {
     endless: "Abyss prawns drop it in vaults 9-15.",
     mission: "Reward for Sunken Net delve 5.",
     mmorpg: "Exported salted to inland traders.",
+  },
+  gravegain4d: {
+    endless: "Dream fairway creek skitterers drop shrimp near putt goals.",
+    mission: "Reward for Creekside Putt mission 3 past the W-hazard.",
+    mmorpg: "Pondside vendors trade baskets at the turn clubhouse.",
+  },
+  gravegain5d: {
+    endless: "Prime-universe reef darters drop it; bloom hops hide more.",
+    mission: "Reward for Golden Current mission 4 with one paradox hop.",
+    mmorpg: "Dream-market fry stands sell baskets to hoppers.",
   },
 };
 
@@ -135,6 +186,16 @@ const VORTEX_CAKE_NOTES: DropNotes = {
     mission: "Reward for Still Center delve 6.",
     mmorpg: "Gift-boxed at holiday bazaars.",
   },
+  gravegain4d: {
+    endless: "Dream fairway whirlpool hazard wisps drop swirl cakes.",
+    mission: "Reward for Spiral Putt mission 3 on the looping green.",
+    mmorpg: "Fairway tea houses bundle cake with caddie tea.",
+  },
+  gravegain5d: {
+    endless: "Void-universe eddy callers drop it across echo hops.",
+    mission: "Reward for Still Center Paradox mission 5 in dream universe.",
+    mmorpg: "Static-market scholars buy slices before long hops.",
+  },
 };
 
 const MOON_CAKE_NOTES: DropNotes = {
@@ -152,6 +213,16 @@ const MOON_CAKE_NOTES: DropNotes = {
     endless: "Eclipse heralds drop it in vaults 15-23.",
     mission: "Reward for Pale Vigil delve 10.",
     mmorpg: "Auction houses move whole mooncake sets.",
+  },
+  gravegain4d: {
+    endless: "Dream fairway lunar moths drop mooncakes by hole 12.",
+    mission: "Reward for Moonlit Putt mission 6 under fairway lights.",
+    mmorpg: "Clubhouse bakery stamps each box for golf festivals.",
+  },
+  gravegain5d: {
+    endless: "Echo-universe night bakers drop it after two hops.",
+    mission: "Reward for Pale Vigil Paradox mission 8 in void universe.",
+    mmorpg: "Bloom-market auction houses move whole mooncake sets.",
   },
 };
 
@@ -171,6 +242,16 @@ const FESTIVAL_SKEWERS_NOTES: DropNotes = {
     mission: "Reward for Grand Carnival delve 4.",
     mmorpg: "Tourist favorite; prices spike at fairs.",
   },
+  gravegain4d: {
+    endless: "Dream fairway lantern sprites drop skewers along hole 5.",
+    mission: "Reward for Lantern Putt mission 2 at the festival green.",
+    mmorpg: "Fairway night stalls sell tri-color bundles to fans.",
+  },
+  gravegain5d: {
+    endless: "Static-universe drummer imps drop them across parade hops.",
+    mission: "Reward for Carnival Paradox mission 5 in bloom universe.",
+    mmorpg: "Prime-market tourists bid high during hop festivals.",
+  },
 };
 
 const POCKET_DUMPLING_NOTES: DropNotes = {
@@ -189,6 +270,16 @@ const POCKET_DUMPLING_NOTES: DropNotes = {
     mission: "Reward for Pleat and Fold delve 2.",
     mmorpg: "Frozen packs move in bulk caravans.",
   },
+  gravegain4d: {
+    endless: "Dream fairway cellar mice drop dumplings near putt goals.",
+    mission: "Reward for Cozy Putt mission 1 by the W-hazard hearth.",
+    mmorpg: "Caddie grandmothers sell them steaming at the turn.",
+  },
+  gravegain5d: {
+    endless: "Prime-universe pleated goblins drop them after one hop.",
+    mission: "Reward for Folded Paradox mission 3 in echo universe.",
+    mmorpg: "Void-market caravans move frozen packs between universes.",
+  },
 };
 
 const FORTUNE_COOKIE_NOTES: DropNotes = {
@@ -206,6 +297,16 @@ const FORTUNE_COOKIE_NOTES: DropNotes = {
     endless: "Fate weavers drop them in vaults 13-19.",
     mission: "Reward for Written Stars delve 7.",
     mmorpg: "Rare prophecies fetch collector prices.",
+  },
+  gravegain4d: {
+    endless: "Dream fairway oracle bats drop fortunes past W-hazards.",
+    mission: "Reward for Lucky Putt mission 4 at the wishing green.",
+    mmorpg: "Fairway seers tuck custom putt fortunes inside.",
+  },
+  gravegain5d: {
+    endless: "Dream-universe fate weavers drop them across static hops.",
+    mission: "Reward for Written Stars Paradox mission 7 in void universe.",
+    mmorpg: "Echo-market collectors pay well for rare prophecies.",
   },
 };
 

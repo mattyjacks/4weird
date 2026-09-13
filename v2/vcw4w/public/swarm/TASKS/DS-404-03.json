@@ -1,0 +1,25 @@
+{
+    "id":  "DS-404-03",
+    "title":  "Build /gamestudio and /gamestudio/debugplay pages",
+    "goal":  "Two missing nav pages become real working tools. /gamestudio (GameStudio hub): project scaffolder - name, template picker (2D platformer, top-down, arcade), Godot version note, generates downloadable project.json plus starter README text with copy and download buttons, plus cards linking live tools (/vibecodeworker, /submit, /tools). /gamestudio/debugplay (DebugPlay): form posting to the LIVE POST /api/vcw/debug-play route (game slug plus notes), renders returned bugs and nextInput with loading and error states; fully client-driven, never stores data. Both SSR-safe with metadata.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/gamestudio/page.tsx",
+                  "v2/vcw4w/app/gamestudio/gamestudio-client.tsx",
+                  "v2/vcw4w/app/gamestudio/debugplay/page.tsx",
+                  "v2/vcw4w/app/gamestudio/debugplay/debugplay-client.tsx"
+              ],
+    "gates":  [
+                  "npx eslint on new files",
+                  "npx tsc --noEmit"
+              ],
+    "status":  "done",
+    "owner":  "404-03",
+    "created":  "2026-09-13T10:54:09.000Z",
+    "updated":  "2026-09-13T11:25:49.000Z",
+    "log":  [
+                "2026-09-13T10:54:09.000Z 404-lead: envelope created from nav audit (10 missing routes), awaiting claim.",
+                "2026-09-13T11:03:12.000Z 404-03: claimed. Boot note: my SwarmStart brief described a superseded p2p/tax DS-404-03; on-disk truth at claim (post 404-lead re-dispatch) is gamestudio+debugplay. Adopting live scope ONLY - will NOT touch compute/p2p (DS-404-02, owner 404-f2 live) or business/tax (DS-404-01). Precedent: DS-404-01 log same pivot. Target paths verified absent.",
+                "2026-09-13T11:25:49.000Z 404-03: DONE. Landed 4/4 scope files (NEW only): app/gamestudio/page.tsx (server+metadata) + gamestudio-client.tsx (scaffolder: name slugify, 3-template picker, Godot 4.3/4.2.2/4.1.4 pin + version note, live project.json + README previews with copy/download via Blob, tool cards to /vibecodeworker + /submit + /tools all verified live) + debugplay/page.tsx (server+metadata) + debugplay/debugplay-client.tsx (live POST /api/vcw/debug-play: slug validated to server regex, notes->codeSnippet, screenshot downscaled to <=640px JPEG in-browser or notes-rendered report-card PNG frame, djb2 frameHash, renders bugs/nextInput/source/stuck + 401/402/429/503 hints, no storage). SSR-safe (browser APIs in handlers only). Gates: npx tsc --noEmit zero errors in scope (repo-wide RED solely on sibling DS-404-02 commander-client.tsx TS18047x2+TS2552x1, live-owned by 404-f2, untouched); npx eslint exit 0 zero output on all 4 new files. QUEUE wiring lines filed (nav/sitemap for both routes + stale-brief disclosure). No STATUS.json edits, no secrets, no old-v1/."
+            ]
+}

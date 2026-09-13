@@ -95,7 +95,7 @@ export const FAL_OPS: FalOpDef[] = [
   { op: "texture-tile", name: "Texture Tile", unit: "image", coinsPerUnit: 8, blurb: "Tileable dungeon, grass, metal and neon wall textures.", category: "Game Art", model: "fal-ai/recraft-v3", kind: "image", needsImage: false, needsPrompt: true },
   { op: "upscale-hd", name: "HD Upscale", unit: "image", coinsPerUnit: 6, blurb: "Remaster pixel art + screenshots to crisp HD, no redraw.", category: "Game Art", model: "fal-ai/topaz/upscale/image", kind: "image", needsImage: true, needsPrompt: false },
   { op: "remove-bg", name: "Sprite Cutout", unit: "image", coinsPerUnit: 3, blurb: "Clean background removal for web-game sprites + stickers.", category: "Game Art", model: "fal-ai/birefnet", kind: "image", needsImage: true, needsPrompt: false },
-  { op: "render-3d", name: "3D Prop", unit: "model", coinsPerUnit: 15, blurb: "Turn one sketch into a spinnable 3D prop for 3D games.", category: "3D", model: "fal-ai/trellis/image-to-3d", kind: "model-3d", needsImage: true, needsPrompt: false },
+  { op: "render-3d", name: "3D Prop", unit: "model", coinsPerUnit: 15, blurb: "Turn one sketch into a spinnable 3D prop for 3D games.", category: "3D", model: "fal-ai/trellis", kind: "model-3d", needsImage: true, needsPrompt: false },
   { op: "trailer-clip", name: "Trailer Clip", unit: "clip", coinsPerUnit: 25, blurb: "Cinematic teaser trailers from one sentence of hype.", category: "Video", model: "fal-ai/kling-video/v3/pro/text-to-video", kind: "video", needsImage: false, needsPrompt: true },
   { op: "animate-sprite", name: "Living Portrait", unit: "clip", coinsPerUnit: 20, blurb: "Breathe motion into static art; cutscenes in seconds.", category: "Video", model: "fal-ai/minimax/h3/image-to-video", kind: "video", needsImage: true, needsPrompt: true },
   { op: "npc-voice", name: "NPC Voice", unit: "1k_chars", coinsPerUnit: 4, blurb: "Quest givers that actually talk; warm HD narration.", category: "Audio", model: "fal-ai/minimax/speech-02-hd", kind: "audio", needsImage: false, needsPrompt: true },
@@ -109,8 +109,8 @@ export const FAL_OPS: FalOpDef[] = [
   { op: "character-turn", name: "Character Turnaround", unit: "image", coinsPerUnit: 9, blurb: "Front/side/back turnaround sheets for heroes + NPCs.", category: "Game Art", model: "fal-ai/hidream-i1-full", kind: "image", needsImage: false, needsPrompt: true },
   { op: "level-inpaint", name: "Level Inpaint", unit: "image", coinsPerUnit: 8, blurb: "Repaint part of a level or sprite; masked edits that blend in.", category: "Game Art", model: "fal-ai/flux-pro/fill", kind: "image", needsImage: true, needsPrompt: true },
   { op: "depth-map", name: "Depth Map", unit: "image", coinsPerUnit: 6, blurb: "Depth maps from one screenshot for 2.5D lighting + parallax.", category: "3D", model: "fal-ai/depth-anything-v2", kind: "image", needsImage: true, needsPrompt: false },
-  { op: "voxel-prop", name: "Voxel Prop 3D", unit: "model", coinsPerUnit: 15, blurb: "Chunky voxel props from one sketch for stylized 3D games.", category: "3D", model: "fal-ai/hunyuan3d-v21/image-to-3d", kind: "model-3d", needsImage: true, needsPrompt: false },
-  { op: "text-to-3d", name: "Text 3D Prop", unit: "model", coinsPerUnit: 16, blurb: "Type a prop, get a spinnable 3D model; no sketch needed.", category: "3D", model: "fal-ai/trellis/text-to-3d", kind: "model-3d", needsImage: false, needsPrompt: true },
+  { op: "voxel-prop", name: "Voxel Prop 3D", unit: "model", coinsPerUnit: 15, blurb: "Chunky voxel props from one sketch for stylized 3D games.", category: "3D", model: "tripo3d/h3.1/image-to-3d", kind: "model-3d", needsImage: true, needsPrompt: false },
+  { op: "text-to-3d", name: "Text 3D Prop", unit: "model", coinsPerUnit: 16, blurb: "Type a prop, get a spinnable 3D model; no sketch needed.", category: "3D", model: "tripo3d/h3.1/text-to-3d", kind: "model-3d", needsImage: false, needsPrompt: true },
   { op: "cutscene-veo", name: "Cutscene Clip", unit: "clip", coinsPerUnit: 22, blurb: "Fast cinematic cutscenes from one line of story.", category: "Video", model: "fal-ai/veo3/fast/text-to-video", kind: "video", needsImage: false, needsPrompt: true },
   { op: "motion-loop", name: "Motion Loop", unit: "clip", coinsPerUnit: 20, blurb: "Turn any sprite or portrait into a looping motion clip.", category: "Video", model: "fal-ai/kling-video/v2.5-turbo/image-to-video", kind: "video", needsImage: true, needsPrompt: true },
   { op: "monster-voice", name: "Monster Voice", unit: "1k_chars", coinsPerUnit: 4, blurb: "Growls, goblins + bosses that actually talk back.", category: "Audio", model: "fal-ai/dia-tts", kind: "audio", needsImage: false, needsPrompt: true },
@@ -250,9 +250,13 @@ export function falInputFor(op: FalOp, input: { prompt: string; imageUrl?: strin
       return out;
     case "render-3d":
     case "voxel-prop":
-      return out;
+      // Trellis v1 + Tripo H3.1 image-to-3D take exactly one image_url;
+      // extra keys (image_urls, audio_url) risk a provider 422.
+      return input.imageUrl && isHttpsUrl(input.imageUrl) ? { image_url: input.imageUrl } : {};
     case "text-to-3d":
-      return { prompt };
+      // Tripo H3.1 text-to-3D caps prompt at 1024 chars (global route cap is
+      // 2000); clamp here so long prompts queue instead of provider-422ing.
+      return { prompt: prompt.slice(0, 1024) };
     case "trailer-clip":
     case "cutscene-veo":
       return { prompt };

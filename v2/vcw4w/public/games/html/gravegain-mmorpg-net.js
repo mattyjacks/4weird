@@ -1,6 +1,6 @@
-/* GraveGain MMORPG networking core (shared by GraveGain 1D/2D/3D).
+/* GraveGain MMORPG networking core (shared by GraveGain 1D/2D/3D/4D/5D).
  * Vanilla JS, ASCII-only, never throws, solo-safe (works offline with zero peers).
- * Transport: WebSocket primary + HTTP poll fallback (fetch/XHR), same shape all 3 games use.
+ * Transport: WebSocket primary + HTTP poll fallback (fetch/XHR), same shape all 5 games use.
  * Snapshot rate: 10Hz. Peer list capped at 32. Reconnect uses exponential backoff.
  * All inputs sanitized: numbers clamped/finite, strings truncated to <=32 chars.
  */
@@ -60,6 +60,29 @@
     }
   }
 
+  // Shared game-kind allowlist: 1D/2D/3D + 4D holes + 5D universes.
+  var GAME_KINDS = ["gravegain1d", "gravegain2d", "gravegain3d", "gravegain4d", "gravegain5d"];
+
+  function normGameKind(v) {
+    try {
+      var s = sanitizeStr(v).toLowerCase();
+      for (var i = 0; i < GAME_KINDS.length; i++) {
+        if (s === GAME_KINDS[i]) { return s; }
+      }
+      return "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function isGameKind(v) {
+    try {
+      return normGameKind(v) !== "";
+    } catch (e) {
+      return false;
+    }
+  }
+
   // Pure: adults enter kids/teens/adults; teens enter kids/teens; kids enter kids only.
   function canEnter(playerBand, serverBand) {
     try {
@@ -95,10 +118,13 @@
     try {
       var s = isObj(snap) ? snap : {};
       // Accept floor (1D/2D) or sector (3D); keep whichever present, default floor.
+      // 4D adds hole/world; 5D adds universe/paradox/combo (all optional, sanitized).
       var hasSector = s.sector !== undefined && s.sector !== null && String(s.sector) !== "";
       var area = hasSector
         ? { sector: clampNum(s.sector, 0, 9999, 1) }
         : { floor: clampNum(s.floor, 0, 9999, 1) };
+      var gk = null;
+      try { gk = normGameKind(s.gameKind !== undefined ? s.gameKind : (s.game !== undefined ? s.game : s.kind)); } catch (e) { gk = ""; }
       var out = {
         x: clampNum(s.x, -100000, 100000, 0),
         y: clampNum(s.y, -100000, 100000, 0),
@@ -111,12 +137,38 @@
         winner: s.winner ? true : false,
         seed: sanitizeStr(s.seed),
         serverId: sanitizeStr(s.serverId),
-        ageBand: normBand(s.ageBand) || "kids"
+        ageBand: normBand(s.ageBand) || "kids",
+        gameKind: gk || "gravegain3d"
       };
       if (hasSector) { out.sector = area.sector; } else { out.floor = area.floor; }
+      try {
+        if (s.hole !== undefined && s.hole !== null && String(s.hole) !== "") {
+          out.hole = clampNum(s.hole, 0, 9999, 1);
+        }
+      } catch (e) { /* keep base snapshot */ }
+      try {
+        if (s.world !== undefined && s.world !== null && String(s.world) !== "") {
+          out.world = sanitizeStr(s.world);
+        }
+      } catch (e) { /* keep base snapshot */ }
+      try {
+        if (s.universe !== undefined && s.universe !== null && String(s.universe) !== "") {
+          out.universe = sanitizeStr(s.universe);
+        }
+      } catch (e) { /* keep base snapshot */ }
+      try {
+        if (s.paradox !== undefined && s.paradox !== null && String(s.paradox) !== "") {
+          out.paradox = clampNum(s.paradox, 0, 999999, 0);
+        }
+      } catch (e) { /* keep base snapshot */ }
+      try {
+        if (s.combo !== undefined && s.combo !== null && String(s.combo) !== "") {
+          out.combo = clampNum(Math.floor(Number(s.combo)), 0, 999999, 0);
+        }
+      } catch (e) { /* keep base snapshot */ }
       return out;
     } catch (e) {
-      return { x: 0, y: 0, hp: 100, maxhp: 100, gold: 0, kills: 0, floor: 1, progress: 0, boss: 0, winner: false, seed: "", serverId: "", ageBand: "kids" };
+      return { x: 0, y: 0, hp: 100, maxhp: 100, gold: 0, kills: 0, floor: 1, progress: 0, boss: 0, winner: false, seed: "", serverId: "", ageBand: "kids", gameKind: "gravegain3d" };
     }
   }
 
@@ -467,12 +519,17 @@
     tick: tick,
     costShare: costPerPlayer,
     ageBandCanEnter: canEnter,
+    gameKinds: GAME_KINDS,
+    normGameKind: normGameKind,
+    isGameKind: isGameKind,
     _pure: {
       clampNum: clampNum,
       costPerPlayer: costPerPlayer,
       canEnter: canEnter,
       sanitizeStr: sanitizeStr,
-      sanitizeSnapshot: sanitizeSnapshot
+      sanitizeSnapshot: sanitizeSnapshot,
+      normGameKind: normGameKind,
+      isGameKind: isGameKind
     }
   };
 

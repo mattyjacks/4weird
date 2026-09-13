@@ -1,6 +1,7 @@
 /* GraveGain MMORPG shared world-event clock (games lane, v2-native).
  * Vanilla IIFE, idempotent, zero imports, zero timers, zero DOM writes.
- * Games (gravegain1d / gravegain2d / gravegain3d + mmorpg-3d.js) load it via
+ * Games (gravegain1d / gravegain2d / gravegain3d / gravegain4d / gravegain5d
+ * + mmorpg-3d.js) load it via
  * a plain script tag and read the deterministic UTC schedule derived from
  * Date.now() — no network, no storage, no engine hooks.
  *
@@ -8,8 +9,8 @@
  *
  * nextEvent(nowMs?) -> { id, kind, name, startsAtMs, startsInMs, endsAtMs,
  *   durationMs, detail } for the soonest upcoming world event across the
- *   three schedules (hourly Spire boss, 30-min ley-line surge, 15-min
- *   dungeon mutator rotation). describe(input?) -> one-line human string.
+ *   five schedules (hourly Spire boss, 30-min ley-line surge, 15-min
+ *   dungeon mutator rotation, 40-min 4d dream-surge, 45-min 5d paradox-storm). describe(input?) -> one-line human string.
  * Every public function is guarded and NEVER throws: on any failure it
  * returns a safe fallback value.
  *
@@ -21,7 +22,7 @@
 (function () {
     'use strict';
 
-    var VERSION = '1.0.0';
+    var VERSION = '1.1.0';
     var MIN = 60 * 1000;
     var HOUR = 60 * MIN;
 
@@ -108,6 +109,24 @@
         { id: 'trap-party',
           name: { kid: 'Tickle-Trap Party', teen: 'Trap Party', all: 'TRAP PARTY' } }
     ];
+    /* 4D dream-surge: cozy hole-collapse dreams. Kid copies stay sleepy-silly. */
+    var DREAMS = [
+        { id: 'lucid', buff: '+25% XP',
+          name: { kid: 'Sleepy Star Dream', teen: 'Lucid Dream Surge', all: 'LUCID DREAM SURGE' } },
+        { id: 'starlit', buff: 'fast runs',
+          name: { kid: 'Giggle Cloud Drift', teen: 'Starlit Dream Surge', all: 'STARLIT DREAM SURGE' } },
+        { id: 'tide', buff: '+25% loot',
+          name: { kid: 'Cozy Moon Nap', teen: 'Tide Dream Surge', all: 'TIDE DREAM SURGE' } }
+    ];
+    /* 5D paradox-storm: wobbly universe weather. Kid copies stay goofy-safe. */
+    var STORMS = [
+        { id: 'wobble',
+          name: { kid: 'Silly Time Tickle', teen: 'Wobble Paradox Storm', all: 'WOBBLE PARADOX STORM' } },
+        { id: 'echo',
+          name: { kid: 'Bouncy Echo Giggle', teen: 'Echo Paradox Storm', all: 'ECHO PARADOX STORM' } },
+        { id: 'still',
+          name: { kid: 'Friendly Freeze Dance', teen: 'Still Paradox Storm', all: 'STILL PARADOX STORM' } }
+    ];
 
     var SPIRE_DURATION = 15 * MIN;
     var SURGE_DURATION = 10 * MIN;
@@ -115,6 +134,12 @@
     var SURGE_SLOT = 30 * MIN;
     var SURGE_OFFSET = 15 * MIN;
     var MUTATOR_SLOT = 15 * MIN;
+    var DREAM_DURATION = 10 * MIN;
+    var DREAM_SLOT = 40 * MIN;
+    var DREAM_OFFSET = 10 * MIN;
+    var STORM_DURATION = 12 * MIN;
+    var STORM_SLOT = 45 * MIN;
+    var STORM_OFFSET = 5 * MIN;
 
     function normNow(v) {
         try {
@@ -193,6 +218,46 @@
         };
     }
 
+    /* 4D dream-surge: every 40 min at :10/:50 past the 2-hour cycle, 10m window. */
+    function nextDream(now) {
+        var k = Math.ceil((now - DREAM_OFFSET) / DREAM_SLOT);
+        if (!isFinite(k) || k < 0) k = 0;
+        var start = DREAM_OFFSET + k * DREAM_SLOT;
+        if (start <= now) { k += 1; start = DREAM_OFFSET + k * DREAM_SLOT; }
+        var dream = DREAMS[idx(k, DREAMS.length)] || DREAMS[0];
+        return {
+            id: 'dream-surge-' + dream.id,
+            kind: 'dream-surge',
+            ref: dream.id,
+            name: pickText(dream.name, 'teen'),
+            startsAtMs: start,
+            startsInMs: Math.max(0, start - now),
+            endsAtMs: start + DREAM_DURATION,
+            durationMs: DREAM_DURATION,
+            detail: '4D dream-surge (' + dream.id + ', ' + dream.buff + '), 10m window'
+        };
+    }
+
+    /* 5D paradox-storm: every 45 min offset by 5m UTC, 12-minute window. */
+    function nextStorm(now) {
+        var k = Math.ceil((now - STORM_OFFSET) / STORM_SLOT);
+        if (!isFinite(k) || k < 0) k = 0;
+        var start = STORM_OFFSET + k * STORM_SLOT;
+        if (start <= now) { k += 1; start = STORM_OFFSET + k * STORM_SLOT; }
+        var storm = STORMS[idx(k, STORMS.length)] || STORMS[0];
+        return {
+            id: 'paradox-storm-' + storm.id,
+            kind: 'paradox-storm',
+            ref: storm.id,
+            name: pickText(storm.name, 'teen'),
+            startsAtMs: start,
+            startsInMs: Math.max(0, start - now),
+            endsAtMs: start + STORM_DURATION,
+            durationMs: STORM_DURATION,
+            detail: '5D paradox-storm (' + storm.id + '), 12m window'
+        };
+    }
+
     function fallbackEvent(now) {
         return {
             id: 'spire-boss-grave-titan',
@@ -207,11 +272,11 @@
         };
     }
 
-    /* Soonest of the three schedules. NEVER throws. */
+    /* Soonest of the five schedules. NEVER throws. */
     function nextEvent(nowMs) {
         try {
             var now = normNow(nowMs);
-            var cands = [nextSpire(now), nextSurge(now), nextMutator(now)];
+            var cands = [nextSpire(now), nextSurge(now), nextMutator(now), nextDream(now), nextStorm(now)];
             var best = cands[0];
             for (var i = 1; i < cands.length; i++) {
                 if (cands[i].startsAtMs < best.startsAtMs) best = cands[i];
@@ -232,6 +297,8 @@
             if (kind === 'spire-boss') return nextSpire(now);
             if (kind === 'ley-surge') return nextSurge(now);
             if (kind === 'mutator') return nextMutator(now);
+            if (kind === 'dream-surge') return nextDream(now);
+            if (kind === 'paradox-storm') return nextStorm(now);
         } catch (e) { /* ignore */ }
         return null;
     }
@@ -251,7 +318,9 @@
     function eventName(ev, mode) {
         try {
             var table = ev.kind === 'spire-boss' ? BOSSES
-                : ev.kind === 'ley-surge' ? SURGES : MUTATORS;
+                : ev.kind === 'ley-surge' ? SURGES
+                : ev.kind === 'dream-surge' ? DREAMS
+                : ev.kind === 'paradox-storm' ? STORMS : MUTATORS;
             for (var i = 0; i < table.length; i++) {
                 if (table[i].id === ev.ref) return pickText(table[i].name, mode) || ev.name;
             }
@@ -271,7 +340,9 @@
             if (typeof input === 'string') {
                 var key = input.toLowerCase();
                 var kind = null;
-                if (key.indexOf('spire') !== -1) kind = 'spire-boss';
+                if (key.indexOf('paradox') !== -1 || key.indexOf('storm') !== -1) kind = 'paradox-storm';
+                else if (key.indexOf('dream') !== -1) kind = 'dream-surge';
+                else if (key.indexOf('spire') !== -1) kind = 'spire-boss';
                 else if (key.indexOf('surge') !== -1 || key.indexOf('ley') !== -1) kind = 'ley-surge';
                 else if (key.indexOf('mutat') !== -1) kind = 'mutator';
                 ev = (kind ? nextOfKind(kind, normNow()) : null) || nextEvent();
@@ -283,6 +354,8 @@
             var name = eventName(ev, mode);
             var kindLabel = ev.kind === 'spire-boss' ? 'Spire Boss'
                 : ev.kind === 'ley-surge' ? 'Ley-Line Surge'
+                : ev.kind === 'dream-surge' ? 'Dream Surge'
+                : ev.kind === 'paradox-storm' ? 'Paradox Storm'
                 : ev.kind === 'mutator' ? 'Dungeon Mutator' : 'World event';
             var when;
             try {

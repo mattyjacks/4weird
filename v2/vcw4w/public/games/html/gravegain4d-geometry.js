@@ -2,7 +2,7 @@
  *
  * Vanilla JS IIFE, idempotent via window.GraveGain4DGeometry. Never throws:
  * every hook is try/catch guarded. No DOM listeners. No DOM overlays are
- * created by this module. Pure math only: no BoxGeometry, no renderer fork,
+ * created by this module. Pure math only: no three.js geometry primitives,
  * no scene graph — the integrator feeds these vertices/segments into the
  * existing GraveGainGraphics3D / GraveGain3DModels path by reference.
  *

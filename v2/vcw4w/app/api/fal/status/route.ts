@@ -39,6 +39,18 @@ export async function GET(req: Request) {
         console.error(`[api/fal/status] fal.ai rejected the server key (HTTP ${res.status}, op ${opRaw}).`);
         return fail("fal.ai rejected the server key (HTTP 401/403). Re-issue FAL_KEY in the fal.ai dashboard and update the server env.", 502);
       }
+      if (res.status === 404 || res.status === 405) {
+        // Unknown endpoint path or request id on fal's side: the queued
+        // model was retired/renamed, or the id belongs to a different tool
+        // (e.g. Refresh status after switching tools). Never transient, so
+        // say so instead of "try again shortly".
+        const text = await res.text().catch(() => "");
+        console.error(`[api/fal/status] fal.ai has no such endpoint/request (HTTP ${res.status}, op ${opRaw}, model ${model}).`);
+        return fail(
+          `fal.ai has no status for this run (HTTP ${res.status}): the ${model} endpoint may be retired, or this request id belongs to another tool — refresh from the tool you queued with. The run was metered before queueing, so contact support if you need a credit.${text ? ` Provider: ${text.slice(0, 120)}` : ""}`,
+          502,
+        );
+      }
       return fail(`fal.ai status HTTP ${res.status}.`, 502);
     }
     const status = (await res.json()) as Record<string, unknown>;

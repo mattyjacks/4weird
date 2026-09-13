@@ -11,9 +11,16 @@
  * dependency-free):
  *   - 100 Vibe Coins = exactly $1.00 USD (1 coin = 1 cent = $0.01).
  *   - 1 Vibe Coin = 100 centicentcoins; 1 centicentcoin = $0.0001 USD.
+ *   - Every per-minute price carries the 25% platform cut INCLUDED
+ *     (`MMORPG_SERVICE_CUT_PCT`), never on top — same rule as every lane.
  *   - All money math below runs in INTEGER centicentcoins, then converts
  *     back to coins rounded to 2dp — so every returned coin value is
  *     centicentcoin-exact (no float dust like 0.1 + 0.2).
+ *
+ * GAME RATE CARD (`MMORPG_SERVER_COSTS_BY_GAME`): one row per GraveGain
+ * dimension. Costs rise with dimension: 4d sits slightly above 3d, 5d is
+ * the highest. `MMORPG_SERVER_COSTS` stays as the legacy 3d default so
+ * existing callers quote unchanged; pass `gameKind` to quote another row.
  *
  * FAIL-OPEN CLAMPS: bad inputs never throw and never bill phantom money —
  * negatives clamp to 0, non-finite values fall back to defaults, player
@@ -53,32 +60,94 @@ export const MMORPG_CENTICENTCOINS_PER_COIN = 100;
 /** Longest single session quotable in one call (24h in minutes). */
 export const MMORPG_MAX_SESSION_MINUTES = 1440;
 
+/** Platform cut INCLUDED in every per-minute price (same rule everywhere). */
+export const MMORPG_SERVICE_CUT_PCT = 25;
+
 /** Largest player roster quotable in one call (fail-open slice cap). */
 export const MMORPG_MAX_PLAYERS_PER_SESSION = 500;
 
 /** Ceiling for any per-minute cost input (matches the 10k purchase cap). */
 export const MMORPG_MAX_COST_PER_MIN_COINS = 10000;
 
+/** GraveGain dimension metered by this module (4d above 3d, 5d highest). */
+export type MmorpgGameKind =
+  | "gravegain1d"
+  | "gravegain2d"
+  | "gravegain3d"
+  | "gravegain4d"
+  | "gravegain5d";
+
+/** Every dimension this module can quote, in cost order (cheapest first). */
+export const MMORPG_GAME_KINDS: readonly MmorpgGameKind[] = [
+  "gravegain1d",
+  "gravegain2d",
+  "gravegain3d",
+  "gravegain4d",
+  "gravegain5d",
+];
+
+/** Fallback dimension when `gameKind` is missing or forged (fail-open). */
+export const MMORPG_DEFAULT_GAME_KIND: MmorpgGameKind = "gravegain3d";
+
 /**
- * Default server price book, in whole coins.
+ * Default server price book, in whole coins (legacy 3d baseline).
  * - basePerMin: flat room cost per minute ($0.10/min => $6.00/hr).
  * - loadPerPlayerPerMin: marginal load per seated player per minute.
  * - rentalPerHour: host's room-rental fee per hour, always host-paid,
  *   prorated to the minute for sessions shorter than an hour.
+ * Kept verbatim for backwards compatibility; equals the 3d row below.
  */
-export const MMORPG_SERVER_COSTS = {
+export const MMORPG_SERVER_COSTS: MmorpgServerCosts = {
   basePerMin: 10,
   loadPerPlayerPerMin: 2,
   rentalPerHour: 60,
-} as const;
+};
 
-export type MmorpgServerCosts = typeof MMORPG_SERVER_COSTS;
+export type MmorpgServerCosts = {
+  basePerMin: number;
+  loadPerPlayerPerMin: number;
+  rentalPerHour: number;
+};
+
+/**
+ * Per-dimension server price book, in whole coins (cut INCLUDED).
+ * Ordering: 4d sits slightly above 3d, 5d is the highest.
+ */
+export const MMORPG_SERVER_COSTS_BY_GAME: Record<MmorpgGameKind, MmorpgServerCosts> = {
+  gravegain1d: { basePerMin: 6, loadPerPlayerPerMin: 1, rentalPerHour: 36 },
+  gravegain2d: { basePerMin: 8, loadPerPlayerPerMin: 2, rentalPerHour: 48 },
+  gravegain3d: { basePerMin: 10, loadPerPlayerPerMin: 2, rentalPerHour: 60 },
+  gravegain4d: { basePerMin: 12, loadPerPlayerPerMin: 3, rentalPerHour: 72 },
+  gravegain5d: { basePerMin: 15, loadPerPlayerPerMin: 4, rentalPerHour: 90 },
+};
+
+/** Fail-open dimension cleaner: unknown values fall back to the 3d row. */
+export function cleanMmorpgGameKind(value: unknown): MmorpgGameKind {
+  const v = String(value ?? "").trim();
+  if (
+    v === "gravegain1d" ||
+    v === "gravegain2d" ||
+    v === "gravegain3d" ||
+    v === "gravegain4d" ||
+    v === "gravegain5d"
+  ) {
+    return v;
+  }
+  return MMORPG_DEFAULT_GAME_KIND;
+}
+
+/** Resolve the price row for a dimension (fail-open to the 3d baseline). */
+export function resolveMmorpgServerCosts(gameKind: unknown): MmorpgServerCosts {
+  return MMORPG_SERVER_COSTS_BY_GAME[cleanMmorpgGameKind(gameKind)];
+}
 
 /** Input to {@link quoteSession}. All coin fields are Vibe Coins. */
 export type QuoteSessionInput = {
-  /** Base server cost per minute (coins). Defaults to `basePerMin`. */
+  /** GraveGain dimension row to quote (fail-open to gravegain3d). */
+  gameKind?: unknown;
+  /** Base server cost per minute (coins). Defaults to the game row `basePerMin`. */
   serverCostPerMin?: unknown;
-  /** Total load cost per minute across the room (coins). Defaults to `loadPerPlayerPerMin * playerCount`. */
+  /** Total load cost per minute across the room (coins). Defaults to `loadPerPlayerPerMin * playerCount` of the game row. */
   loadCostPerMin?: unknown;
   /** Seated players sharing the bill. Clamped to an integer >= 0. */
   playerCount?: unknown;
@@ -90,6 +159,8 @@ export type QuoteSessionInput = {
 
 /** Quoted session totals, in Vibe Coins (2dp, centicentcoin-exact). */
 export type MmorpgSessionQuote = {
+  /** Dimension row the quote used (echo of the cleaned `gameKind`). */
+  gameKind: MmorpgGameKind;
   /** Coins each player pays per minute (0 when hostFree or no players). */
   perPlayerPerMin: number;
   /** Coins each player pays for the whole session. */
@@ -191,13 +262,15 @@ function cleanAccountId(value: unknown): string {
  * - All money math runs in integer centicentcoins; outputs are coins.
  */
 export function quoteSession(input: QuoteSessionInput): MmorpgSessionQuote {
+  const gameKind = cleanMmorpgGameKind(input.gameKind);
+  const row = MMORPG_SERVER_COSTS_BY_GAME[gameKind];
   const playersSplit = cleanPlayerCount(input.playerCount);
   const minutesBilled = cleanMinutes(input.minutesOnServer);
   const hostFree = cleanHostFree(input.hostFree);
 
-  const baseCc = toCenticentcoins(MMORPG_SERVER_COSTS.basePerMin);
+  const baseCc = toCenticentcoins(row.basePerMin);
   const defaultLoadCc =
-    toCenticentcoins(MMORPG_SERVER_COSTS.loadPerPlayerPerMin) * playersSplit;
+    toCenticentcoins(row.loadPerPlayerPerMin) * playersSplit;
 
   const serverCc = cleanCoinsToCc(input.serverCostPerMin, baseCc, MMORPG_MAX_COST_PER_MIN_COINS);
   const loadCc = cleanCoinsToCc(input.loadCostPerMin, defaultLoadCc, MMORPG_MAX_COST_PER_MIN_COINS);
@@ -208,11 +281,12 @@ export function quoteSession(input: QuoteSessionInput): MmorpgSessionQuote {
   const perPlayerTotalCc = perPlayerPerMinCc * minutesBilled;
 
   const rentalTotalCc = Math.round(
-    (toCenticentcoins(MMORPG_SERVER_COSTS.rentalPerHour) * minutesBilled) / 60,
+    (toCenticentcoins(row.rentalPerHour) * minutesBilled) / 60,
   );
   const hostTotalCc = rentalTotalCc + (hostFree ? totalPerMinCc * minutesBilled : 0);
 
   return {
+    gameKind,
     perPlayerPerMin: toCoins(perPlayerPerMinCc),
     perPlayerTotal: toCoins(perPlayerTotalCc),
     hostTotal: toCoins(hostTotalCc),

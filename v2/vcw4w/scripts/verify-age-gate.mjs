@@ -79,7 +79,7 @@ must(checkDob("2030-01-01", 18, ADULT_DAY).reason === "invalid", "future DOB mus
 const games = read("content/games.ts");
 must(games.includes("GAME_RATINGS"), "content/games.ts must source ratings from GAME_RATINGS");
 must(games.includes("rating:"), "content/games.ts must set rating on games");
-for (const slug of ["assassinanimals", "gravegain2d", "gravegain3d", "demolichdom", "lastwordszombies", "battlesharks2", "serversavershield", "platform-wars", "neoninvaders"]) {
+for (const slug of ["assassinanimals", "gravegain2d", "gravegain3d", "gravegain4d", "demolichdom", "lastwordszombies", "battlesharks2", "serversavershield", "platform-wars", "neoninvaders"]) {
   must(core.includes(`"${slug}"`) || core.includes(`'${slug}'`) || core.includes(`${slug}:`), `GAME_RATINGS must rate ${slug}`);
 }
 // Every canonical bundle slug must resolve to a valid band.

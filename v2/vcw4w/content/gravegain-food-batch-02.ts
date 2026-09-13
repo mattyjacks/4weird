@@ -1,6 +1,6 @@
 // GraveGain food batch 02: roster idx 9-17 (sour-wisp-apple ... brine-olive).
 //
-// Per-item 3-games x 3-modes stat tables via buildFoodStatsTable() plus a
+// Per-item 5-games x 3-modes stat tables via buildFoodStatsTable() plus a
 // drop note per game/mode cell (endless: floors/foes, mission: mission reward,
 // mmorpg: market/trade note). Roster blurbs/emoji arrive via spread (...entry).
 
@@ -43,6 +43,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       mission: "Mission 2 orchard sweep pays out fresh baskets.",
       mmorpg: "Tradable commons; orchard farmers list it cheap.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 1-4, giggly wisps guard tart putts.",
+      mission: "Mission 4 reward, hedgerow mist cup quest.",
+      mmorpg: "Dream snack cart, rookie caddie trade.",
+    },
+    gravegain5d: {
+      endless: "Echo universe hops 1-4, mist bats drop fruit before doom clock.",
+      mission: "Mission 5 reward, mist-hop paradox patrol.",
+      mmorpg: "Multiverse snack staple, recruit trade stacks.",
+    },
   }),
   food("ghost-pear", {
     gravegain1d: {
@@ -59,6 +69,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       endless: "Crypt tiers 1-4: choir shades drop it mid-hum.",
       mission: "Mission 3 choirhall rite pays pear bundles.",
       mmorpg: "Listed by orchard mystics; fair barter value.",
+    },
+    gravegain4d: {
+      endless: "Dream fairways 2-5, humming W-hazards hide pale putts.",
+      mission: "Mission 5 reward, chapel green twilight rite.",
+      mmorpg: "Dream healer shelf, gentle trade bundles.",
+    },
+    gravegain5d: {
+      endless: "Void universe hops 2-5, bell shades drop pears before doom clock.",
+      mission: "Mission 6 reward, chapel-hop paradox vigil.",
+      mmorpg: "Multiverse healer stock, chapel trade circle.",
     },
   }),
   food("velvet-peach", {
@@ -77,6 +97,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       mission: "Mission 6 arbor siege pays velvet peach chests.",
       mmorpg: "Traded by arbor farmers; honors guild credit.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 4-8, brute bunkers drop velvet putts.",
+      mission: "Mission 7 reward, grove cup defense round.",
+      mmorpg: "Dream cook favorite, peach crate trade.",
+    },
+    gravegain5d: {
+      endless: "Bloom universe hops 4-8, echo brutes drop peaches before doom clock.",
+      mission: "Mission 8 reward, press-hop paradox harvest.",
+      mmorpg: "Multiverse feast staple, cook-guild trade.",
+    },
   }),
   food("blood-cherries", {
     gravegain1d: {
@@ -93,6 +123,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       endless: "Crypt tiers 3-7: gore crows drop tart clusters.",
       mission: "Mission 7 crow-nest sweep grants cherry jars.",
       mmorpg: "Listed by blood-gardeners; fair duel-trade.",
+    },
+    gravegain4d: {
+      endless: "Dream fairways 5-9, thorn-dog bogeys drop cherry putts.",
+      mission: "Mission 8 reward, brave-heart cup raid.",
+      mmorpg: "Dream duel snack, friendly match trade.",
+    },
+    gravegain5d: {
+      endless: "Void universe hops 5-9, echo bats drop cherries before doom clock.",
+      mission: "Mission 9 reward, roost-hop paradox sweep.",
+      mmorpg: "Multiverse arena snack, fair-play trade.",
     },
   }),
   food("bramble-strawberry", {
@@ -111,6 +151,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       mission: "Mission 5 hedge-maze dash rewards berry packs.",
       mmorpg: "Market favorite; hedge guilds sell it fresh.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 3-7, briar W-hazard imps drop berry putts.",
+      mission: "Mission 6 reward, briar-row escort cup.",
+      mmorpg: "Dream jam stand, sweet bundle trade.",
+    },
+    gravegain5d: {
+      endless: "Bloom universe hops 3-7, echo wolves drop berries before doom clock.",
+      mission: "Mission 6 reward, fence-hop paradox patrol.",
+      mmorpg: "Multiverse jam bundles, seasonal swap trade.",
+    },
   }),
   food("star-blueberries", {
     gravegain1d: {
@@ -127,6 +177,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       endless: "Vault tiers 4-8: constellation wisps drop them.",
       mission: "Mission 8 star-chart quest pays berry charts.",
       mmorpg: "Listed by star-charters; solid barter value.",
+    },
+    gravegain4d: {
+      endless: "Dream fairways 6-10, starry W-hazards drop midnight putts.",
+      mission: "Mission 9 reward, observatory star cup watch.",
+      mmorpg: "Dream scholar treat, scribe stack trade.",
+    },
+    gravegain5d: {
+      endless: "Static universe hops 6-10, echo owls drop star fruit before doom clock.",
+      mission: "Mission 10 reward, archive-hop paradox study.",
+      mmorpg: "Multiverse focus gem, study-hall trade.",
     },
   }),
   food("dungeon-kiwi", {
@@ -145,6 +205,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       mission: "Mission 3 moss-grotto probe grants kiwi nets.",
       mmorpg: "Grotto farmers list it; easy starter trade.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 2-6, mossy W-hazards hide tangy putts.",
+      mission: "Mission 5 reward, cellar green forage cup.",
+      mmorpg: "Dream budget bite, caravan cooler trade.",
+    },
+    gravegain5d: {
+      endless: "Dream universe hops 2-6, echo rats drop kiwis before doom clock.",
+      mission: "Mission 5 reward, fungus-hop paradox sweep.",
+      mmorpg: "Multiverse rookie buy, dive-shop trade.",
+    },
   }),
   food("heart-tomato", {
     gravegain1d: {
@@ -162,6 +232,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       mission: "Mission 2 grow-lamp rite rewards tomato rows.",
       mmorpg: "Growers auction it; feast halls bid often.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 1-5, lamp-bug bunkers drop warm putts.",
+      mission: "Mission 4 reward, greenhouse guard cup.",
+      mmorpg: "Dream hearth stall, cook daily trade.",
+    },
+    gravegain5d: {
+      endless: "Prime universe hops 1-5, echo sprites drop rounds before doom clock.",
+      mission: "Mission 4 reward, greenhouse-hop paradox watch.",
+      mmorpg: "Multiverse tavern staple, steady swap value.",
+    },
   }),
   food("brine-olive", {
     gravegain1d: {
@@ -178,6 +258,16 @@ export const GRAVE_GAIN_FOOD_BATCH_02: GraveGainFoodItemDef[] = [
       endless: "Brine tiers 2-6: salt sirens drop filmed olives.",
       mission: "Mission 5 brine-cistern dive grants olive casks.",
       mmorpg: "Listed by tide merchants; solid ward barter.",
+    },
+    gravegain4d: {
+      endless: "Dream fairways 3-7, salty W-hazards drop olive putts.",
+      mission: "Mission 6 reward, tide-gate hold cup.",
+      mmorpg: "Dream ward shelf, guard tackle-box trade.",
+    },
+    gravegain5d: {
+      endless: "Echo universe hops 3-7, tide husks drop olives before doom clock.",
+      mission: "Mission 7 reward, salt-hop paradox patrol.",
+      mmorpg: "Multiverse shield market, guard-guild trade.",
     },
   }),
 ];

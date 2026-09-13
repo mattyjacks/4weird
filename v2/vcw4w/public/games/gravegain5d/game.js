@@ -41,9 +41,44 @@
     ];
 
     var CLASSES = {
-        putter: { name: 'Void Putter', hp: 20, atk: 5, range: 4, ability: 'Chain Leap' },
-        warden: { name: 'Paradox Warden', hp: 30, atk: 4, range: 3, ability: 'Anchor Reality' },
-        drifter: { name: 'Universe Drifter', hp: 18, atk: 6, range: 3, ability: 'Free Hop' }
+        putter: { name: 'Putter of the Graves', hp: 24, atk: 6, def: 1, spd: 3, range: 4, ability: { name: 'Chain Leap', cd: 5, desc: 'Strike all foes in range and build combo' } },
+        warden: { name: 'Paradox Warden', hp: 32, atk: 4, def: 3, spd: 1, range: 3, ability: { name: 'Anchor Reality', cd: 6, desc: 'Vent 25 paradox, clear doom, ward 2 ticks and mend 4' } },
+        drifter: { name: 'Universe Drifter', hp: 20, atk: 7, def: 0, spd: 4, range: 3, ability: { name: 'Free Hop', cd: 4, desc: 'Hop free of paradox and strike the nearest foe' } }
+    };
+
+    // RACES mirrors gravegain1d (human/elf/dwarf/orc). Deltas are small ints
+    // applied in newRun. Teen-clean blurbs; canon grit, no profanity.
+    var RACES = {
+        human: { name: 'Human', hp: 2, atk: 0, def: 0, spd: 0, blurb: 'Steady line-holder. No race abandons another.' },
+        elf: { name: 'Elf', hp: -2, atk: 1, def: 0, spd: 1, blurb: 'Fast spellweaver. Frail frame, keen eye.' },
+        dwarf: { name: 'Dwarf', hp: 8, atk: 0, def: 1, spd: -1, blurb: 'Stout forge-kin. Extra bulk, slower boots.' },
+        orc: { name: 'Orc', hp: 5, atk: 1, def: 0, spd: 0, blurb: 'Fierce blood-kin. Heavy hits, honor-bound.' }
+    };
+
+    // ENEMIES mirrors gravegain1d KINDS (shambler/swarm/brute/necro) plus one
+    // universe variant per lane so each hop meets a local haunt.
+    var ENEMIES = {
+        shambler: { name: 'Risen Shambler', hp: 12, atk: 2, def: 0, xp: 3, gold: 2 },
+        swarm: { name: 'Skull Swarm', hp: 6, atk: 3, def: 0, xp: 2, gold: 1 },
+        brute: { name: 'Zed Brute', hp: 22, atk: 5, def: 1, xp: 5, gold: 4 },
+        necro: { name: 'Array Necromancer', hp: 18, atk: 4, def: 0, xp: 7, gold: 5 },
+        echoHusk: { name: 'Echo Husk', hp: 10, atk: 3, def: 0, xp: 4, gold: 2 },
+        dreamMaw: { name: 'Dream Maw', hp: 14, atk: 2, def: 1, xp: 4, gold: 3 },
+        voidReaver: { name: 'Void Reaver', hp: 26, atk: 6, def: 1, xp: 8, gold: 6 },
+        bloomWisp: { name: 'Bloom Wisp', hp: 8, atk: 2, def: 0, xp: 3, gold: 2 },
+        staticJitter: { name: 'Static Jitter', hp: 16, atk: 5, def: 0, xp: 6, gold: 4 }
+    };
+
+    // Contact-damage scale per universe (Void hits hardest, Bloom softest).
+    var UNIVERSE_MIGHT = { prime: 1.0, echo: 1.0, dream: 0.9, void: 1.4, bloom: 0.8, static: 1.2 };
+    // Two-slot foe pool per universe; spawnFoes picks deterministically.
+    var UNIVERSE_FOES = {
+        prime: ['shambler', 'swarm'],
+        echo: ['echoHusk', 'swarm'],
+        dream: ['dreamMaw', 'shambler'],
+        void: ['voidReaver', 'brute'],
+        bloom: ['bloomWisp', 'swarm'],
+        static: ['staticJitter', 'necro']
     };
 
     var HOLES = [
@@ -71,18 +106,166 @@
         return Math.max(1, h.par + universeById(universeId).parDelta);
     }
 
+    /* ---------------- RPG combat helpers (pure) ---------------- */
+    // Series-true combat mirrors gravegain1d: nearestFoe / playerAttack /
+    // damage / gainXp. All pure (Math only); view layer animates events.
+    function xpNext(level) { return 8 + (level | 0) * 6; }
+    function mightOf(universeId) {
+        var m = UNIVERSE_MIGHT[universeId];
+        return (typeof m === 'number' && m > 0) ? m : 1;
+    }
+    function baseFoe(kind) { return ENEMIES[kind] || ENEMIES.shambler; }
+    function spawnFoes(holeIdx, universeId) {
+        var pool = UNIVERSE_FOES[universeId] || UNIVERSE_FOES.prime;
+        var out = [];
+        for (var i = 0; i < 2; i++) {
+            var kind = pool[(holeIdx + i) % pool.length];
+            var b = baseFoe(kind);
+            var might = mightOf(universeId);
+            var hp = Math.max(1, Math.round((b.hp + holeIdx * 2) * (0.9 + 0.1 * might)));
+            var atk = Math.max(1, Math.round((b.atk + Math.floor(holeIdx / 3)) * might));
+            out.push({ kind: kind, name: b.name, hp: hp, maxHp: hp, atk: atk, def: b.def, xp: b.xp, gold: b.gold });
+        }
+        return out;
+    }
+    function nearestFoe(s, range) {
+        if (!s || !s.foes) return null;
+        var best = null, bd = 1e9;
+        for (var i = 0; i < s.foes.length; i++) {
+            var e = s.foes[i];
+            if (!e || e.hp <= 0) continue;
+            var d = Math.abs(i - 0) * 0 + (e.dist != null ? e.dist : 1);
+            if (d <= range && d < bd) { bd = d; best = e; }
+        }
+        return best;
+    }
+    function damage(s, target, amount, isPlayer, ev) {
+        amount = Math.max(1, Math.round(amount));
+        ev = ev || [];
+        if (!isPlayer) {
+            target.hp -= amount;
+            ev.push({ t: 'hit', foe: true, kind: target.kind, dmg: amount, hp: Math.max(0, target.hp) });
+        } else {
+            var blocked = 0;
+            if (s.ward > 0) { blocked = Math.min(2, amount); amount -= blocked; }
+            amount = Math.max(1, amount - (s.def || 0));
+            s.hp -= amount;
+            ev.push({ t: 'hit', foe: false, dmg: amount, blocked: blocked, hp: Math.max(0, s.hp) });
+            if (s.hp <= 0) {
+                s.hp = 0;
+                s.over = true;
+                s.win = false;
+                ev.push({ t: 'collapse', hole: s.hole, universe: s.universe });
+            }
+        }
+        return amount;
+    }
+    function gainXp(s, n, ev) {
+        s.xp += n;
+        var need = xpNext(s.level);
+        while (s.xp >= need) {
+            s.xp -= need;
+            s.level += 1;
+            s.maxHp += 2;
+            s.hp = Math.min(s.maxHp, s.hp + 3);
+            if (s.level % 2 === 0) s.atk += 1;
+            ev.push({ t: 'level', level: s.level });
+            need = xpNext(s.level);
+        }
+    }
+    function killFoe(s, f, ev) {
+        s.kills = (s.kills || 0) + 1;
+        s.gold += f.gold;
+        ev.push({ t: 'kill', kind: f.kind, gold: f.gold });
+        gainXp(s, f.xp, ev);
+    }
+    function playerAttack(s, ev, multi) {
+        var range = s.range || 3;
+        var targets = [];
+        var i, j;
+        if (multi) {
+            for (i = 0; i < s.foes.length; i++) {
+                if (s.foes[i].hp > 0) targets.push(s.foes[i]);
+            }
+            if (!targets.length) { ev.push({ t: 'miss' }); return; }
+        } else {
+            var f = nearestFoe(s, range);
+            if (!f) { ev.push({ t: 'miss' }); return; }
+            targets.push(f);
+        }
+        for (j = 0; j < targets.length; j++) {
+            var crit = s.chain > 0 && ((s.hops + s.strokes + j) % 4 === 0);
+            var dmg = Math.max(1, s.atk - (targets[j].def || 0) + (crit ? 2 : 0));
+            if (crit) dmg *= 2;
+            damage(s, targets[j], dmg, false, ev);
+            ev.push({ t: 'swing', kind: targets[j].kind, crit: crit });
+            if (targets[j].hp <= 0) killFoe(s, targets[j], ev);
+            if (s.over) break;
+        }
+    }
+    // Enemy contact damage, scaled by universe might. Runs after every player
+    // action so standing among haunts always costs blood.
+    function enemyContact(s, ev) {
+        if (!s || !s.foes || s.over) return;
+        var might = mightOf(s.universe);
+        for (var i = 0; i < s.foes.length; i++) {
+            var f = s.foes[i];
+            if (!f || f.hp <= 0 || s.over) continue;
+            damage(s, null, Math.max(1, Math.round(f.atk * might)), true, ev);
+            if (s.over) break;
+        }
+    }
+    function ensureRpg(s) {
+        if (typeof s.hp !== 'number' || typeof s.maxHp !== 'number') {
+            var c = CLASSES[s.cls] || CLASSES.putter;
+            var r = RACES[s.race] || RACES.human;
+            s.maxHp = Math.max(1, c.hp + r.hp);
+            s.hp = s.maxHp;
+        }
+        if (typeof s.atk !== 'number') s.atk = (CLASSES[s.cls] || CLASSES.putter).atk;
+        if (typeof s.def !== 'number') s.def = (CLASSES[s.cls] || CLASSES.putter).def || 0;
+        if (typeof s.spd !== 'number') s.spd = (CLASSES[s.cls] || CLASSES.putter).spd || 0;
+        if (typeof s.range !== 'number') s.range = (CLASSES[s.cls] || CLASSES.putter).range;
+        if (typeof s.level !== 'number') s.level = 1;
+        if (typeof s.xp !== 'number') s.xp = 0;
+        if (typeof s.potions !== 'number') s.potions = 2;
+        if (typeof s.kills !== 'number') s.kills = 0;
+        if (typeof s.cooldown !== 'number') s.cooldown = 0;
+        if (typeof s.ward !== 'number') s.ward = 0;
+        if (!s.foes) s.foes = spawnFoes(s.hole || 0, s.universe);
+    }
+
     /* ---------------- Rules core (pure) ---------------- */
     function newRun(opts) {
         opts = opts || {};
+        var clsKey = CLASSES[opts.cls] ? opts.cls : 'putter';
+        var raceKey = RACES[opts.race] ? opts.race : 'human';
+        var c = CLASSES[clsKey];
+        var r = RACES[raceKey];
+        var maxHp = Math.max(1, c.hp + r.hp);
         return {
             mode: 'turn',
-            cls: CLASSES[opts.cls] ? opts.cls : 'putter',
+            cls: clsKey,
+            race: raceKey,
+            hp: maxHp,
+            maxHp: maxHp,
+            atk: Math.max(1, c.atk + r.atk),
+            def: Math.max(0, (c.def || 0) + r.def),
+            spd: Math.max(1, (c.spd || 0) + r.spd),
+            range: c.range,
+            level: 1,
+            xp: 0,
+            potions: 2,
+            kills: 0,
+            cooldown: 0,
+            ward: 0,
+            foes: spawnFoes(0, opts.universe || 'prime'),
             hole: 0,
             strokes: 0,
             universe: opts.universe || 'prime',
             w: 0,
             paradox: 0,          // 0..100; 100 = collapse trigger
-            chain: 0,            // consecutive hops without a putt
+            chain: 0,            // consecutive hops without a strike
             combo: 1,            // score multiplier from chains
             gold: 0,
             hops: 0,
@@ -94,15 +277,39 @@
     }
 
     // One discrete action. Returns an event list (view layer animates them).
+    // putt stays as the dungeon strike (golf reframed); attack / ability /
+    // potion are first-class RPG actions; contact damage taxes every round.
     function tick(s, action) {
         var ev = [];
         if (!s || s.over) return ev;
         action = action || { wait: true };
+        ensureRpg(s);
         var u = universeById(s.universe);
+        if (s.cooldown > 0) s.cooldown -= 1;
+        if (s.ward > 0) s.ward -= 1;
 
         if (action.hop) {
             var target = typeof action.hop === 'string' ? action.hop : nextUniverse(s.universe);
             return hop(s, target);
+        }
+        if (action.attack) {
+            playerAttack(s, ev, false);
+            if (!s.over) enemyContact(s, ev);
+            stepDoom(s, ev, u);
+            return ev;
+        }
+        if (action.potion) {
+            if (s.potions > 0 && s.hp < s.maxHp && !s.over) {
+                s.potions -= 1;
+                s.hp = Math.min(s.maxHp, s.hp + Math.ceil(s.maxHp / 2));
+                ev.push({ t: 'potion', hp: s.hp, left: s.potions });
+                s.paradox = clamp(s.paradox - 6, 0, 100);
+            } else {
+                ev.push({ t: 'nopotion', left: s.potions });
+            }
+            if (!s.over) enemyContact(s, ev);
+            stepDoom(s, ev, u);
+            return ev;
         }
         if (action.putt) {
             var power = clamp(Number(action.power) || 1, 0.25, 3);
@@ -111,9 +318,10 @@
             s.paradox = clamp(s.paradox - 4, 0, 100);
             s.chain = 0;
             var need = holePar(s.hole, s.universe);
-            var sunk = s.strokes >= need; // scaffold putting: par strokes sink it
-            ev.push({ t: 'putt', power: power, gravity: u.gravity, strokes: s.strokes, par: need });
-            if (sunk) {
+            var sunk = s.strokes >= need; // dungeon strike: par strikes clear the haunt
+            ev.push({ t: 'putt', power: power, gravity: u.gravity, strokes: s.strokes, par: need, strike: true });
+            playerAttack(s, ev, false);
+            if (sunk && !s.over) {
                 var bonus = Math.round(10 * s.combo);
                 s.gold += bonus;
                 ev.push({ t: 'hole', hole: s.hole, bonus: bonus, combo: s.combo });
@@ -123,29 +331,50 @@
                 if (s.hole >= HOLES.length) {
                     s.over = true;
                     s.win = true;
-                    ev.push({ t: 'victory', gold: s.gold, hops: s.hops });
+                    ev.push({ t: 'victory', gold: s.gold, hops: s.hops, kills: s.kills, level: s.level });
+                } else {
+                    s.foes = spawnFoes(s.hole, s.universe);
+                    ev.push({ t: 'haunt', hole: s.hole, universe: s.universe });
                 }
             }
+            if (!s.over) enemyContact(s, ev);
             stepDoom(s, ev, u);
             return ev;
         }
         if (action.ability) {
+            if ((s.cooldown || 0) > 0) {
+                ev.push({ t: 'nocool', cooldown: s.cooldown });
+                if (!s.over) enemyContact(s, ev);
+                stepDoom(s, ev, u);
+                return ev;
+            }
             if (s.cls === 'warden') {
                 s.paradox = clamp(s.paradox - 25, 0, 100);
                 s.doom = 0;
-                ev.push({ t: 'anchor', paradox: s.paradox });
+                s.ward = 2;
+                s.hp = Math.min(s.maxHp, s.hp + 4);
+                s.cooldown = 6;
+                ev.push({ t: 'anchor', paradox: s.paradox, hp: s.hp });
             } else if (s.cls === 'drifter') {
+                s.combo = Math.min(8, s.combo + 1);
                 ev = ev.concat(hop(s, nextUniverse(s.universe), true));
+                if (!s.over) playerAttack(s, ev, false);
+                s.cooldown = 4;
+                ev.push({ t: 'leap', combo: s.combo });
             } else {
                 s.combo = Math.min(8, s.combo + 1);
+                playerAttack(s, ev, true);
+                s.cooldown = 5;
                 ev.push({ t: 'leap', combo: s.combo });
             }
+            if (!s.over) enemyContact(s, ev);
             stepDoom(s, ev, u);
             return ev;
         }
-        // step / wait: drift + doom advance, nothing else (scaffold).
+        // step / wait: drift + doom advance, haunts still press in.
         s.w = clamp(s.w + u.drift * 0.5, -3, 3);
         ev.push({ t: 'wait', w: s.w });
+        if (!s.over) enemyContact(s, ev);
         stepDoom(s, ev, u);
         return ev;
     }
@@ -158,8 +387,10 @@
     }
 
     // Hop cost scales with chain length — crazier than 4D world-hop (flat cost).
+    // Each hop re-haunts the hole with the target universe roster.
     function hop(s, targetId, free) {
         var ev = [];
+        ensureRpg(s);
         var target = universeById(targetId);
         var cost = free ? 0 : 8 + s.chain * 6;
         s.paradox = clamp(s.paradox + cost, 0, 100);
@@ -168,6 +399,7 @@
         s.combo = Math.min(8, 1 + Math.floor(s.chain / 2));
         s.universe = target.id;
         s.w = 0;
+        s.foes = spawnFoes(s.hole || 0, s.universe);
         ev.push({ t: 'hop', to: target.id, paradox: s.paradox, chain: s.chain, combo: s.combo });
         if (s.paradox >= 100) {
             var u = universeById(s.universe);
@@ -198,7 +430,7 @@
 
     function score(s) {
         if (!s) return 0;
-        return s.gold + s.hops * 2 + (s.win ? 100 : 0);
+        return s.gold + s.hops * 2 + (s.kills || 0) * 2 + (s.level || 1) * 10 + (s.win ? 100 : 0);
     }
 
     /* ---------------- Persistence (view-side, fail-open) ---------------- */
@@ -298,6 +530,10 @@
             setText('gg5dUniverse', u.emoji + ' ' + u.name);
             setText('gg5dParadox', s.paradox + (s.doom > 0 ? ' 💥' + s.doom : ''));
             setText('gg5dChain', 'x' + s.combo);
+            setText('gg5dHp', (s.hp != null ? s.hp : '?') + '/' + (s.maxHp != null ? s.maxHp : '?'));
+            setText('gg5dLevel', 'Lv' + (s.level || 1) + ' ' + (s.xp || 0) + 'xp');
+            setText('gg5dPotions', s.potions != null ? s.potions : '?');
+            setText('gg5dFoes', s.foes ? s.foes.filter(function (f) { return f.hp > 0; }).length + ' haunts' : '');
             var pf = el('gg5dParadoxFill');
             if (pf) pf.style.width = clamp(s.paradox, 0, 100).toFixed(0) + '%';
             var badge = el('gg5dParadoxBadge');
@@ -332,8 +568,8 @@
         } catch (_) {}
     }
 
-    function startRun(cls, universe) {
-        G.run = newRun({ cls: cls, universe: universe });
+    function startRun(cls, universe, race) {
+        G.run = newRun({ cls: cls, universe: universe, race: race });
         try {
             el('gg5dMenu').style.display = 'none';
             el('gg5dHud').hidden = false;
@@ -351,12 +587,10 @@
             hideBanner();
             var ev;
             if (kind === 'hop') ev = tick(G.run, { hop: true });
-            else if (kind === 'putt' || kind === 'attack' || kind === 'step') ev = tick(G.run, { putt: true, power: 1 });
+            else if (kind === 'attack') ev = tick(G.run, { attack: true });
+            else if (kind === 'putt' || kind === 'step') ev = tick(G.run, { putt: true, power: 1 });
             else if (kind === 'ability') ev = tick(G.run, { ability: true });
-            else if (kind === 'potion') {
-                G.run.paradox = clamp(G.run.paradox - 10, 0, 100);
-                ev = [{ t: 'vent', paradox: G.run.paradox }];
-            }
+            else if (kind === 'potion') ev = tick(G.run, { potion: true });
             else ev = tick(G.run, { wait: true });
             if (G.run.over && G.run.win) {
                 var p = loadProfile();
@@ -420,6 +654,9 @@
                     var k = ev.key;
                     if (k === 'u' || k === 'U' || k === 'v' || k === 'V') { ev.preventDefault(); doAction('hop'); }
                     else if (k === ' ' || k === 'Enter') { ev.preventDefault(); doAction('putt'); }
+                    else if (k === 'f' || k === 'F') { ev.preventDefault(); doAction('attack'); }
+                    else if (k === 'r' || k === 'R') { ev.preventDefault(); doAction('ability'); }
+                    else if (k === 'h' || k === 'H') { ev.preventDefault(); doAction('potion'); }
                     else if (k === 'q' || k === 'Q' || k === 'e' || k === 'E') { ev.preventDefault(); doAction('step'); }
                     else if (k === 't' || k === 'T') { ev.preventDefault(); doAction('wait'); }
                 } catch (_) {}
@@ -455,11 +692,17 @@
         SAVE_KEY: SAVE_KEY,
         UNIVERSES: UNIVERSES,
         CLASSES: CLASSES,
+        RACES: RACES,
+        ENEMIES: ENEMIES,
         HOLES: HOLES,
         newRun: newRun,
         tick: tick,
         hop: hop,
         score: score,
+        nearestFoe: nearestFoe,
+        playerAttack: playerAttack,
+        damage: damage,
+        gainXp: gainXp,
         holePar: holePar,
         universeById: universeById,
         doAction: doAction,

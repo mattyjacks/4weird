@@ -18,8 +18,7 @@
             document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
         }
     </script>
-    <!-- GraveGain4D load order: three.js, engine, graphics, entities, world, campaign, ui, audio, input, main, lore. -->
-    <!-- Files other lanes own are placeholder <script src> tags; they land in the same lanes. -->
+    <!-- GraveGain4D load order: three.js, engine, graphics, entities, world, campaign, ui, audio, input, main, save-bridge, lore. -->
     <script src="engine/vec4.js"></script>
     <script src="engine/mat4.js"></script>
     <script src="engine/projector.js"></script>
@@ -27,18 +26,59 @@
     <script src="engine/putt.js"></script>
     <script src="engine/timefold.js"></script>
     <script src="engine/branes.js"></script>
-    <script src="graphics/hyper-render.js"></script>
-    <script src="graphics/chrono-fx.js"></script>
-    <script src="entities/player.js"></script>
-    <script src="entities/wraith.js"></script>
-    <script src="world/brane-maps.js"></script>
-    <script src="campaign/00-campaign-boot.js"></script>
-    <script src="campaign/10-campaign-director.js"></script>
-    <script src="ui/hud.js"></script>
-    <script src="ui/hub-quarters.js"></script>
-    <script src="audio/sound-engine.js"></script>
-    <script src="input/input-manager.js"></script>
-    <script src="main.js"></script>
+    <script src="graphics/textures4d.js"></script>
+    <script src="graphics/wghosts.js"></script>
+    <script src="graphics/slicerenderer.js"></script>
+    <script src="entities/enemies4d.js"></script>
+    <script src="entities/bosses4d.js"></script>
+    <script src="entities/ballistics.js"></script>
+    <script src="world/dreamgen.js"></script>
+    <script src="world/riftzones.js"></script>
+    <script src="world/portal4d.js"></script>
+    <script src="campaign/00-boot4d.js"></script>
+    <script src="campaign/m01.js"></script>
+    <script src="campaign/m02.js"></script>
+    <script src="campaign/m03.js"></script>
+    <script src="campaign/m04.js"></script>
+    <script src="campaign/m05.js"></script>
+    <script src="campaign/m06.js"></script>
+    <script src="campaign/m07.js"></script>
+    <script src="campaign/m08.js"></script>
+    <script src="campaign/m09.js"></script>
+    <script src="campaign/m10.js"></script>
+    <script src="campaign/director4d.js"></script>
+    <script src="campaign/ui4d.js"></script>
+    <script src="campaign/codex4d.js"></script>
+    <script src="ui/hud4d.js"></script>
+    <script src="ui/touch4d.js"></script>
+    <script src="audio/sound4d.js"></script>
+    <script src="input/input4d.js"></script>
+    <script src="engine/main4d.js"></script>
+    <script src="engine/flow4d.js"></script>
+    <script src="engine/modes4d.js"></script>
+    <script src="combat/keymap4d.js"></script>
+    <script src="combat/melee4d.js"></script>
+    <script src="combat/block4d.js"></script>
+    <script src="combat/abilities4d.js"></script>
+    <script src="rpg/races4d.js"></script>
+    <script src="rpg/classes4d.js"></script>
+    <script src="rpg/progression4d.js"></script>
+    <script src="rpg/economy4d.js"></script>
+    <script src="rpg/upgrades4d.js"></script>
+    <script src="rpg/stone4d.js"></script>
+    <script src="rpg/crops4d.js"></script>
+    <script src="rpg/quarters4d.js"></script>
+    <script src="lore/npcs4d.js"></script>
+    <script src="lore/dreams4d.js"></script>
+    <script src="lore/hades4d.js"></script>
+    <script src="lore/codex-extra4d.js"></script>
+    <script src="ui/modes4d.js"></script>
+    <script src="ui/contract4d.js"></script>
+    <script src="ui/radar4d.js"></script>
+    <script src="ui/hub4d.js"></script>
+    <script src="engine/savebridge.js"></script>
+    <script src="mmorpg-4d.js"></script>
+    <script src="net/mmorpg-bridge-4d.js"></script>
 </head>
 <body class="TEMPLATE-4weird-game-page">
     <canvas id="TEMPLATE-4weird-starfield"></canvas>
@@ -111,7 +151,7 @@
             <div class="desktop-bottom-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 10px; max-width: 100%;">
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; min-width: 0; max-width: 100%;">
                     <button class="btn-game" id="btnPause">⏸️ Pause</button>
-                    <span id="controlsHint" class="controls-hint desktop-only">Controls: WASD Move | Q/E W-Shift (Ana/Kata) | Click Putt | T Rewind | B Brane | Space Jump</span>
+                    <span id="controlsHint" class="controls-hint desktop-only">Controls: WASD Move | R/E W-Shift (Ana/Kata) | Click Attack/Putt | Right-Click Block | F Ability | Q Juice | T Rewind | B Brane | Space Jump</span>
                 </div>
                 <button class="btn-game btn-primary" id="btnReturnToHub">🚀 Return to Starship</button>
             </div>

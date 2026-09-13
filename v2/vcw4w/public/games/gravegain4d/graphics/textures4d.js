@@ -1,217 +1,348 @@
+/* GraveGain4D textures4d — canvas emoji-sprite factory + stone/rune textures.
+ *
+ * Same visual language as GraveGain3D graphics/procedural-textures.js:
+ * emoji-billboard sprites (canvas-drawn emoji textures), vertex-lit stone
+ * colors, particle-burst sprites, voxel-gore cube faces.
+ *
+ * Three.js r128 global (CDN, same as GG3D). Vanilla IIFE, idempotent via
+ * window.GraveGain4DTextures. Never throws: every hook is try/catch guarded.
+ * No DOM listeners, no overlays, and no screen-mode or double-click handlers.
+ * Letterbox-safe: textures never touch renderer size; canvases used here are
+ * offscreen sprite sources only. */
 (function () {
     'use strict';
+    try {
+        if (window.GraveGain4DTextures) return;
 
-    // GraveGain4D procedural 4D textures.
-    // Canvas-generated per mission theme (ship/grove/vault/wastes/catacombs/
-    // crypt/citadel) + trippy fold gradient + alternate-world tints.
-    // Vanilla script, no imports. Returns THREE.CanvasTexture when THREE is
-    // present, otherwise the raw canvas element.
+        var VERSION = '1.0.0';
+        var BASE_SIZE = 512;
+        var SPRITE_SIZE = 128;
 
-    var SIZE = 256;
-    var cache = new Map();
+        // Emoji set shared with GG3D: billboard markers for 4D entities.
+        var EMOJI = {
+            zombie: '\uD83E\uDDDF',   // 🧟
+            skull: '\uD83D\uDC80',    // 💀
+            sword: '\uD83D\uDDE1\uFE0F', // 🗡️
+            wisp: '\uD83D\uDFE2',     // 🟢
+            ghost: '\uD83D\uDC7B',
+            rune: '\u2728',
+            blood: '\uD83D\uDCA5'
+        };
 
-    var THEMES = {
-        ship:      { base: '#232946', glow: '#00e5ff', dark: '#0b0e1d', motif: 'panels' },
-        grove:     { base: '#14331f', glow: '#7CFC00', dark: '#07130c', motif: 'vines' },
-        vault:     { base: '#3a2d12', glow: '#ffd34c', dark: '#171006', motif: 'vault' },
-        wastes:    { base: '#3d2330', glow: '#ff5c8a', dark: '#160a10', motif: 'cracks' },
-        catacombs: { base: '#2b2340', glow: '#b79cff', dark: '#100c1c', motif: 'bones' },
-        crypt:     { base: '#123038', glow: '#4cf5d2', dark: '#061416', motif: 'runes' },
-        citadel:   { base: '#3a2337', glow: '#ff9d4c', dark: '#170d16', motif: 'sigils' }
-    };
+        var _cache = {};
 
-    var ALT_TINTS = {
-        normal:   'rgba(0,0,0,0)',
-        mirror:   'rgba(0,229,255,0.10)',
-        hollow:   'rgba(183,156,255,0.14)',
-        rot:      'rgba(255,92,138,0.12)',
-        radiant:  'rgba(255,211,76,0.10)'
-    };
+        function hasTHREE() {
+            try { return !!(window.THREE && window.THREE.CanvasTexture); }
+            catch (e) { return false; }
+        }
 
-    function makeCanvas(s) {
-        var cv = document.createElement('canvas');
-        cv.width = s || SIZE;
-        cv.height = s || SIZE;
-        return cv;
-    }
+        function makeCanvas(s) {
+            var c = document.createElement('canvas');
+            c.width = s;
+            c.height = s;
+            return c;
+        }
 
-    function grain(ctx, S, alpha, dots) {
-        try {
-            var n = dots || Math.floor(S * S / 110);
-            for (var i = 0; i < n; i++) {
-                var v = Math.random() < 0.5 ? 0 : 255;
-                ctx.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + (Math.random() * alpha).toFixed(3) + ')';
-                ctx.fillRect(Math.floor(Math.random() * S), Math.floor(Math.random() * S), 1, 1);
-            }
-        } catch (_) {}
-    }
+        /* ---- shared detail overlays (same recipe as GG3D) ---- */
 
-    function vignette(ctx, S, strength) {
-        try {
-            var g = ctx.createRadialGradient(S / 2, S / 2, S * 0.3, S / 2, S / 2, S * 0.72);
-            g.addColorStop(0, 'rgba(0,0,0,0)');
-            g.addColorStop(1, 'rgba(0,0,0,' + (strength || 0.32) + ')');
-            ctx.fillStyle = g;
-            ctx.fillRect(0, 0, S, S);
-        } catch (_) {}
-    }
-
-    function motif(ctx, S, name, glow) {
-        ctx.save();
-        try {
-            ctx.strokeStyle = glow;
-            ctx.fillStyle = glow;
-            ctx.globalAlpha = 0.5;
-            ctx.lineWidth = 1.5;
-            if (name === 'panels') {
-                for (var y = 0; y <= 4; y++) {
-                    ctx.beginPath(); ctx.moveTo(0, y * S / 4); ctx.lineTo(S, y * S / 4); ctx.stroke();
+        function _grainNoise(ctx, S, alpha, dots) {
+            try {
+                alpha = (typeof alpha === 'number') ? alpha : 0.06;
+                var n = dots || Math.floor(S * S / 90);
+                for (var i = 0; i < n; i++) {
+                    var v = Math.random() < 0.5 ? 0 : 255;
+                    ctx.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' +
+                        (Math.random() * alpha).toFixed(3) + ')';
+                    ctx.fillRect(Math.floor(Math.random() * S), Math.floor(Math.random() * S),
+                        1 + Math.floor(Math.random() * 2), 1 + Math.floor(Math.random() * 2));
                 }
-                for (var x = 0; x <= 4; x++) {
-                    ctx.beginPath(); ctx.moveTo(x * S / 4, 0); ctx.lineTo(x * S / 4, S); ctx.stroke();
-                }
-                ctx.globalAlpha = 0.9;
-                for (var i = 0; i < 6; i++) {
-                    ctx.fillRect(Math.random() * S, Math.random() * S, 6, 2);
-                }
-            } else if (name === 'vines') {
-                for (var v = 0; v < 9; v++) {
-                    ctx.beginPath();
-                    var vx = Math.random() * S;
-                    ctx.moveTo(vx, S);
-                    ctx.bezierCurveTo(vx - 30, S * 0.66, vx + 30, S * 0.33, vx - 10, 0);
-                    ctx.stroke();
-                }
-            } else if (name === 'vault') {
-                ctx.strokeRect(S * 0.1, S * 0.1, S * 0.8, S * 0.8);
-                ctx.strokeRect(S * 0.22, S * 0.22, S * 0.56, S * 0.56);
-                ctx.beginPath(); ctx.arc(S / 2, S / 2, S * 0.12, 0, Math.PI * 2); ctx.stroke();
-            } else if (name === 'cracks') {
-                for (var c = 0; c < 7; c++) {
-                    ctx.beginPath();
-                    var px = Math.random() * S, py = Math.random() * S;
-                    ctx.moveTo(px, py);
-                    for (var s = 0; s < 5; s++) {
-                        px += (Math.random() - 0.5) * 60; py += (Math.random() - 0.5) * 60;
-                        ctx.lineTo(px, py);
-                    }
-                    ctx.stroke();
-                }
-            } else if (name === 'bones') {
-                for (var b = 0; b < 8; b++) {
-                    ctx.globalAlpha = 0.35;
-                    ctx.fillRect(Math.random() * S, Math.random() * S, 18, 4);
-                }
-            } else if (name === 'runes') {
+            } catch (_) { /* canvas may be missing in tests */ }
+        }
+
+        function _vignette(ctx, S, strength) {
+            try {
+                strength = (typeof strength === 'number') ? strength : 0.28;
+                var g = ctx.createRadialGradient(S / 2, S / 2, S * 0.32, S / 2, S / 2, S * 0.72);
+                g.addColorStop(0, 'rgba(0,0,0,0)');
+                g.addColorStop(1, 'rgba(0,0,0,' + strength + ')');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, S, S);
+            } catch (_) {}
+        }
+
+        function _edgeWear(ctx, S, inset, alpha) {
+            try {
+                inset = inset || 3;
+                alpha = (typeof alpha === 'number') ? alpha : 0.10;
+                ctx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(inset, inset, S - inset * 2, S - inset * 2);
+                ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(0, 0, S, S);
+            } catch (_) {}
+        }
+
+        function _finishTile(canvas) {
+            var tex = new window.THREE.CanvasTexture(canvas);
+            tex.wrapS = window.THREE.RepeatWrapping;
+            tex.wrapT = window.THREE.RepeatWrapping;
+            tex.anisotropy = 4;
+            return tex;
+        }
+
+        /* ---- emoji-sprite factory ---- */
+
+        // Draw one emoji glyph to an offscreen canvas; returns the canvas.
+        function drawEmojiCanvas(emoji, size, bg) {
+            size = size || SPRITE_SIZE;
+            var canvas = makeCanvas(size);
+            try {
+                var ctx = canvas.getContext('2d');
+                if (bg) { ctx.fillStyle = bg; ctx.fillRect(0, 0, size, size); }
+                ctx.font = Math.floor(size * 0.72) + 'px "Segoe UI Emoji", "Apple Color Emoji", Arial, sans-serif';
                 ctx.textAlign = 'center';
-                ctx.font = Math.floor(S / 10) + 'px serif';
-                var runes = 'ᚠᚱᛟᛞᚨᛚᚷᛝ';
-                for (var r = 0; r < 8; r++) {
-                    ctx.globalAlpha = 0.7;
-                    ctx.fillText(runes[r % runes.length], Math.random() * S, Math.random() * S);
+                ctx.textBaseline = 'middle';
+                ctx.fillText(emoji, size / 2, size / 2);
+            } catch (_) {}
+            return canvas;
+        }
+
+        // CanvasTexture for an emoji (cached per glyph+size).
+        function emojiTexture(emoji, size) {
+            size = size || SPRITE_SIZE;
+            var key = 'emoji:' + emoji + ':' + size;
+            if (_cache[key]) return _cache[key];
+            if (!hasTHREE()) return null;
+            try {
+                var tex = new window.THREE.CanvasTexture(drawEmojiCanvas(emoji, size, null));
+                _cache[key] = tex;
+                return tex;
+            } catch (_) { return null; }
+        }
+
+        // Billboard sprite for an emoji glyph (GG3D look: transparent, no depth write).
+        function createEmojiSprite(emoji, size, scale) {
+            try {
+                if (!hasTHREE()) return null;
+                var tex = emojiTexture(emoji, size || SPRITE_SIZE);
+                if (!tex) return null;
+                var mat = new window.THREE.SpriteMaterial({
+                    map: tex, transparent: true, depthWrite: false
+                });
+                var sprite = new window.THREE.Sprite(mat);
+                var s = (typeof scale === 'number') ? scale : 24;
+                sprite.scale.set(s, s, 1);
+                return sprite;
+            } catch (_) { return null; }
+        }
+
+        // Convenience: zombie / skull / sword / wisp billboards.
+        function createZombieSprite(scale) { return createEmojiSprite(EMOJI.zombie, SPRITE_SIZE, scale || 24); }
+        function createSkullSprite(scale) { return createEmojiSprite(EMOJI.skull, SPRITE_SIZE, scale || 20); }
+        function createSwordSprite(scale) { return createEmojiSprite(EMOJI.sword, SPRITE_SIZE, scale || 20); }
+        function createWispSprite(scale) { return createEmojiSprite(EMOJI.wisp, SPRITE_SIZE, scale || 16); }
+
+        // Soft radial particle-burst sprite (gore bursts, w-pass flashes).
+        function createBurstSprite(color, size) {
+            try {
+                if (!hasTHREE()) return null;
+                color = color || '#ffcc4c';
+                size = size || 64;
+                var canvas = makeCanvas(size);
+                var ctx = canvas.getContext('2d');
+                var grad = ctx.createRadialGradient(size / 2, size / 2, 1, size / 2, size / 2, size / 2);
+                grad.addColorStop(0, 'rgba(255,240,180,1.0)');
+                grad.addColorStop(0.3, color);
+                grad.addColorStop(0.7, 'rgba(220,40,10,0.4)');
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, size, size);
+                var tex = new window.THREE.CanvasTexture(canvas);
+                var mat = new window.THREE.SpriteMaterial({
+                    map: tex, transparent: true,
+                    blending: window.THREE.AdditiveBlending, depthWrite: false
+                });
+                var sprite = new window.THREE.Sprite(mat);
+                sprite.scale.set(16, 16, 1);
+                return sprite;
+            } catch (_) { return null; }
+        }
+
+        // Voxel-gore cube face: dark red mottled tile for gib cubes.
+        function createGoreCubeTexture(size) {
+            try {
+                if (!hasTHREE()) return null;
+                size = size || 128;
+                var key = 'gore:' + size;
+                if (_cache[key]) return _cache[key];
+                var canvas = makeCanvas(size);
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#5a0d0d';
+                ctx.fillRect(0, 0, size, size);
+                for (var i = 0; i < 90; i++) {
+                    var r = 120 + Math.floor(Math.random() * 100);
+                    ctx.fillStyle = 'rgba(' + r + ',10,10,' + (0.1 + Math.random() * 0.25).toFixed(3) + ')';
+                    ctx.fillRect(Math.random() * size, Math.random() * size, 2 + Math.random() * 5, 2 + Math.random() * 5);
                 }
-            } else { // sigils
-                for (var g2 = 0; g2 < 4; g2++) {
+                _grainNoise(ctx, size, 0.08);
+                _vignette(ctx, size, 0.3);
+                var tex = _finishTile(canvas);
+                _cache[key] = tex;
+                return tex;
+            } catch (_) { return null; }
+        }
+
+        /* ---- stone / rune textures (vertex-lit stone colors) ---- */
+
+        // Vertex-lit stone tint helper: returns a THREE.Color multiplier.
+        function stoneTint(wDepth) {
+            try {
+                // Deeper w = colder/darker stone; matches W-fog ramp.
+                var t = Math.max(0, Math.min(1, Number(wDepth) || 0));
+                var c = new window.THREE.Color(0xd6d3d1);
+                c.multiplyScalar(1.0 - t * 0.45);
+                return c;
+            } catch (_) { return null; }
+        }
+
+        function createStoneBrickTexture4D() {
+            try {
+                if (!hasTHREE()) return null;
+                if (_cache.stoneBrick) return _cache.stoneBrick;
+                var S = BASE_SIZE;
+                var canvas = makeCanvas(S);
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#1c1830';
+                ctx.fillRect(0, 0, S, S);
+                var rows = 8, cols = 4;
+                var bh = S / rows, bw = S / cols;
+                for (var r = 0; r < rows; r++) {
+                    var offset = (r % 2) * (bw / 2);
+                    for (var c = -1; c <= cols; c++) {
+                        var bx = c * bw + offset, by = r * bh;
+                        var lightness = 22 + Math.floor(Math.random() * 8);
+                        ctx.fillStyle = 'hsl(255, 20%, ' + lightness + '%)';
+                        ctx.fillRect(bx + 2, by + 2, bw - 4, bh - 4);
+                        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+                        ctx.fillRect(bx + 2, by + 2, bw - 4, 3);
+                        ctx.fillRect(bx + 2, by + 2, 3, bh - 4);
+                        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+                        ctx.fillRect(bx + 2, by + bh - 5, bw - 4, 3);
+                        ctx.fillRect(bx + bw - 5, by + 2, 3, bh - 4);
+                    }
+                }
+                ctx.fillStyle = 'rgba(10,8,20,0.8)';
+                for (var m = 0; m <= rows; m++) ctx.fillRect(0, m * bh - 1, S, 2);
+                _grainNoise(ctx, S);
+                _vignette(ctx, S);
+                _edgeWear(ctx, S);
+                var tex = _finishTile(canvas);
+                _cache.stoneBrick = tex;
+                return tex;
+            } catch (_) { return null; }
+        }
+
+        function createFloorFlagstoneTexture4D() {
+            try {
+                if (!hasTHREE()) return null;
+                if (_cache.flagstone) return _cache.flagstone;
+                var S = BASE_SIZE;
+                var canvas = makeCanvas(S);
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#141724';
+                ctx.fillRect(0, 0, S, S);
+                var stones = 4, size = S / stones;
+                for (var i = 0; i < stones; i++) {
+                    for (var j = 0; j < stones; j++) {
+                        var shade = 18 + Math.floor(Math.random() * 7);
+                        ctx.fillStyle = 'hsl(220, 18%, ' + shade + '%)';
+                        ctx.fillRect(i * size + 3, j * size + 3, size - 6, size - 6);
+                        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                        ctx.fillRect(i * size + 3, j * size + 3, size - 6, 2);
+                        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                        ctx.fillRect(i * size + 3, j * size + size - 5, size - 6, 2);
+                    }
+                }
+                _grainNoise(ctx, S);
+                _vignette(ctx, S, 0.22);
+                _edgeWear(ctx, S);
+                var tex = _finishTile(canvas);
+                _cache.flagstone = tex;
+                return tex;
+            } catch (_) { return null; }
+        }
+
+        // Glowing rune circle for w-gate decals / slice portals.
+        function createRuneTexture4D(size) {
+            try {
+                if (!hasTHREE()) return null;
+                size = size || 256;
+                var key = 'rune4d:' + size;
+                if (_cache[key]) return _cache[key];
+                var canvas = makeCanvas(size);
+                var ctx = canvas.getContext('2d');
+                var c = size / 2;
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, size, size);
+                ctx.strokeStyle = '#7df9ff';
+                ctx.lineWidth = Math.max(2, size / 64);
+                try { ctx.shadowColor = '#22d3ee'; ctx.shadowBlur = size / 12; } catch (_) {}
+                [0.42, 0.30].forEach(function (rr) {
                     ctx.beginPath();
-                    ctx.arc(S / 2, S / 2, S * (0.12 + g2 * 0.09), 0, Math.PI * 2);
+                    ctx.arc(c, c, size * rr, 0, Math.PI * 2);
+                    ctx.stroke();
+                });
+                for (var i = 0; i < 12; i++) {
+                    var a = (i / 12) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(c + Math.cos(a) * size * 0.30, c + Math.sin(a) * size * 0.30);
+                    ctx.lineTo(c + Math.cos(a) * size * 0.40, c + Math.sin(a) * size * 0.40);
                     ctx.stroke();
                 }
-                ctx.beginPath(); ctx.moveTo(S / 2, 0); ctx.lineTo(S / 2, S); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, S / 2); ctx.lineTo(S, S / 2); ctx.stroke();
-            }
-        } catch (_) {}
-        ctx.restore();
-    }
-
-    function paintTheme(name) {
-        var def = THEMES[name] || THEMES.crypt;
-        var S = SIZE;
-        var cv = makeCanvas(S);
-        var ctx = cv.getContext('2d');
-        if (!ctx) return cv;
-        // Base with diagonal 4D sheen.
-        var g = ctx.createLinearGradient(0, 0, S, S);
-        g.addColorStop(0, def.dark);
-        g.addColorStop(0.5, def.base);
-        g.addColorStop(1, def.dark);
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, S, S);
-        // Trippy w-band wash.
-        var w = ctx.createLinearGradient(0, S, S, 0);
-        w.addColorStop(0, 'rgba(124,58,237,0.25)');
-        w.addColorStop(0.5, 'rgba(0,0,0,0)');
-        w.addColorStop(1, def.glow + '22');
-        ctx.fillStyle = w;
-        ctx.fillRect(0, 0, S, S);
-        motif(ctx, S, def.motif, def.glow);
-        grain(ctx, S, 0.07);
-        vignette(ctx, S, 0.32);
-        return cv;
-    }
-
-    function foldGradientCanvas(t, alt) {
-        var S = SIZE;
-        var cv = makeCanvas(S);
-        try {
-            var ctx = cv.getContext('2d');
-            if (!ctx) return cv;
-            var hue = (280 + (t || 0) * 40) % 360;
-            var g = ctx.createLinearGradient(0, 0, S, S);
-            g.addColorStop(0, 'hsl(' + Math.round(hue) + ',85%,30%)');
-            g.addColorStop(0.5, 'hsl(' + Math.round((hue + 60) % 360) + ',90%,55%)');
-            g.addColorStop(1, 'hsl(' + Math.round((hue + 300) % 360) + ',85%,28%)');
-            ctx.fillStyle = g;
-            ctx.fillRect(0, 0, S, S);
-            // Folding bands: vectors folding in on themselves.
-            ctx.globalAlpha = 0.35;
-            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-            for (var i = 0; i < 8; i++) {
-                var y = (i / 8) * S + Math.sin((t || 0) * 3 + i) * 8;
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(S, S - y); ctx.stroke();
-            }
-            ctx.globalAlpha = 1;
-            var tint = ALT_TINTS[alt] || ALT_TINTS.normal;
-            ctx.fillStyle = tint;
-            ctx.fillRect(0, 0, S, S);
-            grain(ctx, S, 0.05);
-        } catch (_) {}
-        return cv;
-    }
-
-    function toTexture(canvas) {
-        try {
-            if (typeof THREE !== 'undefined' && THREE.CanvasTexture) {
-                var tex = new THREE.CanvasTexture(canvas);
-                tex.wrapS = THREE.RepeatWrapping;
-                tex.wrapT = THREE.RepeatWrapping;
-                tex.anisotropy = 4;
+                ctx.beginPath();
+                ctx.moveTo(c, c - size * 0.12);
+                ctx.lineTo(c + size * 0.12, c);
+                ctx.lineTo(c, c + size * 0.12);
+                ctx.lineTo(c - size * 0.12, c);
+                ctx.closePath();
+                ctx.stroke();
+                try { ctx.shadowBlur = 0; } catch (_) {}
+                var tex = new window.THREE.CanvasTexture(canvas);
+                tex.wrapS = window.THREE.RepeatWrapping;
+                tex.wrapT = window.THREE.RepeatWrapping;
+                _cache[key] = tex;
                 return tex;
-            }
-        } catch (_) {}
-        return canvas;
-    }
+            } catch (_) { return null; }
+        }
 
-    window.GraveGain4DTextures = {
-        SIZE: SIZE,
-        listThemes: function () { return Object.keys(THEMES); },
-        altWorlds: function () { return Object.keys(ALT_TINTS); },
-        getTheme: function (name, opts) {
-            var key = 'theme:' + (name || 'crypt');
-            if (!cache.has(key)) cache.set(key, toTexture(paintTheme(name || 'crypt')));
-            void (opts && opts.alt);
-            return cache.get(key);
-        },
-        getFoldGradient: function (t, alt) {
-            // Animated: bucket time so the cache stays bounded.
-            var bucket = Math.round((Number(t) || 0) * 8) % 64;
-            var key = 'fold:' + bucket + ':' + (alt || 'normal');
-            if (!cache.has(key)) {
-                if (cache.size > 96) cache.clear();
-                cache.set(key, toTexture(foldGradientCanvas(Number(t) || 0, alt)));
-            }
-            return cache.get(key);
-        },
-        getAlternateTint: function (world) { return ALT_TINTS[world] || ALT_TINTS.normal; },
-        clearCache: function () { cache.clear(); }
-    };
+        function clearCache() {
+            try {
+                Object.keys(_cache).forEach(function (k) {
+                    try { if (_cache[k] && _cache[k].dispose) _cache[k].dispose(); } catch (_) {}
+                });
+                _cache = {};
+            } catch (_) {}
+        }
+
+        window.GraveGain4DTextures = {
+            version: VERSION,
+            BASE_SIZE: BASE_SIZE,
+            EMOJI: EMOJI,
+            drawEmojiCanvas: drawEmojiCanvas,
+            emojiTexture: emojiTexture,
+            createEmojiSprite: createEmojiSprite,
+            createZombieSprite: createZombieSprite,
+            createSkullSprite: createSkullSprite,
+            createSwordSprite: createSwordSprite,
+            createWispSprite: createWispSprite,
+            createBurstSprite: createBurstSprite,
+            createGoreCubeTexture: createGoreCubeTexture,
+            stoneTint: stoneTint,
+            createStoneBrickTexture4D: createStoneBrickTexture4D,
+            createFloorFlagstoneTexture4D: createFloorFlagstoneTexture4D,
+            createRuneTexture4D: createRuneTexture4D,
+            clearCache: clearCache
+        };
+    } catch (_) { /* never throw */ }
 })();

@@ -13,7 +13,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-export type Dimension = "1d" | "2d" | "3d";
+export type Dimension = "1d" | "2d" | "3d" | "4d" | "5d";
 export type AgeBand = "kids" | "teens" | "adults";
 
 export interface MmorpgRealm {
@@ -42,10 +42,12 @@ const DEMO_SEEDS: MmorpgRealm[] = [
   { slug: "skyforge-3d", name: "Skyforge Expanse", dimension: "3d", ageBand: "kids", costPerMin: 12, hostFree: true, maxParty: 12 },
   { slug: "obsidian-verge-3d", name: "Obsidian Verge", dimension: "3d", ageBand: "teens", costPerMin: 18, hostFree: false, maxParty: 40 },
   { slug: "elder-throne-3d", name: "Elder Throne", dimension: "3d", ageBand: "adults", costPerMin: 25, hostFree: false, maxParty: 60 },
+  { slug: "dream-golf-4d", name: "Dream Golf", dimension: "4d", ageBand: "teens", costPerMin: 30, hostFree: false, maxParty: 24 },
+  { slug: "multiverse-5d", name: "Multiverse", dimension: "5d", ageBand: "adults", costPerMin: 40, hostFree: false, maxParty: 32 },
 ];
 
 function isDimension(value: unknown): value is Dimension {
-  return value === "1d" || value === "2d" || value === "3d";
+  return value === "1d" || value === "2d" || value === "3d" || value === "4d" || value === "5d";
 }
 
 function isAgeBand(value: unknown): value is AgeBand {

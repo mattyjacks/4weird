@@ -1,34 +1,34 @@
 {
-  "version": 1,
-    "updated": "2026-09-13T10:15:00Z",
-    "swarm": "devswarm",
-    "counts": {
-        "open": 16,
-        "claimed": 0,
-        "in_progress": 2,
-        "blocked": 67,
-        "done": 137
-    },
-  "lanes": [
-    "web",
-    "games",
-    "desktop",
-    "economy",
-    "vcw",
-    "docs",
-    "infra"
-  ],
-  "links": {
-    "start": "/swarm/SwarmStart.md",
-    "start_aliases": [
-      "/swarm/start",
-      "/swarm/startswarm"
-    ],
-    "brain": "/swarm/BRAIN.md",
-    "lanes": "/swarm/LANES.md",
-    "queue": "/swarm/QUEUE.md",
-    "memory": "/swarm/MEMORY.md",
-    "tasks": "/swarm/TASKS/",
-    "for_bots": "/swarm/FOR-BOTS.md"
-  }
+    "version":  1,
+    "updated":  "2026-09-13T12:00:00Z",
+    "swarm":  "devswarm",
+    "counts":  {
+                   "open":  5,
+                   "claimed":  0,
+                   "in_progress":  2,
+                   "blocked":  68,
+                   "done":  183
+               },
+    "lanes":  [
+                  "web",
+                  "games",
+                  "desktop",
+                  "economy",
+                  "vcw",
+                  "docs",
+                  "infra"
+              ],
+    "links":  {
+                  "start":  "/swarm/SwarmStart.md",
+                  "start_aliases":  [
+                                        "/swarm/start",
+                                        "/swarm/startswarm"
+                                    ],
+                  "brain":  "/swarm/BRAIN.md",
+                  "lanes":  "/swarm/LANES.md",
+                  "queue":  "/swarm/QUEUE.md",
+                  "memory":  "/swarm/MEMORY.md",
+                  "tasks":  "/swarm/TASKS/",
+                  "for_bots":  "/swarm/FOR-BOTS.md"
+              }
 }

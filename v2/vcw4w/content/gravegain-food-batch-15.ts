@@ -46,6 +46,16 @@ export const GRAVE_GAIN_FOOD_BATCH_15: GraveGainFoodItemDef[] = [
       mission: "Mission 12 war-council toast reward.",
       mmorpg: "High-volume auction mugs; guilds stockpile them.",
     },
+    gravegain4d: {
+      endless: "Dream fairway oath bunkers stand firm; skeleton caddies drop mugs on holes 3-6.",
+      mission: "Mission 4 Oath-Keeper Putt reward for the sworn goal.",
+      mmorpg: "Fairway oath stalls trade sworn sets near the W-hazard.",
+    },
+    gravegain5d: {
+      endless: "Prime-universe oathbound echoes drop mugs across void hops.",
+      mission: "Mission 4 Oath Paradox reward spanning one echo hop.",
+      mmorpg: "Echo-market guilds stockpile mugs for hopper parties.",
+    },
   }),
   makeItem("toast-flutes", {
     gravegain1d: {
@@ -62,6 +72,16 @@ export const GRAVE_GAIN_FOOD_BATCH_15: GraveGainFoodItemDef[] = [
       endless: "Catacomb choirs drop flutes past floor 9.",
       mission: "Mission 11 lantern-vigil toast reward.",
       mmorpg: "Auction-house glitter lots; collectors bid high.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway memorial rough glitters; wisp heralds drop flutes on holes 2-5.",
+      mission: "Mission 3 Memorial Putt reward for the vigil goal.",
+      mmorpg: "Plaza fairway vendors sell toast sets past the W-hazard.",
+    },
+    gravegain5d: {
+      endless: "Dream-universe fallen-knight echoes drop flutes over bloom hops.",
+      mission: "Mission 3 Remembrance Paradox reward after one hop.",
+      mmorpg: "Void-market collectors bid on flutes for hopper halls.",
     },
   }),
   makeItem("smoked-tonic", {
@@ -80,6 +100,16 @@ export const GRAVE_GAIN_FOOD_BATCH_15: GraveGainFoodItemDef[] = [
       mission: "Mission 13 ember-throne tasting reward.",
       mmorpg: "Rare-vintage auction rows; guilds cellar cases.",
     },
+    gravegain4d: {
+      endless: "Dream fairway cinder bunkers smoke; ember imps drop tonics on holes 3-6.",
+      mission: "Mission 5 Cinder Putt reward for the hearth goal.",
+      mmorpg: "Smoke-rack fairway stalls trade bottles by the W-hazard.",
+    },
+    gravegain5d: {
+      endless: "Echo-universe charred treants drop vintage tonics over void hops.",
+      mission: "Mission 5 Smoke Paradox reward across two hops.",
+      mmorpg: "Prime-market cellars auction vintage lots to hoppers.",
+    },
   }),
   makeItem("trail-soda", {
     gravegain1d: {
@@ -96,6 +126,16 @@ export const GRAVE_GAIN_FOOD_BATCH_15: GraveGainFoodItemDef[] = [
       endless: "Tunnel couriers drop chilled cups past floor 8.",
       mission: "Mission 10 deep-delver dash reward.",
       mmorpg: "Bulk-crate market; courier guilds corner supply.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway sprint bunkers fizz; goblin runners drop cups on holes 1-4.",
+      mission: "Mission 2 Trail-Scout Putt reward for the speedy goal.",
+      mmorpg: "Fizzy fairway carts sell trail cups beside the W-hazard.",
+    },
+    gravegain5d: {
+      endless: "Static-universe dust sprites drop sodas along echo hops.",
+      mission: "Mission 2 Sprint Paradox reward for a quick hop dash.",
+      mmorpg: "Bloom-market vendors restock fizzy crates for hoppers daily.",
     },
   }),
   makeItem("pearl-tea", {
@@ -114,6 +154,16 @@ export const GRAVE_GAIN_FOOD_BATCH_15: GraveGainFoodItemDef[] = [
       mission: "Mission 11 sunken tea-house salvage reward.",
       mmorpg: "Pearl-grade auction cups; connoisseurs trade up.",
     },
+    gravegain4d: {
+      endless: "Dream fairway pearl traps hide bubbles; slime caddies drop cups on holes 2-5.",
+      mission: "Mission 3 Tea-Garden Putt reward for the pearl goal.",
+      mmorpg: "Tea fairway stalls trade chewy cups near the W-hazard.",
+    },
+    gravegain5d: {
+      endless: "Dream-universe pearl oozes drop creamy cups over echo hops.",
+      mission: "Mission 3 Pearl Paradox reward after a caravan hop.",
+      mmorpg: "Static-market caravans hold tea value for hopper trade.",
+    },
   }),
   makeItem("ration-juice", {
     gravegain1d: {
@@ -131,6 +181,16 @@ export const GRAVE_GAIN_FOOD_BATCH_15: GraveGainFoodItemDef[] = [
       mission: "Mission 9 depot-rescue ration reward.",
       mmorpg: "Depot-sealed cases; siege-stock traders hoard.",
     },
+    gravegain4d: {
+      endless: "Dream fairway supply bunkers stock boxes; crate sprites drop juice on holes 1-4.",
+      mission: "Mission 1 Field-Ration Putt reward for the starter goal.",
+      mmorpg: "Quartermaster fairway carts trade ration crates by the W-hazard.",
+    },
+    gravegain5d: {
+      endless: "Prime-universe supply echoes drop juice boxes across static hops.",
+      mission: "Mission 1 Supply Paradox reward for a single hop.",
+      mmorpg: "Void-market quartermasters bulk-trade crates to hoppers.",
+    },
   }),
   makeItem("mate-gourd", {
     gravegain1d: {
@@ -147,6 +207,16 @@ export const GRAVE_GAIN_FOOD_BATCH_15: GraveGainFoodItemDef[] = [
       endless: "Elder hearths offer gourds past floor 10.",
       mission: "Mission 12 great-hearth council reward.",
       mmorpg: "Heirloom gourds headline festival auctions.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway campfire rough glows; storyteller caddies share gourds on holes 2-5.",
+      mission: "Mission 3 Shared-Fire Putt reward for the circle goal.",
+      mmorpg: "Circle fairway stalls pass gourds hand to hand by the W-hazard.",
+    },
+    gravegain5d: {
+      endless: "Echo-universe fire-tender spirits pass gourds over bloom hops.",
+      mission: "Mission 3 Ember-Circle Paradox reward across one hop.",
+      mmorpg: "Dream-market carvers trade gourds as hopper friendship tokens.",
     },
   }),
 ];

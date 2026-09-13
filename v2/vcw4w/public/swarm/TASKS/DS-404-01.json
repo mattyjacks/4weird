@@ -1,0 +1,27 @@
+{
+    "id":  "DS-404-01",
+    "title":  "Build /builder and /business/tax pages",
+    "goal":  "Two missing nav pages become real working tools. /builder (Clone Tool): installer config builder - project name, version, platform checkboxes (.exe/.dmg/.deb), icon emoji, license picker, bundled-runtime toggles, live config preview plus one-click JSON download and copy. /business/tax (Tax Info Bot): freelance tax estimator - income, expenses, state picker, quarterly estimate math with worked numbers, receipt list with CSV export. Both: server shell with metadata plus client component, SSR-safe, fail-open, friendly empty states, zero new deps.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/builder/page.tsx",
+                  "v2/vcw4w/app/builder/builder-client.tsx",
+                  "v2/vcw4w/app/business/tax/page.tsx",
+                  "v2/vcw4w/app/business/tax/tax-client.tsx"
+              ],
+    "gates":  [
+                  "npx eslint on new files",
+                  "npx tsc --noEmit"
+              ],
+    "status":  "done",
+    "owner":  "404-01",
+    "created":  "2026-09-13T10:54:09.000Z",
+    "updated":  "2026-09-13T11:28:31.000Z",
+    "log":  [
+                "2026-09-13T10:54:09.000Z 404-lead: envelope created from nav audit (10 missing routes), awaiting claim.",
+                "2026-09-13T10:54:34.000Z 404-01: claimed (open->in_progress). Boot note: my SwarmStart brief described the superseded gamestudio DS-404-01; on-disk truth at claim is builder+tax per 404-lead re-dispatch (DS-404-01..05). Gamestudio now lives in DS-404-03 (owner 404-03, live) - will NOT touch gamestudio paths. Pivoting to in-scope builder+tax only.",
+                "2026-09-13T11:20:00.000Z 404-01: BUILT 4 NEW files, zero edits outside scope (app/gamestudio + components/gamestudio never touched; app/sitemap.ts untouched per integrator ownership). /builder: page.tsx (server, metadata title/description/canonical /builder) + builder-client.tsx (name/version/semver-check, .exe/.dmg/.deb checkboxes, icon picker, MIT/Apache/GPL/Proprietary picker, node/python/ffmpeg toggles, live JSON preview, Blob download + clipboard copy, localStorage draft). /business/tax: page.tsx (server, metadata, canonical /business/tax) + tax-client.tsx (income/other-expenses/state picker 10 states, worked estimate net/federal/state/quarterly/effective-rate with formula note, receipt add/remove persisted, CSV export). SSR-safe (browser APIs in handlers/mount effect only), no secrets, no old-v1, zero new deps.",
+                "2026-09-13T11:25:00.000Z 404-01: GATE npx eslint on 4 new files -> GREEN (exit 0; one react-hooks/set-state-in-effect per client fixed with repo-precedent scoped disable for post-hydration localStorage restore, same justification as components/site/menu-sidebar.tsx). GATE npx tsc --noEmit -> SCOPE-CLEAN (zero errors mention builder|business/tax; repo-wide reds are extrinsic concurrent-lane files: app/commander/commander-client.tsx TS18047/TS2552 owner 404-f2, .next validator /studio, app/studio/paint+recorder, components/pet/pet-room, food-batch - all untouched per one-owner-per-fileset). Scope trees re-listed pre-close: only my 4 files, no collisions.",
+                "2026-09-13T11:28:31.000Z 404-01: done (in_progress->done). QUEUE wiring line filed for /builder + /business/tax nav/sitemap + STATUS recount (steward-owned, not hand-edited)."
+            ]
+}

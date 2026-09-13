@@ -1757,7 +1757,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       {authNeeded && (
         <div className="mt-3 rounded-xl border border-rose-300/40 bg-rose-300/[.06] p-3 text-xs text-rose-100">
           <b>Sign in required.</b> Buddy sessions are metered per account, so anonymous turns are disabled.{" "}
-          <a href="/login" className="font-bold text-cyan-300 hover:underline">Sign in →</a>
+          <a href="/auth/login" className="font-bold text-cyan-300 hover:underline">Sign in →</a>
         </div>
       )}
 

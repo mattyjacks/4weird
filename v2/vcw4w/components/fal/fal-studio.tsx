@@ -42,6 +42,10 @@ export function FalStudio() {
   const [imageUrl, setImageUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<GenerateResponse | null>(null);
+  // The exact (op, id) pair that produced the queued run. Status must poll
+  // THIS pair: polling the live tool selector after switching tools queries
+  // the wrong model path and always 404/405s on fal's side.
+  const [queued, setQueued] = useState<{ op: FalOp; id: string } | null>(null);
   const [message, setMessage] = useState("Pick a tool; every price already includes the 25% cut.");
 
   const load = useCallback(async () => {
@@ -55,6 +59,7 @@ export function FalStudio() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- catalog fetch must populate on mount (no SSR window); static FAL_OPS fallback renders meanwhile.
     void load();
   }, [load]);
 
@@ -76,10 +81,13 @@ export function FalStudio() {
       const body = (await res.json()) as GenerateResponse;
       setResult(body);
       if (!res.ok) {
+        setQueued(null);
         setMessage(String(body.error ?? `Request failed (${res.status})`));
       } else if (body.started) {
+        if (body.request_id) setQueued({ op, id: body.request_id });
         setMessage(`Queued! Request ${body.request_id}; poll status below. ${body.quote?.gross ?? ""} coins gross.`);
       } else {
+        setQueued(null);
         setMessage(body.hint ?? "fal.ai is not configured on this deployment; quote shown, nothing charged.");
       }
     } catch (e) {
@@ -90,12 +98,17 @@ export function FalStudio() {
   }
 
   async function poll() {
-    const id = result?.request_id;
-    if (!id) return;
+    if (!queued) return;
     setMessage("Polling fal queue…");
     try {
-      const res = await fetch(`/api/fal/status?op=${encodeURIComponent(op)}&id=${encodeURIComponent(id)}`, { credentials: "include" });
+      const res = await fetch(`/api/fal/status?op=${encodeURIComponent(queued.op)}&id=${encodeURIComponent(queued.id)}`, { credentials: "include" });
       const body = (await res.json()) as GenerateResponse;
+      if (!res.ok) {
+        // Error bodies must never merge into the result box (that smeared
+        // "success:false" over a good quote). Message only.
+        setMessage(String(body.error ?? `Status lookup failed (${res.status})`));
+        return;
+      }
       setResult((prev) => ({ ...(prev ?? {}), status: body.status ?? body }));
       setMessage("Status refreshed from the live fal queue.");
     } catch (e) {
@@ -157,10 +170,10 @@ export function FalStudio() {
             <button onClick={() => void run()} disabled={busy || (!!active?.needsPrompt && prompt.trim().length < 3)} className="rounded-lg bg-fuchsia-300 px-5 py-2 font-bold text-slate-950 disabled:opacity-50">
               {busy ? "Queuing…" : `✨ Generate - ${active?.coinsPerUnit} coins/${active?.unit} gross`}
             </button>
-            {!!result?.request_id && (
+            {!!queued && (
               <button onClick={() => void poll()} className="rounded-lg border border-white/15 px-4 py-2 font-semibold">Refresh status</button>
             )}
-            {!!result?.request_id && (
+            {!!queued && (
               <InfoTip side="bottom" text="Queue sends the job to fal.ai. Refresh status polls the live queue for results." label="About queueing" />
             )}
           </div>

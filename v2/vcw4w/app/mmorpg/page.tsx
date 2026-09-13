@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/mmorpg" },
   title: "MMORPG Worlds | 4weird Games",
   description:
-    "Browse 4weird MMORPG worlds: compare 1D, 2D, and 3D realms by age band with live per-minute rental quotes and host-free play options.",
+    "Browse 4weird MMORPG worlds: compare 1D–5D realms by age band with live per-minute rental quotes and host-free play options.",
 };
 
 export default function MmorpgPage() {

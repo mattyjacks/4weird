@@ -18,6 +18,10 @@ type Entry = {
  *   discover game titles through them, even though the shell itself is
  *   noindex (thin iframe wrapper; the /games/<slug> detail page is the
  *   canonical indexed surface per game).
+ * - /games/gravegain4d/play and /feedback/admin are likewise robots-noindex
+ *   but stay listed at low priority: verify-sitemap.mjs requires every
+ *   non-gated static route to be listed, and this file follows the same
+ *   low-priority precedent as the /play shells for those two.
  * - Legacy mirrors (/v1-legacy/*, /vibecodeworker-legacy/*, /games/html/*)
  */
 
@@ -30,11 +34,13 @@ const PRIMARY: Entry[] = [
   { path: "/vibecodeworker", changeFrequency: "weekly", priority: 0.9 },
   { path: "/squads", changeFrequency: "weekly", priority: 0.8 },
   { path: "/timer", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/timer/pro", changeFrequency: "weekly", priority: 0.6 },
   { path: "/desktop", changeFrequency: "weekly", priority: 0.8 },
   { path: "/buddy", changeFrequency: "weekly", priority: 0.8 },
   { path: "/swarm", changeFrequency: "weekly", priority: 0.8 },
   { path: "/fal", changeFrequency: "weekly", priority: 0.8 },
   { path: "/meshy", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/stock", changeFrequency: "weekly", priority: 0.8 },
   { path: "/vault", changeFrequency: "weekly", priority: 0.8 },
   { path: "/submit", changeFrequency: "weekly", priority: 0.8 },
   { path: "/newgameplus", changeFrequency: "weekly", priority: 0.8 },
@@ -62,6 +68,9 @@ const BUSINESS: Entry[] = [
   { path: "/business", changeFrequency: "weekly", priority: 0.7 },
   { path: "/business/crm", changeFrequency: "weekly", priority: 0.6 },
   { path: "/business/invoices", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/business/invoices/new", changeFrequency: "weekly", priority: 0.5 },
+  { path: "/business/invoices/trash", changeFrequency: "weekly", priority: 0.5 },
+  { path: "/business/tax", changeFrequency: "weekly", priority: 0.6 },
   { path: "/docs/business", changeFrequency: "monthly", priority: 0.7 },
 ];
 
@@ -82,6 +91,74 @@ const MMORPG: Entry[] = [
   { path: "/games/servers/rent", changeFrequency: "weekly", priority: 0.7 },
 ];
 
+// Solo compliance tools: deliverability + DNC scrubbing (sitemap parity).
+const COMPLIANCE: Entry[] = [
+  { path: "/bouncer", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/easydnc", changeFrequency: "weekly", priority: 0.6 },
+];
+
+// Single-purpose product surfaces: installer builder, game studio,
+// chat index, Quake-style power-user terminal + commander.
+const PRODUCT: Entry[] = [
+  { path: "/builder", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/commander", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/gamestudio", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/gamestudio/debugplay", changeFrequency: "weekly", priority: 0.5 },
+  { path: "/chat", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/code", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/terminal", changeFrequency: "monthly", priority: 0.6 },
+];
+
+// Distributed-compute consoles + game compute hub.
+const COMPUTE: Entry[] = [
+  { path: "/compute/dps", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/compute/p2p", changeFrequency: "weekly", priority: 0.6 },
+];
+
+// Desktop parity boards + remastery hub.
+const DESKTOP_EXTRA: Entry[] = [
+  { path: "/desktop/remastery", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/desktop/wave2", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/desktop/wave3", changeFrequency: "monthly", priority: 0.6 },
+];
+
+// Static game discovery surfaces (the [slug] detail/play pair stays
+// template-driven off the catalog below). The gravegain4d play route is a
+// noindex shell like the /play shells, listed so crawlers discover it.
+const GAMES_EXTRA: Entry[] = [
+  { path: "/games/compute", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/games/mods", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/games/plugins", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/games/fridgesimulator", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/games/gravegain4d/play", changeFrequency: "monthly", priority: 0.4 },
+];
+
+// Media studio suite: hub + audio + paint + recorder + image + video timeline + editor.
+const STUDIO: Entry[] = [
+  { path: "/studio", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/studio/audio", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/studio/paint", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/studio/recorder", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/studio/image", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/studio/video", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/studio/video/editor", changeFrequency: "weekly", priority: 0.5 },
+];
+
+// Free browser tools hub + every tool.
+const TOOLS: Entry[] = [
+  { path: "/tools", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/tools/counter", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/tools/image", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/tools/seo", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/tools/writing", changeFrequency: "monthly", priority: 0.6 },
+];
+
+// Admin-only feedback queue: robots noindex, but listed at low priority so
+// verify-sitemap parity holds (same precedent as the noindex /play shells).
+const ADMIN: Entry[] = [
+  { path: "/feedback/admin", changeFrequency: "monthly", priority: 0.3 },
+];
+
 // Evergreen exhibits + explainers.
 const EXPLORE: Entry[] = [
   { path: "/ads", changeFrequency: "weekly", priority: 0.5 },
@@ -90,6 +167,8 @@ const EXPLORE: Entry[] = [
   { path: "/tech", changeFrequency: "monthly", priority: 0.7 },
   { path: "/spaceships", changeFrequency: "monthly", priority: 0.7 },
   { path: "/web-apps", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/luck", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/pet", changeFrequency: "monthly", priority: 0.6 },
 ];
 
 // VibeCodeWorker sections (closed list; mirrors app/vibecodeworker/[section]).
@@ -113,30 +192,71 @@ const VCW_STATIC: Entry[] = [
   { path: "/vcw/desktop", changeFrequency: "monthly", priority: 0.5 },
 ];
 
+// Standalone VCW pages outside the [section] closed list.
+const VCW_EXTRA: Entry[] = [
+  { path: "/vibecodeworker/debug-play", changeFrequency: "monthly", priority: 0.5 },
+];
+
 // Docs hub + every doc chapter.
 const DOCS: Entry[] = [
   { path: "/docs", changeFrequency: "weekly", priority: 0.8 },
   { path: "/docs/about", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/getting-started", changeFrequency: "monthly", priority: 0.8 },
   { path: "/docs/playing-games", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/games/gravegain4d", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/games/gravegain4d/combat", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/games/saves", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/games-fridge", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/games-fridge/foods", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/games-fridge/saves", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/gravegain4d", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/gravegain4d/how-to-play", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/vibe-coins", changeFrequency: "monthly", priority: 0.8 },
   { path: "/docs/support-launches", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/feedback", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/clans", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/bots", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/integrations", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/integrations/chat-bot", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/integrations/mcp", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/agents-compute", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/dps", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/dps/donor-guide", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/dps/job-requester", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmorpg", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/mmorpg/hosting", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmorpg/age-bands", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmorpg/dimensions-4d-5d", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmo/player", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmo/host", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmo/safety", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmo/faq", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/runpod-vs-digitalocean", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/shadow-it", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/remastery/axioms", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/chat", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/invoicing", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/invoicing-trash", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/kanban", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/kanban-sprints", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/migration", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/notifications-chat", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/squads", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/squad-workspaces", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/remastery/time-tracking", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/game-ai-buddy", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/studio", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/studio/commander", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/studio/dictate-pic", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/studio/luck-factory", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/studio/media-mogul", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/studio/plugin-checklist", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/vibecodeworker", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/explore-more", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/privacy-safety", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/security", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/security/bot-keys", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/faq", changeFrequency: "monthly", priority: 0.8 },
 ];
 
@@ -156,9 +276,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...BUSINESS,
     ...IT_COMMAND,
     ...MMORPG,
+    ...COMPLIANCE,
+    ...PRODUCT,
+    ...COMPUTE,
+    ...DESKTOP_EXTRA,
+    ...GAMES_EXTRA,
+    ...STUDIO,
+    ...TOOLS,
+    ...ADMIN,
     ...EXPLORE,
     ...VCW_SECTIONS,
     ...VCW_STATIC,
+    ...VCW_EXTRA,
     ...DOCS,
     ...TRUST,
   ].map((entry) => ({

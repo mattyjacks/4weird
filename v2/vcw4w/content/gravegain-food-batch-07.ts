@@ -46,6 +46,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       mission: "Patrol mission cache: still-warm fry boxes.",
       mmorpg: "Trade chat favorite; buy in stacks of twenty.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 2-5: ember caddies drop fry cones by W-hazard bunkers.",
+      mission: "Mission Fairway Snack Cart putt-goal reward: one hot fry cone.",
+      mmorpg: "Clubhouse market staple; fairway traders swap cones between rounds.",
+    },
+    gravegain5d: {
+      endless: "Prime universe lanes 1-4: echo fry imps drop cones across paradox hops.",
+      mission: "Mission Echo Fry Hop reward: a crispy cone from the dream universe.",
+      mmorpg: "Cross-universe market; void traders pay extra for ember cones.",
+    },
   }),
   makeFoodItem("whole-pizza", {
     gravegain1d: {
@@ -62,6 +72,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       endless: "Deep-hall feasters on floors 6-10 drop pies.",
       mission: "Banquet-hall clearance mission reward pie.",
       mmorpg: "High trade volume before weekend raid nights.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 5-9: oven-ogre caddies drop whole pies at the W-pond.",
+      mission: "Mission Hole-in-One Feast putt-goal reward: a bubbling whole pie.",
+      mmorpg: "Fairway feast listing; clubhouse traders slice shares after rounds.",
+    },
+    gravegain5d: {
+      endless: "Echo universe lanes 5-9: pizza wraiths drop pies through bloom hops.",
+      mission: "Mission Static Slice Paradox reward: one whole pie, still bubbling.",
+      mmorpg: "Prime-market pie futures; dream-universe guilds stockpile slices.",
     },
   }),
   makeFoodItem("alley-hotdog", {
@@ -80,6 +100,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       mission: "Undercity patrol mission field ration.",
       mmorpg: "Bulk-cart deals clog trade windows nightly.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 1-4: alley-hound caddies drop dogs near W-rough.",
+      mission: "Mission Rough Rescue putt-goal reward: a mustard-topped hotdog.",
+      mmorpg: "Cheapest fairway snack; clubhouse stalls flip dogs daily.",
+    },
+    gravegain5d: {
+      endless: "Void universe lanes 1-4: hotdog ghosts drop dogs across echo hops.",
+      mission: "Mission Void Dog Dash reward: one wrapped dog, paradox mustard.",
+      mmorpg: "Cross-universe cart trade; bloom vendors buy dogs in bulk.",
+    },
   }),
   makeFoodItem("packed-sandwich", {
     gravegain1d: {
@@ -96,6 +126,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       endless: "Camp ruins on floors 2-7 yield packed lunches.",
       mission: "Supply-run mission pays in sandwich crates.",
       mmorpg: "Crate market stable; spoilage-proof investment.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 3-7: picnic-wraith caddies drop packs by W-sand.",
+      mission: "Mission Sand-Trap Picnic putt-goal reward: packed triangles.",
+      mmorpg: "Caddie lunch listing; fairway market moves packs by the dozen.",
+    },
+    gravegain5d: {
+      endless: "Dream universe lanes 3-7: lunchbox spirits drop packs via prime hops.",
+      mission: "Mission Lunchbox Loop reward: a packed sandwich, paradox fresh.",
+      mmorpg: "Static-universe deli trade; echo couriers restock packs daily.",
     },
   }),
   makeFoodItem("caravan-taco", {
@@ -114,6 +154,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       mission: "Spice-road convoy mission reward crate.",
       mmorpg: "Convoy futures market; buy before the rush.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 4-8: spice-ghost caddies drop tacos past W-water.",
+      mission: "Mission Water-Hazard Escort putt-goal reward: a crunchy taco.",
+      mmorpg: "Spice-route fairway traders list tacos at a premium.",
+    },
+    gravegain5d: {
+      endless: "Bloom universe lanes 4-8: taco sprites drop shells across void hops.",
+      mission: "Mission Bloom Caravan Hop reward: a crunchy taco satchel.",
+      mmorpg: "Echo-market satchel bundles; prime traders bid at dusk.",
+    },
   }),
   makeFoodItem("trail-burrito", {
     gravegain1d: {
@@ -130,6 +180,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       endless: "Mountain-pass camps on floors 5-9 drop it.",
       mission: "Pass-clearing mission quartermaster reward.",
       mmorpg: "Quartermaster contracts keep prices firm.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 5-10: trail-cook caddies drop burritos at W-pines.",
+      mission: "Mission Pine Par putt-goal reward: one tightly wrapped burrito.",
+      mmorpg: "Full-round meal listing; fairway raiders pay well for wraps.",
+    },
+    gravegain5d: {
+      endless: "Prime universe lanes 5-10: pack-mule ghosts drop wraps via echo hops.",
+      mission: "Mission Summit Hop reward: a trail burrito from the static universe.",
+      mmorpg: "Cross-universe wrap trade; void quartermasters keep prices firm.",
     },
   }),
   makeFoodItem("steamed-tamale", {
@@ -148,6 +208,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       mission: "Spring-watch mission supply parcel reward.",
       mmorpg: "Parcel lots trade quietly; low fees, slow fill.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 2-6: steam-sprite caddies drop tamales by W-mist.",
+      mission: "Mission Misty Putt putt-goal reward: warm tamale parcels.",
+      mmorpg: "Cozy clubhouse listing; hearth guilds buy tamales steady.",
+    },
+    gravegain5d: {
+      endless: "Echo universe lanes 2-6: husk ghosts drop parcels through dream hops.",
+      mission: "Mission Husk Hearth Hop reward: a warm tamale parcel.",
+      mmorpg: "Dream-market parcel lots; bloom traders pay festival prices.",
+    },
   }),
   makeFoodItem("garden-pita", {
     gravegain1d: {
@@ -165,6 +235,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       mission: "Grove-mapping mission botanist reward.",
       mmorpg: "Botanist circles trade pitas for cuttings.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 3-7: garden-sprite caddies drop pitas past W-hedge.",
+      mission: "Mission Hedge Hop putt-goal reward: fresh garden pitas.",
+      mmorpg: "Green-market fairway staple; herbalists bid on pitas often.",
+    },
+    gravegain5d: {
+      endless: "Bloom universe lanes 3-7: hedge ghosts drop pitas across prime hops.",
+      mission: "Mission Grove Hop reward: a stuffed pita from the echo universe.",
+      mmorpg: "Botanist circle trade; static vendors swap pitas for cuttings.",
+    },
   }),
   makeFoodItem("falafel-plate", {
     gravegain1d: {
@@ -181,6 +261,16 @@ export const GRAVE_GAIN_FOOD_BATCH_07: GraveGainFoodItemDef[] = [
       endless: "Courtyard kitchens on floors 3-7 drop plates.",
       mission: "Kitchen-clearing mission chef reward.",
       mmorpg: "Chef guilds contract monthly plate supply.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 3-6: fryer-imp caddies drop plates near W-oil.",
+      mission: "Mission Golden Green putt-goal reward: a crispy falafel plate.",
+      mmorpg: "Humble clubhouse listing with loyal repeat traders.",
+    },
+    gravegain5d: {
+      endless: "Static universe lanes 3-6: chickpea golems drop plates via void hops.",
+      mission: "Mission Crispy Cosmos Hop reward: a golden falafel plate.",
+      mmorpg: "Cross-universe plate trade; chef guilds contract monthly supply.",
     },
   }),
 ];

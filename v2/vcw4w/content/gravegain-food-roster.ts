@@ -1,9 +1,9 @@
 // GraveGain food roster: all 127 consumable emojis (v2 layer catalog truth).
 //
 // Each entry fixes ONE effect kind + tier for that emoji across gravegain1d,
-// gravegain2d and gravegain3d (endless, mission, mmorpg). Numbers are derived
+// gravegain2d, gravegain3d, gravegain4d and gravegain5d (endless, mission, mmorpg). Numbers are derived
 // per game/mode by deriveFoodStats() in @/lib/gravegain-food — batch files in
-// this folder add the 3x3 stat tables plus drop notes. Emoji codepoints below
+// this folder add the 5x3 stat tables plus drop notes. Emoji codepoints below
 // are exact (including VS16/ZWJ sequences); batch validators fail on drift.
 //
 // Blurbs stay playful-neutral on purpose: the same item shows in kid, teen

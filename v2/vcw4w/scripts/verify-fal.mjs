@@ -31,8 +31,13 @@ for (const op of expected) {
   if (!fal.includes(`"${op}"`)) fail(`fal lib missing op ${op}.`);
 }
 if (!fal.includes("FAL_OPS")) fail("fal lib must export FAL_OPS.");
-for (const model of ["fal-ai/flux/schnell","fal-ai/kling-video","fal-ai/whisper","fal-ai/trellis","fal-ai/birefnet","fal-ai/veo3","fal-ai/dia-tts","fal-ai/fast-sdxl"]) {
+for (const model of ["fal-ai/flux/schnell","fal-ai/kling-video","fal-ai/whisper","fal-ai/trellis","fal-ai/birefnet","fal-ai/veo3","fal-ai/dia-tts","fal-ai/fast-sdxl","tripo3d/h3.1/text-to-3d","tripo3d/h3.1/image-to-3d"]) {
   if (!fal.includes(model)) fail(`fal lib missing model ${model}.`);
+}
+// Retired 3D ids must stay out (fal 404/405s them): trellis sub-paths never
+// existed as queue namespaces and hunyuan3d-v21 is delisted.
+for (const dead of ["trellis/text-to-3d","trellis/image-to-3d","hunyuan3d-v21"]) {
+  if (fal.includes(dead)) fail(`fal lib still references retired endpoint ${dead}.`);
 }
 if (!fal.includes("quoteFal") || !fal.includes("qtyForInput") || !fal.includes("falInputFor")) {
   fail("fal lib must export quoteFal + qtyForInput + falInputFor.");

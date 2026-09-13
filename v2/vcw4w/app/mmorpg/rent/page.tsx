@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/mmorpg/rent" },
   title: "Rent an MMORPG Realm | 4weird Games",
   description:
-    "Rent a private 1D, 2D, or 3D MMORPG realm by the hour for kids, teens, or adults — with live rental quotes and host-free options.",
+    "Rent a private 1D–5D MMORPG realm by the hour for kids, teens, or adults — with live rental quotes and host-free options.",
 };
 
 export default function MmorpgRentPage() {

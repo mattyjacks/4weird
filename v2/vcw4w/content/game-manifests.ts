@@ -24,6 +24,7 @@ const GAMES_WITH_GUIDES: ReadonlySet<string> = new Set([
   "discoveramerica",
   "fridgesimulator",
   "serversavershield",
+  "gravegain4d",
 ]);
 
 export const hasGameGuide = (slug: string): boolean => GAMES_WITH_GUIDES.has(slug);

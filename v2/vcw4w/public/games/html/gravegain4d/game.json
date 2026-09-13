@@ -23,8 +23,11 @@
     "controls": {
         "keyboard": {
             "WASD / Arrow Keys": "Move caddie on the projected slice",
-            "Q / E": "W-shift along the 4th axis (Ana/Kata)",
-            "Left-Click": "Putt (Hold to charge, release to strike)",
+            "R / E": "W-shift along the 4th axis (Ana/Kata)",
+            "Left-Click": "Melee combo / Putt (Hold to charge, release to strike)",
+            "Right-Click": "Block (hold, spends stamina/STONE)",
+            "F": "Class ability",
+            "Q": "Q-Juice potion (heal)",
             "T": "Rewind time (spends chrono-sand)",
             "B": "Breach brane (Light/Gloom)",
             "Space": "Jump",
@@ -50,7 +53,7 @@
                 "description": "Three.js 3D Library (fallback mirror)"
             }
         ],
-        "local": ["engine/vec4.js", "engine/mat4.js", "engine/projector.js", "engine/hyperdungeon.js", "engine/putt.js", "engine/timefold.js", "engine/branes.js", "graphics/hyper-render.js", "graphics/chrono-fx.js", "entities/player.js", "entities/wraith.js", "world/brane-maps.js", "campaign/00-campaign-boot.js", "campaign/10-campaign-director.js", "ui/hud.js", "ui/hub-quarters.js", "audio/sound-engine.js", "input/input-manager.js", "main.js", "../fourweird-graphics.js", "game.css", "lore.js"]
+        "local": ["engine/vec4.js", "engine/mat4.js", "engine/projector.js", "engine/hyperdungeon.js", "engine/putt.js", "engine/timefold.js", "engine/branes.js", "engine/modes4d.js", "engine/main4d.js", "engine/flow4d.js", "engine/savebridge.js", "graphics/textures4d.js", "graphics/wghosts.js", "graphics/slicerenderer.js", "entities/enemies4d.js", "entities/bosses4d.js", "entities/ballistics.js", "world/dreamgen.js", "world/riftzones.js", "world/portal4d.js", "campaign/00-boot4d.js", "campaign/m01.js", "campaign/m02.js", "campaign/m03.js", "campaign/m04.js", "campaign/m05.js", "campaign/m06.js", "campaign/m07.js", "campaign/m08.js", "campaign/m09.js", "campaign/m10.js", "campaign/director4d.js", "campaign/ui4d.js", "campaign/codex4d.js", "combat/keymap4d.js", "combat/melee4d.js", "combat/block4d.js", "combat/abilities4d.js", "rpg/races4d.js", "rpg/classes4d.js", "rpg/progression4d.js", "rpg/economy4d.js", "rpg/upgrades4d.js", "rpg/stone4d.js", "rpg/crops4d.js", "rpg/quarters4d.js", "lore/npcs4d.js", "lore/dreams4d.js", "lore/hades4d.js", "lore/codex-extra4d.js", "ui/hud4d.js", "ui/touch4d.js", "ui/modes4d.js", "ui/contract4d.js", "ui/radar4d.js", "ui/hub4d.js", "audio/sound4d.js", "input/input4d.js", "mmorpg-4d.js", "net/mmorpg-bridge-4d.js", "game.css", "lore.js"]
     },
     "meta": {
         "version": "4.0.0",

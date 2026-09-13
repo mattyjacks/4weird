@@ -40,6 +40,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       mission: "Mission 3 hatchery sweep reward cache.",
       mmorpg: "Tradable starter protein; fair price.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 1-3: roost-hen caddies drop eggs by W-nests.",
+      mission: "Mission Nest Putt putt-goal reward: a speckled nest egg.",
+      mmorpg: "Cheap clubhouse staple; rookie traders swap eggs.",
+    },
+    gravegain5d: {
+      endless: "Prime universe lanes 1-3: clutch sprites drop eggs via echo hops.",
+      mission: "Mission Chick Hop rescue reward: a warm nest egg.",
+      mmorpg: "Starter-protein market; void stalls trade eggs fairly.",
+    },
   }),
   buildItem("skillet-eggs", {
     gravegain1d: {
@@ -56,6 +66,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       endless: "Mess automatons drop it in vault 2-3.",
       mission: "Mission 4 canteen relight reward.",
       mmorpg: "Power-snack staple on dungeon market.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 2-4: camp-cook caddies drop skillets past W-ash.",
+      mission: "Mission Breakfast Birdie putt-goal reward: sizzling skillet eggs.",
+      mmorpg: "Morning fairway buff food; clubhouse sales stay steady.",
+    },
+    gravegain5d: {
+      endless: "Echo universe lanes 2-4: goblin cooks drop skillets through dream hops.",
+      mission: "Mission Mess-Hall Hop reward: a hot skillet of eggs.",
+      mmorpg: "Fighter-fuel market; bloom vendors flip skillets fast.",
     },
   }),
   buildItem("crew-pan", {
@@ -74,6 +94,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       mission: "Mission 11 flagship galley reward.",
       mmorpg: "Top-tier tradable feast centerpiece.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 8-12: warchief caddies drop feast pans at W-crown.",
+      mission: "Mission Champion's Feast putt-goal reward: a grand crew pan.",
+      mmorpg: "Rare clubhouse platter; fairway guilds bid high.",
+    },
+    gravegain5d: {
+      endless: "Void universe lanes 8-12: banquet mimics drop pans across static hops.",
+      mission: "Mission Grand Banquet Hop reward: a flagship crew pan.",
+      mmorpg: "Prestige cross-universe feast; prime guilds bid for it.",
+    },
   }),
   buildItem("hearth-pot", {
     gravegain1d: {
@@ -90,6 +120,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       endless: "Ember wardens drop it in vault 3-4.",
       mission: "Mission 7 deep-hearth quest reward.",
       mmorpg: "Tradable comfort feast; sells well.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 4-7: hearth-keeper caddies drop pots by W-embers.",
+      mission: "Mission Ember Putt putt-goal reward: a cozy hearth pot.",
+      mmorpg: "Cozy clubhouse pot; fairway traders swap servings.",
+    },
+    gravegain5d: {
+      endless: "Dream universe lanes 4-7: stew golems drop pots via bloom hops.",
+      mission: "Mission Deep-Hearth Hop reward: a bubbling hearth pot.",
+      mmorpg: "Comfort-feast market; echo stalls sell pots well.",
     },
   }),
   buildItem("melt-fondue", {
@@ -108,6 +148,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       mission: "Mission 6 cheese-forge reward cache.",
       mmorpg: "Warding delicacy; good resale value.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 4-6: cheese-warden caddies drop fondue at W-dip.",
+      mission: "Mission Molten Birdie putt-goal reward: a melty fondue pot.",
+      mmorpg: "Dippable clubhouse feast; fairway market favorite.",
+    },
+    gravegain5d: {
+      endless: "Bloom universe lanes 4-6: fondue sprites drop pots across echo hops.",
+      mission: "Mission Cheese-Forge Hop reward: a golden fondue cache.",
+      mmorpg: "Social cross-universe dish; static traders bid briskly.",
+    },
   }),
   buildItem("trail-bowl", {
     gravegain1d: {
@@ -124,6 +174,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       endless: "Ration bots drop it in vault 1-3.",
       mission: "Mission 4 trail resupply reward.",
       mmorpg: "Budget heal bowl; always in demand.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 2-5: trail-scout caddies drop bowls near W-tuft.",
+      mission: "Mission Supply Putt putt-goal reward: a hearty trail bowl.",
+      mmorpg: "Cheap cozy heal; clubhouse bulk deals move fast.",
+    },
+    gravegain5d: {
+      endless: "Prime universe lanes 2-5: porter ghosts drop bowls via void hops.",
+      mission: "Mission Waystation Hop reward: a warm trail bowl.",
+      mmorpg: "Budget heal market; dream vendors sell bowls daily.",
     },
   }),
   buildItem("scout-salad", {
@@ -142,6 +202,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       mission: "Mission 5 greenhouse sweep reward.",
       mmorpg: "Tradable focus food; fair price.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 3-6: garden-sprite caddies drop salads by W-green.",
+      mission: "Mission Herb Green putt-goal reward: a crisp scout salad.",
+      mmorpg: "Focus greens market; fairway scouts pay well.",
+    },
+    gravegain5d: {
+      endless: "Echo universe lanes 3-6: forager wasps drop salads through bloom hops.",
+      mission: "Mission Grove Survey Hop reward: a fresh scout salad.",
+      mmorpg: "Mind-clearing cross-universe dish; steady trade.",
+    },
   }),
   buildItem("watch-popcorn", {
     gravegain1d: {
@@ -159,6 +229,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       mission: "Mission 2 lookout shift reward.",
       mmorpg: "Popularity snack; low-price trade.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 1-4: watch-imp caddies drop popcorn at W-tower.",
+      mission: "Mission Night-Watch Putt putt-goal reward: buttery popcorn.",
+      mmorpg: "Cheap focus snack; clubhouse flips sell fast.",
+    },
+    gravegain5d: {
+      endless: "Static universe lanes 1-4: ember poppers drop corn via prime hops.",
+      mission: "Mission Lookout Hop reward: a crunchy popcorn bucket.",
+      mmorpg: "Popularity-snack market; echo stalls trade it cheap.",
+    },
   }),
   buildItem("churned-butter", {
     gravegain1d: {
@@ -175,6 +255,16 @@ export const GRAVE_GAIN_FOOD_BATCH_08: GraveGainFoodItemDef[] = [
       endless: "Churn automatons drop it in vault 2-3.",
       mission: "Mission 4 creamery restart reward.",
       mmorpg: "Rich ward food; stable market price.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 2-5: dairy-golem caddies drop butter by W-churn.",
+      mission: "Mission Churn House putt-goal reward: a golden butter block.",
+      mmorpg: "Slick clubhouse spread; fairway dairy hub restocks.",
+    },
+    gravegain5d: {
+      endless: "Dream universe lanes 2-5: cream oozes drop butter through void hops.",
+      mission: "Mission Pasture Hop reward: fresh churned butter, paradox smooth.",
+      mmorpg: "Rich ward-food market; bloom packs trade at gilt prices.",
     },
   }),
 ];

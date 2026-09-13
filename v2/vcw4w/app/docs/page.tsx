@@ -173,7 +173,7 @@ export default function DocsHome() {
           [
             "Read your own receipt",
             <>
-              Open <Link className="font-bold underline" href="/my/usage/">/my/usage/</Link> and learn
+              Open <Link className="font-bold underline" href="/my/usage">/my/usage</Link> and learn
               to love it: session + total, by-kind + by-game, rentals, AI turns, clan fees,
               workspace cloud. Full tour in{" "}
               <Link className="font-bold underline" href="/docs/getting-started">Getting started</Link>.

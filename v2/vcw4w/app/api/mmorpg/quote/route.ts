@@ -26,7 +26,8 @@ import { fail, ok } from "@/lib/api-respond";
 /**
  * Demo per-player per-minute rates in whole coins, mirroring the
  * `../servers` foundation stub (`costPerMin`: kids 0 / teens 2-3 /
- * adults 5). Integer only — quotes never touch float money math until
+ * adults 5, gravegain4d 7 / gravegain5d 9 — 4d above the 3d tier, 5d
+ * highest). Integer only — quotes never touch float money math until
  * the final display division.
  */
 const DEMO_RATE_BY_SERVER_ID: Readonly<Record<string, number>> = {
@@ -34,6 +35,8 @@ const DEMO_RATE_BY_SERVER_ID: Readonly<Record<string, number>> = {
   "emberhold-teens-1": 2,
   "emberhold-adults-1": 5,
   "dreadhollow-teens-1": 3,
+  "gravegain4d-teens-1": 7,
+  "gravegain5d-adults-1": 9,
 };
 
 /** Fail-open rate for unknown ids: the teens middle rate. */

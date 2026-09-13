@@ -75,7 +75,9 @@
                 try {
                     var c = campaign();
                     var m = c ? c.get(id) : null;
-                    var par = m ? Number(m.par || m.parSeconds) : NaN;
+                    // parSeconds is the speedrun star threshold; par is golf
+                    // strokes (used by putt scoreVsPar), never seconds.
+                    var par = m ? Number(m.parSeconds || m.par) : NaN;
                     var stars = 3;
                     if (isFinite(par) && par > 0 && Number(elapsedSeconds) > par) stars -= 1;
                     if (Number(deaths) > 0) stars -= Math.min(Number(deaths), 2);

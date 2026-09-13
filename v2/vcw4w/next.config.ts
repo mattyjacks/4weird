@@ -174,6 +174,9 @@ const nextConfig: NextConfig = {
       { source: "/teams", destination: "/squads", permanent: true },
       { source: "/teams/:path*", destination: "/squads/:path*", permanent: true },
       { source: "/api/teams/:path*", destination: "/api/squads/:path*", permanent: true },
+      // Auth short link: old bookmarks + pasted URLs use /login; the
+      // canonical route is /auth/login (see app/auth/login/page.tsx).
+      { source: "/login", destination: "/auth/login", permanent: true },
     ];
   },
   async rewrites() {

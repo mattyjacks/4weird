@@ -32,6 +32,8 @@ const DEMO_SERVERS = [
   { id: "emberhold-teens-1", ageBand: "teens", costPerMin: 2, hostFree: false, players: 34 },
   { id: "emberhold-adults-1", ageBand: "adults", costPerMin: 5, hostFree: false, players: 87 },
   { id: "dreadhollow-teens-1", ageBand: "teens", costPerMin: 3, hostFree: false, players: 21 },
+  { id: "gravegain4d-teens-1", ageBand: "teens", costPerMin: 7, hostFree: false, players: 15 },
+  { id: "gravegain5d-adults-1", ageBand: "adults", costPerMin: 9, hostFree: false, players: 9 },
 ] as const;
 
 export async function GET(req: Request) {

@@ -11,7 +11,7 @@
  * gating (`canEnterServer` returns false) and to 0 for pricing.
  */
 
-export type MmorpgGameKind = "1d" | "2d" | "3d";
+export type MmorpgGameKind = "1d" | "2d" | "3d" | "4d" | "5d";
 export type MmorpgAgeBand = "kids" | "teens" | "adults";
 
 export type MmorpgServer = {
@@ -36,7 +36,7 @@ export const MMORPG_AGE_RANK: Record<MmorpgAgeBand, number> = {
 };
 
 export function isMmorpgGameKind(value: unknown): value is MmorpgGameKind {
-  return value === "1d" || value === "2d" || value === "3d";
+  return value === "1d" || value === "2d" || value === "3d" || value === "4d" || value === "5d";
 }
 
 export function isMmorpgAgeBand(value: unknown): value is MmorpgAgeBand {
@@ -98,6 +98,8 @@ export const MMORPG_DEFAULT_SLUG: Record<MmorpgGameKind, string> = {
   "1d": "gravegain1d",
   "2d": "gravegain2d",
   "3d": "gravegain3d",
+  "4d": "gravegain4d",
+  "5d": "gravegain5d",
 };
 
 /** Resolve the Join-link slug: explicit slug wins, else the game-kind default. */

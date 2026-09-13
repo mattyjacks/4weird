@@ -21,7 +21,27 @@ interface RentQuote {
   source: "live" | "estimate";
 }
 
-const BASE_PER_MIN: Record<Dimension, number> = { "1d": 3, "2d": 8, "3d": 18 };
+const BASE_PER_MIN: Record<Dimension, number> = { "1d": 3, "2d": 8, "3d": 18, "4d": 30, "5d": 40 };
+
+interface GameOption {
+  id: string;
+  label: string;
+  dimension: Dimension;
+}
+
+/** Demo seed games per dimension (4d = Dream Golf, 5d = Multiverse). */
+const GAME_OPTIONS: GameOption[] = [
+  { id: "classic-1d", label: "Classic 1D realm", dimension: "1d" },
+  { id: "classic-2d", label: "Classic 2D world", dimension: "2d" },
+  { id: "classic-3d", label: "Classic 3D expanse", dimension: "3d" },
+  { id: "dream-golf-4d", label: "Dream Golf (4D)", dimension: "4d" },
+  { id: "multiverse-5d", label: "Multiverse (5D)", dimension: "5d" },
+];
+
+function gameForDimension(dimension: Dimension): GameOption {
+  const found = GAME_OPTIONS.find((option) => option.dimension === dimension);
+  return found ?? GAME_OPTIONS[1];
+}
 
 const AGE_MULTIPLIER: Record<AgeBand, number> = {
   kids: 0.8,
@@ -80,15 +100,28 @@ function emitInterop(type: string, data: Record<string, unknown>): void {
 
 export function RentForm() {
   const [dimension, setDimension] = useState<Dimension>("2d");
+  const [gameId, setGameId] = useState<string>("classic-2d");
   const [ageBand, setAgeBand] = useState<AgeBand>("teens");
   const [hostFree, setHostFree] = useState<boolean>(true);
   const [hours, setHours] = useState<number>(2);
   const [quote, setQuote] = useState<RentQuote | null>(null);
   const [quoting, setQuoting] = useState<boolean>(false);
 
+  function handleDimensionChange(next: Dimension): void {
+    setDimension(next);
+    setGameId(gameForDimension(next).id);
+  }
+
+  function handleGameChange(nextId: string): void {
+    const found = GAME_OPTIONS.find((option) => option.id === nextId);
+    if (!found) return; // fail-open: ignore unknown game ids
+    setGameId(found.id);
+    setDimension(found.dimension);
+  }
+
   async function fetchQuote(): Promise<void> {
     setQuoting(true);
-    const payload = { dimension, ageBand, hostFree, hours };
+    const payload = { dimension, game: gameId, ageBand, hostFree, hours };
     try {
       const res = await fetch("/api/mmorpg/rent", {
         method: "POST",
@@ -124,15 +157,32 @@ export function RentForm() {
     >
       <div className="grid gap-5">
         <label className="text-sm text-slate-300">
+          Game
+          <select
+            value={gameId}
+            onChange={(event) => handleGameChange(event.target.value)}
+            className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+          >
+            {GAME_OPTIONS.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label} - {BASE_PER_MIN[option.dimension]} coins/min
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="text-sm text-slate-300">
           Game dimension
           <select
             value={dimension}
-            onChange={(event) => setDimension(event.target.value as Dimension)}
+            onChange={(event) => handleDimensionChange(event.target.value as Dimension)}
             className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
           >
             <option value="1d">1D — text realm</option>
             <option value="2d">2D — sprite world</option>
             <option value="3d">3D — full expanse</option>
+            <option value="4d">4D - dream golf</option>
+            <option value="5d">5D - multiverse</option>
           </select>
         </label>
 

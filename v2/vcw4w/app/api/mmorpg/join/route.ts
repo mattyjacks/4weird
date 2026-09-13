@@ -22,6 +22,8 @@ const DEMO_SERVER_BANDS: Record<string, AgeBand> = {
   "emberhold-teens-1": "teens",
   "emberhold-adults-1": "adults",
   "dreadhollow-teens-1": "teens",
+  "gravegain4d-teens-1": "teens",
+  "gravegain5d-adults-1": "adults",
 };
 
 // Room band -> player bands allowed in.

@@ -1,9 +1,9 @@
 // GraveGain food batch 03: roster idx 18-26 (iron-coconut ... swift-pepper).
 //
 // Each item spreads its GRAVEGAIN_FOOD_ROSTER entry (emoji codepoints are
-// never retyped) and carries the full gravegain1d/2d/3d x
+// never retyped) and carries the full gravegain1d/2d/3d/4d/5d x
 // endless/mission/mmorpg stats table from buildFoodStatsTable(), plus one
-// 4..100-char drop note per game/mode cell: endless notes name floors/foes,
+// 4..120-char drop note per game/mode cell: endless notes name floors/foes,
 // mission notes name the rewarding mission, mmorpg notes cover market/trade.
 
 import { buildFoodStatsTable } from "@/lib/gravegain-food";
@@ -45,6 +45,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       mission: "Mission 5 reward, deep palm vault cache.",
       mmorpg: "Bazaar hard-shell stock, guild ward deals.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 3-6, iron W-hazards drop shell putts.",
+      mission: "Mission 5 reward, palm green strong-swing cup.",
+      mmorpg: "Dream ward counter, shell-crate trade.",
+    },
+    gravegain5d: {
+      endless: "Prime universe hops 3-6, echo crabs drop shells before doom clock.",
+      mission: "Mission 6 reward, iron-hop paradox tribute.",
+      mmorpg: "Multiverse ward lots, cooper crate trade.",
+    },
   }),
   makeItem("spore-cap", {
     gravegain1d: {
@@ -61,6 +71,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       endless: "Dungeon floors 1-5, mold fiends drop it.",
       mission: "Mission 1 reward, spore vault gleaning.",
       mmorpg: "Bazaar bargain bins, peddler trade.",
+    },
+    gravegain4d: {
+      endless: "Dream fairways 1-3, drowsy bat bogeys drop veil putts.",
+      mission: "Mission 2 reward, mushroom row morning cup.",
+      mmorpg: "Dream penny bite, spore-sack trade.",
+    },
+    gravegain5d: {
+      endless: "Dream universe hops 1-3, echo mites drop caps before doom clock.",
+      mission: "Mission 3 reward, hollow-hop paradox pick.",
+      mmorpg: "Multiverse filler lots, herbalist trade.",
     },
   }),
   makeItem("bog-avocado", {
@@ -79,6 +99,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       mission: "Mission 3 reward, bog vault cache.",
       mmorpg: "Bazaar soft stock, caravan ward trade.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 2-5, boggy W-hazards drop creamy putts.",
+      mission: "Mission 4 reward, marsh green soft-cup quest.",
+      mmorpg: "Dream creamy shelf, cushion-ward trade.",
+    },
+    gravegain5d: {
+      endless: "Dream universe hops 2-5, mire sprites drop green fruit before doom clock.",
+      mission: "Mission 4 reward, sunken-hop paradox pick.",
+      mmorpg: "Multiverse pillow lots, grocer swap trade.",
+    },
   }),
   makeItem("night-eggplant", {
     gravegain1d: {
@@ -95,6 +125,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       endless: "Dungeon floors 3-7, shade gardeners drop it.",
       mission: "Mission 3 reward, night vault bounty.",
       mmorpg: "Bazaar meaty stock, guild cook orders.",
+    },
+    gravegain4d: {
+      endless: "Dream fairways 2-5, moonlit W-hazard slugs drop glossy putts.",
+      mission: "Mission 4 reward, moon-green night cup.",
+      mmorpg: "Dream steady fuel, fighter snack trade.",
+    },
+    gravegain5d: {
+      endless: "Void universe hops 2-5, dusk shades drop night fruit before doom clock.",
+      mission: "Mission 5 reward, violet-hop paradox garden.",
+      mmorpg: "Multiverse strength lots, cook pact trade.",
     },
   }),
   makeItem("dirt-potato", {
@@ -113,6 +153,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       mission: "Mission 2 reward, ember field cache.",
       mmorpg: "Bazaar staple sacks, caravan ration deals.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 1-4, molehill bunkers drop soil putts.",
+      mission: "Mission 2 reward, bonefire field harvest cup.",
+      mmorpg: "Dream humble sack, bulk ration trade.",
+    },
+    gravegain5d: {
+      endless: "Prime universe hops 1-4, echo grubs drop tubers before doom clock.",
+      mission: "Mission 3 reward, coal-hop paradox harvest.",
+      mmorpg: "Multiverse sack lots, camp-cook trade.",
+    },
   }),
   makeItem("lantern-carrot", {
     gravegain1d: {
@@ -129,6 +179,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       endless: "Dungeon floors 2-6, warren dashers drop it.",
       mission: "Mission 2 reward, glow-bed cache.",
       mmorpg: "Bazaar quick stock, courier trade packs.",
+    },
+    gravegain4d: {
+      endless: "Dream fairways 1-4, rabbit W-hazard racers drop crisp putts.",
+      mission: "Mission 2 reward, lantern-row thinning cup.",
+      mmorpg: "Dream swift shelf, runner bundle trade.",
+    },
+    gravegain5d: {
+      endless: "Prime universe hops 1-4, echo runners drop roots before doom clock.",
+      mission: "Mission 3 reward, trellis-hop paradox dash.",
+      mmorpg: "Multiverse speed kits, scout swap trade.",
     },
   }),
   makeItem("gold-corn", {
@@ -147,6 +207,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       mission: "Mission 3 reward, golden vault store.",
       mmorpg: "Bazaar sweet stock, guild feast orders.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 2-5, husk W-hazards drop golden putts.",
+      mission: "Mission 4 reward, buttered-row harvest cup.",
+      mmorpg: "Dream golden ear, harvest basket trade.",
+    },
+    gravegain5d: {
+      endless: "Bloom universe hops 2-5, echo golems drop cobs before doom clock.",
+      mission: "Mission 5 reward, sunfield-hop paradox tribute.",
+      mmorpg: "Multiverse warm lots, feast-side trade.",
+    },
   }),
   makeItem("dragon-pepper", {
     gravegain1d: {
@@ -164,6 +234,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       mission: "Mission 6 reward, fire vault bounty.",
       mmorpg: "Bazaar inferno stock, war-guild contracts.",
     },
+    gravegain4d: {
+      endless: "Dream fairways 4-7, cinder W-hazards drop fire putts.",
+      mission: "Mission 7 reward, dragon-row trial cup.",
+      mmorpg: "Dream fiery bite, bold snack trade.",
+    },
+    gravegain5d: {
+      endless: "Void universe hops 4-7, echo drakes drop fire pods before doom clock.",
+      mission: "Mission 8 reward, volcano-hop paradox trial.",
+      mmorpg: "Multiverse heat lots, brave-trade bids.",
+    },
   }),
   makeItem("swift-pepper", {
     gravegain1d: {
@@ -180,6 +260,16 @@ export const GRAVE_GAIN_FOOD_BATCH_03: GraveGainFoodItemDef[] = [
       endless: "Dungeon floors 2-6, greenhouse fiends drop it.",
       mission: "Mission 2 reward, green vault cache.",
       mmorpg: "Bazaar crisp stock, scout courier trade.",
+    },
+    gravegain4d: {
+      endless: "Dream fairways 1-4, skitter W-hazards drop zippy putts.",
+      mission: "Mission 2 reward, crisp-row sprint cup.",
+      mmorpg: "Dream light bite, footwork kit trade.",
+    },
+    gravegain5d: {
+      endless: "Prime universe hops 1-4, echo runners drop peppers before doom clock.",
+      mission: "Mission 3 reward, trellis-hop paradox sprint.",
+      mmorpg: "Multiverse haste lots, friendly duel trade.",
     },
   }),
 ];

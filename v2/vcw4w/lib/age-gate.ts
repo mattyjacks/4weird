@@ -43,6 +43,7 @@ export const GAME_RATINGS: Record<string, AgeRating> = {
   assassinanimals: "adults",
   gravegain2d: "adults",
   gravegain3d: "adults",
+  gravegain4d: "adults",
   demolichdom: "adults",
   lastwordszombies: "adults",
   // Cartoon/fantasy combat - 13+.

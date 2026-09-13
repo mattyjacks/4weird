@@ -30,6 +30,7 @@ const divergedPrefixes = [
   "serversavershield/", // tuning/balance evolution (+ v2-native js/quality.js)
   "gravegain2d/", // aaa/campaign/epic layers
   "gravegain3d/", // enemy variants/blood, dungeon/hub evolution
+  "gravegain4d/", // v2-native 4D hypercube-golf bridge (no v1 parity source)
   "madi/", // fourweird-fullscreen-patch wave (button/F/dblclick toggles, webkit fallbacks, canvas refit, sizing CSS) + DOM null-guards
   "kouzi/", // neon fullscreen/guard hardening wave (same patch family as madi)
   "aiwhackamole/", // fullscreen/guard hardening wave

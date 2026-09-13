@@ -124,7 +124,7 @@ export default function GameAiBuddyPage() {
       <Callout tone="rose" title="No voice? Check the stage, not the actor.">
         Device volume + browser autoplay permission first, then another voice/speed. The widget falls back to on-device
         speech when provider voice is unavailable - the turn still meters. Spend questions? Compare the widget&apos;s session
-        line with <Link className="underline" href="/my/usage/">/my/usage/</Link> by-kind + recent-turns lines.
+        line with <Link className="underline" href="/my/usage">/my/usage</Link> by-kind + recent-turns lines.
       </Callout>
 
       <SectionHead
@@ -233,7 +233,7 @@ export default function GameAiBuddyPage() {
       <Callout tone="rose" title="GPU-backed game AI bills by the minute.">
         Directors running on rented RunPod GPUs or hosted inference endpoints meter compute time rather than tokens -
         check the game&apos;s detail-page badge for which provider backs its features. Whatever the unit, the widget&apos;s
-        session line and <Link className="underline" href="/my/usage/">/my/usage/</Link> by-kind lines always agree:
+        session line and <Link className="underline" href="/my/usage">/my/usage</Link> by-kind lines always agree:
         if they don&apos;t, that&apos;s a bug worth reporting, not a fee worth paying twice.
       </Callout>
 

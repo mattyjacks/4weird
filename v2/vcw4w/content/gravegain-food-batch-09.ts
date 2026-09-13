@@ -45,6 +45,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       mission: "Reward for mission Cleansing of the Salt Vault.",
       mmorpg: "Tradable; guild crafters buy it in stacks.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 1-5: salt-imp caddies drop pinches by W-brine.",
+      mission: "Mission Salt Bunker putt-goal reward: a lucky pinch of salt.",
+      mmorpg: "Ward-spice market; clubhouse stalls sell pinches cheap.",
+    },
+    gravegain5d: {
+      endless: "Prime universe lanes 1-5: salt imps drop pinches across echo hops.",
+      mission: "Mission Salt Wardens Hop reward: shrine-blessed pinch.",
+      mmorpg: "Bulk ward-spice trade; void crafters buy in stacks.",
+    },
   }),
   buildItem("pantry-can", {
     gravegain1d: {
@@ -61,6 +71,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       endless: "Husk ghouls drop it in depths 2-5; store caches.",
       mission: "Reward for mission Convoy of Cans escort.",
       mmorpg: "Tradable; caravan traders restock it daily.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 2-7: scavenger-rat caddies drop cans at W-shed.",
+      mission: "Mission Pantry Par putt-goal reward: a stocked pantry can.",
+      mmorpg: "Budget clubhouse staple; fairway bulk lots sell fast.",
+    },
+    gravegain5d: {
+      endless: "Echo universe lanes 2-7: cellar mimics drop cans via static hops.",
+      mission: "Mission Deep Pantry Hop reward: a dented lucky can.",
+      mmorpg: "Pantry-row market; bloom caravans restock it daily.",
     },
   }),
   buildItem("voyager-bento", {
@@ -79,6 +99,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       mission: "Reward for mission Banquet of the Wayfarer.",
       mmorpg: "Tradable; voyage chefs pay extra for full sets.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 5-10: voyager-ghost caddies drop bentos at W-rest.",
+      mission: "Mission Long Voyage putt-goal reward: a premium voyager bento.",
+      mmorpg: "Premium clubhouse boxed meal; fairway trade value high.",
+    },
+    gravegain5d: {
+      endless: "Dream universe lanes 5-10: wayfarer shades drop bentos via bloom hops.",
+      mission: "Mission Hundred Locks Hop reward: a voyager feast box.",
+      mmorpg: "Party-feast market; echo crews bid boxes up at dusk.",
+    },
   }),
   buildItem("tide-cracker", {
     gravegain1d: {
@@ -95,6 +125,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       endless: "Brine elementals drop it in depths 3-6; grottos.",
       mission: "Reward for mission Crackers for the Grotto.",
       mmorpg: "Tradable; grotto stalls trade it for pearls.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 2-6: tide-crab caddies drop crackers by W-shore.",
+      mission: "Mission Tide Pool putt-goal reward: a crunchy tide cracker.",
+      mmorpg: "Crunchy clubhouse snack; fairway tide market fare.",
+    },
+    gravegain5d: {
+      endless: "Bloom universe lanes 2-6: brine elementals drop crackers via echo hops.",
+      mission: "Mission Tide Guard Hop reward: a shore-fresh cracker.",
+      mmorpg: "Tide-vendor market; static stalls stack crates daily.",
     },
   }),
   buildItem("spirit-riceball", {
@@ -113,6 +153,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       mission: "Reward for mission The Spirit Supper rescue.",
       mmorpg: "Tradable; tea-house regulars bid warmly for it.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 3-8: rice-spirit caddies drop riceballs at W-shrine.",
+      mission: "Mission Shrine Putt putt-goal reward: a cozy spirit riceball.",
+      mmorpg: "Comfort-food clubhouse listing; sells fast after wipes.",
+    },
+    gravegain5d: {
+      endless: "Dream universe lanes 3-8: lantern souls drop riceballs via prime hops.",
+      mission: "Mission Spirit Supper Hop reward: a warm riceball rescue.",
+      mmorpg: "Tea-house regulars market; echo cooks list it mornings.",
+    },
   }),
   buildItem("paddy-rice", {
     gravegain1d: {
@@ -129,6 +179,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       endless: "Mud spirits drop it in depths 1-4; paddy terraces.",
       mission: "Reward for mission Terrace Harvest defense.",
       mmorpg: "Tradable; terrace co-ops sell honest stacks.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 1-4: paddy-sprite caddies drop sacks by W-field.",
+      mission: "Mission First Harvest putt-goal reward: a sack of paddy rice.",
+      mmorpg: "Base-grain clubhouse staple; cheapest fairway bulk grain.",
+    },
+    gravegain5d: {
+      endless: "Prime universe lanes 1-4: mud spirits drop grain through echo hops.",
+      mission: "Mission Terrace Harvest Hop reward: field-fresh paddy rice.",
+      mmorpg: "Terrace co-op market; static millers flood it each dawn.",
     },
   }),
   buildItem("ember-curry", {
@@ -147,6 +207,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       mission: "Reward for mission Feast of the Ember Pit.",
       mmorpg: "Tradable; pit guilds hoard it before sieges.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 6-11: ember-cook caddies drop curry at W-coals.",
+      mission: "Mission Ember Ladle putt-goal reward: a fiery ember curry.",
+      mmorpg: "Spicy clubhouse power dish; fairway raiders pay well.",
+    },
+    gravegain5d: {
+      endless: "Void universe lanes 6-11: magma shamans drop curry via paradox hops.",
+      mission: "Mission Coal Throne Hop reward: a blazing curry cauldron.",
+      mmorpg: "Pit-guild market; bloom chefs auction curry nightly.",
+    },
   }),
   buildItem("steam-noodles", {
     gravegain1d: {
@@ -164,6 +234,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       mission: "Reward for mission Noodles at Whitewater Gap.",
       mmorpg: "Tradable; courier guilds tip extra for it.",
     },
+    gravegain4d: {
+      endless: "Dream fairway floors 4-9: noodle-vendor caddies drop bowls by W-steam.",
+      mission: "Mission Slurp Sprint putt-goal reward: steaming noodles.",
+      mmorpg: "Speed-food clubhouse staple; sprinters buy in bulk.",
+    },
+    gravegain5d: {
+      endless: "Echo universe lanes 4-9: geyser drakes drop noodles via dream hops.",
+      mission: "Mission Whitewater Hop reward: noodles at the gap camps.",
+      mmorpg: "Courier-guild market; static stalls never run out.",
+    },
   }),
   buildItem("cellar-spaghetti", {
     gravegain1d: {
@@ -180,6 +260,16 @@ export const GRAVE_GAIN_FOOD_BATCH_09: GraveGainFoodItemDef[] = [
       endless: "Deep cellarers drop it in depths 3-7; vault kitchens.",
       mission: "Reward for mission Spaghetti for the Siege.",
       mmorpg: "Tradable; siege quartermasters buy by the cart.",
+    },
+    gravegain4d: {
+      endless: "Dream fairway floors 3-7: cellar-rat caddies drop pasta at W-crates.",
+      mission: "Mission Old Cellar putt-goal reward: twirly cellar spaghetti.",
+      mmorpg: "Campaign-carb clubhouse listing; parties stockpile it.",
+    },
+    gravegain5d: {
+      endless: "Static universe lanes 3-7: pasta mimics drop nests through void hops.",
+      mission: "Mission Siege Supper Hop reward: spaghetti for the siege.",
+      mmorpg: "Siege-quartermaster market; echo cooks trade it for sauce.",
     },
   }),
 ];

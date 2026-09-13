@@ -1,11 +1,9 @@
 {
     "title": "GraveGain4D",
     "slug": "gravegain4d",
-    "description": "GraveGain4D: dream-smooth 4D golf in the GraveGain canon. Putt a grave-touched ball through folded hypercube greens, rotate across the W-axis, rewind bad shots through time, and dream-shift between slices on the road from MoonRock colony to the LuckyStarShip.",
-    "genre": "Sports",
-    "tags": ["HTML5", "Sports", "Golf", "4D", "Three.js", "Dreamlike"],
-    "ageBand": "teen",
-    "rating": "teen",
+    "description": "A 4D dark-fantasy golf rogue-like: putt lost souls across ana/kata hyperdungeons projected from the W-axis, rewind botched shots with chrono-sand, and breach the Light/Gloom branes in a 10-rift MoonRock campaign with a starship hub.",
+    "genre": "RPG",
+    "tags": ["HTML5", "Action", "RPG", "Rogue-like", "Three.js", "4D", "Golf"],
     "maker": {
         "name": "Antigravity Dev",
         "bio": "Specializing in high-fidelity HTML5 game experiences with immersive systems and rich game-feel.",
@@ -24,16 +22,21 @@
     ],
     "controls": {
         "keyboard": {
-            "Space": "Putt toward the goal (one-button putt)",
-            "Q / E or Left / Right": "Rotate across the W-axis (4D rotate)",
-            "R": "Time-rewind to the previous shot",
-            "T": "Dream-shift to the next W-slice",
+            "WASD / Arrow Keys": "Move caddie on the projected slice",
+            "R / E": "W-shift along the 4th axis (Ana/Kata)",
+            "Left-Click": "Melee combo / Putt (Hold to charge, release to strike)",
+            "Right-Click": "Block (hold, spends stamina/STONE)",
+            "F": "Class ability",
+            "Q": "Q-Juice potion (heal)",
+            "T": "Rewind time (spends chrono-sand)",
+            "B": "Breach brane (Light/Gloom)",
+            "Space": "Jump",
             "Escape / P": "Pause Game"
         },
         "touch": true,
         "mouse": true
     },
-    "instructions": "One-button putt with Space or click: the ball glides toward the goal with dream-smooth damping. Rotate the fourth dimension with Q/E, rewind a bad shot with R, dream-shift slices with T. Sink every hole to clear the mission.",
+    "instructions": "Choose your race and class, putt lost souls through procedurally generated 4D hyperdungeon rifts, collect Gold, and buy upgrades. Shift along W with Q/E, rewind with T, breach branes with B. Return to the LuckyStarShip hub to expand chrono-sand capacity, exchange gold, and decode the codex.",
     "technical": {
         "canvasSize": {"width": 1000, "height": 600},
         "targetFPS": 60,
@@ -50,10 +53,10 @@
                 "description": "Three.js 3D Library (fallback mirror)"
             }
         ],
-        "local": ["../html/gravegain4d-math.js", "../html/gravegain4d-graphics.js", "../html/gravegain4d-worlds.js", "../html/gravegain4d-missions.js", "game.js", "index.html"]
+        "local": ["engine/vec4.js", "engine/mat4.js", "engine/projector.js", "engine/hyperdungeon.js", "engine/putt.js", "engine/timefold.js", "engine/branes.js", "engine/modes4d.js", "engine/main4d.js", "engine/flow4d.js", "engine/savebridge.js", "graphics/textures4d.js", "graphics/wghosts.js", "graphics/slicerenderer.js", "entities/enemies4d.js", "entities/bosses4d.js", "entities/ballistics.js", "world/dreamgen.js", "world/riftzones.js", "world/portal4d.js", "campaign/00-boot4d.js", "campaign/m01.js", "campaign/m02.js", "campaign/m03.js", "campaign/m04.js", "campaign/m05.js", "campaign/m06.js", "campaign/m07.js", "campaign/m08.js", "campaign/m09.js", "campaign/m10.js", "campaign/director4d.js", "campaign/ui4d.js", "campaign/codex4d.js", "combat/keymap4d.js", "combat/melee4d.js", "combat/block4d.js", "combat/abilities4d.js", "rpg/races4d.js", "rpg/classes4d.js", "rpg/progression4d.js", "rpg/economy4d.js", "rpg/upgrades4d.js", "rpg/stone4d.js", "rpg/crops4d.js", "rpg/quarters4d.js", "lore/npcs4d.js", "lore/dreams4d.js", "lore/hades4d.js", "lore/codex-extra4d.js", "ui/hud4d.js", "ui/touch4d.js", "ui/modes4d.js", "ui/contract4d.js", "ui/radar4d.js", "ui/hub4d.js", "audio/sound4d.js", "input/input4d.js", "mmorpg-4d.js", "net/mmorpg-bridge-4d.js", "game.css", "lore.js"]
     },
     "meta": {
-        "version": "1.0.0",
+        "version": "4.0.0",
         "created": "2026-09-13",
         "license": "MIT"
     }
