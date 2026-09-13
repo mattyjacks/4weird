@@ -1,5 +1,5 @@
 def get_section_4():
-    return '''---
+    return r'''---
 
 # 5. CROSS-CUTTING ARCHITECTURAL MODULES
 
@@ -51,7 +51,7 @@ export const crossClipboard = typeof window !== "undefined" ? new CrossClipboard
 ```typescript
 export interface PipelineStep {
   name: string;
-  tool: "fal" | "dictatepic" | "mediamogul" | "vcw" | "bounty";
+  tool: "fal" | "dictatepic" | "mediamogul" | "vcw" | "squad";
   action: string;
   inputPayload: Record<string, unknown>;
 }
@@ -126,7 +126,7 @@ All new code contributed in this remastery MUST implement the 300-fix security s
 1. **Strict SVG Sanitization:**
    Any user-uploaded SVG (for game sprites, logos, or icons) must be stripped of `<script>`, `<foreignObject>`, and all `on*` event handlers using `DOMPurify` before rendering.
 2. **Double-Click Prevention on Coin Actions:**
-   Every button that triggers a Vibe Coin deduction or bounty escrow release must disable itself immediately upon click using pointer-capture and state guards to prevent double-spending.
+   Every button that triggers a Vibe Coin deduction, squad balance transfer, or service purchase must disable itself immediately upon click using pointer-capture and state guards to prevent double-spending.
 3. **SSRF Guard on Media Imports:**
    All external URLs passed to video/image processors must pass through `lib/ssrf-guard.ts` to block internal IP ranges (`127.0.0.1`, `10.0.0.0/8`, `169.254.169.254`).
 4. **WebSocket Heartbeat Leaks:**
@@ -142,9 +142,10 @@ All new code contributed in this remastery MUST implement the 300-fix security s
 +-----------------------------------------------------------------------------------+
 | Swarm Orchestration Rollout Schedule                                              |
 +-----------------------------------------------------------------------------------+
-| WAVE 1: Commerce, Direct Contact, & Community Foundation                          |
+| WAVE 1: Squad Workspaces, Invoicing, Time Tracking & Productivity Foundation      |
 | - Lanes: GG-01 to GG-06                                                           |
-| - Deliverables: Creators Directory, Contact Gates, Bounty Escrow, Notifications   |
+| - Deliverables: Squad Workspaces, Kanban Boards, Time Tracking, Invoicing Suite,  |
+|                 Real-Time Notifications, 1-on-1 Direct Chat                       |
 |                                                                                   |
 | WAVE 2: AI Infrastructure, MCP, Discord, & P2P Compute                            |
 | - Lanes: GG-07 to GG-10 + CAS-01 to CAS-04                                        |

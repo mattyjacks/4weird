@@ -1,5 +1,5 @@
 def get_section_2():
-    return '''---
+    return r'''---
 
 # 3. FEATURE IMPLEMENTATION GUIDES: CRYPTARTISTSTUDIO SUITE
 
@@ -739,7 +739,7 @@ Combines 4weird's existing ElevenLabs voice engine (`lib/buddy-voice.ts`) with a
 ## 3.7 Feature 07: CryptArt Commander (CAC) — Power-User Terminal & Scripting Engine
 
 ### Architectural Blueprint
-Provides a quake-style dropdown CLI (`Ctrl+\``) for power users, developers, and clan tech officers to inspect system diagnostics, run batch jobs, query Vibe Coin balances, and trigger game test runs.
+Provides a quake-style dropdown CLI (`Ctrl+Backquote`) for power users, developers, and clan tech officers to inspect system diagnostics, run batch jobs, query Vibe Coin balances, and trigger game test runs.
 
 ### Command Execution Engine (`lib/commander-registry.ts`)
 
@@ -826,7 +826,7 @@ export type InteropEventPayload = {
   "media:exported": { path: string; type: "video" | "image" | "audio" };
   "code:fix-available": { patchDiff: string; targetFile: string };
   "game:asset-imported": { assetUrl: string; assetType: string };
-  "bounty:claimed": { bountyId: string; workerId: string };
+  "squad:task-completed": { squadId: string; taskId: string };
   "system:notification": { title: string; message: string; category: string };
 };
 

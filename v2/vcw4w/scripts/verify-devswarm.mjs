@@ -45,7 +45,10 @@ const STATUS_ENUM = ["open", "claimed", "in_progress", "blocked", "done"];
 const LANE_ENUM = ["web", "games", "desktop", "economy", "vcw", "docs", "infra"];
 
 const SECRET_PATTERNS = [
-  /sk-[A-Za-z0-9]{8,}/,
+  // sk-: OpenAI-style keys are long and standalone. The lookbehind + {20,}
+  // floor keeps ordinary words like "task-marketplace" (sk- + 11 chars,
+  // mid-word) from tripping the scan.
+  /(?<![A-Za-z0-9_-])sk-[A-Za-z0-9-_]{20,}/,
   /bot4weird_[A-Za-z0-9]{16,}/,
   /BEGIN (RSA )?PRIVATE KEY/,
   /client_secret\s*[:=]\s*['"][^'"]{4,}/i,
