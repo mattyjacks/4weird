@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
   // (NOT under `experimental`; `experimental.useCache`/`dynamicIO` are removed).
   cacheComponents: true,
   experimental: {
-    optimizePackageImports: ["lucide-react", "next-themes", "@radix-ui/react-checkbox", "@radix-ui/react-dropdown-menu", "@radix-ui/react-label", "@radix-ui/react-slot"],
+    optimizePackageImports: ["lucide-react", "next-themes", "@radix-ui/react-checkbox", "@radix-ui/react-dropdown-menu", "@radix-ui/react-label", "@radix-ui/react-slot", "class-variance-authority", "clsx", "tailwind-merge", "@supabase/supabase-js", "@supabase/ssr", "@vercel/analytics", "@radix-ui/react-dialog", "@radix-ui/react-tabs", "@radix-ui/react-tooltip", "@radix-ui/react-avatar", "date-fns"],
   },
   async headers() {
     return [{ source: "/account", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/auth/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/protected", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/it", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/boss", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] }, { source: "/api/vcw/health", headers: [{ key: "Cache-Control", value: "no-store" }] },
@@ -65,6 +65,22 @@ const nextConfig: NextConfig = {
     // Perf workers: immutable static JS, safe to cache for a year. They are
     // versioned by filename; bump the file when the protocol changes.
     { source: "/workers/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }, { key: "Content-Type", value: "application/javascript; charset=utf-8" }] },
+    // Versioned immutable statics (DS-SPEED-08, additive): content-hashed or
+    // filename-versioned, safe to cache for a year. /_next/static/* is
+    // content-hashed by the Next build; /og/* + /images/* are
+    // filename-versioned (ship a new file on change, never mutate in place).
+    // Year-long immutable keeps repeat loads edge-cached without
+    // revalidation. NOTE: /sw.js is intentionally NOT here (service workers
+    // must revalidate or updates stick); /games + /vcw + swarm bus keep
+    // their short/SWR policies above.
+    { source: "/_next/static/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    { source: "/og/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    { source: "/images/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    // DS-SPEED-08 follow-up (additive): filename-versioned font + icon statics.
+    // Ship a new file on change, never mutate in place; same year-long
+    // immutable policy as the statics above. /sw.js stays excluded.
+    { source: "/fonts/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    { source: "/icons/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     // DevSwarm public bus: tiny Markdown/JSON, read by bots on every loop.
     // Cache briefly at the edge (60s fresh + 5min stale) so STATUS.json +
     // task envelopes load in ms instead of hitting origin each poll.

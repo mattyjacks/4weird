@@ -12,6 +12,26 @@ export const metadata: Metadata = {
   title: "Pricing | 4weird Games",
   description:
     "Vibe Coins, cloud compute with a 25% premium included, and VibeCodeWorker self-hosted licensing: $420/mo per org (100 seats, +$4.20/seat) with 15% compute markup, plus Enterprise quotes down to 9%.",
+  openGraph: {
+    title: "Pricing & Vibe Coins - 100 Coins = $1.00 | 4weird",
+    description:
+      "Transparent cloud economy: 100 Vibe Coins = exactly $1.00. 25% cut included, never on top. Pay per second for GPUs, desktops, and agents.",
+    images: [
+      {
+        url: "/og/og-pricing.png",
+        width: 1200,
+        height: 630,
+        alt: "4weird Pricing - 100 Vibe Coins = $1.00",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pricing & Vibe Coins - 100 Coins = $1.00 | 4weird",
+    description:
+      "Transparent cloud economy: 100 Vibe Coins = exactly $1.00. 25% cut included, never on top. Pay per second for GPUs, desktops, and agents.",
+    images: ["/og/og-pricing.png"],
+  },
 };
 
 function Check({ children }: { children: React.ReactNode }) {

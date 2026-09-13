@@ -70,6 +70,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   const [showTouchPad, setShowTouchPad] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fakeFullscreen, setFakeFullscreen] = useState(false);
+  const exitControlRef = useRef<HTMLButtonElement>(null);
 
   const pushA11y = useCallback(() => {
     try {
@@ -213,6 +214,14 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
 
   const fullscreenActive = isFullscreen || fakeFullscreen;
 
+  // Move keyboard focus to the large exit control on entering fullscreen so
+  // switch/keyboard-only players can exit without hunting for the toolbar.
+  useEffect(() => {
+    if (fullscreenActive) {
+      exitControlRef.current?.focus({ preventScroll: true });
+    }
+  }, [fullscreenActive]);
+
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const coarsePointer = window.matchMedia("(pointer: coarse)");
@@ -351,7 +360,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
           if (!(await hasLocalSession())) return;
           let response: Response;
           try {
-            response = await fetch(`/api/saves?game=${encodeURIComponent(slug)}&slot=1`, { credentials: "include" });
+            response = await fetch(`/api/saves?game=${encodeURIComponent(slug)}&slot=0`, { credentials: "include" });
           } catch {
             return;
           }
@@ -370,7 +379,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       } else if (payload.type === "error") {
         setStatus(payload.message || "The game reported a runtime error.");
       } else if (payload.type === "save" && payload.data && typeof payload.data === "object") {
-        const slot = Number.isInteger(payload.slot) && payload.slot! >= 0 && payload.slot! <= 3 ? payload.slot : 1;
+        const slot = Number.isInteger(payload.slot) && payload.slot! >= 0 && payload.slot! <= 3 ? payload.slot : 0;
         // No session → local progress only; never fire a doomed PUT.
         void (async () => {
           if (!(await hasLocalSession())) return;
@@ -415,6 +424,17 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
           <a href={src} target="_blank" rel="noopener" className="rounded px-2 py-1 text-xs text-white hover:bg-white/20" title="Open the standalone game window in a new tab">Pop out</a>
         </div>
         <p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "" : "sr-only"}`}>{status}</p>
+        {fullscreenActive && (
+          <button
+            ref={exitControlRef}
+            type="button"
+            aria-label="Exit fullscreen"
+            onClick={() => void toggleFullscreen()}
+            className="absolute bottom-4 left-1/2 z-30 min-h-[48px] min-w-[48px] -translate-x-1/2 rounded-full border-2 border-white/80 bg-black/85 px-6 py-3 text-base font-semibold text-white shadow-lg hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300"
+          >
+            Exit fullscreen (Esc)
+          </button>
+        )}
         {showTouchPad && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex gap-2">{padButton("A", " ")}{padButton("↻", "r")}</div></div>}
         <iframe ref={frame} title={title} src={src} onLoad={handleLoad} onError={() => setStatus("The game could not be loaded. Try the Pop out link to open the standalone runtime.")} className="h-full w-full touch-manipulation border-0 bg-black" allow="autoplay; fullscreen; gamepad" sandbox="allow-forms allow-modals allow-pointer-lock allow-same-origin allow-scripts" />
       </div>

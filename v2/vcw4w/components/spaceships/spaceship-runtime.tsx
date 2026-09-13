@@ -16,11 +16,17 @@ export function SpaceshipRuntime() {
     // onLoad success if polling is blocked. Hidden tabs skip polls so the
     // GPU/CPU idles instead of spinning for an unseen sim.
     const started = Date.now();
+    // Cache the iframe handle + last readiness probe so hidden tabs do zero
+    // DOM reads and visible polls reuse the cached frame.
+    let cachedFrame: HTMLIFrameElement | null = null;
     const id = window.setInterval(() => {
       if (document.hidden) return;
-      const frame = document.querySelector<HTMLIFrameElement>(
-        'iframe[data-spaceship-sim]',
-      );
+      if (!cachedFrame) {
+        cachedFrame = document.querySelector<HTMLIFrameElement>(
+          'iframe[data-spaceship-sim]',
+        );
+      }
+      const frame = cachedFrame;
       try {
         const win = frame?.contentWindow as unknown as
           | { spaceGameMain?: { initialized?: boolean }; spaceGameCore?: unknown }

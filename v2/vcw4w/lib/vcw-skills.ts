@@ -293,3 +293,76 @@ export function defaultSkillRegistry(): VcwSkillRegistry {
   const { registry } = loadSkillRegistry([ECHO_SKILL_MANIFEST]);
   return registry;
 }
+
+// ---------------------------------------------------------------------------
+// SPEED-06: idle-deferred + reuse helpers (additive; existing behavior
+// unchanged, gateway/auth untouched — this module never fetches).
+// ---------------------------------------------------------------------------
+
+/**
+ * Schedule non-critical skill work (registry seeding, summary building) on
+ * idle so VCW surfaces paint first. requestIdleCallback with a setTimeout
+ * fallback; server-safe. Returns a cancel function.
+ */
+export function scheduleSkillIdleTask(cb: () => void, timeoutMs = 1500): () => void {
+  try {
+    const w = globalThis as unknown as {
+      requestIdleCallback?: (c: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(cb, { timeout: timeoutMs });
+      return () => {
+        try {
+          w.cancelIdleCallback?.(id);
+        } catch {
+          /* fail-open */
+        }
+      };
+    }
+  } catch {
+    /* fall through */
+  }
+  const t = setTimeout(cb, 0);
+  return () => clearTimeout(t);
+}
+
+/**
+ * Idle-deferred registry load: resolves on idle instead of blocking the
+ * initial render. Never rejects — mirrors loadSkillRegistry()'s fail-open
+ * contract (invalid manifests land in `skipped`).
+ */
+export function loadSkillRegistryDeferred(inputs: readonly unknown[]): Promise<VcwSkillLoadReport> {
+  return new Promise((resolve) => {
+    scheduleSkillIdleTask(() => {
+      try {
+        resolve(loadSkillRegistry(inputs));
+      } catch {
+        resolve({ registry: createSkillRegistry(), skills: [], skipped: [] });
+      }
+    });
+  });
+}
+
+// Reused summary cache: one WeakMap keyed by registry instance so repeated
+// list calls (re-renders) reuse the last array instead of re-mapping.
+const skillSummaryCache = new WeakMap<VcwSkillRegistry, VcwSkillSummary[]>();
+
+/** Cached variant of listSkillSummaries — same output, reused per registry. */
+export function listSkillSummariesCached(registry: VcwSkillRegistry): VcwSkillSummary[] {
+  const hit = skillSummaryCache.get(registry);
+  if (hit) return hit;
+  const fresh = listSkillSummaries(registry);
+  skillSummaryCache.set(registry, fresh);
+  return fresh;
+}
+
+/** Async echo runner: defers the bounded-clone work to idle. */
+export function runEchoSkillDeferred(
+  input: unknown,
+  source?: EchoSkillSource,
+): Promise<RunSkillResult> {
+  return new Promise((resolve) => {
+    scheduleSkillIdleTask(() => resolve(runEchoSkill(input, source)));
+  });
+}

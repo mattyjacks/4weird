@@ -593,7 +593,7 @@
   //    shell POSTs them to /api/stats, so every game's Actions + Play-time
   //    boards populate. kills/deaths stay 0 - the bridge cannot know them.
   //  - save: a localStorage snapshot on pagehide/hidden, posted as the
-  //    slot-1 cloud save. Keys already present locally are left alone on
+  //    slot-0 (cheat-free) cloud save. Keys already present locally are left alone on
   //    restore, so same-browser state is never clobbered.
   var STATS_FLUSH_MS = 60000;
   var SAVE_BYTES_MAX = 200 * 1024;
@@ -663,7 +663,7 @@
   function saveNow() {
     var keys = snapshotStorage();
     if (!keys) return;
-    post({ type: "save", slot: 1, schema_version: 1, data: { namespace: SLUG, keys: keys } });
+    post({ type: "save", slot: 0, schema_version: 1, data: { namespace: SLUG, keys: keys } });
   }
 
   // Fill keys ABSENT from localStorage from a cloud snapshot. Same-browser

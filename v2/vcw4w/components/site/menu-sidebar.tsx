@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { SITE_NAV_GROUPS } from "@/lib/site-nav";
 import { favMetaFor, normalizeFavHref, useFavorites } from "@/lib/favorites";
 import { FavoriteToggle } from "@/components/site/favorite-toggle";
@@ -48,23 +48,6 @@ export function MenuSidebar() {
   const { favorites, hydrated: favsHydrated, toggle, isFav, notice } = useFavorites();
   const favsHeadingRef = useRef<HTMLParagraphElement>(null);
   const favListRef = useRef<HTMLUListElement>(null);
-
-  /**
-   * Un-star from the pinned list, then keep keyboard focus inside the
-   * panel: next/previous remaining star, else the Favorites heading.
-   * (Removing unmounts the focused button, which would drop focus to body.)
-   */
-  const handleFavRemove = (href: string) => {
-    const key = normalizeFavHref(href);
-    const idx = favoriteLinks.findIndex((l) => normalizeFavHref(l.href) === key);
-    toggle(key);
-    requestAnimationFrame(() => {
-      const buttons = favListRef.current?.querySelectorAll<HTMLButtonElement>("button[aria-pressed]");
-      const next = buttons?.[Math.min(Math.max(idx, 0), (buttons?.length ?? 1) - 1)];
-      if (next) next.focus();
-      else favsHeadingRef.current?.focus();
-    });
-  };
 
   // Restore prefs (closed by default = cleaner interface).
   useEffect(() => {

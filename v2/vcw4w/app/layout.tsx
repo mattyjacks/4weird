@@ -63,10 +63,10 @@ export const metadata: Metadata = {
     description: DEFAULT_DESCRIPTION,
     images: [
       {
-        url: "/opengraph-image.png",
+        url: "/og/og-home.png",
         width: 1200,
         height: 630,
-        alt: "4weird Games; rent cloud compute, fund AI-built games",
+        alt: "4weird Games - Future Forward Fun, Funded by Founders",
       },
     ],
   },
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
-    images: ["/twitter-image.png"],
+    images: ["/og/og-home.png"],
   },
   robots: {
     index: true,

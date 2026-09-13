@@ -17,9 +17,24 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/vibecodeworker" },
   openGraph: {
-    title: "VibeCodeWorker - Evidence-Driven Game QA",
+    title: "VibeCodeWorker - Evidence-Driven Game QA | 4weird",
     description:
       "Run, observe, debug, and improve web experiences: playtest hubs, cloud GPU runs, autoplay, and a full manual.",
+    images: [
+      {
+        url: "/og/og-vibecodeworker.png",
+        width: 1200,
+        height: 630,
+        alt: "VibeCodeWorker - Evidence-Driven Game QA",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VibeCodeWorker - Evidence-Driven Game QA | 4weird",
+    description:
+      "Run, observe, debug, and improve web experiences: playtest hubs, cloud GPU runs, autoplay, and a full manual.",
+    images: ["/og/og-vibecodeworker.png"],
   },
 };
 

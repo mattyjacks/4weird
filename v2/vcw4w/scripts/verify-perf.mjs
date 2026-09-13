@@ -79,4 +79,31 @@ must(!pkg.includes("--turbo"), "package.json must not use the removed --turbo fl
 // / performance marks) is tracked as a QUEUE A02 wiring request to infra;
 // the PerfBootstrap layout mount above stays the enforced perf invariant.
 
-console.log("Perf checks OK: workers + GPU layer + component fan-out.");
+// 8. DS-SPEED-08 (additive): immutable long-cache covers more versioned statics.
+// Existing /workers/* assert above is untouched; these only widen coverage.
+for (const src of ["/workers/:path*", "/_next/static/:path*", "/og/:path*", "/images/:path*"]) {
+  must(nextConfig.includes(src), `next.config.ts must long-cache versioned static ${src}`);
+}
+must(nextConfig.includes("max-age=31536000, immutable"), "next.config.ts immutable statics must use max-age=31536000, immutable");
+must(!nextConfig.includes('source: "/sw.js"'), "next.config.ts must not long-cache /sw.js (service workers must revalidate)");
+
+// 9. DS-SPEED-08 (additive): optimizePackageImports widened, Turbopack-default kept.
+// Existing entries are re-asserted (never removed); new entries are additive.
+for (const token of ["lucide-react", "next-themes", "@radix-ui/react-checkbox", "@radix-ui/react-dropdown-menu", "@radix-ui/react-label", "@radix-ui/react-slot", "class-variance-authority", "clsx", "tailwind-merge", "@supabase/supabase-js", "@supabase/ssr", "@vercel/analytics"]) {
+  must(nextConfig.includes(token), `next.config.ts optimizePackageImports must include ${token}`);
+}
+must(nextConfig.includes("optimizePackageImports"), "next.config.ts must keep experimental.optimizePackageImports");
+
+// 10. DS-SPEED-08 follow-up (additive only): wider immutable statics + imports.
+// Extends sections 8-9 without touching them; Turbopack-default + no-/sw.js
+// invariants are re-asserted, never relaxed.
+for (const src of ["/fonts/:path*", "/icons/:path*"]) {
+  must(nextConfig.includes(src), `next.config.ts must long-cache versioned static ${src}`);
+}
+for (const token of ["@radix-ui/react-dialog", "@radix-ui/react-tabs", "@radix-ui/react-tooltip", "@radix-ui/react-avatar", "date-fns"]) {
+  must(nextConfig.includes(token), `next.config.ts optimizePackageImports must include ${token}`);
+}
+must(!nextConfig.includes('source: "/sw.js"'), "next.config.ts must still not long-cache /sw.js");
+must(!nextConfig.includes("webpack(") && !nextConfig.includes("config.webpack"), "next.config.ts must keep Turbopack default (no webpack() config)");
+
+console.log("Perf checks OK: workers + GPU layer + component fan-out + DS-SPEED-08 immutable statics/imports.");

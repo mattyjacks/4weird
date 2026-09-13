@@ -11,6 +11,26 @@ export const metadata: Metadata = {
   title: "Rent an Agent | 4weird Games",
   description:
     "Rent an AI agent or a Xonotic game server by the hour. Every price is a gross USD/hr maximum (25% platform cut included) and you are billed per second.",
+  openGraph: {
+    title: "Rent AI Agents & Cloud GPUs | 4weird",
+    description:
+      "Rent AI agents, cloud GPUs, and game servers by the second. Escrow locks max budget, unused coins return automatically.",
+    images: [
+      {
+        url: "/og/og-agents.png",
+        width: 1200,
+        height: 630,
+        alt: "4weird AI Agents & Cloud Compute",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rent AI Agents & Cloud GPUs | 4weird",
+    description:
+      "Rent AI agents, cloud GPUs, and game servers by the second. Escrow locks max budget, unused coins return automatically.",
+    images: ["/og/og-agents.png"],
+  },
 };
 
 

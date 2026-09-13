@@ -11,6 +11,26 @@ export const metadata: Metadata = {
   title: "Gaming Buddy | 4weird Games",
   description:
     "Your universal screen-aware Gaming Buddy: talks while you play in 9 OpenAI voices (Nova by default), reads the screen with your permission, reacts to the action. Metered at true cost in Vibe Coins with the 25% cut included.",
+  openGraph: {
+    title: "Gaming Buddy - Screen-Aware AI Voice Companion | 4weird",
+    description:
+      "Your universal screen-aware Gaming Buddy: talks while you play in 9 OpenAI voices, reads the screen with your permission, reacts to the action.",
+    images: [
+      {
+        url: "/og/og-buddy.png",
+        width: 1200,
+        height: 630,
+        alt: "4weird Gaming Buddy - AI Voice Companion",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Gaming Buddy - Screen-Aware AI Voice Companion | 4weird",
+    description:
+      "Your universal screen-aware Gaming Buddy: talks while you play in 9 OpenAI voices, reads the screen with your permission, reacts to the action.",
+    images: ["/og/og-buddy.png"],
+  },
 };
 
 const PICKER_SLUGS = ["lobby", "gravegain2d", "gravegain3d", "lastwordszombies", "assassinanimals", "battlesharks2", "platform-wars", "overtake", "serversavershield"] as const;

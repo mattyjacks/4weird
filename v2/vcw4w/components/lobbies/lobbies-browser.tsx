@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sortByPingAsync } from "@/lib/perf-client";
 
@@ -26,8 +26,12 @@ export function LobbiesBrowser() {
   const [rows, setRows] = useState<Lobby[] | null>(null);
   const [message, setMessage] = useState("Loading open lobbies…");
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Debounce ping re-sorts so rapid filter/refresh clicks reuse one worker call.
+  const lastSortAt = useRef(0);
 
   const load = useCallback(async (gameSlug: string) => {
+    // Hidden-tab guard: skip background polls so idle tabs do no fetch/sort work.
+    if (typeof document !== "undefined" && document.hidden) return;
     setMessage("Loading open lobbies…");
     setRows(null);
     try {
@@ -46,7 +50,16 @@ export function LobbiesBrowser() {
       }
       const list = (Array.isArray(body.lobbies) ? body.lobbies : []) as Lobby[];
       // Ping sort runs in /workers/search-worker.js (falls back to main thread).
+      // Debounced: collapse sorts fired within 300ms into a single worker call.
       const rows = list.map((l) => ({ ...l, relay_ping_ms: Number(l.relay_ping_ms) || 999 }));
+      const now = Date.now();
+      const elapsed = now - lastSortAt.current;
+      if (elapsed < 300) {
+        await new Promise((resolve) => setTimeout(resolve, 300 - elapsed));
+        // Re-check visibility after the debounce delay; tab may have hidden.
+        if (typeof document !== "undefined" && document.hidden) return;
+      }
+      lastSortAt.current = Date.now();
       const sorted = await sortByPingAsync(
         rows.map((l) => ({ id: l.id, ping: Number(l.relay_ping_ms) || 999 })),
       );

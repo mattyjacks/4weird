@@ -1,8 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { DEBUG_PLAY_DOWNSAMPLE } from "@/lib/vcw-debug-play";
 import type { BugReport } from "@/lib/vcw-debug-play";
+
+// Heavy viewport chunks stay out of the initial bundle — the form/buttons
+// render first, and the timeline + report hydrate only once frames exist.
+const LazyTimeline = dynamic(
+  () => import("./debug-play-timeline").then((m) => m.DebugPlayTimeline),
+  { ssr: false, loading: () => <TimelineFallback /> },
+);
+const LazyReport = dynamic(
+  () => import("./debug-play-report").then((m) => m.DebugPlayReport),
+  { ssr: false, loading: () => <ReportFallback /> },
+);
+
+function TimelineFallback() {
+  return (
+    <p role="status" className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-sm text-slate-500">
+      Loading frame timeline…
+    </p>
+  );
+}
+
+function ReportFallback() {
+  return (
+    <p role="status" className="rounded-xl border border-white/10 bg-white/[0.02] p-4 text-sm text-slate-500">
+      Loading frame report…
+    </p>
+  );
+}
 
 /**
  * DebugPlay viewport (Remastery Feature 03, §3.3) — headless game-tester
@@ -63,6 +91,91 @@ function hashFrame(dataUrl: string): string {
 }
 
 /**
+ * SPEED-06: defer non-critical work to idle so the first paint never waits
+ * on hashing/analysis bookkeeping. requestIdleCallback with a setTimeout
+ * fallback; server-safe (no window ⇒ run on next tick).
+ */
+function scheduleIdleTask(cb: () => void, timeoutMs = 1500): () => void {
+  try {
+    const w = globalThis as unknown as {
+      requestIdleCallback?: (c: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(cb, { timeout: timeoutMs });
+      return () => {
+        try {
+          w.cancelIdleCallback?.(id);
+        } catch {
+          /* fail-open */
+        }
+      };
+    }
+  } catch {
+    /* fall through to setTimeout */
+  }
+  const t = setTimeout(cb, 0);
+  return () => clearTimeout(t);
+}
+
+// Shared hash worker, created once and reused across every frame (SPEED-06
+// worker reuse). Module-level so Live re-sends never re-spawn it. Falls
+// back to the sync djb2 above when Workers are unavailable.
+let sharedHashWorker: Worker | null = null;
+let hashWorkerFailed = false;
+
+function getSharedHashWorker(): Worker | null {
+  if (hashWorkerFailed) return null;
+  if (sharedHashWorker) return sharedHashWorker;
+  try {
+    const W = globalThis as unknown as { Worker?: typeof Worker };
+    if (typeof W.Worker !== "function") return null;
+    const src = `onmessage=(e)=>{const s=String(e.data??"");let h=5381;for(let i=0;i<s.length;i++){h=(((h<<5)+h+s.charCodeAt(i))|0)}postMessage("djb2-"+(h>>>0).toString(16))};`;
+    sharedHashWorker = new W.Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
+    return sharedHashWorker;
+  } catch {
+    hashWorkerFailed = true;
+    return null;
+  }
+}
+
+/** Off-main-thread djb2 via the shared worker; sync fallback on failure. */
+function hashFrameAsync(dataUrl: string): Promise<string> {
+  const worker = getSharedHashWorker();
+  if (!worker) return Promise.resolve(hashFrame(dataUrl));
+  return new Promise((resolve) => {
+    let done = false;
+    const timer = setTimeout(() => {
+      if (!done) {
+        done = true;
+        resolve(hashFrame(dataUrl));
+      }
+    }, 2000);
+    const onMsg = (e: MessageEvent) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      worker.removeEventListener("message", onMsg as EventListener);
+      resolve(typeof e.data === "string" ? e.data : hashFrame(dataUrl));
+    };
+    const onErr = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      hashWorkerFailed = true;
+      resolve(hashFrame(dataUrl));
+    };
+    worker.addEventListener("message", onMsg as EventListener, { once: true });
+    worker.addEventListener("error", onErr as EventListener, { once: true });
+    try {
+      worker.postMessage(dataUrl);
+    } catch {
+      onErr();
+    }
+  });
+}
+
+/**
  * Mirror of the lib-side `emitFixAvailable` for browser context:
  * publishes `code:fix-available` on the cross-tool interop bus.
  * Fail-open — returns false (no throw) when no bus is present.
@@ -115,6 +228,9 @@ export function DebugPlayViewport({ initialSlug = "" }: { initialSlug?: string }
       setError(null);
       const atSeconds = startedAt.current === 0 ? 0 : (Date.now() - startedAt.current) / 1000;
       try {
+        // Hash off the main thread on the shared worker; reused for both
+        // the POST body and the stored record (no double scan).
+        const frameHash = await hashFrameAsync(dataUrl);
         const res = await fetch("/api/vcw/debug-play", {
           method: "POST",
           credentials: "include",
@@ -123,7 +239,7 @@ export function DebugPlayViewport({ initialSlug = "" }: { initialSlug?: string }
             frame: dataUrl,
             gameSlug: slug,
             codeSnippet: codeSnippet.trim() ? codeSnippet.trim().slice(0, 8000) : undefined,
-            frameHash: hashFrame(dataUrl),
+            frameHash,
             timestampSeconds: Math.round(atSeconds * 10) / 10,
             recentDecisions: decisionsRef.current.slice(-LOOP_WINDOW),
           }),
@@ -145,7 +261,7 @@ export function DebugPlayViewport({ initialSlug = "" }: { initialSlug?: string }
           id: makeId(),
           atSeconds: Math.round(atSeconds * 10) / 10,
           thumbUrl: dataUrl,
-          frameHash: hashFrame(dataUrl),
+          frameHash,
           bugs: Array.isArray(body.bugs) ? body.bugs : [],
           nextInput,
           source: body.source === "ai" ? "ai" : "heuristic",
@@ -228,6 +344,16 @@ export function DebugPlayViewport({ initialSlug = "" }: { initialSlug?: string }
     };
   }, [live, busy, analyzeDataUrl]);
 
+  // Non-critical notice auto-clear rides idle so it never contends with
+  // frame ingest on the main thread.
+  useEffect(() => {
+    if (!notice) return;
+    const cancel = scheduleIdleTask(() => {
+      setTimeout(() => setNotice(null), 8000);
+    });
+    return cancel;
+  }, [notice]);
+
   const sendFix = useCallback(
     (bug: BugReport) => {
       if (!bug.suggestedFixDiff) return;
@@ -241,12 +367,7 @@ export function DebugPlayViewport({ initialSlug = "" }: { initialSlug?: string }
     [gameSlug],
   );
 
-  const worstSeverity = (bugs: BugReport[]): string | null => {
-    if (bugs.some((b) => b.severity === "critical")) return "critical";
-    if (bugs.some((b) => b.severity === "warning")) return "warning";
-    if (bugs.length > 0) return "cosmetic";
-    return null;
-  };
+  // worstSeverity lives in the lazy timeline chunk now (single owner).
 
   return (
     <div className="flex flex-col gap-4">
@@ -320,103 +441,18 @@ export function DebugPlayViewport({ initialSlug = "" }: { initialSlug?: string }
         </p>
       )}
 
-      {/* Frame timeline scrubber — analyzed frames with bug flags. */}
+      {/* Frame timeline scrubber — lazy chunk, mounts only once frames exist. */}
       {frames.length > 0 && (
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Frame timeline</p>
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
-            {frames.map((f) => {
-              const worst = worstSeverity(f.bugs);
-              const dot =
-                worst === "critical"
-                  ? "bg-red-500"
-                  : worst === "warning"
-                    ? "bg-amber-400"
-                    : worst === "cosmetic"
-                      ? "bg-slate-400"
-                      : "bg-emerald-400";
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setSelectedId(f.id)}
-                  title={`${f.atSeconds}s · ${f.bugs.length} bug(s) · next: ${f.nextInput}`}
-                  className={`relative shrink-0 overflow-hidden rounded-lg border ${
-                    selected?.id === f.id ? "border-cyan-300" : "border-white/10"
-                  }`}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={f.thumbUrl} alt={`Frame at ${f.atSeconds}s`} className="h-16 w-28 object-cover" />
-                  <span className={`absolute right-1 top-1 h-2.5 w-2.5 rounded-full ${dot}`} />
-                  {f.stuck && (
-                    <span className="absolute bottom-1 left-1 rounded bg-amber-500/90 px-1 text-[10px] font-bold text-black">
-                      STUCK
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <Suspense fallback={<TimelineFallback />}>
+          <LazyTimeline frames={frames} selectedId={selected?.id ?? null} onSelect={setSelectedId} />
+        </Suspense>
       )}
 
-      {/* Selected-frame report. */}
+      {/* Selected-frame report — lazy chunk (heaviest DOM: diff <pre> blocks). */}
       {selected ? (
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-mono text-slate-400">t={selected.atSeconds}s</span>
-            <span className="rounded bg-white/10 px-2 py-0.5 font-mono text-cyan-200">
-              next: {selected.nextInput}
-            </span>
-            <span className="rounded bg-white/10 px-2 py-0.5 font-mono text-slate-300">
-              source: {selected.source}
-            </span>
-            {selected.stuck && (
-              <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs font-bold text-amber-300">
-                Possible soft-lock — repeated input, static frame
-              </span>
-            )}
-          </div>
-          {selected.bugs.length === 0 ? (
-            <p className="mt-3 text-sm text-emerald-300">No visual bugs detected in this frame.</p>
-          ) : (
-            <ul className="mt-3 flex flex-col gap-3">
-              {selected.bugs.map((bug) => (
-                <li key={bug.id} className="rounded-lg border border-white/10 bg-black/30 p-3">
-                  <p className="text-sm font-bold text-white">
-                    <span
-                      className={`mr-2 inline-block rounded px-1.5 py-0.5 text-[11px] uppercase ${
-                        bug.severity === "critical"
-                          ? "bg-red-500/20 text-red-200"
-                          : bug.severity === "warning"
-                            ? "bg-amber-500/20 text-amber-200"
-                            : "bg-white/10 text-slate-300"
-                      }`}
-                    >
-                      {bug.severity}
-                    </span>
-                    {bug.title}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-400">{bug.description}</p>
-                  {bug.suggestedFixDiff && (
-                    <div className="mt-2">
-                      <pre className="max-h-40 overflow-auto rounded bg-black/60 p-2 font-mono text-xs text-emerald-200">
-                        {bug.suggestedFixDiff}
-                      </pre>
-                      <button
-                        type="button"
-                        onClick={() => sendFix(bug)}
-                        className="mt-2 rounded-lg border border-cyan-300/40 px-3 py-1.5 text-xs font-bold text-cyan-200 hover:bg-cyan-500/10"
-                      >
-                        Send fix to editor (code:fix-available)
-                      </button>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <Suspense fallback={<ReportFallback />}>
+          <LazyReport selected={selected} gameSlug={gameSlug} onSendFix={sendFix} />
+        </Suspense>
       ) : (
         <p role="status" className="rounded-lg border border-white/10 bg-white/[0.02] px-4 py-6 text-center text-sm text-slate-500">
           Attach a gameplay screenshot to run the first visual analysis. Frames are downsampled to{" "}

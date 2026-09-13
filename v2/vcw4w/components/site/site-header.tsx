@@ -1,12 +1,25 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import { WalletBadges } from "@/components/site/wallet-badges";
-import { UsaFlag } from "@/components/site/themes/usa-flag";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useSiteTheme } from "@/components/site/site-theme-provider";
 import { useMountedTheme } from "@/components/site/themes/use-mounted-theme";
+
+// Heavy chunks stay off the first-paint bundle and hydrate after it:
+// wallet badges pull balance polling + auth wiring, the USA flag pulls
+// next/image. Auth gating is unchanged — same props, same signedIn states.
+function WalletBadgesSkeleton() {
+  return <span aria-hidden="true" className="inline-block h-9 w-44 animate-pulse rounded-full bg-muted" />;
+}
+const WalletBadges = dynamic(
+  () => import("@/components/site/wallet-badges").then((m) => m.WalletBadges),
+  { ssr: false, loading: WalletBadgesSkeleton },
+);
+const UsaFlag = dynamic(() => import("@/components/site/themes/usa-flag").then((m) => m.UsaFlag), {
+  ssr: false,
+});
 
 import { SITE_NAV_GROUPS as SHARED_NAV_GROUPS } from "@/lib/site-nav";
 
@@ -119,17 +132,126 @@ const NAV_FADE_OUT_MS = 2000;
 const NAV_RESTORE_MAX_MS = 1000;
 const NAV_SWITCH_FADE_MS = 180;
 
-function prefersReducedMotion() {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Cached reduced-motion subscription: a matchMedia read per animation event
+// forces a style recalc mid-gesture, so subscribe once per component and
+// reuse the boolean through fades, restores, and scroll glides.
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return reduced;
 }
+
+function isActive(pathname: string, href: string) {
+  // External links are never "active".
+  if (/^https?:\/\//.test(href)) return false;
+  // Trailing-slash-insensitive: "/my/usage" and "/my/usage/" are the same page.
+  const norm = (p: string) => (p.length > 1 ? p.replace(/\/$/, "") : p);
+  const path = norm(pathname);
+  const target = norm(href);
+  if (target === "/") return path === "/";
+  return path === target || path.startsWith(`${target}/`);
+}
+
+function groupActive(pathname: string, links: { href: string }[]) {
+  return links.some((link) => isActive(pathname, link.href));
+}
+
+type DropdownLinkProps = {
+  link: NavLink;
+  index: number;
+  pathname: string;
+  onNavigate: () => void;
+  variant: "dropdown" | "sheet";
+};
+
+/**
+ * One nav link with its explanation line. Memoized on link identity +
+ * pathname-active state so route changes only re-render the two links whose
+ * active flag flips; the quick-explanation lookup runs once per link.
+ */
+const DropdownLink = memo(function DropdownLink({ link, index, pathname, onNavigate, variant }: DropdownLinkProps) {
+  const quick = useMemo(() => quickFor(link.label, link.href), [link.label, link.href]);
+  const active = isActive(pathname, link.href);
+  const title = quick ?? link.label;
+  if (variant === "sheet") {
+    return (
+      <li style={{ "--i": index } as CSSProperties}>
+        {link.external ? (
+          <a
+            href={link.href}
+            target="_blank"
+            rel="noreferrer noopener"
+            onClick={onNavigate}
+            title={title}
+            className="block px-5 py-1.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+          >
+            <span className="block">{link.label} <span aria-hidden="true">↗</span></span>
+            {quick && <span className="block text-xs font-normal opacity-80">{quick}</span>}
+          </a>
+        ) : (
+          <Link
+            href={link.href}
+            onClick={onNavigate}
+            aria-current={active ? "page" : undefined}
+            title={title}
+            className={`block px-5 py-1.5 text-sm font-semibold transition hover:bg-accent hover:text-accent-foreground ${
+              active ? "text-cyan-600 dark:text-cyan-300" : "text-muted-foreground"
+            }`}
+          >
+            <span className="block">{link.label}</span>
+            {quick && <span className="block text-xs font-normal opacity-80">{quick}</span>}
+          </Link>
+        )}
+      </li>
+    );
+  }
+  return (
+    <li style={{ "--i": index } as CSSProperties}>
+      {link.external ? (
+        <a
+          href={link.href}
+          target="_blank"
+          rel="noreferrer noopener"
+          onClick={onNavigate}
+          title={title}
+          className="block min-w-52 max-w-64 whitespace-normal px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground"
+        >
+          <span className="block font-semibold">{link.label} <span aria-hidden="true">↗</span></span>
+          {quick && <span className="block text-xs font-normal text-muted-foreground">{quick}</span>}
+        </a>
+      ) : (
+        <Link
+          href={link.href}
+          aria-current={active ? "page" : undefined}
+          onClick={onNavigate}
+          title={title}
+          className={`block min-w-52 max-w-64 whitespace-normal px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground ${
+            active ? "font-bold text-cyan-600 dark:text-cyan-300" : ""
+          }`}
+        >
+          <span className="block font-semibold">{link.label}</span>
+          {quick && <span className="block text-xs font-normal text-muted-foreground">{quick}</span>}
+        </Link>
+      )}
+    </li>
+  );
+});
 
 type DesktopNavGroupProps = {
   group: { label: string; links: NavLink[] };
   active: boolean;
   expandedMenu: boolean;
   pathname: string;
-  onOpen: () => void;
-  onRequestClose: () => void;
+  // Label-level callbacks stay referentially stable (setState setters from the
+  // parent), so the memoized group skips re-renders when a sibling opens.
+  onOpen: (label: string) => void;
+  onRequestClose: (label: string) => void;
   onNavigate: () => void;
 };
 
@@ -138,8 +260,11 @@ type DesktopNavGroupProps = {
  * 2s fade where a mouse-disturbed gradient mask dissolves the panel while it
  * slides back up into its button. Moving the mouse back restores opacity in
  * (faded * 1s) from the swirl.
+ *
+ * Memoized: static nav data + stable label-level callbacks mean a group only
+ * re-renders when its own active/open state or the pathname changes.
  */
-function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequestClose, onNavigate }: DesktopNavGroupProps) {
+const DesktopNavGroup = memo(function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequestClose, onNavigate }: DesktopNavGroupProps) {
   const [leaving, setLeaving] = useState(false);
   const stayVisible = expandedMenu || leaving;
   const panelRef = useRef<HTMLDivElement>(null);
@@ -149,30 +274,39 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
   const rafRef = useRef(0);
   const leavingRef = useRef(false);
   const lastPosRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  // Cached panel rect: getBoundingClientRect() on every pointermove forces a
+  // sync layout per event (layout thrash). Refresh on open/enter instead and
+  // reuse the cached box for the whole hover gesture.
+  const rectRef = useRef<DOMRect | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
 
-  const cancelAnim = () => {
+  const refreshRect = useCallback(() => {
+    const panel = panelRef.current;
+    rectRef.current = panel ? panel.getBoundingClientRect() : null;
+  }, []);
+
+  const cancelAnim = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     rafRef.current = 0;
-  };
+  }, []);
 
-  const paint = () => {
+  const paint = useCallback(() => {
     const panel = panelRef.current;
     if (!panel) return;
     panel.style.setProperty("--fade", fadeRef.current.toFixed(4));
     panel.style.setProperty("--vel", velRef.current.toFixed(4));
     panel.style.setProperty("--swirl", `${swirlRef.current.toFixed(1)}deg`);
-  };
+  }, []);
 
-  const setMouseFromClient = (clientX: number, clientY: number) => {
+  const setMouseFromClient = useCallback((clientX: number, clientY: number) => {
     const panel = panelRef.current;
     let nx = 0.5;
     let ny = 0;
-    if (panel) {
-      const rect = panel.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        nx = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-        ny = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
-      }
+    // Cached rect — no layout read in the pointermove hot path.
+    const rect = rectRef.current;
+    if (rect && rect.width > 0 && rect.height > 0) {
+      nx = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      ny = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
     }
     panel?.style.setProperty("--mx", `${(nx * 100).toFixed(1)}%`);
     panel?.style.setProperty("--my", `${(ny * 100).toFixed(1)}%`);
@@ -186,7 +320,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
       swirlRef.current = (swirlRef.current + boost * 46) % 360;
     }
     lastPosRef.current = { x: clientX, y: clientY, t: now };
-  };
+  }, []);
 
   // Global mouse disturbance while fading: wiggling the mouse churns the mask.
   useEffect(() => {
@@ -194,18 +328,23 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
     const onMove = (event: PointerEvent) => setMouseFromClient(event.clientX, event.clientY);
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
-  }, [leaving]);
+  }, [leaving, setMouseFromClient]);
 
   useEffect(() => {
     cancelAnim();
     return cancelAnim;
-  }, []);
+  }, [cancelAnim]);
+
+  // Cache the panel box as soon as it mounts so hover math never measures.
+  useEffect(() => {
+    if (stayVisible) refreshRect();
+  }, [stayVisible, refreshRect]);
 
   // Parent yanked the open state (switched group / Escape / outside / route):
   // fast swirl-away if we were mid-fade, otherwise hide instantly.
   useEffect(() => {
     if (expandedMenu || !leavingRef.current) return;
-    if (prefersReducedMotion()) {
+    if (reducedMotion) {
       leavingRef.current = false;
       setLeaving(false);
       return;
@@ -228,15 +367,16 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
     };
     rafRef.current = requestAnimationFrame(tick);
     return cancelAnim;
-  }, [expandedMenu]);
+  }, [expandedMenu, cancelAnim, paint, reducedMotion]);
 
   const handleEnter = () => {
+    refreshRect();
     if (leavingRef.current) {
       // Mouse came back mid-fade: restore in (faded * 1s), unwinding the swirl.
       cancelAnim();
       const faded = fadeRef.current;
-      onOpen();
-      if (prefersReducedMotion() || faded <= 0.01) {
+      onOpen(group.label);
+      if (reducedMotion || faded <= 0.01) {
         fadeRef.current = 0;
         velRef.current = 0;
         leavingRef.current = false;
@@ -268,13 +408,13 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
       rafRef.current = requestAnimationFrame(tick);
       return;
     }
-    if (!expandedMenu) onOpen();
+    if (!expandedMenu) onOpen(group.label);
   };
 
   const handleLeave = () => {
     if (!expandedMenu || leavingRef.current) return;
-    if (prefersReducedMotion()) {
-      onRequestClose();
+    if (reducedMotion) {
+      onRequestClose(group.label);
       return;
     }
     leavingRef.current = true;
@@ -297,7 +437,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
         leavingRef.current = false;
         setLeaving(false);
         fadeRef.current = 0;
-        onRequestClose();
+        onRequestClose(group.label);
       }
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -310,7 +450,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
       onMouseLeave={handleLeave}
       onMouseMove={(event) => setMouseFromClient(event.clientX, event.clientY)}
       onFocusCapture={() => {
-        if (!expandedMenu) onOpen();
+        if (!expandedMenu) onOpen(group.label);
       }}
     >
       <button
@@ -318,7 +458,7 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
         aria-expanded={expandedMenu}
         aria-haspopup="true"
         aria-current={active && !expandedMenu ? "page" : undefined}
-        onClick={() => (expandedMenu ? onRequestClose() : onOpen())}
+        onClick={() => (expandedMenu ? onRequestClose(group.label) : onOpen(group.label))}
         className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-semibold transition hover:bg-accent hover:text-accent-foreground ${
           active ? "text-cyan-600 dark:text-cyan-300" : ""
         }`}
@@ -332,56 +472,21 @@ function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequ
         <div ref={panelRef} className="nav-swirl-panel desktop-fluid absolute left-0 top-full z-50 min-w-52 pt-1">
           <ul className="nav-swirl-list overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/50">
             {group.links.map((link, index) => (
-              <li key={`${link.href}-${link.label}`} style={{ "--i": index } as CSSProperties}>
-                {link.external ? (
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    onClick={onNavigate}
-                    title={quickFor(link.label, link.href) ?? link.label}
-                    className="block min-w-52 max-w-64 whitespace-normal px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground"
-                  >
-                    <span className="block font-semibold">{link.label} <span aria-hidden="true">↗</span></span>
-                    {quickFor(link.label, link.href) && <span className="block text-xs font-normal text-muted-foreground">{quickFor(link.label, link.href)}</span>}
-                  </a>
-                ) : (
-                  <Link
-                    href={link.href}
-                    aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                    onClick={onNavigate}
-                    title={quickFor(link.label, link.href) ?? link.label}
-                    className={`block min-w-52 max-w-64 whitespace-normal px-3 py-1.5 text-sm transition hover:bg-accent hover:text-accent-foreground ${
-                      isActive(pathname, link.href) ? "font-bold text-cyan-600 dark:text-cyan-300" : ""
-                    }`}
-                  >
-                    <span className="block font-semibold">{link.label}</span>
-                    {quickFor(link.label, link.href) && <span className="block text-xs font-normal text-muted-foreground">{quickFor(link.label, link.href)}</span>}
-                  </Link>
-                )}
-              </li>
+              <DropdownLink
+                key={`${link.href}-${link.label}`}
+                link={link}
+                index={index}
+                pathname={pathname}
+                onNavigate={onNavigate}
+                variant="dropdown"
+              />
             ))}
           </ul>
         </div>
       )}
     </div>
   );
-}
-
-function isActive(pathname: string, href: string) {
-  // External links are never "active".
-  if (/^https?:\/\//.test(href)) return false;
-  // Trailing-slash-insensitive: "/my/usage" and "/my/usage/" are the same page.
-  const norm = (p: string) => (p.length > 1 ? p.replace(/\/$/, "") : p);
-  const path = norm(pathname);
-  const target = norm(href);
-  if (target === "/") return path === "/";
-  return path === target || path.startsWith(`${target}/`);
-}
-
-function groupActive(pathname: string, links: { href: string }[]) {
-  return links.some((link) => isActive(pathname, link.href));
-}
+});
 
 // Shared CTA styling: one pill system for desktop bar, tablet row, and sheet.
 const CTA_PRIMARY =
@@ -395,8 +500,9 @@ const CTA_COINS =
  * Standard auth/coin actions, identical on desktop, tablet, and mobile —
  * only the wrapper layout changes. `onNavigate` closes whatever surface
  * hosts them (desktop dropdown / tablet panel / mobile sheet).
+ * Memoized: auth gating output depends only on signedIn + onNavigate.
  */
-function HeaderCtas({ signedIn, onNavigate }: { signedIn: boolean | null; onNavigate: () => void }) {
+const HeaderCtas = memo(function HeaderCtas({ signedIn, onNavigate }: { signedIn: boolean | null; onNavigate: () => void }) {
   if (signedIn === null) {
     return <span aria-hidden="true" className="inline-block h-9 w-44 animate-pulse rounded-full bg-muted" />;
   }
@@ -421,14 +527,14 @@ function HeaderCtas({ signedIn, onNavigate }: { signedIn: boolean | null; onNavi
       )}
     </>
   );
-}
+});
 
 /**
  * All Games entry in both of its responsive forms: quiet bar link on
  * desktop/tablet, full-width primary button in the sheet. Same href,
- * same label, same active rule.
+ * same label, same active rule. Memoized — static copy, pathname-active only.
  */
-function AllGamesLink({
+const AllGamesLink = memo(function AllGamesLink({
   pathname,
   onNavigate,
   variant,
@@ -462,13 +568,15 @@ function AllGamesLink({
       🎮 All Games
     </Link>
   );
-}
+});
 
 /**
  * The four group dropdowns, shared verbatim by the desktop bar and the
  * tablet quick-row so taxonomy, order, and open-state stay identical.
+ * Memoized with stable label-level callbacks: opening one group only
+ * re-renders the two groups whose open flag flips.
  */
-function BarGroups({
+const BarGroups = memo(function BarGroups({
   pathname,
   openMenu,
   onOpenChange,
@@ -490,14 +598,14 @@ function BarGroups({
           active={groupActive(pathname, group.links)}
           expandedMenu={openMenu === group.label}
           pathname={pathname}
-          onOpen={() => onOpenChange(group.label)}
-          onRequestClose={() => onRequestClose(group.label)}
+          onOpen={onOpenChange}
+          onRequestClose={onRequestClose}
           onNavigate={onNavigate}
         />
       ))}
     </>
   );
-}
+});
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
@@ -519,6 +627,10 @@ export function SiteHeader() {
   const closeGroup = useCallback((label: string) => {
     setOpenMenu((prev) => (prev === label ? null : prev));
   }, []);
+  // Stable callbacks: inline arrows would defeat memo on BarGroups/HeaderCtas.
+  const closeMenu = useCallback(() => setOpenMenu(null), []);
+  const closeSheet = useCallback(() => setOpen(false), []);
+  const reducedMotion = usePrefersReducedMotion();
 
   // Track auth state so the header can show Login / Sign Up vs Dashboard.
   // WalletBadges reports back on 401 (server no longer sees the session)
@@ -656,7 +768,7 @@ export function SiteHeader() {
   // gentle curve (smooth behavior) instead of jumping.
   useEffect(() => {
     if (!open || !expanded || !mobileNavRef.current) return;
-    if (prefersReducedMotion()) return;
+    if (reducedMotion) return;
     const target = mobileNavRef.current.querySelector(`[data-group="${expanded}"]`);
     if (target) {
       // Let the accordion mount first, then ease toward it.
@@ -665,7 +777,7 @@ export function SiteHeader() {
       }, 60);
       return () => window.clearTimeout(id);
     }
-  }, [expanded, open]);
+  }, [expanded, open, reducedMotion]);
 
   return (
     <>
@@ -688,20 +800,20 @@ export function SiteHeader() {
             aria-label="Primary navigation"
             className="hidden items-center gap-1 text-sm text-muted-foreground lg:flex"
           >
-            <AllGamesLink variant="bar" pathname={pathname} onNavigate={() => setOpenMenu(null)} />
+            <AllGamesLink variant="bar" pathname={pathname} onNavigate={closeMenu} />
             <BarGroups
               pathname={pathname}
               openMenu={openMenu}
               onOpenChange={setOpenMenu}
               onRequestClose={closeGroup}
-              onNavigate={() => setOpenMenu(null)}
+              onNavigate={closeMenu}
             />
           </nav>
 
           {/* Desktop actions (lg+): identical set as the sheet via HeaderCtas */}
           <div className="hidden items-center gap-2 lg:flex">
             <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
-            <HeaderCtas signedIn={signedIn} onNavigate={() => setOpenMenu(null)} />
+            <HeaderCtas signedIn={signedIn} onNavigate={closeMenu} />
           </div>
 
           {/* Balances + menu toggle (mobile + tablet): badges stay visible even when the sheet is closed */}
@@ -729,13 +841,13 @@ export function SiteHeader() {
             aria-label="Tablet navigation"
             className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-1.5 text-sm text-muted-foreground sm:px-5"
           >
-            <AllGamesLink variant="bar" pathname={pathname} onNavigate={() => setOpenMenu(null)} />
+            <AllGamesLink variant="bar" pathname={pathname} onNavigate={closeMenu} />
             <BarGroups
               pathname={pathname}
               openMenu={openMenu}
               onOpenChange={setOpenMenu}
               onRequestClose={closeGroup}
-              onNavigate={() => setOpenMenu(null)}
+              onNavigate={closeMenu}
             />
           </nav>
         </div>
@@ -752,7 +864,7 @@ export function SiteHeader() {
           >
             <ul className="space-y-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0">
               <li className="sm:col-span-2">
-                <AllGamesLink variant="sheet" pathname={pathname} onNavigate={() => setOpen(false)} />
+                <AllGamesLink variant="sheet" pathname={pathname} onNavigate={closeSheet} />
               </li>
               {NAV_GROUPS.map((group) => {
                 const active = groupActive(pathname, group.links);
@@ -783,34 +895,14 @@ export function SiteHeader() {
                         className="mobile-acc-panel mobile-acc-list mobile-acc-scroll mobile-fluid border-t border-border bg-muted/40 py-1 dark:border-white/10 dark:bg-white/[.02]"
                       >
                         {group.links.map((link, index) => (
-                          <li key={`${link.href}-${link.label}`} style={{ "--i": index } as CSSProperties}>
-                            {link.external ? (
-                    <a
-                      href={link.href}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      onClick={() => setOpen(false)}
-                      title={quickFor(link.label, link.href) ?? link.label}
-                                className="block px-5 py-1.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
-                              >
-                                <span className="block">{link.label} <span aria-hidden="true">↗</span></span>
-                                {quickFor(link.label, link.href) && <span className="block text-xs font-normal opacity-80">{quickFor(link.label, link.href)}</span>}
-                              </a>
-                            ) : (
-                              <Link
-                                href={link.href}
-                                onClick={() => setOpen(false)}
-                                aria-current={isActive(pathname, link.href) ? "page" : undefined}
-                                title={quickFor(link.label, link.href) ?? link.label}
-                                className={`block px-5 py-1.5 text-sm font-semibold transition hover:bg-accent hover:text-accent-foreground ${
-                                  isActive(pathname, link.href) ? "text-cyan-600 dark:text-cyan-300" : "text-muted-foreground"
-                                }`}
-                              >
-                                <span className="block">{link.label}</span>
-                                {quickFor(link.label, link.href) && <span className="block text-xs font-normal opacity-80">{quickFor(link.label, link.href)}</span>}
-                              </Link>
-                            )}
-                          </li>
+                          <DropdownLink
+                            key={`${link.href}-${link.label}`}
+                            link={link}
+                            index={index}
+                            pathname={pathname}
+                            onNavigate={closeSheet}
+                            variant="sheet"
+                          />
                         ))}
                       </ul>
                     )}
@@ -820,7 +912,7 @@ export function SiteHeader() {
             </ul>
             {/* Sheet actions: identical set as desktop via HeaderCtas */}
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <HeaderCtas signedIn={signedIn} onNavigate={() => setOpen(false)} />
+              <HeaderCtas signedIn={signedIn} onNavigate={closeSheet} />
             </div>
           </nav>
         )}
