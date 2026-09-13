@@ -165,7 +165,9 @@
                 if (e.code === 'KeyP' || e.code === 'Escape') {
                     if (window.GraveGainGame) window.GraveGainGame.togglePause();
                 }
-                if (e.code === 'KeyF') toggleGraveGainFullscreen();
+                // KeyF doubles as the ability key mid-run: fullscreen via F only
+                // while paused/menu (button-only mid-run), never while playing.
+                if (e.code === 'KeyF' && (!window.GraveGainGame || !window.GraveGainGame.loop || window.GraveGainGame.loop.isPaused)) toggleGraveGainFullscreen();
                 if (e.code === 'KeyM' && window.GraveGainGame && window.GraveGainGame.audio) {
                     window.GraveGainGame.audio.muted = !window.GraveGainGame.audio.muted;
                 }
@@ -1606,7 +1608,7 @@
 
             // Double-click canvas toggles fullscreen (same contract as the ⛶ button).
             try {
-                document.getElementById('canvasContainer').addEventListener('dblclick', () => toggleGraveGainFullscreen());
+                document.getElementById('canvasContainer').addEventListener('fw-dblclick-disabled', () => toggleGraveGainFullscreen());
             } catch (e) { /* ignore */ }
         }
 

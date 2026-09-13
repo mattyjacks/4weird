@@ -51,6 +51,17 @@ async function hasLocalSession(): Promise<boolean> {
   }
 }
 
+// DS-AUTOSAVE-02: shell autosave preference + slot-0 mirror keys. The mirror
+// key matches UniversalSavePanel's `save:<slug>:slot:<slot>` so the timer
+// and the manual panel read/write the same device copy.
+function autosaveKey(slug: string) {
+  return `autosave:${slug}:enabled`;
+}
+
+function autosaveMirrorKey(slug: string) {
+  return `save:${slug}:slot:0`;
+}
+
 export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: string; src: string }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const shell = useRef<HTMLDivElement>(null);
@@ -76,7 +87,12 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   const [barsOpen, setBarsOpen] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fakeFullscreen, setFakeFullscreen] = useState(false);
-  const exitControlRef = useRef<HTMLButtonElement>(null);
+  // Shell-side autosave (DS-AUTOSAVE-02): ON by default, persisted per game
+  // under `autosave:<slug>:enabled` (absent = enabled).
+  const [autosaveEnabled, setAutosaveEnabled] = useState(true);
+  const autosaveEnabledRef = useRef(true);
+  // Last time a save landed via any path (bridge save, timer, request).
+  const lastAutosaveAt = useRef<number | null>(null);
 
   const pushA11y = useCallback(() => {
     try {
@@ -92,13 +108,13 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       // (works same-origin AND across the apex/www redirect). The synthetic
       // dispatch below is a same-origin best-effort extra, never the only path.
       postToRuntime({ version: 1, type: "input", slug, action: "key", key, pressed });
-      // Assistive fullscreen exit: a synthetic Escape/F (smile-key "f",
-      // switch mapped to Esc/F) must exit BOTH shell and bridge fullscreen.
-      // Synthetic keys never trigger the browser's native-Esc exit and never
-      // fire the shell's window keydown listener, so handle it here on the
-      // key-down edge. mode:"exit" (not toggle) so a shell/bridge state
-      // mismatch can only ever exit, never re-enter.
-      if (pressed !== false && (key === "Escape" || key === "f" || key === "F") && (isFullscreen || fakeFullscreen)) {
+      // Assistive fullscreen exit: a synthetic Escape must exit BOTH shell
+      // and bridge fullscreen. Synthetic keys never trigger the browser's
+      // native-Esc exit and never fire the shell's window keydown listener,
+      // so handle it here on the key-down edge. mode:"exit" (not toggle) so
+      // a shell/bridge state mismatch can only ever exit, never re-enter.
+      // NOTE: F is gameplay input (Ability/fire/typing) — only Escape exits.
+      if (pressed !== false && key === "Escape" && (isFullscreen || fakeFullscreen)) {
         try {
           const doc = document as Document & { webkitExitFullscreen?: () => Promise<void> | void };
           if (document.fullscreenElement) {
@@ -217,7 +233,10 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         /* native exit failed; still clear the CSS fallback below */
       }
       setFakeFullscreen(false);
-      postToRuntime({ version: 1, type: "fullscreen", slug });
+      // Explicit exit (not toggle): bridge decides on its own isFullscreen(),
+      // so a bare toggle here re-enters when states disagree (shell fake vs
+      // bridge native). mode:"exit" is a no-op when already exited.
+      postToRuntime({ version: 1, type: "fullscreen", slug, mode: "exit" });
       focusGame();
       return;
     }
@@ -235,19 +254,19 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       // context, old Safari): CSS fallback still fills the viewport.
       setFakeFullscreen(true);
     }
-    postToRuntime({ version: 1, type: "fullscreen", slug });
+    // Explicit enter (not toggle) for the same shell/bridge state-mismatch
+    // reason as the exit path above.
+    postToRuntime({ version: 1, type: "fullscreen", slug, mode: "enter" });
     focusGame();
   }, [fakeFullscreen, focusGame, postToRuntime, slug]);
 
   const fullscreenActive = isFullscreen || fakeFullscreen;
 
-  // Move keyboard focus to the large exit control on entering fullscreen so
-  // switch/keyboard-only players can exit without hunting for the toolbar.
-  useEffect(() => {
-    if (fullscreenActive) {
-      exitControlRef.current?.focus({ preventScroll: true });
-    }
-  }, [fullscreenActive]);
+  // NOTE: no auto-focus steal to an exit control on entering fullscreen.
+  // A focused "Exit fullscreen" pill turned every Space/Enter gameplay key
+  // (jump/attack/confirm) into an exit-fullscreen click and pulled keyboard
+  // focus out of the iframe. Exit lives in the toolbar (always visible),
+  // on native Esc, and on F — no overlay over the canvas.
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
@@ -312,6 +331,14 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       if (target) {
         const tag = target.tagName?.toLowerCase();
         if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) return;
+        // Same-origin runtimes bubble game key events up to the shell window:
+        // an F pressed as game input (Ability/fire/typing) inside the frame
+        // must not toggle fullscreen. Button/toolbar F still toggles.
+        try {
+          if (frame.current && (target === frame.current || frame.current.contains(target))) return;
+        } catch {
+          /* frame access failed; fall through to toggle */
+        }
       }
       event.preventDefault();
       void toggleFullscreen();
@@ -411,6 +438,14 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       } else if (payload.type === "save" && payload.data && typeof payload.data === "object") {
         const slot = Number.isInteger(payload.slot) && payload.slot! >= 0 && payload.slot! <= 3 ? payload.slot : 0;
         lastSaveData.current = payload.data;
+        lastAutosaveAt.current = Date.now();
+        // Fail-open device mirror for the game-requested save itself, so
+        // slot state survives even before the first 60s timer tick.
+        try {
+          window.localStorage.setItem(`save:${slug}:slot:${slot}`, JSON.stringify(payload.data));
+        } catch {
+          /* private-mode/quota errors must never break the game */
+        }
         // No session → local progress only; never fire a doomed PUT.
         void (async () => {
           if (!(await hasLocalSession())) return;
@@ -432,6 +467,92 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
   }, [slug, src, pushA11y]);
+
+  // Shell-side autosave (DS-AUTOSAVE-02): ON by default. The last bridge
+  // save payload is mirrored to slot 0 every 60s (localStorage always,
+  // cloud PUT when signed in) and on shell request events. No-op until the
+  // runtime has emitted at least one save — never persists empty snapshots.
+  // Cheat-proof: slot 0 stays the auto slot; slots 1-3 remain manual-only.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(autosaveKey(slug));
+      const enabled = raw === null ? true : raw !== "0" && raw !== "false";
+      setAutosaveEnabled(enabled);
+      autosaveEnabledRef.current = enabled;
+    } catch {
+      setAutosaveEnabled(true);
+      autosaveEnabledRef.current = true;
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    autosaveEnabledRef.current = autosaveEnabled;
+  }, [autosaveEnabled]);
+
+  const persistAutosaveSnapshot = useCallback(async () => {
+    const snapshot = lastSaveData.current;
+    if (snapshot === null || snapshot === undefined) return;
+    try {
+      window.localStorage.setItem(autosaveMirrorKey(slug), JSON.stringify(snapshot));
+    } catch {
+      /* fail-open: private-mode/quota errors must never break the game */
+    }
+    lastAutosaveAt.current = Date.now();
+    // No session → local progress only; never fire a doomed PUT.
+    if (!(await hasLocalSession())) return;
+    try {
+      const response = await fetch("/api/saves", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game_slug: slug, slot: 0, schema_version: 1, data: snapshot }),
+      });
+      if (response.status === 401) return;
+      if (!response.ok) throw new Error("save_failed");
+    } catch {
+      setStatus("Cloud save unavailable; local progress is unchanged.");
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const timer = window.setInterval(() => {
+      if (!autosaveEnabledRef.current) return;
+      if (lastSaveData.current === null || lastSaveData.current === undefined) return;
+      void persistAutosaveSnapshot();
+    }, 60000);
+    return () => window.clearInterval(timer);
+  }, [persistAutosaveSnapshot]);
+
+  // Inbound only: cutscene/level triggers elsewhere in the shell dispatch
+  // `fourweird-shell-request-save` (optionally { slug }) and the runtime
+  // bridge posts { type: "save" } (handled in the message listener above).
+  // No outbound polling — the shell never asks the runtime for state.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onRequestSave = (event: Event) => {
+      const detail = (event as CustomEvent<{ slug?: unknown }>).detail;
+      if (detail && typeof detail.slug === "string" && detail.slug !== slug) return;
+      if (!autosaveEnabledRef.current) return;
+      if (lastSaveData.current === null || lastSaveData.current === undefined) return;
+      void persistAutosaveSnapshot();
+    };
+    window.addEventListener("fourweird-shell-request-save", onRequestSave);
+    return () => window.removeEventListener("fourweird-shell-request-save", onRequestSave);
+  }, [slug, persistAutosaveSnapshot]);
+
+  const toggleAutosave = useCallback(
+    (next: boolean) => {
+      setAutosaveEnabled(next);
+      autosaveEnabledRef.current = next;
+      try {
+        window.localStorage.setItem(autosaveKey(slug), next ? "1" : "0");
+      } catch {
+        /* fail-open */
+      }
+    },
+    [slug],
+  );
 
   const command = (type: "pause" | "resume" | "fullscreen") => {
     if (type === "fullscreen") {
@@ -460,7 +581,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   );
   return (
     <div className="w-full">
-      <div ref={shell} className={`perf-frame play-frame-height relative min-h-[420px] w-full overflow-hidden rounded-2xl border border-white/15 bg-black${fakeFullscreen ? " fixed inset-0 z-50" : ""}`} onClick={focusGame}>
+      <div ref={shell} className={`perf-frame play-frame-height play-frame-ar relative w-full overflow-hidden rounded-2xl border border-white/15 bg-black${fakeFullscreen ? " fw-fake-fullscreen" : ""}`} onClick={focusGame}>
         {barsOpen ? (
         <div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1 rounded bg-black/70 p-1.5">
           {score !== null && <span role="status" className="px-2 py-1 text-xs text-cyan-200">Score: {score}</span>}
@@ -477,17 +598,10 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
           <button type="button" onClick={() => setBarsOpen(true)} aria-label="Show game controls" title="Show controls" className="absolute right-2 top-2 z-20 rounded bg-black/70 px-2 py-1 text-xs text-white hover:bg-white/20">⋯</button>
         )}
         <p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "pointer-events-none" : "sr-only"}`}>{status}{status ? <button type="button" onClick={() => { if (loadTimer.current) clearTimeout(loadTimer.current); setStatus(""); focusGame(); }} aria-label="Dismiss status message" className="pointer-events-auto ml-2 rounded px-1 text-white hover:bg-white/20">×</button> : null}</p>
-        {fullscreenActive && (
-          <button
-            ref={exitControlRef}
-            type="button"
-            aria-label="Exit fullscreen"
-            onClick={() => void toggleFullscreen()}
-            className="absolute bottom-4 left-1/2 z-30 min-h-[48px] min-w-[48px] -translate-x-1/2 rounded-full border-2 border-white/80 bg-black/85 px-6 py-3 text-base font-semibold text-white shadow-lg hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-300"
-          >
-            Exit fullscreen (Esc)
-          </button>
-        )}
+        {/* No floating exit pill over the canvas: a bottom-center overlay
+            turned normal gameplay clicks (attack/dialog/touch-pad) into
+            accidental fullscreen exits, and its auto-focus turned Space/Enter
+            into exit clicks. Exit via the toolbar button above, Esc, or F. */}
         {showTouchPad && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex items-start gap-2">{padButton("A", " ")}{padButton("↻", "r")}<button type="button" onClick={() => setShowTouchPad(false)} aria-label="Hide touch controls" title="Hide touch controls" className="grid h-12 w-12 touch-none place-items-center rounded-full border border-white/20 bg-black/70 text-sm text-white hover:bg-white/20">×</button></div></div>}
         <iframe ref={frame} title={title} src={src} onLoad={handleLoad} onError={() => setStatus("The game could not be loaded. Try the Pop out link to open the standalone runtime.")} className="h-full w-full touch-manipulation border-0 bg-black" allow="autoplay; fullscreen; gamepad" sandbox="allow-forms allow-modals allow-pointer-lock allow-same-origin allow-scripts" />
       </div>
@@ -500,6 +614,15 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         <p className="mt-1 text-xs text-slate-400">
           Progress auto-starts from slot 0 (cheat-free) when you&apos;re signed in; slots 1–3 are optional alternates.
         </p>
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-slate-300">
+          <input
+            type="checkbox"
+            checked={autosaveEnabled}
+            onChange={(event) => toggleAutosave(event.target.checked)}
+            className="h-4 w-4 accent-cyan-400"
+          />
+          Autosave (every minute + on game request)
+        </label>
         <div className="mt-3">
           <UniversalSavePanel
             slug={slug}

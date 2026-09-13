@@ -586,7 +586,7 @@ window.addEventListener('message', (event) => {
   b.id = 'neon-fs-racer'; b.textContent = '⛶'; b.title = 'Toggle fullscreen (F)';
   b.addEventListener('click', function (e) { e.stopPropagation(); toggleFS(); });
   frame.appendChild(b);
-  canvas.addEventListener('dblclick', toggleFS);
+  canvas.addEventListener('fw-dblclick-disabled', toggleFS);
   document.addEventListener('keydown', function (e) { if (e.code === 'KeyF') toggleFS(); });
   document.addEventListener('fullscreenchange', fit);
   document.addEventListener('webkitfullscreenchange', fit);

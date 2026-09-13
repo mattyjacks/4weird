@@ -237,8 +237,8 @@
             </div>
 
             <!-- Bottom action row (desktop only) -->
-            <div class="desktop-bottom-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                <div style="display: flex; gap: 10px;">
+            <div class="desktop-bottom-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 10px; max-width: 100%;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; min-width: 0; max-width: 100%;">
                     <button class="btn-game" id="btnPause">⏸️ Pause</button>
                     <span id="controlsHint" class="controls-hint desktop-only">Controls: WASD Move | Mouse Look | Left-Click Attack | Right-Click Block | F Ability | Space Jump | Q Potion</span>
                 </div>
@@ -641,7 +641,8 @@
 
             // Fullscreen contract: shell helper first, native request with
             // webkit fallback otherwise. F is the class ability in 3D, so the
-            // keyboard shortcut stays ability-only; double-click also toggles.
+            // keyboard shortcut stays ability-only; fullscreen is button-only
+            // (double-click disabled: rapid attack clicks fired it mid-fight).
             // Re-fit updates camera aspect + renderer size, guarded so
             // pre-init calls never throw (THREE may even be absent).
             const fullscreenBtn = document.getElementById('gravegain-fullscreen-btn');
@@ -659,7 +660,7 @@
             };
             if (fullscreenBtn && canvasContainer) {
                 fullscreenBtn.addEventListener('click', gg3dToggleFullscreen);
-                canvasContainer.addEventListener('dblclick', gg3dToggleFullscreen);
+                canvasContainer.addEventListener('fw-dblclick-disabled', gg3dToggleFullscreen);
             }
             const gg3dRefit = () => {
                 try {

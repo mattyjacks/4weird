@@ -10,6 +10,10 @@ export type UniversalSavePanelProps = {
   getSnapshot?: (slot: number) => unknown;
   /** Apply a loaded snapshot to the game. Defaults to a `fourweird-universal-load` window event. */
   applySnapshot?: (snapshot: unknown, slot: number) => void;
+  /** Autosave slot 0 on an interval when `getSnapshot` is provided. Defaults to true (opt-out). */
+  autosave?: boolean;
+  /** Autosave interval in milliseconds. Defaults to 60000 (every minute). */
+  autosaveIntervalMs?: number;
 };
 
 function slotUrl(slug: string, slot: number): string {
@@ -75,10 +79,22 @@ const touchButton: React.CSSProperties = {
   cursor: "pointer",
 };
 
-export function UniversalSavePanel({ slug, getSnapshot, applySnapshot }: UniversalSavePanelProps) {
+export function UniversalSavePanel({
+  slug,
+  getSnapshot,
+  applySnapshot,
+  autosave = true,
+  autosaveIntervalMs = 60000,
+}: UniversalSavePanelProps) {
   const [status, setStatus] = useState<string>("Pick a slot, then Save or Load.");
   const [busySlot, setBusySlot] = useState<number | null>(null);
+  const [autosaveEnabled, setAutosaveEnabled] = useState<boolean>(autosave);
   const autoLoaded = useRef<string | null>(null);
+  const busyRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    busyRef.current = busySlot;
+  }, [busySlot]);
 
   const apply = useCallback(
     (snapshot: unknown, slot: number) => {
@@ -141,24 +157,25 @@ export function UniversalSavePanel({ slug, getSnapshot, applySnapshot }: Univers
   );
 
   const saveSlot = useCallback(
-    async (slot: number) => {
+    async (slot: number, opts?: { silent?: boolean }) => {
+      const silent = opts?.silent === true;
       let snapshot: unknown;
       if (getSnapshot) {
         try {
           snapshot = getSnapshot(slot);
         } catch {
-          setStatus(`Slot ${slot}: could not read game state — save aborted.`);
+          if (!silent) setStatus(`Slot ${slot}: could not read game state — save aborted.`);
           return;
         }
       } else {
         snapshot = readLocal(slug, slot);
         if (snapshot === undefined) {
-          setStatus(`Slot ${slot}: no game state on this device yet — play first, then save.`);
+          if (!silent) setStatus(`Slot ${slot}: no game state on this device yet — play first, then save.`);
           return;
         }
       }
       setBusySlot(slot);
-      setStatus(`Saving slot ${slot}…`);
+      if (!silent) setStatus(`Saving slot ${slot}…`);
       let cloudOk = false;
       try {
         const res = await fetch(slotUrl(slug, slot), {
@@ -178,11 +195,13 @@ export function UniversalSavePanel({ slug, getSnapshot, applySnapshot }: Univers
       }
       // Fail-open offline mirror: the device copy always lands, even when the cloud is down.
       writeLocal(slug, slot, snapshot ?? null);
-      setStatus(
-        cloudOk
-          ? `Slot ${slot} saved to the cloud and this device.`
-          : `Slot ${slot} saved on this device (cloud unreachable — signed-out or offline).`,
-      );
+      if (!silent) {
+        setStatus(
+          cloudOk
+            ? `Slot ${slot} saved to the cloud and this device.`
+            : `Slot ${slot} saved on this device (cloud unreachable — signed-out or offline).`,
+        );
+      }
       setBusySlot(null);
     },
     [getSnapshot, slug],
@@ -198,8 +217,31 @@ export function UniversalSavePanel({ slug, getSnapshot, applySnapshot }: Univers
     autoLoaded.current = slug;
   }, [slug]);
 
+  // Autosave (default ON): every intervalMs, best-effort silent saveSlot(0).
+  // Skips ticks while another save/load is in flight and requires getSnapshot.
+  // The localStorage mirror always lands (saveSlot is fail-open); cloud PUT is fail-open.
+  useEffect(() => {
+    if (!autosaveEnabled || !getSnapshot) return;
+    const intervalMs =
+      Number.isFinite(autosaveIntervalMs) && autosaveIntervalMs > 0 ? autosaveIntervalMs : 60000;
+    const timer = window.setInterval(() => {
+      if (busyRef.current !== null) return;
+      void saveSlot(0, { silent: true });
+    }, intervalMs);
+    return () => window.clearInterval(timer);
+  }, [autosaveEnabled, autosaveIntervalMs, getSnapshot, saveSlot]);
+
   return (
     <section aria-label={`${slug} save slots`}>
+      <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <input
+          type="checkbox"
+          checked={autosaveEnabled}
+          onChange={(e) => setAutosaveEnabled(e.target.checked)}
+          aria-label={`Autosave ${slug} to slot 0 every minute`}
+        />
+        Autosave every minute
+      </label>
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 12 }}>
         {SLOTS.map((slot) => {
           const busy = busySlot === slot;

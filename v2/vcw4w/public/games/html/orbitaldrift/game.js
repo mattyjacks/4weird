@@ -1726,7 +1726,7 @@ window.gameDebug = Object.assign(window.gameDebug || {}, {
         toggleFS();
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     });
-    frame.addEventListener('dblclick', function (e) {
+    frame.addEventListener('fw-dblclick-disabled', function (e) {
         if (e.target && e.target.closest && e.target.closest('button')) return;
         toggleFS();
     });

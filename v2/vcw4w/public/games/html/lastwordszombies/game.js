@@ -1177,7 +1177,7 @@ class GameApp {
     });
     const gameFrame = document.querySelector('.TEMPLATE-4weird-game-frame');
     if (gameFrame) {
-      gameFrame.addEventListener('dblclick', (e) => {
+      gameFrame.addEventListener('fw-dblclick-disabled', (e) => {
         if (e.target && e.target.closest && e.target.closest('button')) return;
         this.toggleFullscreen();
       });

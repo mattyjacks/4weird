@@ -291,15 +291,15 @@
     function buildLog() {
         if (logEl || !document.body) return;
         logEl = el('div', 'ggsq-log');
-        logEl.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:99990;pointer-events:auto;' +
-            'font:12px/1.4 system-ui,sans-serif;color:#e8e0d0;max-width:280px;';
+        logEl.style.cssText = 'position:fixed;right:10px;bottom:64px;z-index:99990;pointer-events:none;' +
+            'font:12px/1.4 system-ui,sans-serif;color:#e8e0d0;max-width:min(280px,calc(100vw - 20px));';
         var btn = el('button', 'ggsq-toggle', '📜 Quests (0)');
         btn.style.cssText = 'pointer-events:auto;cursor:pointer;background:#2a2135;color:#e8e0d0;' +
             'border:1px solid #6b5b8a;border-radius:6px;padding:4px 8px;';
         btn.addEventListener('click', toggleLog);
         logEl.appendChild(btn);
         var panel = el('div', 'ggsq-panel');
-        panel.style.cssText = 'display:none;background:rgba(20,14,28,.94);border:1px solid #6b5b8a;' +
+        panel.style.cssText = 'display:none;pointer-events:auto;background:rgba(20,14,28,.94);border:1px solid #6b5b8a;' +
             'border-radius:8px;padding:8px;margin-top:6px;max-height:320px;overflow:auto;';
         statusEl = el('div', 'ggsq-status', 'Waiting for game…');
         statusEl.style.cssText = 'opacity:.75;margin-bottom:6px;';

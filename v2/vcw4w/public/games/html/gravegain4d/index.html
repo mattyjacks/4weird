@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='.9em' font-size='56'%3E%E2%9B%B3%3C/text%3E%3C/svg%3E">
+    <title>GraveGain4D - 4weird Games</title>
+    <meta name="description" content="A 4D dark-fantasy golf rogue-like: putt souls across ana/kata hyperdungeons, shift the W-axis, rewind time, and breach the Light/Gloom branes.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../styles.css">
+    <link rel="stylesheet" href="game.css">
+    <!-- Three.js Library (primary CDN with fallback mirror) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        if (!window.THREE) {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
+        }
+    </script>
+    <!-- GraveGain4D load order: three.js, engine, graphics, entities, world, campaign, ui, audio, input, main, lore. -->
+    <!-- Files other lanes own are placeholder <script src> tags; they land in the same lanes. -->
+    <script src="engine/vec4.js"></script>
+    <script src="engine/mat4.js"></script>
+    <script src="engine/projector.js"></script>
+    <script src="engine/hyperdungeon.js"></script>
+    <script src="engine/putt.js"></script>
+    <script src="engine/timefold.js"></script>
+    <script src="engine/branes.js"></script>
+    <script src="graphics/hyper-render.js"></script>
+    <script src="graphics/chrono-fx.js"></script>
+    <script src="entities/player.js"></script>
+    <script src="entities/wraith.js"></script>
+    <script src="world/brane-maps.js"></script>
+    <script src="campaign/00-campaign-boot.js"></script>
+    <script src="campaign/10-campaign-director.js"></script>
+    <script src="ui/hud.js"></script>
+    <script src="ui/hub-quarters.js"></script>
+    <script src="audio/sound-engine.js"></script>
+    <script src="input/input-manager.js"></script>
+    <script src="main.js"></script>
+</head>
+<body class="TEMPLATE-4weird-game-page">
+    <canvas id="TEMPLATE-4weird-starfield"></canvas>
+    <div id="TEMPLATE-4weird-nav-placeholder"></div>
+
+    <div class="game-wrapper">
+        <!-- Main Game Screen (HUD + Canvas) -->
+        <div class="game-main hidden" id="gameMain">
+            <!-- HUD -->
+            <div class="game-hud glass-panel">
+                <div class="hud-group">
+                    <div class="hud-stat">
+                        <span class="hud-label">❤️ HP</span>
+                        <div class="hud-bar-container">
+                            <div class="hud-bar bar-hp" id="hudHpBar"></div>
+                        </div>
+                        <span class="hud-value" id="hudHpText">100/100</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">⏳ Chrono-Sand</span>
+                        <div class="hud-bar-container">
+                            <div class="hud-bar bar-resource" id="hudSandBar"></div>
+                        </div>
+                        <span class="hud-value" id="hudSandText">0/100</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">⭐ XP <span class="badge-level" id="hudLevelBadge">LV 1</span></span>
+                        <div class="hud-bar-container">
+                            <div class="hud-bar bar-xp" id="hudXpBar"></div>
+                        </div>
+                        <span class="hud-value" id="hudXpText">0/100</span>
+                    </div>
+                </div>
+
+                <div class="hud-group">
+                    <div class="hud-stat">
+                        <span class="hud-label">🪙 Gold</span>
+                        <span class="hud-value gold-display" id="hudGoldText">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">💵 $UUSD</span>
+                        <span class="hud-value uusd-display" id="hudUusdText">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">🌀 Rift</span>
+                        <span class="hud-value highlight-cyan" id="hudRiftText">W+0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <span class="hud-label">🌗 Brane</span>
+                        <span class="hud-value highlight-cyan" id="hudBraneText">Light</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Viewport -->
+            <div class="canvas-container" id="canvasContainer">
+                <button class="gg4d-fullscreen-btn desktop-only" id="gravegain-fullscreen-btn" title="Toggle Fullscreen">⛶</button>
+                <canvas id="gameCanvas" width="1000" height="600"></canvas>
+                <canvas id="effectsCanvas" aria-hidden="true"></canvas>
+                <div id="hudCrosshair" class="hud-crosshair"></div>
+
+                <!-- Floating Combat Text Overlay -->
+                <div id="combatTextContainer" class="combat-text-container"></div>
+
+                <!-- HUD Notification / Event Banner -->
+                <div id="hudNotification" class="hud-notification hidden"></div>
+            </div>
+
+            <!-- Bottom action row (desktop only) -->
+            <div class="desktop-bottom-row" style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 10px; max-width: 100%;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; min-width: 0; max-width: 100%;">
+                    <button class="btn-game" id="btnPause">⏸️ Pause</button>
+                    <span id="controlsHint" class="controls-hint desktop-only">Controls: WASD Move | Q/E W-Shift (Ana/Kata) | Click Putt | T Rewind | B Brane | Space Jump</span>
+                </div>
+                <button class="btn-game btn-primary" id="btnReturnToHub">🚀 Return to Starship</button>
+            </div>
+        </div>
+
+        <!-- 1. MAIN MENU SCREEN -->
+        <div class="screen-overlay" id="mainMenuScreen">
+            <div class="menu-content glass-panel">
+                <h1 class="menu-title">GRAVEGAIN4D</h1>
+                <p class="menu-subtitle">4D Hyperdungeon Golf Rogue-like</p>
+
+                <div class="daily-challenges-container">
+                    <h3 style="margin-top: 0; font-family: 'Orbitron'; font-size: 1rem; color: var(--grave-gold);">📅 Daily Mission Logs</h3>
+                    <div id="dailyChallengesList">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn-game btn-primary" id="btnStoryMode" style="background: linear-gradient(135deg, #a855f7, #6366f1); border-color: #c084fc;">📜 10-Rift Campaign</button>
+                    <button class="btn-game" id="btnPlay">⛳ Endless Hyperdungeon Run</button>
+                    <button class="btn-game" id="btnEnterHub">🚀 Visit LuckyStarShip</button>
+                    <button class="btn-game" id="btnOpenSettings">⚙️ Engine Configurations</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CHARACTER SELECT SCREEN -->
+        <div class="screen-overlay hidden" id="charSelectScreen">
+            <div class="menu-content glass-panel" style="max-width: 800px;">
+                <h2 class="menu-title" style="font-size: 2rem;">Select Infiltrator Spec</h2>
+                <p class="menu-subtitle">Choose your Race and Class path</p>
+
+                <!-- Race cards -->
+                <div class="char-grid" id="raceGrid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Class selectors -->
+                <div class="class-select" id="classGrid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+                    <button class="btn-game" id="btnCharSelectBack">← Main Menu</button>
+                    <button class="btn-game btn-primary" id="btnCharSelectStart">🚀 Deploy to Hyperdungeon</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. LUCKYSTARSHIP HUB SCREEN -->
+        <div class="screen-overlay hidden" id="hubScreen">
+            <div class="menu-content glass-panel" style="max-width: 850px; text-align: left;">
+                <div class="hub-header">
+                    <div>
+                        <h2 class="menu-title" style="font-size: 2rem; margin: 0;">LuckyStarShip Hub</h2>
+                        <p style="margin: 5px 0 0 0; color: var(--grave-text-muted); font-size: 0.85rem;">Universal Operations Deck</p>
+                    </div>
+                    <div class="hub-tabs">
+                        <button class="hub-tab-btn active" data-tab="quarters">🏠 Quarters</button>
+                        <button class="hub-tab-btn" data-tab="armory">🛡️ Armory Upgrades</button>
+                        <button class="hub-tab-btn" data-tab="exchange">🪙 Exchange</button>
+                        <button class="hub-tab-btn" data-tab="lore">📖 Lore Codex</button>
+                    </div>
+                </div>
+
+                <!-- Quarters Tab -->
+                <div class="hub-pane active" id="tab-quarters">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">Crew Quarters Upgrades</h3>
+                    <p style="font-size: 0.9rem;">Level up your quarters size to expand chrono-sand capacity and repair efficiency.</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--grave-border);">
+                        <div class="stat-row"><span>Current Quarters Level:</span> <strong id="hubQuartersLevel">Level 1</strong></div>
+                        <div class="stat-row"><span>Chrono-Sand Capacity:</span> <strong id="hubQuartersCapacity">100 Space</strong></div>
+                        <div class="stat-row"><span>Next Level Upgrade Cost:</span> <strong class="highlight-cyan" id="hubQuartersCost">250 $UUSD</strong></div>
+                    </div>
+                    <button class="btn-game btn-primary" id="btnUpgradeQuarters" style="margin-top: 15px;">🔧 Purchase Expansion Upgrade</button>
+                </div>
+
+                <!-- Armory Tab -->
+                <div class="hub-pane" id="tab-armory">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">Starship Engineering Armory</h3>
+                    <p style="font-size: 0.9rem;">Invest synthesized $UUSD into permanent putter and suit augmentations.</p>
+                    <div class="armory-grid" id="armoryGrid">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Exchange Tab -->
+                <div class="hub-pane" id="tab-exchange">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">Universal Bank Exchange</h3>
+                    <p style="font-size: 0.9rem;">Convert raw hyperdungeon Gold into Starship $UUSD or vice-versa.</p>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--grave-border); display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                        <div class="stat-row"><span>Dungeon Gold Balance:</span> <strong class="highlight-gold" id="exchangeGoldBalance">0 Gold</strong></div>
+                        <div class="stat-row"><span>Starship $UUSD Balance:</span> <strong class="highlight-cyan" id="exchangeUusdBalance">0 $UUSD</strong></div>
+                        <div class="stat-row"><span>Rates:</span> <span>1 Gold = 10 $UUSD  |  1 $UUSD = 0.1 Gold</span></div>
+                    </div>
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn-game btn-primary" id="btnBuyUusd" style="flex: 1;">🪙 Sell 10 Gold for 100 $UUSD</button>
+                        <button class="btn-game" id="btnBuyGold" style="flex: 1;">💵 Exchange 100 $UUSD for 10 Gold</button>
+                    </div>
+                </div>
+
+                <!-- Lore Codex Tab -->
+                <div class="hub-pane" id="tab-lore">
+                    <h3 style="margin-top: 0; color: var(--grave-gold);">LuckyStarShip Lore Archives</h3>
+                    <p style="font-size: 0.9rem; margin-bottom: 10px;">Select a log from the ship's retrieved databanks to decode and read.</p>
+                    <div style="display: flex; gap: 20px; height: 350px;">
+                        <div id="loreList" style="width: 250px; overflow-y: auto; background: rgba(0,0,0,0.4); border: 1px solid var(--grave-border); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div id="loreReader" style="flex: 1; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--grave-border); border-radius: 6px; padding: 15px; display: flex; flex-direction: column; gap: 10px;">
+                            <h4 id="loreTitle" style="margin: 0; color: var(--grave-gold); font-family: 'Orbitron'; font-size: 1.1rem;">Select an entry</h4>
+                            <div id="loreCategory" style="font-size: 0.75rem; text-transform: uppercase; color: var(--grave-text-muted);">Category</div>
+                            <div id="loreContent" style="font-size: 0.85rem; line-height: 1.6; white-space: pre-line;">Select an entry from the list on the left to read its contents.</div>
+                            <button class="btn-game" id="btnSpeakLore" style="margin-top: auto; font-size: 0.8rem; padding: 6px 12px; align-self: flex-start;">🔊 Synthesize Audio Log</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+                    <button class="btn-game" id="btnLeaveHub">← Exit to Deck Hub</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ENGINE CONFIGURATIONS (SETTINGS) SCREEN -->
+        <div class="screen-overlay hidden" id="settingsScreen">
+            <div class="menu-content glass-panel" style="max-width: 600px; text-align: left;">
+                <h2 class="menu-title" style="font-size: 2rem;">Engine Settings</h2>
+                <p class="menu-subtitle">Configurations Manager</p>
+
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; max-height: 380px; overflow-y: auto; padding-right: 10px;">
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Difficulty Multiplier</label>
+                        <select id="settingsDifficulty" style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
+                            <option value="easy">Easy (HP 0.6x, DMG 0.5x, XP 0.75x, Loot 1.5x)</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="nightmare">Nightmare (HP 2.5x, DMG 2.0x, XP 2.5x, Loot 0.6x)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Touch Controls (Mobile)</label>
+                        <select id="settingsTouchMode" style="width:100%; padding:8px; background:rgba(0,0,0,0.5); border:1px solid var(--grave-border); color:white; border-radius:5px;">
+                            <option value="auto" selected>Auto-detect Touch Screen</option>
+                            <option value="always">Always Enable On-screen Controls</option>
+                            <option value="never">Desktop Only (Hide Touch Controls)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Look / Aim Sensitivity</label>
+                        <input type="range" id="settingsMouseSens" min="1" max="10" step="0.5" value="3.5" style="width:100%;">
+                    </div>
+
+                    <div>
+                        <label style="display:block; font-size:0.85rem; margin-bottom:5px;">Master Volume</label>
+                        <input type="range" id="settingsMasterVol" min="0" max="100" value="80" style="width:100%;">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end;">
+                    <button class="btn-game btn-primary" id="btnSaveSettings">Save Configs</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. PAUSE SCREEN -->
+        <div class="screen-overlay hidden" id="pauseScreen">
+            <div class="menu-content glass-panel">
+                <h2 class="menu-title" style="font-size: 2.5rem; color: var(--grave-purple-glow);">PAUSED</h2>
+                <p class="menu-subtitle">Hyperdungeon Simulation Frozen</p>
+                <div class="btn-group">
+                    <button class="btn-game btn-primary" id="btnResume">Resume Run</button>
+                    <button class="btn-game" id="btnAbandon">Abandon Run</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. GAME OVER SCREEN -->
+        <div class="screen-overlay hidden" id="gameOverScreen">
+            <div class="menu-content glass-panel">
+                <h2 class="menu-title" style="font-size: 2.5rem; color: var(--grave-crimson-glow);" id="gameOverTitle">RUN COMPLETED</h2>
+                <p class="menu-subtitle" id="gameOverSub">Vital signs terminated</p>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--grave-border); text-align: left; margin-bottom: 20px;">
+                    <div class="stat-row"><span>Character Path:</span> <strong id="goRaceClass">Human Caddie</strong></div>
+                    <div class="stat-row"><span>Max Rift Depth:</span> <strong id="goRift">W+0</strong></div>
+                    <div class="stat-row"><span>Wraiths Banished:</span> <strong id="goKills">0</strong></div>
+                    <div class="stat-row"><span>Gold Harvested:</span> <strong class="highlight-gold" id="goGold">0</strong></div>
+                    <div class="stat-row"><span>Best Putt Streak:</span> <strong id="goStreak">0</strong></div>
+                </div>
+
+                <button class="btn-game btn-primary" id="btnGoToMenu">Return to Main Menu</button>
+            </div>
+        </div>
+
+        <!-- 7. LEVEL UP PERK SELECTION SCREEN (ROGUELIKE UPGRADES) -->
+        <div class="screen-overlay hidden" id="levelUpScreen">
+            <div class="menu-content glass-panel level-up-panel" style="max-width: 820px;">
+                <div class="level-up-header">
+                    <span class="level-up-sparkle">✨</span>
+                    <h2 class="menu-title level-up-title" style="font-size: 2.2rem; margin: 0;">SOUL RESONANCE</h2>
+                    <span class="level-up-sparkle">✨</span>
+                </div>
+                <p class="menu-subtitle" style="margin-bottom: 20px;">Assimilate an enhanced 4D perk</p>
+                <div class="perk-cards-grid" id="perkCardsGrid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credits & Personnel Section -->
+    <section class="TEMPLATE-4weird-credits-section" id="TEMPLATE-4weird-credits">
+        <div class="TEMPLATE-4weird-credits-container">
+            <h2 class="TEMPLATE-4weird-credits-title">Credits & Personnel</h2>
+            <div class="TEMPLATE-4weird-credits-grid" id="TEMPLATE-4weird-credits-grid">
+                <!-- Auto populated -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Maker Bio Section -->
+    <section class="TEMPLATE-4weird-bio-section" id="TEMPLATE-4weird-bio">
+        <div class="TEMPLATE-4weird-bio-container">
+            <h2 class="TEMPLATE-4weird-bio-title">About the Intelligence Agent</h2>
+            <div class="TEMPLATE-4weird-bio-content" id="TEMPLATE-4weird-maker-bio">
+                <!-- Auto populated -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer placeholders -->
+    <div id="TEMPLATE-4weird-footer-placeholder"></div>
+
+    <script src="../../../components.js"></script>
+    <script src="lore.js"></script>
+    <script src="/games/html/fourweird-graphics.js"></script>
+    <script src="../game-meta.js"></script>
+    <script>
+        (function() {
+            fetch('game.json')
+                .then(r => r.json())
+                .then(data => {
+                    // Security: bio/credits go through FourWeirdMeta
+                    // (textContent + http(s)-only URLs), never innerHTML.
+                    window.FourWeirdMeta.setBio('TEMPLATE-4weird-maker-bio', data.maker && data.maker.bio);
+                    window.FourWeirdMeta.renderCredits('TEMPLATE-4weird-credits-grid', data.credits);
+                })
+                .catch(err => console.log('Metadata load fallback:', err));
+
+            // Fullscreen contract (fullscreen-bugfix pass): the overlay ⛶
+            // button is the ONLY fullscreen trigger. It delegates to the
+            // shell helper window.__fourweirdToggleFullscreen first, with a
+            // native container-fullscreen + webkit fallback. There is NO
+            // dblclick listener (rapid putt clicks fired it mid-swing) and
+            // NO F-key binding (F stays free for gameplay). Re-fit updates
+            // camera aspect + renderer size, guarded so pre-init calls
+            // never throw (THREE may even be absent).
+            const fullscreenBtn = document.getElementById('gravegain-fullscreen-btn');
+            const canvasContainer = document.getElementById('canvasContainer');
+            const gg4dToggleFullscreen = () => {
+                try {
+                    if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen(); return; }
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        const p = canvasContainer.requestFullscreen ? canvasContainer.requestFullscreen()
+                            : (canvasContainer.webkitRequestFullscreen ? canvasContainer.webkitRequestFullscreen() : null);
+                        if (p && p.catch) p.catch(() => {});
+                    } else if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                } catch (e) {}
+            };
+            if (fullscreenBtn && canvasContainer) {
+                fullscreenBtn.addEventListener('click', gg4dToggleFullscreen);
+            }
+            const gg4dRefit = () => {
+                try {
+                    const g = window.GraveGainGame;
+                    const box = document.getElementById('canvasContainer');
+                    const w = Math.max(320, (box && box.clientWidth) || 1000);
+                    const h = Math.max(240, (box && box.clientHeight) || 600);
+                    if (g && g.camera3d) {
+                        g.camera3d.aspect = w / h;
+                        if (typeof g.camera3d.updateProjectionMatrix === 'function') g.camera3d.updateProjectionMatrix();
+                    }
+                    if (g && g.renderer && typeof g.renderer.setSize === 'function') g.renderer.setSize(w, h);
+                } catch (e) {}
+            };
+            document.addEventListener('fullscreenchange', gg4dRefit);
+            window.addEventListener('resize', gg4dRefit);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{
+    "title": "GraveGain4D",
+    "slug": "gravegain4d",
+    "description": "A 4D dark-fantasy golf rogue-like: putt lost souls across ana/kata hyperdungeons projected from the W-axis, rewind botched shots with chrono-sand, and breach the Light/Gloom branes in a 10-rift MoonRock campaign with a starship hub.",
+    "genre": "RPG",
+    "tags": ["HTML5", "Action", "RPG", "Rogue-like", "Three.js", "4D", "Golf"],
+    "maker": {
+        "name": "Antigravity Dev",
+        "bio": "Specializing in high-fidelity HTML5 game experiences with immersive systems and rich game-feel.",
+        "url": "https://4weird.com",
+        "urlLabel": "4weird"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Lead Architect",
+            "avatar": "🧙",
+            "primary": true,
+            "url": "https://4weird.com",
+            "urlLabel": "4weird"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "WASD / Arrow Keys": "Move caddie on the projected slice",
+            "Q / E": "W-shift along the 4th axis (Ana/Kata)",
+            "Left-Click": "Putt (Hold to charge, release to strike)",
+            "T": "Rewind time (spends chrono-sand)",
+            "B": "Breach brane (Light/Gloom)",
+            "Space": "Jump",
+            "Escape / P": "Pause Game"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "Choose your race and class, putt lost souls through procedurally generated 4D hyperdungeon rifts, collect Gold, and buy upgrades. Shift along W with Q/E, rewind with T, breach branes with B. Return to the LuckyStarShip hub to expand chrono-sand capacity, exchange gold, and decode the codex.",
+    "technical": {
+        "canvasSize": {"width": 1000, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js 3D Library (primary CDN)"
+            },
+            {
+                "url": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js",
+                "description": "Three.js 3D Library (fallback mirror)"
+            }
+        ],
+        "local": ["engine/vec4.js", "engine/mat4.js", "engine/projector.js", "engine/hyperdungeon.js", "engine/putt.js", "engine/timefold.js", "engine/branes.js", "graphics/hyper-render.js", "graphics/chrono-fx.js", "entities/player.js", "entities/wraith.js", "world/brane-maps.js", "campaign/00-campaign-boot.js", "campaign/10-campaign-director.js", "ui/hud.js", "ui/hub-quarters.js", "audio/sound-engine.js", "input/input-manager.js", "main.js", "../fourweird-graphics.js", "game.css", "lore.js"]
+    },
+    "meta": {
+        "version": "4.0.0",
+        "created": "2026-09-13",
+        "license": "MIT"
+    }
+}

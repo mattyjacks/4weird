@@ -219,7 +219,7 @@
                 if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
                 if (e.key === 'f' || e.key === 'F') toggleFS();
             });
-            frame.addEventListener('dblclick', function (e) {
+            frame.addEventListener('fw-dblclick-disabled', function (e) {
                 if (e.target.closest('button, input, select, textarea, a')) return;
                 toggleFS();
             });

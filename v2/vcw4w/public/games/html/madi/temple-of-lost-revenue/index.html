@@ -191,7 +191,7 @@
         } catch (x) {}
       });
     } catch (e) {}
-    try { if (canvas && !canvas.getAttribute('data-fwfs')) { canvas.setAttribute('data-fwfs', '1'); canvas.addEventListener('dblclick', function () { try { toggleFs(); } catch (x) {} }); } } catch (e) {}
+    try { if (canvas && !canvas.getAttribute('data-fwfs')) { canvas.setAttribute('data-fwfs', '1'); canvas.addEventListener('fw-dblclick-disabled', function () { try { toggleFs(); } catch (x) {} }); } } catch (e) {}
     try { document.addEventListener('fullscreenchange', refit); } catch (e) {}
     try { document.addEventListener('webkitfullscreenchange', refit); } catch (e) {}
     try { window.addEventListener('resize', refit); } catch (e) {}
@@ -201,7 +201,7 @@
         var hint = document.createElement('div');
         hint.setAttribute('id', 'fourweird-fs-hint');
         hint.setAttribute('class', 'fourweird-fs-hint');
-        hint.textContent = 'WASD / arrows to move • F or ⛶ for fullscreen • double-click canvas';
+        hint.textContent = 'WASD / arrows to move • F or ⛶ for fullscreen';
         frame.appendChild(hint);
         setTimeout(function () { try { hint.classList.add('fourweird-fs-hint-hide'); } catch (x) {} setTimeout(function () { try { if (hint.parentNode) { hint.parentNode.removeChild(hint); } } catch (y) {} }, 800); }, 5000);
       }

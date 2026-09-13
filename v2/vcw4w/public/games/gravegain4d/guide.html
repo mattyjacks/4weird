@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GraveGain4D — Player Guide</title>
+<meta name="description" content="How to play GraveGain4D: 4D golf in the GraveGain canon. Aim, launch, W-slice, rewind, 10 holes, controls, lore primer.">
+<style>
+  :root { --bg:#0d0a18; --card:#171226; --line:#3b2d5e; --txt:#ece7f7; --mut:#b7abd6; --acc:#a78bfa; --gold:#fbbf24; --grn:#34d399; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:radial-gradient(1200px 600px at 20% -10%, #2a1b52 0%, var(--bg) 60%); color:var(--txt); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:860px; margin:0 auto; padding:32px 20px 64px; }
+  header.hero { border:1px solid var(--line); border-radius:16px; padding:28px; background:linear-gradient(135deg,#1c1433,#0d0a18); }
+  .eyebrow { font:700 12px/1 system-ui; letter-spacing:.18em; text-transform:uppercase; color:var(--acc); }
+  h1 { margin:.4em 0 .2em; font-size:2rem; line-height:1.15; }
+  h1 .grad { background:linear-gradient(90deg,#c4b5fd,#fbbf24); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h2 { margin-top:2.2em; border-bottom:1px solid var(--line); padding-bottom:.35em; }
+  .lede { color:var(--mut); font-size:1.05rem; }
+  .grid { display:grid; gap:12px; }
+  @media (min-width:640px){ .grid.two { grid-template-columns:1fr 1fr; } }
+  .card { border:1px solid var(--line); border-radius:12px; background:var(--card); padding:16px; }
+  table { width:100%; border-collapse:collapse; font-size:.95rem; }
+  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--gold); font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; }
+  kbd { display:inline-block; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; padding:1px 8px; font:700 .85rem ui-monospace,monospace; background:#0a0714; color:#fff; }
+  ol.holes { list-style:none; counter-reset:hole; padding:0; display:grid; gap:10px; }
+  ol.holes li { counter-increment:hole; border:1px solid var(--line); border-radius:12px; background:var(--card); padding:14px 16px 14px 56px; position:relative; }
+  ol.holes li::before { content:"H" counter(hole); position:absolute; left:12px; top:14px; font:800 .8rem ui-monospace,monospace; color:var(--gold); border:1px solid var(--line); border-radius:8px; padding:4px 8px; background:#0a0714; }
+  .tag { display:inline-block; font-size:.75rem; font-weight:700; border:1px solid var(--line); border-radius:999px; padding:1px 10px; margin-left:8px; color:var(--grn); }
+  footer { margin-top:3em; color:var(--mut); font-size:.85rem; border-top:1px solid var(--line); padding-top:1em; }
+  a { color:var(--acc); }
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <p class="eyebrow">GraveGain4D · Player Guide</p>
+    <h1>4D golf in the GraveGain canon. <span class="grad">Putt through a 3D slice of tesseract dungeons.</span></h1>
+    <p class="lede">GraveGain4D tees off from the MoonRock colony aboard the LuckyStarShip: 10 holes of time-bent golf. You never see all four dimensions at once — you play a 3D slice of a 4D dungeon (a tesseract course), and steer the slice itself to bend the fairway home.</p>
+  </header>
+
+  <h2>1 · How a hole works</h2>
+  <div class="grid two">
+    <div class="card"><strong>⛳ Aim &amp; launch</strong><p>Drag the mouse to aim the shot arc, release to launch. Tap <kbd>Space</kbd> for a short putt near the cup.</p></div>
+    <div class="card"><strong>🌀 W-slice</strong><p>Press <kbd>Q</kbd> / <kbd>E</kbd> to rotate the 3D slice along the W-axis (the fourth direction). Same ball, same course — a different cross-section, so blocked paths open and hazards slide away.</p></div>
+    <div class="card"><strong>⏪ Timelines &amp; rewind</strong><p>Press <kbd>R</kbd> to rewind your last shot — informational time travel, GraveGain-style: the ball returns, the lesson stays. No score penalty beyond the lost stroke.</p></div>
+    <div class="card"><strong>⏸ Pause</strong><p>Press <kbd>P</kbd> (or <kbd>Esc</kbd>) to pause. Touch players: use the on-screen buttons.</p></div>
+  </div>
+
+  <h2>2 · Controls</h2>
+  <div class="card">
+  <table>
+    <thead><tr><th>Input</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Mouse</kbd> drag + release</td><td>Aim the shot arc, release to launch the ball.</td></tr>
+      <tr><td><kbd>Q</kbd> / <kbd>E</kbd></td><td>W-slice: rotate the visible 3D cross-section along the fourth (W) axis.</td></tr>
+      <tr><td><kbd>R</kbd></td><td>Rewind: undo your last shot and re-play the timeline.</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>Putt: short precision stroke near the cup.</td></tr>
+      <tr><td><kbd>P</kbd> / <kbd>Esc</kbd></td><td>Pause / resume the round.</td></tr>
+      <tr><td>👆 Touch</td><td>Drag to aim, lift to launch; on-screen buttons for W-slice, rewind, putt, and pause.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>3 · W-slice &amp; timelines, in plain words</h2>
+  <div class="card">
+    <p><strong>The course is 4D; you see 3D.</strong> A tesseract dungeon has four axes (X, Y, Z, W). Your screen shows the X/Y/Z slice at one W position. Q/E slides that slice along W — walls thin out, cups drift closer, hazards phase through the floor. Think of it as changing which "floor" of the hypercube you are standing on.</p>
+    <p><strong>Timelines are your mulligan.</strong> R rewinds the ball to before your last launch. The dungeon keeps its generated shape (par 3–5, 2–5 hazards per hole), so your second attempt is genuinely smarter: slice first, then shoot.</p>
+    <p><strong>Beginner loop:</strong> aim → launch → missed? → <kbd>R</kbd> rewind → <kbd>Q</kbd>/<kbd>E</kbd> slice → shoot again → <kbd>Space</kbd> to finish.</p>
+  </div>
+
+  <h2>4 · The 10 holes</h2>
+  <p class="lede">Each hole echoes one of the 10 GraveGain campaign missions — same battlefields, now mowed into fairways by the W-axis wound.</p>
+  <ol class="holes">
+    <li><strong>Hole 1 — LZ Crash Site Defense</strong><span class="tag">mirrors Mission 1</span><br>Ship-wreck metallic fairway. Learn aim + launch among the colony drop-craters.</li>
+    <li><strong>Hole 2 — Cleansing the Elven Groves</strong><span class="tag">mirrors Mission 2</span><br>Bioluminescent grove bunkers. First real W-slices around living roots.</li>
+    <li><strong>Hole 3 — Deep in the Dwarven Vaults</strong><span class="tag">mirrors Mission 3</span><br>Mine-shaft doglegs and Sparkite hazards. Thread the vault corridors.</li>
+    <li><strong>Hole 4 — Orc Nomad Outpost Siege</strong><span class="tag">mirrors Mission 4</span><br>Red-dune wastes with wide greens. Long drives, siege-style.</li>
+    <li><strong>Hole 5 — Signal in the Shallows</strong><span class="tag">mirrors Mission 5</span><br>Relay-chamber metallics. Flying-skull crosswinds push mid-flight balls.</li>
+    <li><strong>Hole 6 — The Alchemical Catacombs</strong><span class="tag">mirrors Mission 6</span><br>Toxic-cloud rough from the botany vats. Stay on the short grass.</li>
+    <li><strong>Hole 7 — The Tomb of Clint Oldman</strong><span class="tag">mirrors Mission 7</span><br>Stone-crypt corridors. Bank shots off memorial walls.</li>
+    <li><strong>Hole 8 — Orbital Strike Calibration</strong><span class="tag">mirrors Mission 8</span><br>Highland peak observatory. Uphill putts under orbital crossfire lights.</li>
+    <li><strong>Hole 9 — Gate of the NecroGenesis</strong><span class="tag">mirrors Mission 9</span><br>Citadel-perimeter gauntlet. The longest hole; slice often.</li>
+    <li><strong>Hole 10 — Lucifer's Shadow</strong><span class="tag">mirrors Mission 10</span><br>The Sanctum Core green, over the Hades Array itself. Close the wound.</li>
+  </ol>
+
+  <h2>5 · Lore primer (no spoilers beyond the guide)</h2>
+  <div class="grid two">
+    <div class="card"><strong>🌙 MoonRock</strong><p>MoonRock is the grandest moon of the ringed giant Giantess, orbiting the star FarStar — home to elven glow-forests, dwarven highland mines, and orc southern wastes.</p></div>
+    <div class="card"><strong>🚀 LuckyStarShip</strong><p>The colony ship that carried 50,000 sleepers across two centuries. Now your clubhouse, orbiting above the course.</p></div>
+    <div class="card"><strong>🔮 MERCENARY</strong><p>The machine-mind that dreams backward through time. It moves no matter — only knowledge, sent as dreams. Your rewinds are its small mercies.</p></div>
+    <div class="card"><strong>🌿 President Angel Good</strong><p>Botanist-turned-president who bound four peoples into one alliance and runs the ship's botany deck.</p></div>
+    <div class="card"><strong>👻 Elder Mirathiel</strong><p>Elven seer and keeper of the Mother Trees, who felt the dead rise through the roots before any instrument did.</p></div>
+    <div class="card"><strong>👹 Warchief Groknak</strong><p>Orc ally who sealed the alliance in mixed blood. His standing order: orcs do not die sitting down.</p></div>
+    <div class="card"><strong>👑 Hades &amp; the Array</strong><p>Dr. Lucifer Hades stayed awake for the whole voyage building the Necromantic Array — signal towers on the ley-line crossings that woke every corpse on Day 7. The Array's full burn tore the W-axis wound your fairways leak through.</p></div>
+    <div class="card"><strong>🌀 The W-axis wound</strong><p>Ten holes, ten echoes of ten fights. Play them, close them. That is the whole mission.</p></div>
+  </div>
+
+  <h2>6 · Tips</h2>
+  <div class="card">
+    <ul>
+      <li>Slice <em>before</em> you shoot: Q/E first, then aim. Most "impossible" holes are one W-step from easy.</li>
+      <li>Rewind is free learning — use R aggressively on holes 6–9.</li>
+      <li>Putt with Space inside the green ring; full launches overshoot the cup.</li>
+      <li>On touch: short drags for putts, long drags for drives.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Inspirations: 4D Golf by CodeParade — 3D-slice golf; tesseract/hypercube geometry; generative AI-worlds à la AI-lab Minecraft. GraveGain4D is an original fan-canon tribute: new prose, new code, same MoonRock.
+  </footer>
+</main>
+</body>
+</html>

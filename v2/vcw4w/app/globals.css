@@ -474,11 +474,44 @@ html.a11y-reduced-motion .mobile-acc-list > li {
   filter: none !important;
 }
 
-/* Play-shell frame height: stable while the mobile keyboard opens/closes.
-   svh is immune to URL-bar/keyboard viewport changes; vh stays as the
-   fallback for browsers without svh. (A plain class - Tailwind can't
-   guarantee fallback ordering for two height utilities on one element.) */.play-frame-height { height: 70vh; height: 70svh; }
+/* Play-shell frame: fixed logical stage ratio, scaled down to fit.
+   Desktop = 1920x1080 (16:9). Mobile portrait = 1080x1920 (9:16).
+   The box letterboxes (black bars via auto margins + black bg) instead of
+   stretching when the window is a different shape. svh first with vh
+   fallback for browsers without svh. */
+.play-frame-height { height: 70vh; height: 70svh; }
 @media (min-width: 640px) { .play-frame-height { height: 75vh; height: 75svh; } }
+/* Ratio stage: applied alongside .play-frame-height on the live game frame
+   only (start/checking screens keep the vh heights above). Width-driven so
+   the ratio holds at any window size; max-height caps it to the viewport. */
+.perf-frame.play-frame-ar {
+  height: auto;
+  aspect-ratio: 16 / 9;
+  width: min(100%, calc((100vh - 220px) * 16 / 9), calc((100svh - 220px) * 16 / 9));
+  max-height: calc(100vh - 220px);
+  max-height: calc(100svh - 220px);
+  min-height: 0;
+  margin-inline: auto;
+}
+/* Mobile portrait: 9:16 stage, safe-area aware. */
+@media (max-width: 640px) and (orientation: portrait) {
+  .perf-frame.play-frame-ar {
+    aspect-ratio: 9 / 16;
+    width: min(100%, calc((100vh - 160px) * 9 / 16), calc((100svh - 160px) * 9 / 16));
+    max-height: calc(100vh - 160px);
+    max-height: calc(100svh - 160px);
+  }
+}
+/* Fullscreen (native or CSS fallback): fill the screen, keep ratio via the
+   iframe's own contain fit — no vh caps while fullscreen. */
+.perf-frame.play-frame-ar:fullscreen,
+.perf-frame.play-frame-ar:-webkit-full-screen {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  aspect-ratio: auto;
+  margin-inline: 0;
+}
 
 /* Game shells stay dark even when the site is in light mode. */
 html.light [data-theme-lock="dark"] { background-color: #000000 !important; color: #ffffff !important; }
@@ -883,7 +916,10 @@ html.a11y-reduced-motion .hero-glow::before, html.a11y-reduced-motion .hero-glow
 /* ---- Fullscreen polish (.perf-frame native + .fw-fake-fullscreen fallback) ---- */
 .perf-frame:fullscreen { background: #000; width: 100%; height: 100%; }
 .perf-frame:-webkit-full-screen { background: #000; width: 100%; height: 100%; }
-.perf-frame:fullscreen iframe, .perf-frame:-webkit-full-screen iframe { width: 100%; height: 100%; border: 0; background: #000; }
+.perf-frame:fullscreen iframe, .perf-frame:-webkit-full-screen iframe { width: 100%; height: 100%; border: 0; background: #000; object-fit: contain; }
+/* Ratio stage iframe: contain-fit so the 16:9 / 9:16 stage letterboxes
+   instead of stretching when the viewport shape differs. */
+.perf-frame.play-frame-ar iframe { width: 100%; height: 100%; border: 0; background: #000; object-fit: contain; }
 /* Fake-fullscreen fallback toggled by the shell frame when native is denied.
    Body overflow is never touched here so exiting can't trap scroll. */
 .fw-fake-fullscreen { position: fixed; inset: 0; z-index: 9999; background: #000; overflow: auto; }

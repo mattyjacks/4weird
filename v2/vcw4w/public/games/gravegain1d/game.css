@@ -32,8 +32,8 @@ html, body {
 #gg1dBossBar { display: none; margin-top: 6px; }
 #gg1dBossBar.on { display: block; }
 #gg1dBossFill { background: linear-gradient(90deg, #7f1d1d, #ef4444); }
-#gg1dStage { position: relative; width: 100%; }
-#gg1dCanvas { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(168, 85, 247, 0.35); background: #05030d; touch-action: none; }
+#gg1dStage { position: relative; width: 100%; overflow: hidden; border-radius: 10px; }
+#gg1dCanvas { display: block; width: 100%; height: auto; aspect-ratio: 16/9; border-radius: 10px; border: 1px solid rgba(168, 85, 247, 0.35); background: #05030d; touch-action: none; }
 #gg1dBanner {
     position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
     text-align: center; pointer-events: none; padding: 0 8%;
@@ -47,10 +47,10 @@ html, body {
 #gg1dBannerTitle { font-family: Orbitron, Outfit, sans-serif; color: var(--gg1d-gold); letter-spacing: 0.1em; font-size: 0.95rem; margin: 0 0 8px; }
 #gg1dBannerText { font-size: 0.92rem; line-height: 1.55; margin: 0; white-space: pre-line; }
 #gg1dTouch {
-    display: flex; gap: 8px; margin-top: 8px;
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
 }
 #gg1dTouch button {
-    flex: 1; padding: 12px 4px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+    flex: 1 1 96px; min-width: 88px; padding: 12px 4px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
     background: rgba(20, 14, 40, 0.95); color: #fff; border: 1px solid var(--gg1d-purple);
     border-radius: 10px; font-family: Orbitron, Outfit, sans-serif;
 }

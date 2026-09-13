@@ -209,7 +209,7 @@
                 if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
                 if (e.key === 'f' || e.key === 'F') toggleFS();
             });
-            if (canvas) canvas.addEventListener('dblclick', toggleFS);
+            if (canvas) canvas.addEventListener('fw-dblclick-disabled', toggleFS);
         })();
     </script>
 </body>

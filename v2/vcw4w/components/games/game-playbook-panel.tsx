@@ -31,6 +31,7 @@ export function GamePlaybookPanel({ slug, compact = false }: { slug: string; com
           </ul>
         </>
       )}
+      <p className="mt-3 text-xs text-slate-400">💾 Autosave is ON by default — saves every minute plus whenever the game requests it (e.g. after a cutscene) to slot 0 (cheat-proof). Opt out anytime in the Cloud saves section.</p>
     </section>
   );
 }

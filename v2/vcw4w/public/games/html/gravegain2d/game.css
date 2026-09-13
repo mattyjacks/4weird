@@ -145,7 +145,9 @@
 .canvas-container {
     position: relative;
     width: 100%;
-    height: 600px;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    max-height: 640px;
     background: #020205;
     border-radius: 12px;
     overflow: hidden;
@@ -153,16 +155,21 @@
     box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
 }
 
-.control-modes-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; flex-wrap:wrap; }
-.mode-selector-group, .speed-selector-group, .chrono-display-group, .turn-display-group { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+.control-modes-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; flex-wrap:wrap; overflow-x:auto; }
+.mode-selector-group, .speed-selector-group, .chrono-display-group, .turn-display-group { display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-width:0; }
 .mode-label { color:var(--grave-text-muted); font-size:.7rem; font-weight:800; letter-spacing:.09em; }
-.btn-mode, .btn-speed { background:rgba(0,0,0,.35); border:1px solid var(--grave-border); border-radius:6px; color:var(--grave-text); cursor:pointer; font:700 .73rem var(--grave-font); padding:7px 9px; }
+.btn-mode, .btn-speed { background:rgba(0,0,0,.35); border:1px solid var(--grave-border); border-radius:6px; color:var(--grave-text); cursor:pointer; font:700 .73rem var(--grave-font); padding:7px 9px; flex:0 1 auto; min-width:0; white-space:nowrap; }
 .btn-mode.active, .btn-speed.active { background:linear-gradient(135deg,var(--grave-crimson),var(--grave-purple)); border-color:rgba(255,255,255,.35); color:#fff; }
 .chrono-display-group, .turn-display-group { color:var(--grave-gold); font-size:.75rem; font-weight:700; }
 .chrono-badge { border:1px solid var(--grave-gold); border-radius:999px; padding:4px 8px; color:var(--grave-gold); }
 .mission-tracker { display:flex; justify-content:space-between; gap:12px; padding:9px 13px; border:1px solid rgba(255,204,76,.35); border-radius:8px; background:rgba(255,204,76,.08); color:var(--grave-text); font-size:.78rem; }
 .mission-tracker > span:first-child { color:var(--grave-gold); font-weight:800; white-space:nowrap; }
 .btn-wait-turn { min-height:0; padding:7px 10px; font-size:.7rem; }
+/* Bottom action row: same wrap+scroll contract as gravegain1d #gg1dTouch —
+   buttons flex down to a small min-width, then the row scrolls instead of
+   truncating inside narrow iframes. Visual style (.btn-game) untouched. */
+.bottom-action-row { display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin-top:10px; overflow-x:auto; }
+.bottom-action-row .btn-game { flex:1 1 160px; min-width:140px; }
 .hidden { display:none !important; }
 
 #gameCanvas, #lightingCanvas {

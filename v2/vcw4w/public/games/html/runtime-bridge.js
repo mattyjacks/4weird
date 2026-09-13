@@ -399,7 +399,7 @@
   // ---- Fullscreen exit: in-iframe affordance + keys for disabled players. ----
   // Some players cannot reach the shell/host exit UI (keyboard-only, switch,
   // touch, or pointer locked by the game canvas), so the bridge owns a small
-  // persistent exit control inside the runtime document plus Escape / F
+  // persistent exit control inside the runtime document plus Escape
   // handling. Both paths reuse exitFullscreen() above, so the existing
   // fourweird-fullscreen dispatch (via notifyFullscreenChanged /
   // fullscreenchange) stays the single source of truth. Bridge protocol
@@ -482,8 +482,11 @@
         try {
           if (!isFullscreen()) return;
           var k = (event && event.key) || "";
-          var code = (event && event.code) || "";
-          if (k === "Escape" || k === "Esc" || k === "f" || k === "F" || code === "KeyF") {
+          // Esc only: F/KeyF is gameplay input (Ability/fire/typing in
+          // gravegain3d, lastwordszombies, …) and must never exit fullscreen.
+          // Shell F-toggle is also scoped to the shell document, so an F
+          // pressed inside the runtime never reaches it.
+          if (k === "Escape" || k === "Esc") {
             exitFullscreen();
             try {
               setTimeout(notifyFullscreenChanged, 0);
@@ -704,6 +707,8 @@
   //    slot-0 (cheat-free) cloud save. Keys already present locally are left alone on
   //    restore, so same-browser state is never clobbered.
   var STATS_FLUSH_MS = 60000;
+  var AUTOSAVE_INTERVAL_MS = 60000;
+  var FOURWEIRD_AUTOSAVE_ENABLED = true;
   var SAVE_BYTES_MAX = 200 * 1024;
   var statActiveSec = 0;
   var statActions = 0;
@@ -768,10 +773,45 @@
     return keys;
   }
 
-  function saveNow() {
-    var keys = snapshotStorage();
-    if (!keys) return;
-    post({ type: "save", slot: 0, schema_version: 1, data: { namespace: SLUG, keys: keys } });
+  // ---- Autosave: enabled by default, best-effort/fail-open. ----
+  // Opt-out paths (any one disables the periodic 60 s autosave):
+  //   window.__fourweirdAutosave = false (set before or after load), or
+  //   window.__fourweirdAutosave.enabled = false, or
+  //   localStorage "fourweird-autosave:disabled" = "1" / "true".
+  // Explicit saves (save-on-hide/pagehide, __fourweirdRequestSave,
+  // "fourweird-request-save") always run: opting out only stops the timer.
+  function isAutosaveEnabled() {
+    try {
+      if (FOURWEIRD_AUTOSAVE_ENABLED === false) return false;
+    } catch (e) {}
+    try {
+      if (window.__fourweirdAutosave === false) return false;
+      if (window.__fourweirdAutosave && window.__fourweirdAutosave.enabled === false) return false;
+    } catch (e) {}
+    try {
+      if (window.__fourweirdAutosaveEnabled === false) return false;
+    } catch (e) {}
+    try {
+      if (window.localStorage) {
+        var flag = window.localStorage.getItem("fourweird-autosave:disabled");
+        if (flag === "1" || flag === "true") return false;
+      }
+    } catch (e) {}
+    return true;
+  }
+
+  function saveNow(reason) {
+    try {
+      var keys = snapshotStorage();
+      if (!keys) return;
+      var msg = { type: "save", slot: 0, schema_version: 1, data: { namespace: SLUG, keys: keys } };
+      try {
+        if (typeof reason === "string" && reason) msg.reason = reason;
+      } catch (e) {}
+      post(msg);
+    } catch (e) {
+      /* autosave is best-effort; the game stays playable */
+    }
   }
 
   // Fill keys ABSENT from localStorage from a cloud snapshot. Same-browser
@@ -883,6 +923,64 @@
   } catch (e) {
     /* timers unavailable */
   }
+  // Periodic autosave (slot 0, same snapshot as save-on-hide). Guarded by
+  // the autosave-enabled check; explicit/hide saves below always run.
+  try {
+    setInterval(function () {
+      try {
+        if (isAutosaveEnabled()) saveNow("auto");
+      } catch (e) {}
+    }, AUTOSAVE_INTERVAL_MS);
+  } catch (e) {
+    /* timers unavailable */
+  }
+  // On-request save API for games (e.g. after a cutscene):
+  //   window.__fourweirdRequestSave("cutscene");
+  //   window.dispatchEvent(new CustomEvent("fourweird-request-save",
+  //     { detail: { reason: "cutscene" } }));
+  //   window.__fourweirdAutosave.requestSave("cutscene");
+  //   window.__fourweirdAutosave.setEnabled(false);
+  try {
+    window.__fourweirdRequestSave = function (reason) {
+      try {
+        saveNow(reason);
+      } catch (e) {}
+    };
+  } catch (e) {}
+  try {
+    window.addEventListener("fourweird-request-save", function (event) {
+      try {
+        var r = (event && event.detail && event.detail.reason) || undefined;
+        saveNow(r);
+      } catch (e) {}
+    });
+  } catch (e) {}
+  try {
+    var priorAutosaveOptOut = false;
+    try {
+      priorAutosaveOptOut =
+        window.__fourweirdAutosave === false ||
+        (window.__fourweirdAutosave && window.__fourweirdAutosave.enabled === false);
+    } catch (e) {}
+    if (priorAutosaveOptOut) FOURWEIRD_AUTOSAVE_ENABLED = false;
+    window.__fourweirdAutosave = {
+      requestSave: function (reason) {
+        try {
+          saveNow(reason);
+        } catch (e) {}
+      },
+      setEnabled: function (enabled) {
+        try {
+          FOURWEIRD_AUTOSAVE_ENABLED = enabled !== false;
+        } catch (e) {}
+      }
+    };
+    if (priorAutosaveOptOut) {
+      try {
+        window.__fourweirdAutosave.enabled = false;
+      } catch (e) {}
+    }
+  } catch (e) {}
   try {
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "hidden") flushAll();

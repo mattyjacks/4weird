@@ -182,7 +182,10 @@
 .canvas-container {
     position: relative;
     width: 100%;
-    height: 600px;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    min-height: 240px;
+    max-width: 100%;
     background: #020205;
     border-radius: 12px;
     overflow: hidden;
@@ -1272,7 +1275,9 @@ body.touch-enabled .mobile-action-buttons {
     }
 
     .canvas-container {
-        height: 480px;
+        aspect-ratio: 16 / 9;
+        height: auto;
+        min-height: 240px;
     }
 
     .hud-minimap-container {
@@ -1838,5 +1843,62 @@ body.touch-enabled .mobile-action-btn.btn-wait {
     opacity: 0.45;
     cursor: not-allowed;
     filter: grayscale(0.7);
+}
+
+/* ===== NARROW-IFRAME HARDENING: touch/action bars + 16/9 canvas (2026-09-13) ===== */
+/* Canvas keeps a true 16/9 box at any iframe width (styling/colors untouched). */
+.canvas-container {
+    aspect-ratio: 16 / 9;
+    height: auto;
+    min-height: 240px;
+    max-width: 100%;
+}
+
+/* Touch + desktop action bars: wrap first, scroll if still too narrow — never clip buttons. */
+.control-modes-bar {
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.mode-selector-group,
+.speed-selector-group,
+.turn-display-group,
+.chrono-display-group {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+}
+.speed-selector-group {
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+.btn-mode,
+.btn-speed {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.desktop-bottom-row {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    scrollbar-width: thin;
+}
+.desktop-bottom-row > div {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+}
+#controlsHint {
+    min-width: 0;
+    flex: 1 1 200px;
+}
+.mmp-speed-row {
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+.mmp-speed-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 

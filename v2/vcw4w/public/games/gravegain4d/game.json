@@ -1,0 +1,60 @@
+{
+    "title": "GraveGain4D",
+    "slug": "gravegain4d",
+    "description": "GraveGain4D: dream-smooth 4D golf in the GraveGain canon. Putt a grave-touched ball through folded hypercube greens, rotate across the W-axis, rewind bad shots through time, and dream-shift between slices on the road from MoonRock colony to the LuckyStarShip.",
+    "genre": "Sports",
+    "tags": ["HTML5", "Sports", "Golf", "4D", "Three.js", "Dreamlike"],
+    "ageBand": "teen",
+    "rating": "teen",
+    "maker": {
+        "name": "Antigravity Dev",
+        "bio": "Specializing in high-fidelity HTML5 game experiences with immersive systems and rich game-feel.",
+        "url": "https://4weird.com",
+        "urlLabel": "4weird"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Lead Architect",
+            "avatar": "🧙",
+            "primary": true,
+            "url": "https://4weird.com",
+            "urlLabel": "4weird"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "Space": "Putt toward the goal (one-button putt)",
+            "Q / E or Left / Right": "Rotate across the W-axis (4D rotate)",
+            "R": "Time-rewind to the previous shot",
+            "T": "Dream-shift to the next W-slice",
+            "Escape / P": "Pause Game"
+        },
+        "touch": true,
+        "mouse": true
+    },
+    "instructions": "One-button putt with Space or click: the ball glides toward the goal with dream-smooth damping. Rotate the fourth dimension with Q/E, rewind a bad shot with R, dream-shift slices with T. Sink every hole to clear the mission.",
+    "technical": {
+        "canvasSize": {"width": 1000, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [
+            {
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+                "description": "Three.js 3D Library (primary CDN)"
+            },
+            {
+                "url": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js",
+                "description": "Three.js 3D Library (fallback mirror)"
+            }
+        ],
+        "local": ["../html/gravegain4d-math.js", "../html/gravegain4d-graphics.js", "../html/gravegain4d-worlds.js", "../html/gravegain4d-missions.js", "game.js", "index.html"]
+    },
+    "meta": {
+        "version": "1.0.0",
+        "created": "2026-09-13",
+        "license": "MIT"
+    }
+}

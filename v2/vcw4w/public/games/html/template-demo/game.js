@@ -254,6 +254,7 @@
     
     function endGame() {
         state.isPlaying = false;
+        // e.g. requestAutosave('level-complete') here — on-request save after cutscene/level-complete (see AUTOSAVE section below; comment-only, no logic change).
         
         if (state.score > state.highScore) {
             state.highScore = state.score;
@@ -288,6 +289,23 @@
     resizeCanvas();
     
     console.log('[Template Demo] 4weird Games - Initialized');
+
+    // ===== AUTOSAVE: default ON — periodic every 60s handled by shell+bridge; games request extra saves via window.__fourweirdRequestSave(reason) or window.dispatchEvent(new CustomEvent('fourweird-request-save',{detail:{reason}})) =====
+    // The shell autosaves on its own every 60s. Call requestAutosave(reason)
+    // at meaningful moments for an extra on-request save. Fail-open: safe to
+    // call even when the shell bridge is absent (no-op, never throws).
+    function requestAutosave(reason) {
+        try {
+            if (typeof window.__fourweirdRequestSave === 'function') {
+                window.__fourweirdRequestSave(reason);
+                return;
+            }
+            window.dispatchEvent(new CustomEvent('fourweird-request-save', { detail: { reason: reason } }));
+        } catch (err) {
+            // Fail-open: autosave must never break gameplay.
+        }
+    }
+    // e.g. call requestAutosave('cutscene-end') after your cutscene/level-complete handler.
 
     // ===== DEVELOPER DEBUGGING API =====
     window.gameDebug = {

@@ -27,8 +27,8 @@
 // ===== FW-ARCADE-A: fullscreen helper =====
 // Fullscreens the #game section so the HUD (role/timer/scores) stays visible
 // (feature: HUD kept + repositioned via :fullscreen CSS).
-// ⛶ overlay button (in HUD), F key + double-click toggle (F applies once the
-// arena is showing; mid-match 'f' doubles as dash - see guard below).
+// ⛶ overlay button (in HUD), button-only toggle ('f' is dash mid-match, so
+// no F key and no double-click: both fired during normal movement/dash).
 // Audio sweep: this game uses no WebAudio (no AudioContext to resume).
 // Pointer lock is never requested; if one is ever held it is exited first.
 (function fwFullscreen(){
@@ -37,7 +37,7 @@
   var hud=section.querySelector('.hud');
   var btn=document.createElement('button');
   btn.id='fw-fs-btn'; btn.className='fw-fs-btn'; btn.type='button';
-  btn.title='Toggle fullscreen (F)'; btn.setAttribute('aria-label','Toggle fullscreen');
+  btn.title='Toggle fullscreen'; btn.setAttribute('aria-label','Toggle fullscreen');
   btn.textContent='\u26F6';
   if(hud)hud.appendChild(btn); else section.insertBefore(btn,section.firstChild);
   function isFS(){return !!document.fullscreenElement;}
@@ -56,19 +56,20 @@
   }
   btn.addEventListener('click',function(e){e.stopPropagation();toggleFS();
     if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();});
-  section.addEventListener('dblclick',function(e){
+  section.addEventListener('fw-dblclick-disabled',function(e){
     if(e.target&&e.target.closest&&e.target.closest('button'))return;
     toggleFS();});
+  // No F-key fullscreen toggle: 'f' is the dash key mid-match and the #game
+  // section is hidden in the lobby (requestFullscreen would reject there),
+  // so F could never validly toggle — it only double-acted with dash.
+  // Fullscreen is button-only via the HUD button above.
   window.addEventListener('keydown',function(e){
     if(e.key!=='f'&&e.key!=='F')return;
     if(e.ctrlKey||e.metaKey||e.altKey)return;
     var t=e.target;
     if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.tagName==='SELECT'))return;
-    // Only toggle once the arena is showing (requestFullscreen on the hidden
-    // lobby section would reject). Note: mid-match 'f' is also the dash key,
-    // so pressing F both dashes and toggles - button/double-click avoid this.
-    if(section.hidden)return;
-    e.preventDefault();toggleFS();});
+    // Intentionally no toggleFS() here (see above): let the key reach dash.
+    return;});
   document.addEventListener('fullscreenchange',function(){
     if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();});
 })();

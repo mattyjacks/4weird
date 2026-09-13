@@ -7,7 +7,7 @@
  *
  * Vanilla IIFE, no dependencies (FourWeirdGraphics / FourWeirdWorkers are
  * optional and guarded). Never throws out of event handlers. Idempotent.
- * Exposes window.GraveGain1D = { VERSION, newRun, tick, CLASSES, SECTORS }.
+ * Exposes window.GraveGain1D = { VERSION, newRun, tick, CLASSES, RACES, SECTORS }.
  */
 (function () {
     'use strict';
@@ -30,6 +30,19 @@
     }
 
     // ---------------- Data ----------------
+    // RACES mirrors gravegain2d (game.js:7-12) + gravegain3d (engine/game-data.js:4-9):
+    // human / elf / dwarf / orc. Deltas are 1D-scaled small ints applied in newRun.
+    var RACES = {
+        human: { id: 'human', name: 'Human', emoji: '👩‍🚀', hp: 2, atk: 0, def: 0, spd: 0,
+            blurb: 'Balanced line-holder. Shield Wall grit, steady boots, no race abandons another.' },
+        elf: { id: 'elf', name: 'Elf', emoji: '🧝‍♀️', hp: -2, atk: 1, def: 0, spd: 1,
+            blurb: 'Fast spellweaver. Frail frame, quick feet, keen eye on the ley-line.' },
+        dwarf: { id: 'dwarf', name: 'Dwarf', emoji: '⛏️', hp: 8, atk: 0, def: 1, spd: -1,
+            blurb: 'Stout forge-kin. Extra bulk and plating, slower march, poison-hardy grit.' },
+        orc: { id: 'orc', name: 'Orc', emoji: '👹', hp: 5, atk: 1, def: 0, spd: 0,
+            blurb: 'Fierce blood-kin. Heavy hits and heavy frame, honor-bound to the Compact.' }
+    };
+
     var CLASSES = {
         rifleman: { id: 'rifleman', name: 'Line Rifleman', emoji: '🔫', hp: 20, atk: 5, def: 1, spd: 3, range: 4,
             ability: { name: 'Burst Fire', cd: 6, desc: 'Hit ALL enemies in range 4' },
@@ -39,7 +52,19 @@
             blurb: 'Borin needs hands that fix under fire. Carry the big charge, light the dark, break the golems.' },
         runner: { id: 'runner', name: 'Grove Runner', emoji: '🌿', hp: 18, atk: 7, def: 0, spd: 4, range: 3,
             ability: { name: 'Hex Nova', cd: 7, desc: '3 dmg to all in range 4 + slow + drain' },
-            blurb: 'Aelindra\u2019s pick: fast feet, quiet steps, field-blessed. Outrun the swarm, cut the anchors first.' }
+            blurb: 'Aelindra\u2019s pick: fast feet, quiet steps, field-blessed. Outrun the swarm, cut the anchors first.' },
+        warrior: { id: 'warrior', name: 'Compact Warrior', emoji: '⚔️', hp: 24, atk: 6, def: 1, spd: 2, range: 3,
+            ability: { name: 'Whirlwind', cd: 7, desc: 'Hit ALL enemies in range 3' },
+            blurb: 'Front-line blade of the Compact. Hold the ley-line, cut down all who crowd it.' },
+        mage: { id: 'mage', name: 'Ley Mage', emoji: '🔮', hp: 18, atk: 6, def: 0, spd: 2, range: 4,
+            ability: { name: 'Arcane Storm', cd: 7, desc: '4 dmg to all in range 4' },
+            blurb: 'Channel the ley-line itself. Fragile frame, storm-grade aim.' },
+        tank: { id: 'tank', name: 'Bulwark Tank', emoji: '🛡️', hp: 32, atk: 4, def: 3, spd: 1, range: 3,
+            ability: { name: 'Bulwark Stance', cd: 8, desc: 'Shield 10 for 2 ticks + heal 4' },
+            blurb: 'Walking wall. Take the hits so the line behind you never has to.' },
+        support: { id: 'support', name: 'Field Support', emoji: '⚕️', hp: 22, atk: 4, def: 1, spd: 3, range: 4,
+            ability: { name: 'Mend Surge', cd: 7, desc: 'Heal 8 now' },
+            blurb: 'Combat medic of the march. Patch wounds, keep feet moving east.' }
     };
 
     var KINDS = {
@@ -115,11 +140,16 @@
     // ---------------- Run state ----------------
     var nextId = 1;
 
-    function newRun(seed, classId, mode) {
+    function newRun(seed, classId, mode, raceId) {
         var c = CLASSES[classId] || CLASSES.rifleman;
+        var r = RACES[raceId] || RACES.human;
+        var hp = Math.max(1, c.hp + r.hp);
+        var atk = Math.max(1, c.atk + r.atk);
+        var def = Math.max(0, c.def + r.def);
+        var spd = Math.max(1, c.spd + r.spd);
         var s = {
-            seed: seed | 0, cls: c.id, mode: mode === 'realtime' ? 'realtime' : 'turn',
-            x: 0, hp: c.hp, maxHp: c.hp, atk: c.atk, def: c.def, spd: c.spd, range: c.range,
+            seed: seed | 0, cls: c.id, race: r.id, mode: mode === 'realtime' ? 'realtime' : 'turn',
+            x: 0, hp: hp, maxHp: hp, atk: atk, def: def, spd: spd, range: c.range,
             level: 1, xp: 0, gold: 0, potions: 2, kills: 0, ticks: 0,
             enemies: [], cooldowns: { ability: 0 }, shield: 0, shieldT: 0,
             sector: 0, cycle: 0, gateX: SECTOR_LEN - 1, gateOpen: false, boss: null,
@@ -285,6 +315,29 @@
             s.shield = 8; s.shieldT = 2;
             s.hp = Math.min(s.maxHp, s.hp + 6);
             events.push({ t: 'ability', name: 'Stone Oath' });
+        } else if (s.cls === 'warrior') {
+            s.cooldowns.ability = 7;
+            playerAttack(s, events, true);
+            events.push({ t: 'ability', name: 'Whirlwind' });
+        } else if (s.cls === 'mage') {
+            s.cooldowns.ability = 7;
+            for (var m = s.enemies.length - 1; m >= 0; m--) {
+                var me = s.enemies[m];
+                if (me.hp > 0 && Math.abs(me.x - s.x) <= 4) {
+                    damage(s, me, 4, false, events);
+                    if (me.hp <= 0) killFoe(s, me, events);
+                }
+            }
+            events.push({ t: 'ability', name: 'Arcane Storm' });
+        } else if (s.cls === 'tank') {
+            s.cooldowns.ability = 8;
+            s.shield = 10; s.shieldT = 2;
+            s.hp = Math.min(s.maxHp, s.hp + 4);
+            events.push({ t: 'ability', name: 'Bulwark Stance' });
+        } else if (s.cls === 'support') {
+            s.cooldowns.ability = 7;
+            s.hp = Math.min(s.maxHp, s.hp + 8);
+            events.push({ t: 'ability', name: 'Mend Surge' });
         } else {
             s.cooldowns.ability = 7;
             var drained = 0;
@@ -600,9 +653,9 @@
     function el(id) { try { return document.getElementById(id); } catch (e) { return null; } }
     function setText(id, v) { try { var n = el(id); if (n) n.textContent = String(v); } catch (e) { /* ignore */ } }
 
-    function startRun(classId, mode) {
+    function startRun(classId, mode, raceId) {
         var seed = (Date.now() % 100000) | 0;
-        var run = newRun(seed, classId, mode);
+        var run = newRun(seed, classId, mode, raceId);
         G = {
             run: run, floaters: [], parts: [],
             acc: 0, last: 0, paused: false, banner: false,
@@ -1124,16 +1177,21 @@
     // ---------------- Wiring ----------------
     function bindMenu() {
         try {
-            var mode = 'turn', cls = 'rifleman';
+            var mode = 'turn', cls = 'rifleman', race = 'human';
             var p = loadProfile();
             if (p.settings) {
                 if (p.settings.mode === 'realtime' || p.settings.mode === 'turn') mode = p.settings.mode;
                 if (CLASSES[p.settings.cls]) cls = p.settings.cls;
+                if (RACES[p.settings.race]) race = p.settings.race;
             }
             function paint() {
                 var ms = el('gg1dModePick');
                 if (ms) for (var i = 0; i < ms.children.length; i++) {
                     ms.children[i].className = ms.children[i].getAttribute('data-mode') === mode ? 'sel' : '';
+                }
+                var rs = el('gg1dRacePick');
+                if (rs) for (var q = 0; q < rs.children.length; q++) {
+                    rs.children[q].className = rs.children[q].getAttribute('data-race') === race ? 'sel' : '';
                 }
                 var cs = el('gg1dClassPick');
                 if (cs) for (var j = 0; j < cs.children.length; j++) {
@@ -1151,7 +1209,14 @@
             if (cp) cp.addEventListener('click', function (ev) {
                 try {
                     var b = ev.target.closest ? ev.target.closest('[data-class]') : null;
-                    if (b) { cls = b.getAttribute('data-class'); paint(); beep(520, 50, 'square', 0.03); }
+                    if (b && CLASSES[b.getAttribute('data-class')]) { cls = b.getAttribute('data-class'); paint(); beep(520, 50, 'square', 0.03); }
+                } catch (e) { /* ignore */ }
+            });
+            var rp = el('gg1dRacePick');
+            if (rp) rp.addEventListener('click', function (ev) {
+                try {
+                    var rb = ev.target.closest ? ev.target.closest('[data-race]') : null;
+                    if (rb && RACES[rb.getAttribute('data-race')]) { race = rb.getAttribute('data-race'); paint(); beep(520, 50, 'square', 0.03); }
                 } catch (e) { /* ignore */ }
             });
             paint();
@@ -1159,9 +1224,9 @@
             if (go) go.addEventListener('click', function () {
                 try {
                     var prof = loadProfile();
-                    prof.settings = { mode: mode, speed: 1, cls: cls };
+                    prof.settings = { mode: mode, speed: 1, cls: cls, race: race };
                     saveProfile(prof);
-                    startRun(cls, mode);
+                    startRun(cls, mode, race);
                 } catch (e) { /* ignore */ }
             });
             var tb = el('gg1dTouch');
@@ -1207,7 +1272,7 @@
                     else if (G && G.run && G.run.mode === 'turn') doAction('attack');
                 } catch (e) { /* ignore */ }
             });
-            if (cv) cv.addEventListener('dblclick', function () { try { toggleFullscreen(); } catch (e) { /* ignore */ } });
+            if (cv) cv.addEventListener('fw-dblclick-disabled', function () { try { toggleFullscreen(); } catch (e) { /* ignore */ } });
             document.addEventListener('fullscreenchange', function () { try { sizeCanvas(); } catch (e) { /* ignore */ } });
             document.addEventListener('visibilitychange', function () {
                 try { if (document.hidden && G && G.run && G.run.mode === 'realtime') G.paused = true; } catch (e) { /* ignore */ }
@@ -1250,6 +1315,7 @@
             tick: tick,
             score: score,
             CLASSES: CLASSES,
+            RACES: RACES,
             SECTORS: SECTORS,
             CODEX: CODEX,
             SAVE_KEY: SAVE_KEY

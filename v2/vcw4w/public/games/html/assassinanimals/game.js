@@ -4413,7 +4413,7 @@
         toggleFS();
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     });
-    viewport.addEventListener('dblclick', function (e) {
+    viewport.addEventListener('fw-dblclick-disabled', function (e) {
         if (e.target && e.target.closest && e.target.closest('button')) return;
         toggleFS();
     });

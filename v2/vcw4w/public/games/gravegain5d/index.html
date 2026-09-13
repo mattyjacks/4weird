@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='.9em' font-size='56'%3E%F0%9F%8C%8C%3C/text%3E%3C/svg%3E">
+    <title>GraveGain5D — Multiverse Transcendence</title>
+    <meta name="description" content="GraveGain5D: transcend 6 parallel universes on the same 4D hypercube golf and 3D models. Chain hops, paradox meter, collapsing universes. Crazier than 4D.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="game.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        if (!window.THREE) {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
+        }
+    </script>
+</head>
+<body>
+    <div id="gg5dWrap">
+        <div id="gg5dHud" hidden>
+            <span>🕳️ <span id="gg5dHole">Hole 1/10</span></span>
+            <span>⚪ <span id="gg5dStrokes">0/3</span></span>
+            <span class="gold">🪙 <span id="gg5dGold">0</span></span>
+            <span id="gg5dUniverseBadge">🌌 <span id="gg5dUniverse">Prime Array</span></span>
+            <span>🌀 <span id="gg5dParadox">0</span></span>
+            <span class="bar"><div id="gg5dParadoxFill" style="width:0%"></div></span>
+            <span class="dim">🔗 <span id="gg5dChain">x1</span></span>
+        </div>
+        <div id="gg5dStage">
+            <canvas id="gg5dCanvas" width="1000" height="600"></canvas>
+            <button id="gg5dFsBtn" title="Toggle fullscreen">⛶</button>
+            <div id="gg5dBanner"><div id="gg5dBannerCard">
+                <p id="gg5dBannerTitle"></p>
+                <p id="gg5dBannerText"></p>
+            </div></div>
+        </div>
+        <div id="gg5dTouch" hidden>
+            <button data-act="putt">⚪ PUTT</button>
+            <button data-act="hop">🌀 HOP</button>
+            <button data-act="ability">✦ ABIL</button>
+            <button data-act="potion">🧪 VENT</button>
+            <button data-act="step">➡️ STEP</button>
+            <button data-act="wait">⏳ WAIT</button>
+        </div>
+        <div id="gg5dMenu">
+            <h1>GRAVEGAIN5D</h1>
+            <p class="sub">Multiverse Transcendence — 4D golf, 6 universes, 1 paradox meter. Crazier than 4D.</p>
+            <div class="gg5dChoices" id="gg5dUniversePick">
+                <button data-universe="prime" class="sel">🌌 Prime Array<small>Home water. No mods.</small></button>
+                <button data-universe="echo">🪞 Echo Expanse<small>Ghost putts echo.</small></button>
+                <button data-universe="dream">💭 Dream Shallows<small>Soft physics, +1 par.</small></button>
+                <button data-universe="void">🕳️ Void Maw<small>Heavy ball. Collapses fast.</small></button>
+                <button data-universe="bloom">🌸 Bloom Lattice<small>Floaty. Combos bloom.</small></button>
+                <button data-universe="static">📺 Static Storm<small>Noisy aim. Collapses.</small></button>
+            </div>
+            <div class="gg5dChoices" id="gg5dClassPick">
+                <button data-class="putter" class="sel">⚪ Void Putter<small>Chain Leap combo engine</small></button>
+                <button data-class="warden">🛡️ Paradox Warden<small>Anchor Reality vents paradox</small></button>
+                <button data-class="drifter">🌀 Universe Drifter<small>Free Hop, no paradox cost</small></button>
+            </div>
+            <button id="gg5dGoBtn">🌀 TRANSCEND</button>
+        </div>
+    </div>
+    <script src="/games/html/fourweird-graphics.js"></script>
+    <script src="/games/html/fourweird-workers.js"></script>
+    <script src="game.js"></script>
+    <script src="/games/html/gravegain5d-universes.js" data-slug="gravegain5d"></script>
+    <script>
+        (function () {
+            var btn = document.getElementById('gg5dFsBtn');
+            var stage = document.getElementById('gg5dStage');
+            if (!btn || !stage) return;
+            btn.addEventListener('click', function () {
+                try {
+                    if (typeof window.__fourweirdToggleFullscreen === 'function') { window.__fourweirdToggleFullscreen(); return; }
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        var p = stage.requestFullscreen ? stage.requestFullscreen() : (stage.webkitRequestFullscreen ? stage.webkitRequestFullscreen() : null);
+                        if (p && p.catch) p.catch(function () {});
+                    } else if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                } catch (e) {}
+            });
+            document.addEventListener('fullscreenchange', function () { try { window.dispatchEvent(new Event('resize')); } catch (e) {} });
+        })();
+    </script>
+</body>
+</html>
