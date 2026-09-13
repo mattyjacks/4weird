@@ -22,10 +22,10 @@ function isActive(pathname: string, href: string) {
 }
 
 /**
- * Global Menu Sidebar: desktop-left drawer + mobile drawer.
+ * Global Menu 2 Sidebar: desktop-left drawer + mobile drawer (separate from
+ * the header's mobile Menu 1 sheet).
  * - Hidden by default; a pill re-opens it (top-left on desktop,
- *   thumb-reachable bottom-left floating button on mobile so the sticky
- *   header can never cover it).
+ *   thumb-reachable bottom-left floating button on mobile).
  * - Every link carries a 1-line "quick info" + (?) detail popover.
  * - "Quick info" toggle at the bottom hides/shows all extra text.
  * - Search filters links live; Escape closes; backdrop closes on mobile.

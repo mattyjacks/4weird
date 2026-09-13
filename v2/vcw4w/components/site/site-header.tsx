@@ -613,7 +613,7 @@ export function SiteHeader() {
       >
         Skip to content
       </a>
-      <header className="border-b border-border bg-background/85 backdrop-blur lg:sticky lg:top-0 lg:z-50 dark:border-white/10 dark:bg-black/85">
+      <header className="border-b border-border bg-background/85 backdrop-blur dark:border-white/10 dark:bg-black/85">
         <div className="mx-auto flex min-h-14 max-w-6xl items-center justify-between gap-2 px-4 py-2 sm:px-5">
           <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-black text-foreground" aria-label="4weird home">
             <span aria-hidden="true">🎮</span> 4weird

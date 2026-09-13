@@ -228,7 +228,7 @@ function saveCredentials(credentials, isMigrating = false) {
 
 /** Remove provider-specific keys after a confirmed authentication failure. */
 function removeCredentialsForProviders(providers = []) {
-  const fields = { openai: 'openaiApiKey', deepseek: 'deepseekApiKey', gemini: 'geminiApiKey', meta: 'metaApiKey', openrouter: 'openrouterApiKey', elevenlabs: 'elevenlabsApiKey', runpod: 'runpodApiKey' };
+  const fields = { openai: 'openaiApiKey', deepseek: 'deepseekApiKey', gemini: 'geminiApiKey', meta: 'metaApiKey', openrouter: 'openrouterApiKey', elevenlabs: 'elevenlabsApiKey', runpod: 'runpodApiKey', fourweird: 'fourweirdBotKey', fal: 'falKey' };
   const wanted = providers.filter((provider) => fields[provider]);
   if (!wanted.length) return false;
   const dir = getCredentialsDir();
@@ -273,6 +273,8 @@ const PLACEHOLDER_PATTERNS = [
   /^mock/i,
   /elevenlabs-key-here/i,
   /your-elevenlabs/i,
+  /paste-your/i,
+  /-key-here/i,
   // Test/demo fixtures that have appeared in local credential stores. They
   // look key-shaped, but are deliberately non-secret values used by tests.
   /^sk-luna(?:-|$)/i,
@@ -297,6 +299,8 @@ function readEnvKey(provider) {
   else if (provider === 'openrouter') raw = process.env.OPENROUTER_API_KEY || '';
   else if (provider === 'elevenlabs') raw = process.env.ELEVENLABS_API_KEY || '';
   else if (provider === 'runpod') raw = process.env.RUNPOD_API_KEY || '';
+  else if (provider === 'fourweird') raw = process.env.FOURWEIRD_BOT_KEY || '';
+  else if (provider === 'fal') raw = process.env.FAL_KEY || '';
   raw = (raw || '').trim();
   // A stale placeholder in the shell (e.g. copied from .env.example) must not
   // shadow the good key the user saved in the encrypted store.
@@ -341,6 +345,10 @@ function getResolvedApiKey(provider, fallbackKey = '') {
     stored = clean(creds.elevenlabsApiKey) || (creds.provider === 'elevenlabs' ? clean(creds.apiKey) : '');
   } else if (provider === 'runpod') {
     stored = clean(creds.runpodApiKey) || (creds.provider === 'runpod' ? clean(creds.apiKey) : '');
+  } else if (provider === 'fourweird') {
+    stored = clean(creds.fourweirdBotKey) || '';
+  } else if (provider === 'fal') {
+    stored = clean(creds.falKey) || '';
   } else {
     stored = clean(creds.apiKey);
   }
@@ -368,8 +376,8 @@ function maskApiKey(key) {
  * Masked display bundle for the API-keys modal. Returns ONLY first8...last4
  * previews (never full secrets) so the UI can show each saved key without
  * exposing it in input values, innerText, or logs.
- * @returns {{openai:string,deepseek:string,gemini:string,meta:string,openrouter:string,elevenlabs:string}}
- */
+ * @returns {{openai:string,deepseek:string,gemini:string,meta:string,openrouter:string,elevenlabs:string,runpod:string,fourweird:string,fal:string}}
+  */
 function loadMaskedApiKeyBundle() {
   return {
     openai: maskApiKey(getResolvedApiKey('openai')),
@@ -378,8 +386,18 @@ function loadMaskedApiKeyBundle() {
     meta: maskApiKey(getResolvedApiKey('meta')),
     openrouter: maskApiKey(getResolvedApiKey('openrouter')),
     elevenlabs: maskApiKey(getResolvedApiKey('elevenlabs')),
-    runpod: maskApiKey(getResolvedApiKey('runpod'))
+    runpod: maskApiKey(getResolvedApiKey('runpod')),
+    fourweird: maskApiKey(getResolvedApiKey('fourweird')),
+    fal: maskApiKey(getResolvedApiKey('fal'))
   };
+}
+
+/**
+ * Bot-key shape check: `bot4weird_` + 20-32 alphanumerics (matches the Rust
+ * Tauri validator and the /bot/setup issuer; legacy 20-char rows still verify).
+ */
+function isValidBotKey(key) {
+  return /^bot4weird_[A-Za-z0-9]{20,32}$/.test(String(key || '').trim());
 }
 
 module.exports = {
@@ -395,6 +413,7 @@ module.exports = {
   maskApiKey,
   loadMaskedApiKeyBundle,
   isPlaceholderKey,
+  isValidBotKey,
   readEnvKey,
   sanitizeKeyPreview,
   isPlausibleApiKey,

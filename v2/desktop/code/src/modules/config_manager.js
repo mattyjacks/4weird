@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { ipcRenderer } = require('electron');
-const { loadCredentials, saveCredentials, getResolvedApiKey, isPlaceholderKey, removeCredentialsForProviders, maskApiKey, loadMaskedApiKeyBundle } = require('../../lib/storage');
+const { loadCredentials, saveCredentials, getResolvedApiKey, isPlaceholderKey, isValidBotKey, removeCredentialsForProviders, maskApiKey, loadMaskedApiKeyBundle } = require('../../lib/storage');
 
 const configFilePath = path.join(__dirname, '..', '..', 'config', 'default.json');
 
@@ -12,7 +12,7 @@ const configFilePath = path.join(__dirname, '..', '..', 'config', 'default.json'
 // bot_token.js. See sanitizeExeSettingsForPersist() below.
 const FOUR_WEIRD_DEFAULT_BASE_URL = 'https://4weird.com';
 const FIRST_RUN_OPENCODE_HINT = 'paste key at BOT TOKEN button → VERIFY → enable OpenCode';
-const BOT_KEY_RE = /^bot4weird_[A-Za-z0-9]{20}$/;
+const BOT_KEY_RE = /^bot4weird_[A-Za-z0-9]{20,32}$/;
 
 const modelsByProvider = {
   openai: [
@@ -433,7 +433,9 @@ function loadApiKeyBundle() {
     meta: getResolvedApiKey('meta'),
     openrouter: getResolvedApiKey('openrouter'),
     elevenlabs: getResolvedApiKey('elevenlabs'),
-    runpod: getResolvedApiKey('runpod')
+    runpod: getResolvedApiKey('runpod'),
+    fourweird: getResolvedApiKey('fourweird'),
+    fal: getResolvedApiKey('fal')
   };
 }
 
@@ -455,6 +457,7 @@ function clearInvalidApiKeyProviders(providers) {
 
 function saveApiKeyBundle(keys = {}) {
   const update = {};
+  const savedNames = [];
   const invalid = [];
   const entries = [
     ['openai', 'openaiApiKey'],
@@ -463,13 +466,17 @@ function saveApiKeyBundle(keys = {}) {
     ['meta', 'metaApiKey'],
     ['openrouter', 'openrouterApiKey'],
     ['elevenlabs', 'elevenlabsApiKey'],
-    ['runpod', 'runpodApiKey']
+    ['runpod', 'runpodApiKey'],
+    ['fourweird', 'fourweirdBotKey'],
+    ['fal', 'falKey']
   ];
   for (const [name, field] of entries) {
     const value = String(keys[name] || '').trim();
     if (!value) continue;
     if (isPlaceholderKey(value)) invalid.push(name);
-    else update[field] = value;
+    else if (name === 'fourweird' && !isValidBotKey(value)) {
+      return { success: false, error: 'That 4weird bot key has the wrong shape — it looks like bot4weird_ + 20-32 letters/digits. Copy it fresh from 4weird.com/bot/setup.' };
+    } else update[field] = value;
   }
   if (invalid.length) return { success: false, error: `Replace the example/placeholder ${invalid.join(', ')} key.` };
   if (!Object.keys(update).length) return { success: false, error: 'Enter at least one API key to save.' };
