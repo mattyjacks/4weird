@@ -3,6 +3,13 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import {
+  cleanCrmCoins as toCoins,
+  cleanCrmQty as toQty,
+  crmInvoiceTotals,
+  crmLineCoins,
+  crmTaxCoinsFromRate,
+} from "@/lib/crm-money";
 
 
 // Compliance: invoices here are org memoranda for internal coin accounting
@@ -32,16 +39,6 @@ type SortKey = (typeof SORTABLE)[number];
 function isUuid(v: unknown): string {
   const s = String(v ?? "").trim();
   return /^[0-9a-f-]{36}$/i.test(s) ? s : "";
-}
-
-function toCoins(v: unknown): number {
-  const n = Math.floor(Number(v ?? 0));
-  return Number.isFinite(n) && n >= 0 ? Math.min(n, Number.MAX_SAFE_INTEGER) : NaN;
-}
-
-function toQty(v: unknown): number {
-  const n = Number(v ?? 0);
-  return Number.isFinite(n) && n >= 0 ? Math.min(n, 1_000_000) : NaN;
 }
 
 function clean(v: unknown, max: number): string {
@@ -227,13 +224,12 @@ export async function POST(req: Request) {
     if (!label) return fail("Every line item needs a label.", 400);
     if (Number.isNaN(qty)) return fail("qty must be a non-negative number.", 400);
     if (Number.isNaN(unit)) return fail("unit_coins must be a non-negative integer.", 400);
-    items.push({ label, qty, unit_coins: unit, line_coins: Math.floor(qty * unit) });
+    items.push({ label, qty, unit_coins: unit, line_coins: crmLineCoins(qty, unit) });
   }
   const subtotal = items.reduce((n, it) => n + it.line_coins, 0);
   const discount = input.discount_coins == null ? 0 : toCoins(input.discount_coins);
   if (Number.isNaN(discount)) return fail("discount_coins must be a non-negative integer.", 400);
   if (discount > subtotal) return fail("discount_coins cannot exceed the subtotal.", 400);
-  const taxable = subtotal - discount;
   let taxCoins: number;
   const rateGiven = input.tax_rate != null && String(input.tax_rate).trim() !== "";
   if (rateGiven) {
@@ -241,11 +237,12 @@ export async function POST(req: Request) {
     if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
       return fail("tax_rate must be a number between 0 and 100.", 400);
     }
-    taxCoins = Math.floor((taxable * rate) / 100);
+    taxCoins = crmTaxCoinsFromRate(subtotal - discount, rate);
   } else {
     taxCoins = input.tax_coins == null ? 0 : toCoins(input.tax_coins);
     if (Number.isNaN(taxCoins)) return fail("tax_coins must be a non-negative integer.", 400);
   }
+  const totals = crmInvoiceTotals(subtotal, discount, taxCoins);
   // Accept `due_at` alias from the invoice manager form.
   const dueDate = clean(input.due_date ?? input.due_at, 10) || null;
   if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
@@ -280,8 +277,8 @@ export async function POST(req: Request) {
     .from("crm_invoices")
     .insert({
       org_id: orgId, owner_id: u.id, company_id: companyId, contact_id: contactId,
-      number, status: "draft", subtotal_coins: subtotal, discount_coins: discount,
-      tax_coins: taxCoins, total_coins: taxable + taxCoins,
+      number, status: "draft", subtotal_coins: totals.subtotal, discount_coins: totals.discount,
+      tax_coins: totals.tax, total_coins: totals.total,
       due_date: dueDate, notes, payment_ref: paymentRef || null,
     })
     .select(INVOICE_COLS)

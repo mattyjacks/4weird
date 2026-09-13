@@ -13,7 +13,7 @@
  * the 25% per game + feature kind so /my/usage can show it.
  */
 
-import { SERVICE_CUT_PCT } from "@/lib/economy";
+import { SERVICE_CUT_PCT, gameAiComputeSplit } from "@/lib/economy";
 
 /** Same 25% as SERVICE_CUT_PCT / WORKSPACE_COMPUTE_CUT_PCT; one rule. */
 export const GAME_AI_COMPUTE_CUT_PCT = 25;
@@ -60,19 +60,27 @@ export function rateForKind(kind: GameAiKind): GameAiRate | undefined {
   return GAME_AI_RATES.find((r) => r.kind === kind);
 }
 
-/** Split a game-AI gross charge into platform cut + provider share. */
+/**
+ * Split a game-AI gross charge into platform cut + provider share.
+ * Delegates to the canonical lib/economy.ts gameAiComputeSplit so the
+ * 25%-included math lives in exactly one place (same rounding the
+ * meter_game_ai_usage RPC uses: round(gross,2), cut=round(gross*25/100,2)).
+ */
 export function gameAiSplit(grossCoins: number): { gross: number; cut: number; provider: number } {
-  // Mirror SQL meter: round(gross,2), cut=round(gross*25/100,2), provider=gross-cut.
-  const gross = Math.max(0, Math.round(Number(grossCoins) * 100) / 100);
-  const cut = Math.round((gross * GAME_AI_COMPUTE_CUT_PCT) / 100 * 100) / 100;
-  return { gross, cut, provider: Math.round((gross - cut) * 100) / 100 };
+  return gameAiComputeSplit(grossCoins);
 }
 
-/** Quote gross coins for a kind x qty (qty = tokens/1000, chars/1000, minutes, decisions). */
+/**
+ * Quote gross coins for a kind x qty (qty = tokens/1000, chars/1000,
+ * minutes, decisions, frames). Mirrors the meter_game_ai_usage RPC case
+ * arms exactly: greatest(0.01, round(rate * p_qty, 2)) — 0.01-coin floor,
+ * 2dp rounding. Never ceil to whole coins: fractional qty (swarm turns,
+ * presence minutes/frames) must quote what the ledger will debit.
+ */
 export function quoteGameAi(kind: GameAiKind, qty: number): number {
   const rate = rateForKind(kind);
   if (!rate || !Number.isFinite(qty) || qty <= 0) return 0;
-  return Math.max(1, Math.ceil(rate.coinsPerUnit * qty));
+  return Math.max(0.01, Math.round(rate.coinsPerUnit * qty * 100) / 100);
 }
 
 export function quoteGameAiSplit(kind: GameAiKind, qty: number): { gross: number; cut: number; provider: number } {
@@ -301,8 +309,8 @@ export function formatBuddyCost(cost: Pick<BuddyCostBreakdown, "grossCoins" | "g
  * (buddy-avatar 0.08 coins/min = 8 centicentcoins/min, buddy-camera 0.03
  * coins/frame = 3 centicentcoins/frame, 0.01-coin floor). Same 25%-included
  * split as every other kind via gameAiSplit. Dedicated fns (not
- * quoteGameAi) so fractional qty keeps centicentcoin accuracy instead of
- * ceil-ing to whole coins.
+ * quoteGameAi) so callers get the centicentcoin quote + display string in
+ * one call; rates match quoteGameAi cent-for-cent.
  * ------------------------------------------------------------------------- */
 
 export const AVATAR_COINS_PER_MIN = 0.08;

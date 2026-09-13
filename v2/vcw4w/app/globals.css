@@ -119,9 +119,10 @@ html.a11y-large-targets :focus-visible { outline: 3px solid #22d3ee !important; 
   background: conic-gradient(#22d3ee calc(var(--dwell-progress, 0) * 360deg), transparent 0deg);
   opacity: 0.45;
 }
-/* Head-pointer cursor (fixed overlay driven by nose direction). */
+/* Head-pointer cursor: bounded preview dot inside the controller panel.
+   Never position:fixed / viewport overlay: it must not cover the game iframe. */
 .a11y-head-cursor {
-  position: fixed; z-index: 9999; width: 28px; height: 28px; margin: -14px 0 0 -14px;
+  position: absolute; z-index: 10; width: 28px; height: 28px; margin: -14px 0 0 -14px;
   pointer-events: none; border-radius: 9999px;
   border: 3px solid #22d3ee; background: rgb(34 211 238 / 0.18);
   box-shadow: 0 0 0 3px rgb(0 0 0 / 0.55), 0 0 18px rgb(34 211 238 / 0.8);

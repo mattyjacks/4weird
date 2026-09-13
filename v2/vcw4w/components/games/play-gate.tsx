@@ -263,7 +263,10 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // kid-band viewer switching to kid mode can clear kid-rating live).
   const [contentNonce, setContentNonce] = useState(0);
   useEffect(() => {
-    setContentMode(contentSupported ? readStoredContentMode(slug) : defaultContentMode());
+    // Fail-closed mount: kid until the band resolution below raises it.
+    // Explicit "kid" fallback (not defaultContentMode()=teen) so a fresh
+    // kid/unknown/guest viewer never first-paints teen (gore ON).
+    setContentMode(contentSupported ? readStoredContentMode(slug, "kid") : defaultContentMode());
   }, [slug, contentSupported]);
   const selectContentMode = useCallback(
     (next: ContentMode) => {
@@ -569,8 +572,12 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     const guestDefinitive = !hasSession && kidHandle === null && age !== "unknown";
     if (!bandKnown && !guestDefinitive) return;
     const viewerBand = kidBand !== null ? null : hasSession ? ageBand : "unknown";
+    // Strand guard: canUse() still allows teen for unknown/guest viewers,
+    // but the picker only SHOWS kid for them — so gate on visibility, not
+    // just usability, or they stick on teen with no radio selected.
+    const visible = visibleContentModesForViewer(viewerBand, kidBand);
     const stored = readStoredContentMode(slug);
-    if (canUseContentMode(viewerBand, kidBand, stored)) {
+    if (visible.includes(stored) && canUseContentMode(viewerBand, kidBand, stored)) {
       if (contentMode !== stored) setContentMode(stored);
       return;
     }
@@ -597,8 +604,11 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       const guestDefinitive = !hasSession && kidHandle === null && age !== "unknown";
       if (!bandKnown && !guestDefinitive) return;
       const viewerBand = kidBand !== null ? null : hasSession ? ageBand : "unknown";
+      // Same visibility (not just canUse) clamp as the auto-downgrade above:
+      // unknown/guest viewers see kid only, so a stored teen must clamp too.
+      const visibleNow = visibleContentModesForViewer(viewerBand, kidBand);
       const stored = readStoredContentMode(slug);
-      if (canUseContentMode(viewerBand, kidBand, stored)) return;
+      if (visibleNow.includes(stored) && canUseContentMode(viewerBand, kidBand, stored)) return;
       const fallback = bestVisibleContentMode(viewerBand, kidBand);
       writeStoredContentMode(slug, fallback);
       setContentMode(fallback);
@@ -1267,7 +1277,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       </div>
       <p className="mt-2 text-xs text-slate-400">
         Click the game once to focus keyboard controls · Fullscreen or Pop out for the full game window · Progress
-        saves to slot 1 when you&apos;re signed in.
+        auto-starts from slot 0 (cheat-free) when you&apos;re signed in; slots 1–3 are optional alternates. Cloud saves need sign-in.
       </p>
       {showGuestAd && (
         <div className="mt-2">

@@ -74,6 +74,7 @@ create table if not exists public.game_saves (
   user_id uuid not null references public.profiles (id) on delete cascade,
   game_slug text not null check (game_slug ~ '^[a-z0-9-]{1,64}$'),
   slot smallint not null check (slot between 0 and 3),
+  schema_version integer not null default 1 check (schema_version > 0),
   data jsonb not null default '{}'::jsonb check (pg_column_size(data) <= 1048576),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

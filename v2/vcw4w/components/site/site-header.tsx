@@ -139,6 +139,7 @@ function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- matchMedia init must sync post-mount (no SSR window); subscription below keeps it live.
     setReduced(mq.matches);
     const onChange = () => setReduced(mq.matches);
     mq.addEventListener("change", onChange);
@@ -346,6 +347,7 @@ const DesktopNavGroup = memo(function DesktopNavGroup({ group, active, expandedM
     if (expandedMenu || !leavingRef.current) return;
     if (reducedMotion) {
       leavingRef.current = false;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- animation-cancel syncs panel state with the external reduced-motion setting when the parent yanks open state.
       setLeaving(false);
       return;
     }
@@ -718,6 +720,7 @@ export function SiteHeader() {
 
   // Close the desktop dropdown on route change.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- route-driven reset syncs dropdown/sheet state with the nav system (external source).
     setOpenMenu(null);
     setOpen(false);
   }, [pathname]);
@@ -725,6 +728,7 @@ export function SiteHeader() {
   // Default the mobile accordion to the group holding the current page.
   useEffect(() => {
     const current = NAV_GROUPS.find((g) => groupActive(pathname, g.links));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time accordion default syncs with the current route; guarded by ?? so user choice wins.
     setExpanded((prev) => prev ?? current?.label ?? "Play");
   }, [pathname]);
 

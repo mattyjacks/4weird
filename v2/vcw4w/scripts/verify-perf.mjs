@@ -106,4 +106,14 @@ for (const token of ["@radix-ui/react-dialog", "@radix-ui/react-tabs", "@radix-u
 must(!nextConfig.includes('source: "/sw.js"'), "next.config.ts must still not long-cache /sw.js");
 must(!nextConfig.includes("webpack(") && !nextConfig.includes("config.webpack"), "next.config.ts must keep Turbopack default (no webpack() config)");
 
+// 11. DS-SPEED-08 second follow-up (additive only): flag/camo immutable
+// statics + botid imports. Extends sections 8-10 without touching them;
+// Turbopack-default + no-/sw.js invariants are re-asserted, never relaxed.
+for (const src of ["/flags/:path*", "/camo/:path*"]) {
+  must(nextConfig.includes(src), `next.config.ts must long-cache versioned static ${src}`);
+}
+must(nextConfig.includes("botid"), "next.config.ts optimizePackageImports must include botid");
+must(!nextConfig.includes('source: "/sw.js"'), "next.config.ts must still not long-cache /sw.js (second follow-up)");
+must(!nextConfig.includes("webpack(") && !nextConfig.includes("config.webpack"), "next.config.ts must keep Turbopack default (no webpack() config, second follow-up)");
+
 console.log("Perf checks OK: workers + GPU layer + component fan-out + DS-SPEED-08 immutable statics/imports.");

@@ -92,17 +92,22 @@ function renderMarkdownSafe(input) {
 
 self.onmessage = function (e) {
   const msg = e.data || {};
+  const reqId = msg.__reqId;
+  const reply = function (obj) {
+    if (reqId !== undefined) obj.__reqId = reqId;
+    self.postMessage(obj);
+  };
   try {
     if (msg.type === "render") {
-      self.postMessage({ ok: true, result: renderMarkdownSafe(msg.text) });
+      reply({ ok: true, result: renderMarkdownSafe(msg.text) });
     } else if (msg.type === "render-batch") {
       const items = Array.isArray(msg.items) ? msg.items.slice(0, 100) : [];
       const out = items.map((t) => renderMarkdownSafe(t));
-      self.postMessage({ ok: true, result: out });
+      reply({ ok: true, result: out });
     } else {
-      self.postMessage({ ok: false, error: "unknown-type" });
+      reply({ ok: false, error: "unknown-type" });
     }
   } catch (err) {
-    self.postMessage({ ok: false, error: String((err && err.message) || err) });
+    reply({ ok: false, error: String((err && err.message) || err) });
   }
 };

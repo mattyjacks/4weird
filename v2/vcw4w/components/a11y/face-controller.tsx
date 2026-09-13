@@ -351,10 +351,11 @@ export function FaceController({ onGameInput }: { onGameInput?: (input: FaceGame
   const showCursor = open && status.state === "running" && headPointer;
 
   return (
-    <div className="rounded-2xl border border-white/15 bg-slate-950 p-4 sm:p-5">
+    <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-slate-950 p-4 sm:p-5">
       {showCursor && (
         <div
           aria-hidden="true"
+          title="Head-pointer preview (bounded to this panel; never covers the game)"
           className="a11y-head-cursor"
           style={{ left: `${cursor.x * 100}%`, top: `${cursor.y * 100}%` }}
         />

@@ -2,9 +2,16 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import {
+  assertPricingInvariants,
+  cleanSquadCap,
+  quoteSquadBudget,
+  splitRevenue,
+} from "@/lib/remastery-pricing";
 
 
 export async function GET(req: Request) {
+  assertPricingInvariants();
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -30,15 +37,17 @@ export async function GET(req: Request) {
 }
 
 export async function PUT(req: Request) {
+  assertPricingInvariants();
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return fail("Login required.", 401);
   const body = await req.json().catch(() => null) as Record<string, unknown> | null;
-  const cap = Number(body?.monthlyCapCoins); const alert = Number(body?.alertAtPct);
+  const cap = cleanSquadCap(body?.monthlyCapCoins);
+  const alert = Number(body?.alertAtPct);
   const hardStop = Boolean(body?.hardStop); const orgId = typeof body?.orgId === "string" ? body.orgId : "";
-  if (!Number.isFinite(cap) || cap < 0 || cap > 100000000 || !Number.isInteger(alert) || alert < 1 || alert > 100) return fail("Invalid budget settings.", 400);
+  if (cap < 0 || !Number.isInteger(alert) || alert < 1 || alert > 100) return fail("Invalid budget settings.", 400);
   if (orgId) {
     // Validate shape + membership before touching the RPC so strangers get
     // a clean 403 instead of an RPC error (the RPC re-checks billing.manage).
@@ -55,5 +64,5 @@ export async function PUT(req: Request) {
     ? await supabase.rpc("set_org_budget", { p_org: orgId, p_cap: cap, p_alert: alert, p_hard_stop: hardStop })
     : await supabase.rpc("set_my_budget", { p_cap: cap, p_alert: alert, p_hard_stop: hardStop });
   if (error) return dbFail("PUT /api/budgets", error, "Unable to save budget.");
-  return ok({ budget: data });
+  return ok({ budget: data, quote: quoteSquadBudget(cap), split: splitRevenue(cap) });
 }

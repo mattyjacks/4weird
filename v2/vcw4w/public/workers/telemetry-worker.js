@@ -70,19 +70,24 @@ function rankRows(rows) {
 
 self.onmessage = function (e) {
   const msg = e.data || {};
+  const reqId = msg.__reqId;
+  const reply = function (obj) {
+    if (reqId !== undefined) obj.__reqId = reqId;
+    self.postMessage(obj);
+  };
   try {
     if (msg.type === "segments") {
       const ticks = Array.isArray(msg.ticks) ? msg.ticks.slice(0, 5000) : [];
-      self.postMessage({ ok: true, result: segmentTicks(ticks, msg.seconds || 15) });
+      reply({ ok: true, result: segmentTicks(ticks, msg.seconds || 15) });
     } else if (msg.type === "threat-heat") {
-      self.postMessage({ ok: true, result: buildThreatHeat(msg.traffic || []) });
+      reply({ ok: true, result: buildThreatHeat(msg.traffic || []) });
     } else if (msg.type === "rank") {
       const rows = Array.isArray(msg.rows) ? msg.rows : [];
-      self.postMessage({ ok: true, result: rankRows(rows) });
+      reply({ ok: true, result: rankRows(rows) });
     } else {
-      self.postMessage({ ok: false, error: "unknown-type" });
+      reply({ ok: false, error: "unknown-type" });
     }
   } catch (err) {
-    self.postMessage({ ok: false, error: String((err && err.message) || err) });
+    reply({ ok: false, error: String((err && err.message) || err) });
   }
 };

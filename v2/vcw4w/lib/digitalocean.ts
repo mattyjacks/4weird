@@ -386,7 +386,9 @@ export async function listVolumes(): Promise<DoResult<DoVolume[]>> {
   return { ok: true, data: arr };
 }
 
-/** USD → Vibe Coin display equivalent (100 coins = $1.00). Informational. */
+/** USD → Vibe Coin display equivalent (100 coins = $1.00). Informational.
+ * Direct-spend mirror (DO bills the card, NO Vibe cut): deliberately NET —
+ * do NOT divide by 0.75 here; catalog quotes are gross instead. */
 export function doUsdToCoins(usd: number): number {
   return Math.round(Number(usd) * 100 * 100) / 100;
 }

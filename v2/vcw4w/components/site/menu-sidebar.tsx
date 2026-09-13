@@ -1,16 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { SITE_NAV_GROUPS } from "@/lib/site-nav";
-import { favMetaFor, normalizeFavHref, useFavorites } from "@/lib/favorites";
+import { favMetaFor, useFavorites } from "@/lib/favorites";
 import { FavoriteToggle } from "@/components/site/favorite-toggle";
-import { InfoTip } from "@/components/ui/info-tip";
 import { cn } from "@/lib/utils";
 
 const OPEN_KEY = "fw-sidebar-open";
 const QUICK_KEY = "fw-sidebar-quickinfo";
+
+// (?) detail popovers (portal + viewport-clamping measure math) stay off the
+// first-paint bundle; a same-size placeholder holds layout until they hydrate.
+function InfoTipSkeleton() {
+  return (
+    <span
+      aria-hidden="true"
+      className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-base leading-none text-muted-foreground"
+    >
+      ?
+    </span>
+  );
+}
+const InfoTip = dynamic(() => import("@/components/ui/info-tip").then((m) => m.InfoTip), {
+  ssr: false,
+  loading: InfoTipSkeleton,
+});
 
 function isActive(pathname: string, href: string) {
   if (/^https?:\/\//.test(href)) return false;
@@ -20,6 +37,145 @@ function isActive(pathname: string, href: string) {
   if (target === "/") return path === "/";
   return path === target || path.startsWith(`${target}/`);
 }
+
+type SidebarNavLink = (typeof SITE_NAV_GROUPS)[number]["links"][number];
+type SidebarNavGroup = (typeof SITE_NAV_GROUPS)[number];
+
+/**
+ * One favorites row: star link + remove toggle. Memoized so toggling one
+ * star or typing in the filter only re-renders rows whose output changes.
+ */
+const FavoriteRow = memo(function FavoriteRow({
+  link,
+  active,
+  favorited,
+  onToggle,
+}: {
+  link: SidebarNavLink;
+  active: boolean;
+  favorited: boolean;
+  onToggle: (href: string) => void;
+}) {
+  return (
+    <li
+      className={cn("flex items-center gap-1 rounded-lg px-2 py-1 transition hover:bg-accent", active && "bg-amber-500/10")}
+    >
+      <Link
+        href={link.href}
+        aria-current={active ? "page" : undefined}
+        title={`${link.label} - ${link.quick}`}
+        className="min-w-0 flex-1 truncate text-sm font-semibold"
+      >
+        <span aria-hidden="true" className="mr-1 text-amber-500">★</span>
+        {link.label}
+        {active && <span aria-hidden="true"> ●</span>}
+      </Link>
+      <FavoriteToggle href={link.href} label={link.label} favorited={favorited} onToggle={onToggle} />
+    </li>
+  );
+});
+
+/**
+ * One directory link row: label + optional quick line + (?) detail popover +
+ * star toggle. Memoized on link identity + active/visible flags.
+ */
+const SidebarLinkRow = memo(function SidebarLinkRow({
+  link,
+  pathname,
+  showQuick,
+  favorited,
+  onToggleFavorite,
+}: {
+  link: SidebarNavLink;
+  pathname: string;
+  showQuick: boolean;
+  favorited: boolean;
+  onToggleFavorite: (href: string) => void;
+}) {
+  const active = isActive(pathname, link.href);
+  return (
+    <li className={cn("rounded-lg px-2 py-1.5 transition hover:bg-accent", active && "bg-cyan-600/10")}>
+      <span className="flex items-start justify-between gap-1.5">
+        <span className="min-w-0 flex-1">
+          {link.external ? (
+            <a href={link.href} target="_blank" rel="noreferrer noopener" title={`${link.label} - ${link.quick}`} className="block">
+              <span className={cn("font-semibold", active && "text-cyan-700 dark:text-cyan-300")}>
+                {link.label}
+                <span aria-hidden="true"> ↗</span>
+                {active && <span aria-hidden="true"> ●</span>}
+              </span>
+              {showQuick && (
+                <span className="block text-xs font-normal leading-snug text-muted-foreground">{link.quick}</span>
+              )}
+            </a>
+          ) : (
+            <Link href={link.href} aria-current={active ? "page" : undefined} title={`${link.label} - ${link.quick}`} className="block">
+              <span className={cn("font-semibold", active && "text-cyan-700 dark:text-cyan-300")}>
+                {link.label}
+                {active && <span aria-hidden="true"> ●</span>}
+              </span>
+              {showQuick && (
+                <span className="block text-xs font-normal leading-snug text-muted-foreground">{link.quick}</span>
+              )}
+            </Link>
+          )}
+        </span>
+        <InfoTip text={link.detail} label={`About ${link.label}`} />
+        {!link.external && (
+          <FavoriteToggle
+            href={link.href}
+            label={link.label}
+            favorited={favorited}
+            onToggle={onToggleFavorite}
+          />
+        )}
+      </span>
+    </li>
+  );
+});
+
+/**
+ * One collapsible nav group. Memoized: `filtered` is memoized upstream, so a
+ * group only re-renders when its own links, the pathname, or the quick flag
+ * changes — not when a sibling group or the favorites section updates.
+ */
+const SidebarGroup = memo(function SidebarGroup({
+  group,
+  defaultOpen,
+  pathname,
+  showQuick,
+  isFav,
+  onToggleFavorite,
+}: {
+  group: SidebarNavGroup;
+  defaultOpen: boolean;
+  pathname: string;
+  showQuick: boolean;
+  isFav: (href: string) => boolean;
+  onToggleFavorite: (href: string) => void;
+}) {
+  return (
+    <details open={defaultOpen} className="ui-details mb-2">
+      <summary className="ui-details-summary">
+        <span aria-hidden="true" className="ui-details-caret">▾</span>
+        <span className="ui-details-label">{group.label} · {group.links.length}</span>
+        {showQuick && <span className="hidden truncate text-[11px] font-normal text-muted-foreground sm:block">{group.tagline}</span>}
+      </summary>
+      <ul className="ui-details-body space-y-0.5">
+        {group.links.map((link) => (
+          <SidebarLinkRow
+            key={`${group.label}-${link.href}-${link.label}`}
+            link={link}
+            pathname={pathname}
+            showQuick={showQuick}
+            favorited={isFav(link.href)}
+            onToggleFavorite={onToggleFavorite}
+          />
+        ))}
+      </ul>
+    </details>
+  );
+});
 
 /**
  * Global Menu 2 Sidebar: desktop-left drawer + mobile drawer (separate from
@@ -49,9 +205,37 @@ export function MenuSidebar() {
   const favsHeadingRef = useRef<HTMLParagraphElement>(null);
   const favListRef = useRef<HTMLUListElement>(null);
 
+  // Stable callbacks: inline arrows would defeat memo on the rows above.
+  // Removing the last visible favorite moves focus to the section heading
+  // instead of dropping keyboard/screen-reader users into the void.
+  const handleFavRemove = useCallback(
+    (href: string) => {
+      toggle(href);
+      window.setTimeout(() => {
+        if (favListRef.current && favListRef.current.childElementCount === 0) {
+          favsHeadingRef.current?.focus({ preventScroll: true });
+        }
+      }, 0);
+    },
+    [toggle],
+  );
+  const handleQueryChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(event.target.value);
+  }, []);
+  const clearQuery = useCallback(() => setQuery(""), []);
+  const focusSearch = useCallback(() => searchRef.current?.focus(), []);
+  const hideSidebar = useCallback(() => setOpen(false), []);
+  const toggleQuick = useCallback(() => setQuick((v) => !v), []);
+  const openSidebar = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    // event.detail === 0 means keyboard-activated: only then steal focus on open.
+    keyboardOpenRef.current = event.detail === 0;
+    setOpen(true);
+  }, []);
+
   // Restore prefs (closed by default = cleaner interface).
   useEffect(() => {
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage restore must run post-hydration to avoid an SSR mismatch; single mount sync is intentional.
       if (localStorage.getItem(OPEN_KEY) === "1") setOpen(true);
       if (localStorage.getItem(QUICK_KEY) === "0") setQuick(false);
     } catch {
@@ -137,6 +321,7 @@ export function MenuSidebar() {
 
   // Close drawer on navigation (mobile only; desktop stays docked).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- route-driven close syncs the drawer with the nav system (external source); no render-phase alternative.
     if (typeof window !== "undefined" && window.innerWidth < 1024) setOpen(false);
   }, [pathname]);
 
@@ -180,11 +365,7 @@ export function MenuSidebar() {
         <button
           ref={pillRef}
           type="button"
-          onClick={(event) => {
-            // event.detail === 0 means keyboard-activated: only then steal focus on open.
-            keyboardOpenRef.current = event.detail === 0;
-            setOpen(true);
-          }}
+          onClick={openSidebar}
           aria-label="Open menu 2 sidebar"
           aria-expanded={false}
           aria-controls={panelId}
@@ -203,7 +384,7 @@ export function MenuSidebar() {
       {open && (
         <div
           aria-hidden="true"
-          onClick={() => setOpen(false)}
+          onClick={hideSidebar}
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] lg:hidden"
         />
       )}
@@ -232,7 +413,7 @@ export function MenuSidebar() {
           <button
             ref={closeRef}
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={hideSidebar}
             aria-label="Hide menu sidebar"
             title="Hide sidebar (it stays one click away, top-left)"
             className="rounded-lg border border-border px-2.5 py-1.5 text-sm font-bold transition hover:bg-accent"
@@ -248,7 +429,7 @@ export function MenuSidebar() {
             ref={searchRef}
             id={`${panelId}-search`}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={handleQueryChange}
             placeholder="Filter… try “gpu”, “coins”, “bot”"
             className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-cyan-500 focus:bg-background focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1"
           />
@@ -278,27 +459,15 @@ export function MenuSidebar() {
             </p>
           ) : (
             <ul ref={favListRef} className="mt-1.5 space-y-0.5">
-              {favoriteLinks.map((link) => {
-                const active = isActive(pathname, link.href);
-                return (
-                  <li
-                    key={`fav-${link.href}-${link.label}`}
-                    className={cn("flex items-center gap-1 rounded-lg px-2 py-1 transition hover:bg-accent", active && "bg-amber-500/10")}
-                  >
-                    <Link
-                      href={link.href}
-                      aria-current={active ? "page" : undefined}
-                      title={`${link.label} - ${link.quick}`}
-                      className="min-w-0 flex-1 truncate text-sm font-semibold"
-                    >
-                      <span aria-hidden="true" className="mr-1 text-amber-500">★</span>
-                      {link.label}
-                      {active && <span aria-hidden="true"> ●</span>}
-                    </Link>
-                    <FavoriteToggle href={link.href} label={link.label} favorited={isFav(link.href)} onToggle={handleFavRemove} />
-                  </li>
-                );
-              })}
+              {favoriteLinks.map((link) => (
+                <FavoriteRow
+                  key={`fav-${link.href}-${link.label}`}
+                  link={link}
+                  active={isActive(pathname, link.href)}
+                  favorited={isFav(link.href)}
+                  onToggle={handleFavRemove}
+                />
+              ))}
             </ul>
           )}
           {/* Polite announcement for screen readers on star/unstar. */}
@@ -317,60 +486,19 @@ export function MenuSidebar() {
         <nav aria-label="All site links" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 [-webkit-overflow-scrolling:touch]">
           {filtered.length === 0 && (
             <p className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
-              No links match “{query}”. <button type="button" className="font-bold underline underline-offset-4" onClick={() => setQuery("")}>Clear</button>
+              No links match “{query}”. <button type="button" className="font-bold underline underline-offset-4" onClick={clearQuery}>Clear</button>
             </p>
           )}
           {filtered.map((group, gi) => (
-            <details key={group.label} open={gi === 0 || query.trim().length > 0} className="ui-details mb-2">
-              <summary className="ui-details-summary">
-                <span aria-hidden="true" className="ui-details-caret">▾</span>
-                <span className="ui-details-label">{group.label} · {group.links.length}</span>
-                {quick && <span className="hidden truncate text-[11px] font-normal text-muted-foreground sm:block">{group.tagline}</span>}
-              </summary>
-              <ul className="ui-details-body space-y-0.5">
-                {group.links.map((link) => {
-                  const active = isActive(pathname, link.href);
-                  const body = (
-                    <>
-                      <span className={cn("font-semibold", active && "text-cyan-700 dark:text-cyan-300")}>
-                        {link.label}
-                        {link.external && <span aria-hidden="true"> ↗</span>}
-                        {active && <span aria-hidden="true"> ●</span>}
-                      </span>
-                      {quick && (
-                        <span className="block text-xs font-normal leading-snug text-muted-foreground">{link.quick}</span>
-                      )}
-                    </>
-                  );
-                  return (
-                    <li key={`${group.label}-${link.href}-${link.label}`} className={cn("rounded-lg px-2 py-1.5 transition hover:bg-accent", active && "bg-cyan-600/10")}>
-                      <span className="flex items-start justify-between gap-1.5">
-                        <span className="min-w-0 flex-1">
-                          {link.external ? (
-                            <a href={link.href} target="_blank" rel="noreferrer noopener" title={`${link.label} - ${link.quick}`} className="block">
-                              {body}
-                            </a>
-                          ) : (
-                            <Link href={link.href} aria-current={active ? "page" : undefined} title={`${link.label} - ${link.quick}`} className="block">
-                              {body}
-                            </Link>
-                          )}
-                        </span>
-                        <InfoTip text={link.detail} label={`About ${link.label}`} />
-                        {!link.external && (
-                          <FavoriteToggle
-                            href={link.href}
-                            label={link.label}
-                            favorited={isFav(link.href)}
-                            onToggle={toggle}
-                          />
-                        )}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </details>
+            <SidebarGroup
+              key={group.label}
+              group={group}
+              defaultOpen={gi === 0 || query.trim().length > 0}
+              pathname={pathname}
+              showQuick={quick}
+              isFav={isFav}
+              onToggleFavorite={toggle}
+            />
           ))}
           <p className="px-2 pb-1 pt-2 text-[11px] leading-snug text-muted-foreground">
             Tip: <kbd className="rounded border border-border px-1">Esc</kbd> hides this panel. Your choice is remembered on this device.
@@ -386,7 +514,7 @@ export function MenuSidebar() {
               role="switch"
               aria-checked={quick}
               aria-label="Toggle quick info descriptions"
-              onClick={() => setQuick((v) => !v)}
+              onClick={toggleQuick}
               className={cn(
                 "relative h-6 w-11 shrink-0 rounded-full transition",
                 quick ? "bg-cyan-600 dark:bg-cyan-300" : "bg-muted-foreground/30",
@@ -404,14 +532,14 @@ export function MenuSidebar() {
           <div className="mt-2 flex gap-2">
             <button
               type="button"
-              onClick={() => searchRef.current?.focus()}
+              onClick={focusSearch}
               className="flex-1 rounded-full border border-border px-3 py-1.5 text-xs font-bold transition hover:bg-accent"
             >
               Find a link
             </button>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={hideSidebar}
               className="flex-1 rounded-full border border-border px-3 py-1.5 text-xs font-bold transition hover:bg-accent"
             >
               Hide sidebar

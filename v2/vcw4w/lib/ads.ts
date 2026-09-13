@@ -27,7 +27,7 @@ export const HOUSE_ADS: HouseAd[] = [
     emoji: "🪙",
     tag: "4weird · Vibe Coins",
     title: "Get 100 free Vibe Coins",
-    blurb: "100 coins = $1.00. Daily bonuses alone cover 5+ hours of play a day; no card required.",
+    blurb: "100 coins = $1.00, 25% cut included. Daily bonuses alone cover 5+ hours of play a day; no card required.",
     cta: "Claim free coins",
     href: "/pricing",
   },

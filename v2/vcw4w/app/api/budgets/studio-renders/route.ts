@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import {
+  assertStudioPricingInvariants,
   cleanStudioRenderSeconds,
   normalizeStudioPreset,
   quoteStudioRender,
@@ -35,6 +36,7 @@ const LEDGER_MAX_PAGES = 20;
  *   none.
  */
 export async function GET(req: Request) {
+  assertStudioPricingInvariants();
   const params = new URL(req.url).searchParams;
   const seconds = cleanStudioRenderSeconds(params.get("seconds"));
   if (seconds < 0) return fail("Invalid timeline: seconds must be a whole-second integer.", 400);

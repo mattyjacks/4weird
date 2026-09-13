@@ -98,10 +98,21 @@ export function onVisible(el: Element, cb: () => void): () => void {
   return () => io.disconnect();
 }
 
-type WorkerRequest = { type: string; [key: string]: unknown };
-type WorkerResult<T> = { ok: true; result: T } | { ok: false; error: string };
+type WorkerRequest = { type: string; __reqId?: number; [key: string]: unknown };
+type WorkerResult<T> = { ok: true; result: T; __reqId?: number } | { ok: false; error: string; __reqId?: number };
 
 const workerCache = new Map<string, Worker | null>();
+let nextRequestId = 1;
+
+function evictWorker(path: string): void {
+  const cached = workerCache.get(path);
+  workerCache.delete(path);
+  try {
+    cached?.terminate();
+  } catch {
+    /* best-effort */
+  }
+}
 
 function getWorker(path: string): Worker | null {
   if (typeof window === "undefined" || typeof window.Worker !== "function") return null;
@@ -118,8 +129,10 @@ function getWorker(path: string): Worker | null {
 
 /**
  * One-shot worker call with timeout + main-thread fallback.
- * The shared worker stays alive across calls (warm); a hung call falls back
- * without killing the pool. Never throws; fallback always runs.
+ * Requests are multiplexed on the shared warm worker via __reqId so
+ * concurrent calls never cross-resolve; both listeners are removed on
+ * settle. A hung/errored worker is terminated + evicted so the next call
+ * rebuilds warm while the current call falls back. Never throws.
  */
 export async function runWorker<T>(
   workerPath: string,
@@ -129,25 +142,38 @@ export async function runWorker<T>(
 ): Promise<T> {
   const worker = getWorker(workerPath);
   if (!worker) return fallback();
+  const reqId = nextRequestId++;
+  const payload: WorkerRequest = { ...message, __reqId: reqId };
   try {
     const result = await new Promise<WorkerResult<T>>((resolve, reject) => {
-      const timer = window.setTimeout(() => reject(new Error("worker-timeout")), timeoutMs);
-      const onMsg = (event: MessageEvent<WorkerResult<T>>) => {
+      const cleanup = () => {
         window.clearTimeout(timer);
         worker.removeEventListener("message", onMsg as EventListener);
-        resolve(event.data);
+        worker.removeEventListener("error", onErr as EventListener);
+      };
+      const timer = window.setTimeout(() => {
+        cleanup();
+        evictWorker(workerPath);
+        reject(new Error("worker-timeout"));
+      }, timeoutMs);
+      const onMsg = (event: MessageEvent<WorkerResult<T>>) => {
+        const data = event.data as WorkerResult<T> | null | undefined;
+        if (!data || (data as { __reqId?: number }).__reqId !== reqId) return;
+        cleanup();
+        resolve(data);
       };
       const onErr = () => {
-        window.clearTimeout(timer);
-        worker.removeEventListener("message", onMsg as EventListener);
+        cleanup();
+        evictWorker(workerPath);
         reject(new Error("worker-error"));
       };
       worker.addEventListener("message", onMsg as EventListener);
-      worker.addEventListener("error", onErr as EventListener, { once: true });
+      worker.addEventListener("error", onErr as EventListener);
       try {
-        worker.postMessage(message);
+        worker.postMessage(payload);
       } catch (err) {
-        window.clearTimeout(timer);
+        cleanup();
+        evictWorker(workerPath);
         reject(err instanceof Error ? err : new Error("worker-post"));
       }
     });
@@ -159,7 +185,10 @@ export async function runWorker<T>(
 }
 
 /** Warm workers during idle so first real use never pays construction cost. */
+let warmed = false;
 export function warmPerfWorkers(): void {
+  if (warmed) return;
+  warmed = true;
   onIdle(() => {
     for (const path of ["/workers/search-worker.js", "/workers/markdown-worker.js", "/workers/telemetry-worker.js"]) {
       try {

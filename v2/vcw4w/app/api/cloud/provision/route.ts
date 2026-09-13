@@ -4,7 +4,8 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { serviceByKey, workspaceQuote } from "@/lib/cloud-catalog";
-import { WORKSPACE_COMPUTE_CUT_PCT } from "@/lib/economy";
+import { WORKSPACE_COMPUTE_CUT_PCT, formatUsdAccurate } from "@/lib/economy";
+import { COINS_PER_USD } from "@/lib/remastery-pricing";
 
 
 // POST /api/cloud/provision; start a pay-as-you-go UnitUnite workspace
@@ -48,5 +49,9 @@ export async function POST(req: Request) {
     return fail("Unable to provision.", 500);
   }
   const quote = workspaceQuote(service, 1);
-  return ok({ provision, cutPct: WORKSPACE_COMPUTE_CUT_PCT, quotePerUnit: quote }, 201);
+  // Receipt carries coins + USD + split: gross is debited whole (cut
+  // INCLUDED, never on top); usdEquivalent states the same gross at the
+  // 100-coins-=$1.00 parity for price transparency.
+  const quotePerUnit = { ...quote, usdEquivalent: formatUsdAccurate(quote.gross / COINS_PER_USD) };
+  return ok({ provision, cutPct: WORKSPACE_COMPUTE_CUT_PCT, quotePerUnit }, 201);
 }

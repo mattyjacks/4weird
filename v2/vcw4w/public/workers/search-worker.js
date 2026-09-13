@@ -22,17 +22,22 @@ function sortPing(rows) {
 
 self.onmessage = function (e) {
   const msg = e.data || {};
+  const reqId = msg.__reqId;
+  const reply = function (obj) {
+    if (reqId !== undefined) obj.__reqId = reqId;
+    self.postMessage(obj);
+  };
   try {
     if (msg.type === "filter-games") {
       const items = Array.isArray(msg.items) ? msg.items.slice(0, 2000) : [];
-      self.postMessage({ ok: true, result: filterGames(items, msg.query, msg.genre || "All") });
+      reply({ ok: true, result: filterGames(items, msg.query, msg.genre || "All") });
     } else if (msg.type === "sort-ping") {
       const rows = Array.isArray(msg.rows) ? msg.rows.slice(0, 2000) : [];
-      self.postMessage({ ok: true, result: sortPing(rows) });
+      reply({ ok: true, result: sortPing(rows) });
     } else {
-      self.postMessage({ ok: false, error: "unknown-type" });
+      reply({ ok: false, error: "unknown-type" });
     }
   } catch (err) {
-    self.postMessage({ ok: false, error: String((err && err.message) || err) });
+    reply({ ok: false, error: String((err && err.message) || err) });
   }
 };

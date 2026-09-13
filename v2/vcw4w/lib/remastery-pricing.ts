@@ -65,7 +65,7 @@ function cleanWholeCoins(value: unknown): number {
 export function coinsToUsdCents(coins: number): number {
   assertPricingInvariants();
   const whole = cleanWholeCoins(coins);
-  if (whole < 0) throw new Error("[remastery-pricing] coinsToUsdCents needs a whole-coin integer 0..100000000.");
+  if (whole < 0) throw new Error(`[remastery-pricing] coinsToUsdCents needs a whole-coin integer 0..${MAX_SQUAD_BUDGET_CAP_COINS}.`);
   return whole * USD_CENTS_PER_COIN;
 }
 
@@ -94,7 +94,7 @@ export type RevenueSplit = { gross: number; creator: number; platform: number };
 export function splitRevenue(grossCoins: number): RevenueSplit {
   assertPricingInvariants();
   const gross = cleanWholeCoins(grossCoins);
-  if (gross < 0) throw new Error("[remastery-pricing] splitRevenue needs a whole-coin integer 0..100000000.");
+  if (gross < 0) throw new Error(`[remastery-pricing] splitRevenue needs a whole-coin integer 0..${MAX_SQUAD_BUDGET_CAP_COINS}.`);
   const platform = Math.floor((gross * PLATFORM_SHARE_PCT) / 100);
   return { gross, creator: gross - platform, platform };
 }
@@ -119,8 +119,9 @@ export function formatUsdCents(cents: number): string {
  * (no hard stop) — same convention as `personal_budgets` / `org_budgets`.
  */
 export function quoteSquadBudget(monthlyCapCoins: number): SquadBudgetQuote {
+  assertPricingInvariants();
   const capCoins = cleanWholeCoins(monthlyCapCoins);
-  if (capCoins < 0) throw new Error("[remastery-pricing] cap must be a whole-coin integer 0..100000000.");
+  if (capCoins < 0) throw new Error(`[remastery-pricing] cap must be a whole-coin integer 0..${MAX_SQUAD_BUDGET_CAP_COINS}.`);
   const usdCents = coinsToUsdCents(capCoins);
   const split = splitRevenue(capCoins);
   return {

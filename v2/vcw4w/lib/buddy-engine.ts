@@ -16,7 +16,7 @@
  * widget can show spend instantly and the server can meter identically.
  */
 
-import { BUDDY_DEFAULT_VOICE, BUDDY_VOICES, cleanBuddyVoice, quoteGameAi } from "@/lib/game-ai";
+import { BUDDY_CHAT_USD_PER_1M_INPUT, BUDDY_CHAT_USD_PER_1M_OUTPUT, BUDDY_DB_USD_PER_LEG, BUDDY_DEFAULT_VOICE, BUDDY_VOICES, GAME_AI_COMPUTE_CUT_PCT, cleanBuddyVoice, quoteGameAi } from "@/lib/game-ai";
 
 export type BuddyObservation = {
   gameSlug: string;
@@ -119,7 +119,12 @@ export function fallbackReply(obs: BuddyObservation): string {
   return `Hey, I'm your Gaming Buddy for ${obs.gameTitle}. Give me some screen to read and I'll react out loud.`;
 }
 
-/** Credit estimate for one buddy turn (chat tokens + spoken chars), gross coins. */
+/**
+ * Coarse pre-turn estimate (chat tokens + spoken chars), gross coins at the
+ * canonical buddy-chat/buddy-tts kind rates. Widget display only — the
+ * server debits true cost via quoteBuddyChatLeg/quoteBuddyTtsLeg (USD legs
+ * + DB leg, centicentcoin resolution), so this may read above the debit.
+ */
 export function estimateBuddyTurn(replyText: string, promptChars = 500): { chatCoins: number; ttsCoins: number; gross: number } {
   const promptTokensK = Math.max(0.2, promptChars / 4000);
   const replyTokensK = Math.max(0.1, String(replyText ?? "").length / 4000);
@@ -303,13 +308,20 @@ export function transcriptToText(turns: { role: string; text: string; at: string
   return turns.map((t) => `[${t.at}] ${t.role === "buddy" ? "Buddy" : "You"}: ${t.text}`).join("\n");
 }
 
-/** Rough pre-send cost estimate (chat leg only) for a draft, in coins. Pure. */
+/** Rough pre-send cost estimate (chat leg only) for a draft, in coins. Pure.
+ * Gross, 25% cut INCLUDED via the canonical game-ai constants (pinned USD
+ * rates + GAME_AI_COMPUTE_CUT_PCT gross-up, same inputs quoteBuddyChatLeg
+ * meters server-side; env overrides apply at meter time): centicentcoin
+ * CEILING (never round-down: the provider share must always cover the card). */
 export function estimateDraftCoins(draftChars: number, withImage: boolean): number {
   const chars = Math.max(0, Number(draftChars) || 0);
   const inTokens = Math.max(1, Math.ceil((chars + 400) / 4) + (withImage ? 1000 : 0));
   const outTokens = 60;
-  const usd = (inTokens / 1_000_000) * 0.15 + (outTokens / 1_000_000) * 0.6 + 0.00002;
-  return Math.max(0.01, Math.round(((usd * 100) / 0.75) * 100) / 100);
+  const usd =
+    (inTokens / 1_000_000) * BUDDY_CHAT_USD_PER_1M_INPUT +
+    (outTokens / 1_000_000) * BUDDY_CHAT_USD_PER_1M_OUTPUT +
+    BUDDY_DB_USD_PER_LEG;
+  return Math.max(0.01, Math.ceil(((usd * 100) / (1 - GAME_AI_COMPUTE_CUT_PCT / 100)) * 100) / 100);
 }
 
 /** Ready-to-fire Fal suggestion. Null = no media needed or Fal not configured. */

@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { calculateGhostCashOwed } from "@/lib/ghost-cash";
 
 
 // GET /api/time - List time entries with optional filters
@@ -167,8 +168,10 @@ export async function POST(req: Request) {
     }
   }
 
-  const ghostCashOwed = Boolean(isBillable) && ghostRate > 0
-    ? Number(((duration / 3600) * ghostRate).toFixed(4))
+  // Ghost Cash owed uses the canonical quoter (same formula the reports
+  // and invoice flows read back); billable-gated, 0 otherwise.
+  const ghostCashOwed = Boolean(isBillable)
+    ? calculateGhostCashOwed(duration, ghostRate)
     : 0;
 
   const { data: entry, error } = await supabase

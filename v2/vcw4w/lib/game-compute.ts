@@ -24,9 +24,10 @@
  */
 
 import { DPS_BASE_COST_COINS } from "@/lib/remastery/dps-compute";
+import { COINS_PER_USD, coinsToUsdCents } from "@/lib/remastery-pricing";
 
-/** 100 coins = exactly $1.00 USD (§1.2 axiom 1). */
-export const VIBE_COINS_PER_USD = 100 as const;
+/** 100 coins = exactly $1.00 USD (§1.2 axiom 1) — derived from the canonical pricing module. */
+export const VIBE_COINS_PER_USD = COINS_PER_USD;
 
 /**
  * Task types the games compute-job form accepts. The first three are DPS
@@ -59,10 +60,11 @@ export interface GameComputeJobSpec {
   coinsBid: number;
 }
 
-/** Cost estimate at 100=$1 parity. */
+/** Cost estimate at 100=$1 parity (`usdCents` is exact; `usd` is a display alias). */
 export interface GameComputeCostEstimate {
   coins: number;
   usd: number;
+  usdCents: number;
 }
 
 /** Result of validating/building a job spec. Never throws — fail-open. */
@@ -98,23 +100,23 @@ function isGameComputeTaskType(value: unknown): value is GameComputeTaskType {
 
 /**
  * Quote a spec's cost in coins (floored to whole coins, capped at coinsBid)
- * plus USD equivalent (coins / 100). Never throws — invalid input yields a
- * zero quote so callers can fail open.
+ * plus the exact integer USD cents at parity. Never throws — invalid input
+ * yields a zero quote so callers can fail open.
  */
 export function estimateGameComputeCost(spec: {
   taskType: GameComputeTaskType;
   coinsBid: number;
 }): GameComputeCostEstimate {
   try {
-    if (!isGameComputeTaskType(spec.taskType)) return { coins: 0, usd: 0 };
+    if (!isGameComputeTaskType(spec.taskType)) return { coins: 0, usd: 0, usdCents: 0 };
     if (!Number.isFinite(spec.coinsBid) || spec.coinsBid < 0) {
-      return { coins: 0, usd: 0 };
+      return { coins: 0, usd: 0, usdCents: 0 };
     }
     const base = GAME_COMPUTE_BASE_COST_COINS[spec.taskType];
     const coins = Math.min(Math.floor(base), Math.floor(spec.coinsBid));
-    return { coins, usd: coins / VIBE_COINS_PER_USD };
+    return { coins, usd: coins / VIBE_COINS_PER_USD, usdCents: coinsToUsdCents(coins) };
   } catch {
-    return { coins: 0, usd: 0 };
+    return { coins: 0, usd: 0, usdCents: 0 };
   }
 }
 

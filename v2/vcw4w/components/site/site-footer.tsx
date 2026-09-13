@@ -150,7 +150,7 @@ const COLUMNS: FooterColumn[] = [
 
 const STATS = [
   { icon: <Gamepad2 className="h-4 w-4" aria-hidden="true" />, title: "35 games", text: "in your browser now" },
-  { icon: <Coins className="h-4 w-4" aria-hidden="true" />, title: "100 🪙 = $1.00", text: "always, fees included" },
+  { icon: <Coins className="h-4 w-4" aria-hidden="true" />, title: "100 🪙 = $1.00", text: "always, 25% cut included" },
   { icon: <Cpu className="h-4 w-4" aria-hidden="true" />, title: "Per-second GPU billing", text: "agents, desktops, renders" },
   { icon: <HeartHandshake className="h-4 w-4" aria-hidden="true" />, title: "Creators keep 75%", text: "as on-site credits" },
 ];
@@ -257,7 +257,7 @@ export function SiteFooter() {
             </p>
             <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
               <ClampText
-                short="100 Vibe Coins = exactly $1.00. Fees included."
+                short="100 Vibe Coins = exactly $1.00. 25% cut included, never on top."
                 full={<span>The whole economy fits in one sentence: <strong className="font-bold text-foreground">100 Vibe Coins (🪙) = exactly $1.00</strong>, always. The 25% platform cut is already inside every price - never added on top.</span>}
                 label="Vibe Coins, in full"
               />

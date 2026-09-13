@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
   // (NOT under `experimental`; `experimental.useCache`/`dynamicIO` are removed).
   cacheComponents: true,
   experimental: {
-    optimizePackageImports: ["lucide-react", "next-themes", "@radix-ui/react-checkbox", "@radix-ui/react-dropdown-menu", "@radix-ui/react-label", "@radix-ui/react-slot", "class-variance-authority", "clsx", "tailwind-merge", "@supabase/supabase-js", "@supabase/ssr", "@vercel/analytics", "@radix-ui/react-dialog", "@radix-ui/react-tabs", "@radix-ui/react-tooltip", "@radix-ui/react-avatar", "date-fns"],
+    optimizePackageImports: ["lucide-react", "next-themes", "@radix-ui/react-checkbox", "@radix-ui/react-dropdown-menu", "@radix-ui/react-label", "@radix-ui/react-slot", "class-variance-authority", "clsx", "tailwind-merge", "@supabase/supabase-js", "@supabase/ssr", "@vercel/analytics", "@radix-ui/react-dialog", "@radix-ui/react-tabs", "@radix-ui/react-tooltip", "@radix-ui/react-avatar", "date-fns", "botid"],
   },
   async headers() {
     return [{ source: "/account", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/auth/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/protected", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/it", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/boss", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }, { source: "/api/:path*", headers: [{ key: "Cache-Control", value: "no-store" }] }, { source: "/api/vcw/health", headers: [{ key: "Cache-Control", value: "no-store" }] },
@@ -81,6 +81,12 @@ const nextConfig: NextConfig = {
     // immutable policy as the statics above. /sw.js stays excluded.
     { source: "/fonts/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     { source: "/icons/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    // DS-SPEED-08 second follow-up (additive): filename-versioned flag + camo
+    // statics (public/flags/*.svg, public/camo/*.svg). Shipped as fixed
+    // filenames, never mutated in place; same year-long immutable policy as
+    // the statics above. /sw.js stays excluded.
+    { source: "/flags/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    { source: "/camo/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     // DevSwarm public bus: tiny Markdown/JSON, read by bots on every loop.
     // Cache briefly at the edge (60s fresh + 5min stale) so STATUS.json +
     // task envelopes load in ms instead of hitting origin each poll.

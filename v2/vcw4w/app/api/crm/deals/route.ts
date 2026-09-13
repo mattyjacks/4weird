@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { cleanCrmCoins as toCoins, cleanCrmProbability as toProbability } from "@/lib/crm-money";
 
 
 const STAGES = ["lead", "qualified", "proposal", "negotiation", "won", "lost"] as const;
@@ -42,16 +43,6 @@ function isUuid(v: unknown): string {
 
 function cleanStr(v: unknown, cap: number): string {
   return String(v ?? "").trim().slice(0, cap);
-}
-
-function toCoins(v: unknown): number {
-  const n = Math.floor(Number(v ?? 0));
-  return Number.isFinite(n) && n >= 0 ? Math.min(n, Number.MAX_SAFE_INTEGER) : NaN;
-}
-
-function toProbability(v: unknown): number {
-  const n = Math.floor(Number(v ?? 10));
-  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : NaN;
 }
 
 // lost_reason passthrough: null/"" clears; known codes normalize to

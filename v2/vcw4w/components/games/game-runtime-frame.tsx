@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { A11Y_EVENT, loadA11y } from "@/lib/a11y";
 import { FaceController, type FaceGameInput } from "@/components/a11y/face-controller";
+import { UniversalSavePanel } from "@/components/games/universal-save-panel";
 
 type RuntimeEvent = {
   version?: number;
@@ -59,6 +60,10 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   // bundle). Track the runtime's actual origin from its messages and accept
   // handshakes from any first-party host instead of the shell origin only.
   const runtimeOrigin = useRef<string | null>(null);
+  // Last save payload observed from the runtime bridge (save events carry the
+  // full game snapshot). Feeds the universal save panel's manual Save buttons
+  // so every game gets slots 0-3 with zero per-game glue.
+  const lastSaveData = useRef<unknown>(null);
   const postToRuntime = useCallback(
     (message: Record<string, unknown>) => {
       frame.current?.contentWindow?.postMessage(message, runtimeOrigin.current ?? originOf(src));
@@ -68,6 +73,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   const [status, setStatus] = useState("Loading original HTML runtime…");
   const [score, setScore] = useState<number | null>(null);
   const [showTouchPad, setShowTouchPad] = useState(false);
+  const [barsOpen, setBarsOpen] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fakeFullscreen, setFakeFullscreen] = useState(false);
   const exitControlRef = useRef<HTMLButtonElement>(null);
@@ -86,10 +92,31 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
       // (works same-origin AND across the apex/www redirect). The synthetic
       // dispatch below is a same-origin best-effort extra, never the only path.
       postToRuntime({ version: 1, type: "input", slug, action: "key", key, pressed });
+      // Assistive fullscreen exit: a synthetic Escape/F (smile-key "f",
+      // switch mapped to Esc/F) must exit BOTH shell and bridge fullscreen.
+      // Synthetic keys never trigger the browser's native-Esc exit and never
+      // fire the shell's window keydown listener, so handle it here on the
+      // key-down edge. mode:"exit" (not toggle) so a shell/bridge state
+      // mismatch can only ever exit, never re-enter.
+      if (pressed !== false && (key === "Escape" || key === "f" || key === "F") && (isFullscreen || fakeFullscreen)) {
+        try {
+          const doc = document as Document & { webkitExitFullscreen?: () => Promise<void> | void };
+          if (document.fullscreenElement) {
+            void document.exitFullscreen().catch(() => undefined);
+          } else if (typeof doc.webkitExitFullscreen === "function") {
+            void doc.webkitExitFullscreen();
+          }
+        } catch {
+          /* native exit failed; CSS fallback still clears below */
+        }
+        setFakeFullscreen(false);
+        postToRuntime({ version: 1, type: "fullscreen", slug, mode: "exit" });
+      }
       const target = frame.current?.contentWindow;
       if (!target) return;
       try {
-        const code = key === " " ? "Space" : key.startsWith("Arrow") ? key : `Key${key.toUpperCase()}`;
+        const code =
+          key === " " ? "Space" : key.startsWith("Arrow") ? key : key === "Escape" ? "Escape" : key === "Enter" ? "Enter" : `Key${key.toUpperCase()}`;
         const event = new KeyboardEvent(pressed ? "keydown" : "keyup", { key, code, bubbles: true });
         target.dispatchEvent(event);
         target.document?.dispatchEvent(event);
@@ -98,7 +125,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         // dispatched; the postMessage above still delivers the input.
       }
     },
-    [postToRuntime, slug],
+    [postToRuntime, slug, isFullscreen, fakeFullscreen],
   );
 
   /** Assistive input (face winks, head pointer, switch): normalized 0..1. */
@@ -273,6 +300,9 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && fakeFullscreen) {
         setFakeFullscreen(false);
+        // Bridge holds its own fullscreen (documentElement) — tell it to
+        // exit too, or a CSS-fallback Esc leaves the game stuck fullscreen.
+        postToRuntime({ version: 1, type: "fullscreen", slug, mode: "exit" });
         focusGame();
         return;
       }
@@ -288,7 +318,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [fakeFullscreen, focusGame, toggleFullscreen]);
+  }, [fakeFullscreen, focusGame, toggleFullscreen, postToRuntime, slug]);
 
   // Shell-side a11y changes (colorblind filter, reduced motion, …) must
   // reach the game document, where shell CSS cannot penetrate.
@@ -380,6 +410,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         setStatus(payload.message || "The game reported a runtime error.");
       } else if (payload.type === "save" && payload.data && typeof payload.data === "object") {
         const slot = Number.isInteger(payload.slot) && payload.slot! >= 0 && payload.slot! <= 3 ? payload.slot : 0;
+        lastSaveData.current = payload.data;
         // No session → local progress only; never fire a doomed PUT.
         void (async () => {
           if (!(await hasLocalSession())) return;
@@ -411,19 +442,38 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   };
 
   const padButton = (label: string, key: string, className = "") => <button type="button" aria-label={label} className={`grid h-12 w-12 touch-none place-items-center rounded-full border border-cyan-100/40 bg-slate-950/85 text-lg text-cyan-50 active:bg-cyan-400 active:text-black ${className}`} onPointerDown={(event) => { event.preventDefault(); sendKey(key, true); }} onPointerUp={() => sendKey(key, false)} onPointerCancel={() => sendKey(key, false)} onPointerLeave={() => sendKey(key, false)}>{label}</button>;
+
+  // Universal save slots (0-3) for every game: manual Save snapshots the last
+  // bridge-observed state, manual Load forwards the cloud/device snapshot
+  // into the runtime via the bridge's load channel.
+  const getUniversalSnapshot = useCallback(() => lastSaveData.current, []);
+  const applyUniversalSnapshot = useCallback(
+    (snapshot: unknown, slot: number) => {
+      if (snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)) {
+        postToRuntime({ version: 1, type: "load", slot, schema_version: 1, data: snapshot });
+      }
+    },
+    [postToRuntime],
+  );
   return (
     <div>
       <div ref={shell} className={`perf-frame relative h-full w-full bg-black${fakeFullscreen ? " fixed inset-0 z-50" : ""}`} onClick={focusGame}>
+        {barsOpen ? (
         <div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1 rounded bg-black/70 p-1.5">
           {score !== null && <span role="status" className="px-2 py-1 text-xs text-cyan-200">Score: {score}</span>}
           <span className="hidden px-2 py-1 text-[11px] text-white/60 lg:inline" aria-hidden="true">Press F for fullscreen</span>
           <button type="button" onClick={focusGame} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline" title="Focus the game so keyboard controls respond">Focus</button>
           <button type="button" onClick={() => command("pause")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Pause</button>
           <button type="button" onClick={() => command("resume")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Resume</button>
-          <button type="button" onClick={() => command("fullscreen")} aria-pressed={fullscreenActive} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">{fullscreenActive ? "Exit fullscreen" : "Fullscreen"}</button>
+          <button type="button" onClick={() => command("fullscreen")} aria-pressed={fullscreenActive} aria-label={fullscreenActive ? "Exit fullscreen" : "Enter fullscreen"} title={fullscreenActive ? "Exit fullscreen (Esc)" : "Enter fullscreen (F)"} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">{fullscreenActive ? "Exit fullscreen" : "Fullscreen"}</button>
           <a href={src} target="_blank" rel="noopener" className="rounded px-2 py-1 text-xs text-white hover:bg-white/20" title="Open the standalone game window in a new tab">Pop out</a>
+          <button type="button" onClick={() => setShowTouchPad((v) => !v)} aria-pressed={showTouchPad} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:hidden" title="Toggle touch controls">Pad</button>
+          <button type="button" onClick={() => { setBarsOpen(false); focusGame(); }} aria-label="Hide game controls" title="Hide controls" className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">×</button>
         </div>
-        <p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "" : "sr-only"}`}>{status}</p>
+        ) : (
+          <button type="button" onClick={() => setBarsOpen(true)} aria-label="Show game controls" title="Show controls" className="absolute right-2 top-2 z-20 rounded bg-black/70 px-2 py-1 text-xs text-white hover:bg-white/20">⋯</button>
+        )}
+        <p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "pointer-events-none" : "sr-only"}`}>{status}{status ? <button type="button" onClick={() => { if (loadTimer.current) clearTimeout(loadTimer.current); setStatus(""); focusGame(); }} aria-label="Dismiss status message" className="pointer-events-auto ml-2 rounded px-1 text-white hover:bg-white/20">×</button> : null}</p>
         {fullscreenActive && (
           <button
             ref={exitControlRef}
@@ -435,10 +485,15 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
             Exit fullscreen (Esc)
           </button>
         )}
-        {showTouchPad && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex gap-2">{padButton("A", " ")}{padButton("↻", "r")}</div></div>}
+        {showTouchPad && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex items-start gap-2">{padButton("A", " ")}{padButton("↻", "r")}<button type="button" onClick={() => setShowTouchPad(false)} aria-label="Hide touch controls" title="Hide touch controls" className="grid h-12 w-12 touch-none place-items-center rounded-full border border-white/20 bg-black/70 text-sm text-white hover:bg-white/20">×</button></div></div>}
         <iframe ref={frame} title={title} src={src} onLoad={handleLoad} onError={() => setStatus("The game could not be loaded. Try the Pop out link to open the standalone runtime.")} className="h-full w-full touch-manipulation border-0 bg-black" allow="autoplay; fullscreen; gamepad" sandbox="allow-forms allow-modals allow-pointer-lock allow-same-origin allow-scripts" />
       </div>
-      <div className="mt-3">
+      <div className="mt-3 grid w-full grid-cols-1 gap-3">
+        <UniversalSavePanel
+          slug={slug}
+          getSnapshot={getUniversalSnapshot}
+          applySnapshot={applyUniversalSnapshot}
+        />
         <FaceController onGameInput={handleGameInput} />
       </div>
     </div>

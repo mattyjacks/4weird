@@ -38,7 +38,7 @@ export const STUDIO_RENDER_COINS_PER_SECOND = {
   "480p30": 1,
   "720p30": 2,
   "720p60": 3,
-  "1080p30": 3,
+  "1080p30": 4,
   "1080p60": 5,
   "4k30": 10,
   "4k60": 15,

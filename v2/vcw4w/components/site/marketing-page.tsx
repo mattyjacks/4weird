@@ -47,7 +47,7 @@ export function MarketingPage({
               <span className="price-chip" aria-hidden="true">
                 100 🪙 = $1.00
               </span>
-              <span>25% inside, never on top</span>
+              <span>Includes 25% platform cut; never added on top</span>
               <span aria-hidden="true">·</span>
               <a href="/pricing" className="money-strip-link">
                 Get coins →

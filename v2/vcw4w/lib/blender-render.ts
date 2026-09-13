@@ -95,7 +95,9 @@ export function cleanBlenderSpan(input: BlenderJobInput):
   return { ok: true, startFrame: start, endFrame: end, frameCount: count };
 }
 
-/** Gross coins/min for a render worker at this hourly USD (25% included). */
+/** Gross coins/min for a render worker at this hourly USD (25% included).
+ * Formula: provider_USD/hr / 0.75 * 100 coins/$ / 60, centicentcoin CEILING
+ * so the provider share always covers the card. */
 export function blenderCoinsPerMinute(hourlyUsd: number): number {
   const usd = Number(hourlyUsd);
   if (!Number.isFinite(usd) || usd <= 0) return 0;

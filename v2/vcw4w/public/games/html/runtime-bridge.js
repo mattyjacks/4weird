@@ -293,6 +293,9 @@
     try {
       var fs = isFullscreen();
       try {
+        updateFullscreenExitVisibility();
+      } catch (e) {}
+      try {
         window.dispatchEvent(new Event("resize"));
       } catch (e) {}
       try {
@@ -353,6 +356,9 @@
   function toggleFullscreen(mode) {
     try {
       ensureFullscreenStyle();
+      try {
+        ensureFullscreenExitButton();
+      } catch (e) {}
       var m = mode === "enter" || mode === "exit" || mode === "toggle" ? mode : "toggle";
       var fs = isFullscreen();
       if (m === "enter") {
@@ -391,6 +397,111 @@
         } catch (e) {}
       };
     }
+  } catch (e) {}
+
+  // ---- Fullscreen exit: in-iframe affordance + keys for disabled players. ----
+  // Some players cannot reach the shell/host exit UI (keyboard-only, switch,
+  // touch, or pointer locked by the game canvas), so the bridge owns a small
+  // persistent exit control inside the runtime document plus Escape / F
+  // handling. Both paths reuse exitFullscreen() above, so the existing
+  // fourweird-fullscreen dispatch (via notifyFullscreenChanged /
+  // fullscreenchange) stays the single source of truth. Bridge protocol
+  // untouched: no new postMessage types, no changed payloads.
+  var FULLSCREEN_EXIT_ID = "fourweird-fullscreen-exit";
+
+  function updateFullscreenExitVisibility() {
+    try {
+      var btn = document.getElementById(FULLSCREEN_EXIT_ID);
+      if (!btn) return;
+      var fs = isFullscreen();
+      btn.style.display = fs ? "" : "none";
+      try {
+        btn.setAttribute("aria-hidden", fs ? "false" : "true");
+      } catch (e) {}
+      try {
+        btn.tabIndex = fs ? 0 : -1;
+      } catch (e) {}
+    } catch (e) {
+      /* exit affordance visibility is best-effort */
+    }
+  }
+
+  function ensureFullscreenExitButton() {
+    try {
+      if (typeof document === "undefined") return null;
+      var existing = document.getElementById(FULLSCREEN_EXIT_ID);
+      if (existing) {
+        updateFullscreenExitVisibility();
+        return existing;
+      }
+      var host = document.body || document.documentElement;
+      if (!host) return null;
+      var btn = document.createElement("button");
+      btn.setAttribute("id", FULLSCREEN_EXIT_ID);
+      btn.setAttribute("type", "button");
+      btn.setAttribute("aria-label", "Exit fullscreen");
+      btn.textContent = "Exit fullscreen";
+      try {
+        // Small, persistent, large touch target; visibility is toggled via
+        // display so it leaves the tab order when not fullscreen.
+        btn.style.position = "fixed";
+        btn.style.top = "8px";
+        btn.style.right = "8px";
+        btn.style.zIndex = "2147483647";
+        btn.style.minWidth = "44px";
+        btn.style.minHeight = "44px";
+        btn.style.padding = "10px 14px";
+        btn.style.fontSize = "14px";
+        btn.style.lineHeight = "1.2";
+        btn.style.color = "#fff";
+        btn.style.background = "rgba(0,0,0,0.7)";
+        btn.style.border = "1px solid rgba(255,255,255,0.4)";
+        btn.style.borderRadius = "8px";
+        btn.style.cursor = "pointer";
+        btn.style.display = "none";
+      } catch (e) {}
+      try {
+        btn.addEventListener("click", function () {
+          try {
+            exitFullscreen();
+          } catch (e) {}
+          try {
+            setTimeout(notifyFullscreenChanged, 0);
+          } catch (e) {}
+        });
+      } catch (e) {}
+      host.appendChild(btn);
+      updateFullscreenExitVisibility();
+      return btn;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  try {
+    window.addEventListener(
+      "keydown",
+      function (event) {
+        try {
+          if (!isFullscreen()) return;
+          var k = (event && event.key) || "";
+          var code = (event && event.code) || "";
+          if (k === "Escape" || k === "Esc" || k === "f" || k === "F" || code === "KeyF") {
+            exitFullscreen();
+            try {
+              setTimeout(notifyFullscreenChanged, 0);
+            } catch (e) {}
+          }
+        } catch (e) {}
+      },
+      true
+    );
+  } catch (e) {}
+  try {
+    // Created once, lazily: body may not exist when this script runs in <head>.
+    ensureFullscreenExitButton();
+    document.addEventListener("DOMContentLoaded", ensureFullscreenExitButton);
+    window.addEventListener("load", ensureFullscreenExitButton);
   } catch (e) {}
 
   // ---- Accessibility: shell settings applied INSIDE the game document. ----

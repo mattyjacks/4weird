@@ -130,7 +130,10 @@ export function parseDesktopMaxUsd(value: unknown): number {
   return Math.round(v * 100) / 100;
 }
 
-/** Display equivalent: USD → Vibe Coins (100 coins = $1.00). Informational only. */
+/** Display equivalent: USD → Vibe Coins (100 coins = $1.00). Informational only.
+ * Direct-spend mirror (RunPod bills the card, no Vibe cut, no coin debit):
+ * deliberately NET — do NOT divide by 0.75 here; marketplace-metered quotes
+ * (autoplay/blender) use the gross /0.75 formula instead. */
 export function desktopUsdToCoins(usd: number): number {
   return Math.round(Number(usd) * 100 * 100) / 100;
 }

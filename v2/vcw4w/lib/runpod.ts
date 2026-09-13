@@ -146,7 +146,9 @@ export async function fetchRunpodBilling(
   }
 }
 
-/** USD → Vibe Coin display equivalent (100 coins = $1.00). Informational. */
+/** USD → Vibe Coin display equivalent (100 coins = $1.00). Informational.
+ * Direct-spend mirror (RunPod bills the card, NO Vibe cut): deliberately NET —
+ * do NOT divide by 0.75 here; marketplace-metered quotes use the gross formula. */
 export function runpodUsdToCoins(usd: number): number {
   return Math.round(Number(usd) * 100 * 100) / 100;
 }

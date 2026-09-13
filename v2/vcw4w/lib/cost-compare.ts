@@ -3,9 +3,10 @@
  * unit-testable. Mirrors lib/economy.ts + lib/cloud-catalog.ts pricing rule:
  *
  * Coin math: 100 Vibe Coins cost the buyer exactly $1.00 ($0.01 per coin).
- * Every quoted price INCLUDES the 25% platform service cut
- * (SERVICE_CUT_PCT); the cut is never added on top. Coin figures here are
- * the gross the wallet is debited, matching runpodUsdToCoins / doUsdToCoins.
+ * Direct-spend comparison only (card billed, NO platform cut): coin figures
+ * here are NET equivalents via runpodUsdToCoins / doUsdToCoins, NOT gross
+ * marketplace quotes (which are provider / 0.75, 25% INCLUDED). The cut is
+ * never added on top in either lane - do not mix them.
  */
 
 export const COINS_PER_USD = 100;

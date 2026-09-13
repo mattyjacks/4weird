@@ -126,9 +126,9 @@ export async function POST(req: Request) {
     const output = parseOpenRouterText(payload).slice(0, 2000);
     if (!output) throw new Error("empty completion");
     // Debit the 1-centicentcoin floor for delivered output; a provider
-    // failure below stays free. True cost is ~half a centicentcoin: the
-    // 0.001 inference qty rounds the RPC to its 0.01 floor by construction
-    // (6 x 0.00 after 2dp rounding, floored to 0.01).
+    // failure below stays free. True cost is under a centicentcoin: the
+    // 0.001 inference qty lands the RPC on its 0.01 floor by construction
+    // (6 x 0.001 = 0.006, rounded to 2dp then floored to 0.01).
     try {
       const { data: metered, error } = await supabase.rpc("meter_game_ai_usage", {
         p_game: "openrouter-plays",

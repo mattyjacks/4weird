@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
-import { assertPricingInvariants, cleanSquadCap, quoteSquadBudget } from "@/lib/remastery-pricing";
+import { assertPricingInvariants, cleanSquadCap, MAX_SQUAD_BUDGET_CAP_COINS, quoteSquadBudget } from "@/lib/remastery-pricing";
 
 
 /**
@@ -26,6 +26,6 @@ export async function POST(req: Request) {
 
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   const cap = cleanSquadCap(body?.monthlyCapCoins);
-  if (cap < 0) return fail("Invalid cap: whole-coin integer 0..100000000.", 400);
+  if (cap < 0) return fail(`Invalid cap: whole-coin integer 0..${MAX_SQUAD_BUDGET_CAP_COINS}.`, 400);
   return ok({ quote: quoteSquadBudget(cap) });
 }
