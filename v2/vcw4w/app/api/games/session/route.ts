@@ -110,14 +110,21 @@ export async function POST(req: NextRequest) {
     // (today's full adult behavior); the play gate always sends it.
     const contentMode = parseContentMode(input.content_mode ?? input.contentMode ?? input.content) ?? "all";
     try {
-      const svc = serviceClient();
-      const { data: profile } = await svc.from("profiles").select("age_band").eq("id", data.user.id).maybeSingle();
-      const band = String((profile as { age_band?: unknown } | null)?.age_band ?? "unknown");
+      // Self-read through the caller's own client (same row /api/me/profile
+      // shows): RLS SELECT-own covers this, and it stays correct even if the
+      // service_role key ever points at a different project than the anon
+      // key (a service-client read would then see no row → "unknown" → a
+      // 403 that contradicts the band on screen). serviceClient stays
+      // reserved for writes RLS forbids.
+      const { data: profile, error: bandError } = await supabase.from("profiles").select("age_band").eq("id", data.user.id).maybeSingle();
+      if (bandError) throw bandError;
+      const band = String((profile as { age_band?: unknown } | null)?.age_band ?? "unknown").trim().toLowerCase();
       if (hasContentModes(game)) {
         // Band-vs-mode gate first: kid bands may only use kid, teen bands
         // kid+teen, guests/unknown kid+teen ("all" needs adult sign-in).
         const viewerBand = band === "kid" || band === "teen" || band === "adult" ? band : "unknown";
         if (!canUseContentMode(viewerBand, null, contentMode)) {
+          console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "mode-locked" });
           return fail(
             `Content mode "${contentMode}" is locked for your age band. Kid bands may only use kid mode, Teen bands kid or teen — Uncut needs an Adult (18+) age band.`,
             403,
@@ -127,21 +134,26 @@ export async function POST(req: NextRequest) {
         // kid mode (0+) and teen mode (13+) lower the bar; "all" keeps 18+.
         const minAge = effectiveMinAge(game, contentMode);
         if (minAge >= 18 && band !== "adult") {
+          console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "adults-need-adult" });
           return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
         }
         if (minAge >= 13 && band !== "adult" && band !== "teen") {
+          console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "teens-need-teen" });
           return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
         }
       } else {
         const minAge = requiredAgeFor(getGameRating(game));
         if (minAge >= 18 && band !== "adult") {
+          console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "adults-need-adult" });
           return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
         }
         if (minAge >= 13 && band !== "adult" && band !== "teen") {
+          console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "teens-need-teen" });
           return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
         }
       }
-    } catch {
+    } catch (error) {
+      console.error("[api] api/games/session band read failed", String((error as { message?: unknown } | null)?.message ?? error ?? "unknown").slice(0, 200));
       return fail("Server misconfigured.", 500);
     }
     let session: unknown;
