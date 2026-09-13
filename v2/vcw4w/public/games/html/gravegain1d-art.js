@@ -28,7 +28,14 @@
  */
 (function () {
     'use strict';
-    if (window.GraveGain1DArt) return;
+    /* Merge mode (ORCH ruling 2026-09-13, coordinated via aiorch-01.md):
+     * wave-1 gravegain-1dart.js exposes the same window.GraveGain1DArt global
+     * with complementary {install, uninstall}. Hard first-wins would drop one
+     * layer depending on script order, so attach-first: if a GraveGain1DArt
+     * already exists WITH install, keep it and fill any of OUR keys that are
+     * missing, then run our init below against the merged object. */
+    var _priorArt = null;
+    try { _priorArt = window.GraveGain1DArt || null; } catch (_) { _priorArt = null; }
 
     var VERSION = '1.0.0';
     var W = 960, H = 540, TRACK_Y = H * 0.66, VIEW_TILES = 40;
@@ -433,7 +440,7 @@
     }
 
     try {
-        window.GraveGain1DArt = {
+        var _merged = {
             VERSION: VERSION,
             SECTORS: SECTOR_ART,
             EMOJI: EMOJI,
@@ -443,6 +450,14 @@
             pulse: pulse,
             init: init
         };
+        try {
+            if (_priorArt && typeof _priorArt === 'object') {
+                for (var _mk in _priorArt) {
+                    if (_merged[_mk] === undefined && _priorArt[_mk] !== undefined) _merged[_mk] = _priorArt[_mk];
+                }
+            }
+        } catch (_) {}
+        window.GraveGain1DArt = _merged;
     } catch (e) { /* window unwritable */ }
 
     try {

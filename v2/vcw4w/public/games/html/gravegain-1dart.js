@@ -1,7 +1,13 @@
 (function () {
 'use strict';
 try {
-if (window.GraveGain1DArt) return;
+/* Merge mode (ORCH ruling 2026-09-13): sibling gravegain1d-art.js also exposes
+ * window.GraveGain1DArt (sector palettes {setSector, pulse}, no install).
+ * First-wins would drop one layer, so attach our install/uninstall onto the
+ * existing object when it lacks them; defer only if install already exists. */
+try {
+  if (window.GraveGain1DArt && typeof window.GraveGain1DArt.install === 'function') return;
+} catch (_m) { return; }
 var VERSION = '1.0.0';
 var OVERLAY_ID = 'gg1dArtOverlay';
 var SECTORS = [
@@ -186,6 +192,16 @@ function uninstall() {
     st.canvas = null; st.ctx = null; st.parts = [];
   } catch (e3) {}
 }
-window.GraveGain1DArt = { VERSION: VERSION, install: install, uninstall: uninstall };
+try {
+  var _prev1d = null;
+  try { _prev1d = window.GraveGain1DArt || null; } catch (_p) { _prev1d = null; }
+  var _merged1d = { VERSION: VERSION, install: install, uninstall: uninstall };
+  if (_prev1d && typeof _prev1d === 'object') {
+    for (var _k1 in _prev1d) {
+      try { if (_merged1d[_k1] === undefined && _prev1d[_k1] !== undefined) _merged1d[_k1] = _prev1d[_k1]; } catch (_q) {}
+    }
+  }
+  window.GraveGain1DArt = _merged1d;
+} catch (_w) { try { window.GraveGain1DArt = window.GraveGain1DArt || { VERSION: '1.0.0', install: function () { return null; }, uninstall: function () {} }; } catch (e2) {} }
 } catch (e) { try { window.GraveGain1DArt = window.GraveGain1DArt || { VERSION: '1.0.0', install: function () { return null; }, uninstall: function () {} }; } catch (e2) {} }
 })();

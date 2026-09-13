@@ -94,7 +94,7 @@ export async function valleynetCheck(text: string): Promise<ValleynetResult> {
 
 export type ValleynetLogInput = {
   clanId?: string | null;
-  targetType: "post" | "comment" | "join" | "bot-deploy";
+  targetType: "post" | "comment" | "join" | "bot-deploy" | "report";
   targetId?: string | null;
   verdict: ValleynetVerdict;
   reasons: string[];

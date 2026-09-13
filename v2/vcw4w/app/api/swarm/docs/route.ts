@@ -31,6 +31,8 @@ export async function GET(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const getRl = rateLimit(`swarm-docs-get:${data.user.id}`, 60, 60_000);
+  if (!getRl.allowed) return fail("Rate limited.", 429);
   const url = new URL(req.url);
   const q = (url.searchParams.get("q") ?? "").trim().slice(0, 500);
   try {

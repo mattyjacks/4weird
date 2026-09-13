@@ -11,15 +11,20 @@
  * Contract:
  *   mode   : 'siege'
  *   emotes : ['GG','POTION','BOSS!']
- *   read() : {x,y,hp,maxhp,gold,kills,deaths,floor,progress,boss,winner,seed}
- *            from real globals (window.GraveGainGame + player.*). Unknown
- *            fields are omitted. Numbers finite, strings <= 32 chars.
- *            Relay headline: the netplay core persists only {x,y,score,alive}
+  *   read() : {x,y,hp,maxhp,gold,kills,deaths,floor,progress,boss,winner,seed}
+  *            from real globals (window.GraveGainGame + player.*). Unknown
+  *            fields are omitted. Numbers finite, strings <= 32 chars.
+  *            boss rides the relay as a capped string ('boss' when a boss is
+  *            engaged, '' when not) because the netplay core STATE_ALLOW +
+  *            PUT allowlist persist boss as a string (same convention as
+  *            mp-1d/mp-2d); a bare boolean would be dropped by the allowlist.
+  *            Relay headline: the netplay core persists only {x,y,score,alive}
  *            per side, so the siege headline (floor primary, kills secondary)
  *            is packed into score = floor*10000 + min(kills,9999); decodeScore
- *            unpacks it for the rival panel. boss is a boolean (relay-safe);
- *            bossHp/bossMaxhp/bossName ride along when a direct consumer wants
- *            them. alive mirrors !player.isDead.
+  *            unpacks it for the rival panel. bossHp/bossMaxhp/bossName ride
+  *            along as extra keys for direct consumers only (the relay
+  *            allowlist drops them); the relay-safe boss presence string is
+  *            what survives the server round-trip. alive mirrors !player.isDead.
  *   render(foe, events): rival apparition marker (3D projection when
  *            possible, else screen-edge compass + distance, else text panel),
  *            siege scoreboard (floor race + boss DPS race + split times),
@@ -215,19 +220,20 @@
                 else if (floor !== undefined) prog = clamp01(Math.floor(floor) / FINAL_FLOOR * 0.99);
             } catch (_) { prog = undefined; }
             if (prog !== undefined && isFinite(prog)) out.progress = Math.round(prog * 1000) / 1000;
-            // boss: boolean presence is relay-safe (core persists booleans);
-            // exact HP rides along as extra keys for direct consumers.
+            // boss: presence string is relay-safe (core STATE_ALLOW + PUT
+            // allowlist persist boss as a capped string); exact HP rides
+            // along as extra keys for direct consumers.
             try {
                 var b = g.activeBoss || null;
                 var bHp = b ? fin(b.hp) : undefined;
                 var bMhp = b ? fin(b.maxHp) : undefined;
                 if (b && bHp !== undefined && bMhp !== undefined && bMhp > 0 && bHp > 0) {
-                    out.boss = true;
+                    out.boss = 'boss';
                     out.bossHp = bHp;
                     out.bossMaxhp = bMhp;
                     try { if (b.name) out.bossName = shortStr(b.name); } catch (_) { /* optional */ }
                 } else {
-                    out.boss = false;
+                    out.boss = '';
                 }
             } catch (_) { /* omit */ }
             out.winner = isLocalWinner(g);
@@ -289,7 +295,8 @@
                 if (f.floor === undefined && dec.floor > 0) f.floor = dec.floor;
                 if (f.kills === undefined && dec.kills > 0) f.kills = dec.kills;
             } catch (_) { /* omit */ }
-            // boss may be boolean (relay-safe), number 1/0, or detail object.
+            // boss may be the relay presence string ('boss'/''), boolean
+            // 1/0 (legacy snapshots), or a detail object.
             try {
                 var b = foe.boss;
                 if (b && typeof b === 'object') {
@@ -298,7 +305,7 @@
                         f.boss = { hp: bh, maxhp: bm };
                         try { if (b.name) f.boss.name = shortStr(b.name); } catch (_) { /* optional */ }
                     } else { f.boss = true; }
-                } else if (b === true || b === 1) { f.boss = true; }
+                } else if (b === true || b === 1 || (typeof b === 'string' && b !== '')) { f.boss = true; }
                 else if (b === false || b === 0) { f.boss = false; }
                 var fbh = fin(foe.bossHp); var fbm = fin(foe.bossMaxhp);
                 if (fbh !== undefined && fbm !== undefined && fbm > 0) {
@@ -659,7 +666,10 @@
                     }
                 } catch (_) { myBoss = null; }
                 var foeBoss = foe.boss && typeof foe.boss === 'object' ? foe.boss : null;
-                if (myBoss || foeBoss || foe.boss === true || me.boss === true) {
+                // me.boss is the relay presence string ('boss'/''), foe.boss
+                // is already normalised to boolean/object by normFoe.
+                var meBossOn = (typeof me.boss === 'string' && me.boss !== '') || me.boss === true;
+                if (myBoss || foeBoss || foe.boss === true || meBossOn) {
                     lines.push('BOSS VS');
                     if (myBoss) lines.push('  YOU   ' + hpBar(myBoss.hp / myBoss.maxhp));
                     if (foeBoss) lines.push('  RIVAL ' + hpBar(foeBoss.hp / foeBoss.maxhp));

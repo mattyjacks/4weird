@@ -25,8 +25,10 @@ export async function GET(req: Request) {
   const category = isLaunchCategory(url.searchParams.get("category"));
   const supabase = await createClient();
   let q = supabase
+    // No creator_id: stable user UUIDs are not scrapeable from the public
+    // list (detail/contribute paths resolve the creator server-side).
     .from("launch_campaigns")
-    .select("id,creator_id,clan_id,title,category,goal_coins,status,ends_at,created_at")
+    .select("id,clan_id,title,category,goal_coins,status,ends_at,created_at")
     .eq("moderation", "visible")
     .eq("status", "open")
     .order("created_at", { ascending: false })

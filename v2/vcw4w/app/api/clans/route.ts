@@ -21,8 +21,10 @@ export async function GET(req: Request) {
   const type = isClanType(new URL(req.url).searchParams.get("type"));
   const supabase = await createClient();
   let query = supabase
+    // No owner_id: stable user UUIDs are not scrapeable from the public list
+    // (owner UI resolves via membership roles on the detail read).
     .from("clans")
-    .select("id,slug,name,description,owner_id,created_at,clan_type,upkeep_status")
+    .select("id,slug,name,description,created_at,clan_type,upkeep_status")
     .order("created_at", { ascending: false })
     .limit(100);
   if (type) query = query.eq("clan_type", type);

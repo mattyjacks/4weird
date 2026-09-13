@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
     // settled on the other. No X-Frame-Options is emitted anywhere, so
     // same-origin framing keeps working and cross-host framing is governed
     // here, not by a deny-all default.
-    { source: "/games/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }, { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://4weird.com https://www.4weird.com" }] },
+    { source: "/games/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }, { key: "Content-Security-Policy", value: "frame-ancestors 'self' https://4weird.com https://www.4weird.com; object-src 'none'; base-uri 'self'" }] },
     { source: "/vcw/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }] },
     { source: "/vibecodeworker-legacy/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=3600, stale-while-revalidate=86400" }] },
     // Crawlable metadata endpoints: cheap to serve, safe to cache briefly.
@@ -47,9 +47,9 @@ const nextConfig: NextConfig = {
       { source: "/account.html", destination: "/account", permanent: true },
       { source: "/protected", destination: "/account", permanent: true },
       { source: "/protected/", destination: "/account", permanent: true },
-      { source: "/me", destination: "/account", permanent: true },
-      { source: "/me/", destination: "/account", permanent: true },
-      { source: "/me/:path*", destination: "/account", permanent: true },
+      { source: "/me", destination: "/account", permanent: false },
+      { source: "/me/", destination: "/account", permanent: false },
+      { source: "/me/:path*", destination: "/account", permanent: false },
       { source: "/my", destination: "/account", permanent: true },
       { source: "/my/", destination: "/account", permanent: true },
       // NOTE: no /my/:section redirect - /my/usage/ and /my/rights/ are live

@@ -454,10 +454,24 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // full reload via the ?content= frameSrc above is the fallback path).
   useEffect(() => {
     if (!contentSupported || !entered) return;
+    // Scope the broadcast to the runtime frame's origin: a "*" target would
+    // also spray third-party frames on the page (e.g. the ad slot) with our
+    // internal protocol. Non-matching frames are skipped; the ?content= URL
+    // param already carried the mode as fallback.
+    let targetOrigin: string | null = null;
+    try {
+      targetOrigin = new URL(frameSrc, window.location.href).origin;
+    } catch {
+      targetOrigin = null;
+    }
+    if (!targetOrigin) return;
     try {
       document.querySelectorAll("iframe").forEach((frame) => {
         try {
-          frame.contentWindow?.postMessage({ version: 1, type: "content-mode", mode: contentMode }, "*");
+          const src = frame.getAttribute("src") ?? "";
+          if (!src) return;
+          if (new URL(src, window.location.href).origin !== targetOrigin) return;
+          frame.contentWindow?.postMessage({ version: 1, type: "content-mode", mode: contentMode }, targetOrigin);
         } catch {
           /* cross-origin frame; the ?content= URL param already carried it */
         }
@@ -465,7 +479,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     } catch {
       /* no DOM access; the ?content= URL param already carried the mode */
     }
-  }, [contentSupported, contentMode, entered]);
+  }, [contentSupported, contentMode, entered, frameSrc]);
 
   // Boot: signed in, guest, or metering-unavailable (local dev).
   // Runs only AFTER the player presses Start Game (entered): the guest-pass

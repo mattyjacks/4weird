@@ -24,7 +24,11 @@ export async function proxy(request: NextRequest) {
     const looksLikeBotKey =
       /^(bot4weird_[A-Za-z0-9]{16,}|vcw_live_[A-Za-z0-9]{16,})$/.test(botKey);
     const looksLikeBearer =
-      /^Bearer\s+\S{20,}$/.test(auth) || /^(x-meshy-signature|x-fal-[a-z-]+|sk-[A-Za-z0-9])/.test(auth);
+      // Bearer shape only: provider webhook secrets (Meshy signature, fal
+      // headers, sk- keys) travel in their own headers, never in
+      // Authorization, so matching those prefixes here would let any caller
+      // bypass this gate with a self-asserted header value.
+      /^Bearer\s+\S{20,}$/.test(auth);
     const hasSecretAuth = looksLikeBotKey || looksLikeBearer;
     const hasSessionCookie = request.cookies
       .getAll()

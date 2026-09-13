@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
+import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { exceedsBodyLimit } from "@/lib/validate";
@@ -95,6 +96,13 @@ export async function POST(req: Request) {
     return fail("Too many attempts. Try again shortly.", 429, {
       "Retry-After": String(throttle.retryAfter),
     });
+  }
+  // Distributed burst shield: the memory bucket above is per-instance.
+  // MAX_ACTIVE_KEYS=10 bounds the damage, but cap attempts per account
+  // across instances too.
+  const dist = await globalBucket(acctBucketKey("bot-keys-issue", data.user.id), 10, 60);
+  if (dist && !dist.allowed) {
+    return fail("Too many attempts. Try again shortly.", 429, throttleHeaders(dist.retryAfter));
   }
   let body: unknown;
   try {

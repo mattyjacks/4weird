@@ -8,9 +8,11 @@ import { isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import {
   botRateLimit,
+  botTesterBlocked,
   extractBotKey,
   hasBotAuth,
   invalidCredentials,
+  isBotTester,
   keyHasScope,
   resolveBotKey,
 } from "@/lib/bot-auth";
@@ -187,6 +189,9 @@ export async function DELETE(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  // Redaction destroys shared history: bots (and restricted play/test
+  // sessions driving them) never redact, even with rooms.moderate.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   // Bind the URL room to the message: the redact RPC derives the room from
   // the message and ignores the URL, so a mismatched roomId would otherwise
   // return success for a redact in a different room (audit confusion).

@@ -4,6 +4,7 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
+import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,8 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  // Invite creation grants org access: play/test sessions never do it.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const orgId = idFrom(req.url);
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   const throttle = rateLimit(`org-invite:${u.id}`, 20, 60_000);
@@ -95,6 +98,8 @@ export async function DELETE(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  // Invite revocation changes org access: play/test sessions never do it.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const orgId = idFrom(req.url);
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   let body: unknown;

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOriginOrBotKey } from "@/lib/csrf-bot";
-import { keyHasScope, resolveBotKey } from "@/lib/bot-auth";
+import { botTesterBlocked, isBotTester, keyHasScope, resolveBotKey } from "@/lib/bot-auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
 import { VAULT_BUCKET } from "@/lib/blob-vault";
@@ -27,6 +27,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     if (!keyHasScope(bot, "vault:write")) return fail("Key lacks scope: vault:write.", 403);
     userId = bot.userId;
   }
+  // Permanent destruction is never a play/test act (legal holds on
+  // quarantined bytes are enforced below regardless of caller).
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const throttle = rateLimit(`vault-write:${userId}`, 20, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   const { id } = await params;

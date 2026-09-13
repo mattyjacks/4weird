@@ -107,8 +107,11 @@
     } catch (e) { return { kills: 0, gold: 0 }; }
   }
 
-  // Foe view: prefer explicit duel keys; fall back to decoded score,
-  // because the relayed foe object usually carries only {x,y,score,alive}.
+  // Foe view: prefer explicit duel keys; fall back to decoded score.
+  // boss rides the relay as a short string ('boss' when engaged, '' when
+  // not) because the netplay core sanitizer + PUT allowlist persist boss
+  // as a capped string (same convention as mp-1d/mp-3d); a bare boolean
+  // would be dropped by the allowlist and the rival panel would go blind.
   function foeDuel(foe) {
     try {
       foe = (foe && typeof foe === 'object') ? foe : {};
@@ -119,7 +122,7 @@
         gold: isFinite(foe.gold) ? foe.gold : d.gold,
         floor: isFinite(foe.floor) ? foe.floor : undefined,
         progress: isFinite(foe.progress) ? foe.progress : undefined,
-        boss: (foe.boss === true),
+        boss: (foe.boss === true || foe.boss === 1 || (typeof foe.boss === 'string' && foe.boss !== '')),
         winner: (foe.winner === true),
         alive: (foe.alive === undefined) ? undefined : !!foe.alive
       };
@@ -214,7 +217,9 @@
             if (isFinite(e.hp)) { if (e.hp > 0) { bossAlive = true; break; } }
             else { bossAlive = true; break; }
           }
-          out.boss = bossAlive;
+          // boss rides the relay as a capped string ('boss'/''), matching the
+          // core STATE_ALLOW + PUT allowlist string convention for boss.
+          out.boss = bossAlive ? 'boss' : '';
         }
       } catch (e2) {}
       if (g.currentMission && g.currentMission.completed) out.winner = true;

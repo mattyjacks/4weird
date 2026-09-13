@@ -179,6 +179,20 @@ function normalizeRuntime(indexFile, slug) {
       else html += goreTag;
     }
   }
+  // GraveGain age-band director (G7, ALL GraveGain games): resolve kid/teen/all
+  // BEFORE any gore overlay loads so bands gate FX first. Placed ahead of the
+  // per-slug gore blocks so the tag order in the generated bundle is
+  // agebands -> gore. Source lives at public/games/html/gravegain-agebands.js
+  // (v2-native, outside the parity-locked gravegain trees). existsSync-guarded,
+  // injected only when absent; tracked bundle sources stay byte-identical.
+  if ((slug === "gravegain1d" || slug === "gravegain2d" || slug === "gravegain3d") && !html.includes("gravegain-agebands.js")) {
+    const bandsSrc = join(root, "public", "games", "html", "gravegain-agebands.js");
+    if (existsSync(bandsSrc)) {
+      const tag = `<script src="/games/html/gravegain-agebands.js" data-slug="${slug}"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
   // Per-game gore injection — gravegain3d ONLY. The v2 gore overlay lives at
   // public/games/html/gore-gravegain3d.js (outside the parity-locked
   // gravegain3d/ tree). Inject by reference into the generated bundle only,
@@ -277,21 +291,65 @@ function normalizeRuntime(indexFile, slug) {
       else html += tag;
     }
   }
+  // GraveGain swarm overlays (aiorch-01 E20 wave): G1 voxel-gore-3d -> 3D only,
+  // G3 thread-tuner -> all 3 (append-pattern: loads with the bundle; true
+  // pre-boot ordering would need source-head edits, left for G3/G10),
+  // G4 gravegain2d-25d -> 2D (complements 2p5d, stands down overlapping layers
+  // when window.GraveGain25D is present), G5 sprites -> 2D, G8 3d-arsenal -> 3D,
+  // G9 arsenal-2d1d -> 2D+1D, voxel-gore -> +1D (mode-gated, kid-safe),
+  // enemies -> +1D, E11 sidequests / E12 characters / E13 events / E14 loot /
+  // E19 codex -> all 3, E16 drift -> 1D, E17 endless -> 2D, E18 endless -> 3D.
+  // G7 agebands routes via the early block above (loads before gore).
+  // Conflict rulings (see aiorch-01 CONFLICTS): G2 wires gravegain-models-3d.js
+  // ONLY (gravegain3d-models.js stays on disk unwired); G4 + G6 run in
+  // orchestrator-ruled MERGE mode (25d/1dart carry merge guards, union keys
+  // with 2p5d/1d-art -- both orders verified) so all look/art layers route.
+  // existsSync-guarded, injected only when absent; tracked sources untouched.
+  {
+    const swarmFiles = [
+      ["voxel-gore-3d.js", ["gravegain3d"]],
+      ["gravegain-thread-tuner.js", ["gravegain1d", "gravegain2d", "gravegain3d"]],
+      ["gravegain2d-25d.js", ["gravegain2d"]],
+      ["gravegain2d-sprites.js", ["gravegain2d"]],
+      ["gravegain3d-arsenal.js", ["gravegain3d"]],
+      ["gravegain-arsenal-2d1d.js", ["gravegain1d", "gravegain2d"]],
+      ["gravegain-voxel-gore.js", ["gravegain1d"]],
+      ["gravegain-enemies.js", ["gravegain1d"]],
+      ["gravegain-sidequests.js", ["gravegain1d", "gravegain2d", "gravegain3d"]],
+      ["gravegain-characters.js", ["gravegain1d", "gravegain2d", "gravegain3d"]],
+      ["gravegain-events.js", ["gravegain1d", "gravegain2d", "gravegain3d"]],
+      ["gravegain-loot.js", ["gravegain1d", "gravegain2d", "gravegain3d"]],
+      ["gravegain1d-drift.js", ["gravegain1d"]],
+      ["gravegain2d-endless.js", ["gravegain2d"]],
+      ["gravegain3d-endless.js", ["gravegain3d"]],
+      ["gravegain-codex.js", ["gravegain1d", "gravegain2d", "gravegain3d"]],
+    ];
+    for (const [file, slugs] of swarmFiles) {
+      if (!slugs.includes(slug)) continue;
+      if (html.includes(file)) continue;
+      const src = join(root, "public", "games", "html", file);
+      if (!existsSync(src)) continue;
+      const tag = `<script src="/games/html/${file}" data-slug="${slug}"></script>`;
+      if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${tag}</body>`);
+      else html += tag;
+    }
+  }
   // GraveGain BIG-UPGRADE layer (S-09 + ORCH wave-1 + toasts): arsenal ->
   // bestiary -> emergent (+toasts herald) -> graphics tier -> gore tiers ->
   // perf, in dependency order.
   // ORCH wave-1 adds: arsenal data (all), arsenal3d+bestiary3d+voxgore (3D),
-  // arsenal2d+25d (2D), 1dart (1D), agegore director (all). All sources
+  // arsenal2d+25d (2D), 1dart (1D, merge-mode with plus-block 1d-art),
+  // agegore director (all). All sources
   // live at public/games/html/*.js (v2-native, outside the parity-locked
   // gravegain trees). existsSync-guarded, injected only when absent; tracked
   // bundle sources stay byte-identical.
   if (slug === "gravegain2d" || slug === "gravegain3d" || slug === "gravegain1d") {
     const bigFiles =
       slug === "gravegain2d"
-        ? ["gravegain-arsenal.js", "gravegain-arsenal2d.js", "gravegain-bestiary.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-graphics-2d.js", "gravegain-25d.js", "gravegain-gore-tiers.js", "gravegain-agegore.js", "gravegain-perf.js"]
+        ? ["gravegain-arsenal.js", "gravegain-arsenal-bridge.js", "gravegain-arsenal2d.js", "gravegain-bestiary.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-graphics-2d.js", "gravegain-25d.js", "gravegain-gore-tiers.js", "gravegain-agegore.js", "gravegain-perf.js"]
         : slug === "gravegain3d"
-          ? ["gravegain-arsenal.js", "gravegain-arsenal3d.js", "gravegain-bestiary.js", "gravegain-bestiary3d.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-graphics-3d.js", "gravegain-gore-tiers.js", "gravegain-agegore.js", "gravegain-voxgore.js", "gravegain-perf.js"]
-          : ["gravegain-graphics-1d.js", "gravegain-1dart.js", "gravegain-arsenal.js", "gravegain-arsenal2d.js", "gravegain-bestiary.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-agegore.js", "gravegain-perf.js"];
+          ? ["gravegain-arsenal.js", "gravegain-arsenal-bridge.js", "gravegain-arsenal3d.js", "gravegain-bestiary.js", "gravegain-bestiary3d.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-graphics-3d.js", "gravegain-gore-tiers.js", "gravegain-agegore.js", "gravegain-voxgore.js", "gravegain-perf.js"]
+          : ["gravegain-graphics-1d.js", "gravegain-1dart.js", "gravegain-arsenal.js", "gravegain-arsenal-bridge.js", "gravegain-arsenal2d.js", "gravegain-bestiary.js", "gravegain-emergent.js", "gravegain-emergent-toasts.js", "gravegain-agegore.js", "gravegain-perf.js"];
     for (const file of bigFiles) {
       if (html.includes(file)) continue;
       const src = join(root, "public", "games", "html", file);

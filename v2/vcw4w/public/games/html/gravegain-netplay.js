@@ -17,11 +17,17 @@
  * Adapter interface (window.GraveGainMPAdapter):
  *   {
  *     mode: "1d" | "2d" | "3d",
- *     read: function () -> object   // local state; map the headline metric
- *                                   // into {x, y, score, alive} (the only
- *                                   // keys the PUT route persists; anything
- *                                   // else is dropped server-side). May also
- *                                   // include `seed` for same-seed parties.
+  *     read: function () -> object   // local state; send the full RPG key
+  *                                   // set (x, y, score, hp, maxhp, gold,
+  *                                   // kills, deaths, floor, sector, level,
+  *                                   // xp, progress, alive, revive, winner,
+  *                                   // boss, seed, side, emote) — the PUT
+  *                                   // route persists exactly this allowlist
+  *                                   // (see STATE_ALLOW below). Pack the
+  *                                   // headline metric into score as well so
+  *                                   // a score-only foe snapshot still reads.
+  *                                   // May also include `seed` for same-seed
+  *                                   // parties (the core paints it).
  *     render: function (foe, events) -> void,  // foe = opponent state object
  *                                              // ({} when unknown), events =
  *                                              // cached event array
@@ -620,6 +626,7 @@
       S.running = false;
       stopLoop();
       S.soloNote = note || "sign in for multiplayer";
+      syncPublic();
       buildOverlay();
       paintNote();
       paintScore();

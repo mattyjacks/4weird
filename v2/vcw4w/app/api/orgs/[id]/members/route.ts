@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,10 @@ export async function GET(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  // Searchable roster (up to 8k rows paged): throttle per caller so one
+  // member cannot scrape rosters unchecked.
+  const rl = rateLimit(`org-roster:${data.user.id}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited.", 429);
   const orgId = idFrom(req.url);
   if (!/^[0-9a-f-]{36}$/i.test(orgId)) return fail("Invalid org.", 400);
   const url = new URL(req.url);

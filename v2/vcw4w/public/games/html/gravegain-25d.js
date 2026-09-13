@@ -9,7 +9,18 @@
  */
 (function () {
 'use strict';
-if (window.GraveGain25D) return;
+/* Merge mode (ORCH ruling 2026-09-13): sibling gravegain-2p5d.js also exposes
+ * window.GraveGain25D (parallax/shadow/torch layer, {VERSION} only, no
+ * install). First-wins would silently drop one layer, so: if a GraveGain25D
+ * already exists WITHOUT install/uninstall/shadeByY, keep it and attach our
+ * complementary API onto the same object. If it already HAS install, defer
+ * (sibling wins, no double rAF loop) but fill any missing helper. */
+try {
+  if (window.GraveGain25D && typeof window.GraveGain25D.install === 'function') {
+    try { if (typeof window.GraveGain25D.shadeByY !== 'function') window.GraveGain25D.shadeByY = shadeByY; } catch (_) {}
+    return;
+  }
+} catch (_) { return; }
 
 var VERSION = '1.0.0';
 var POLL_MAX = 20;
@@ -186,7 +197,17 @@ function uninstall() {
   return true;
 }
 
-window.GraveGain25D = { VERSION: VERSION, install: install, uninstall: uninstall, shadeByY: shadeByY };
+try {
+  var _prev25 = null;
+  try { _prev25 = window.GraveGain25D || null; } catch (_) { _prev25 = null; }
+  var _merged25 = { VERSION: VERSION, install: install, uninstall: uninstall, shadeByY: shadeByY };
+  if (_prev25 && typeof _prev25 === 'object') {
+    for (var _k in _prev25) {
+      try { if (_merged25[_k] === undefined && _prev25[_k] !== undefined) _merged25[_k] = _prev25[_k]; } catch (_) {}
+    }
+  }
+  window.GraveGain25D = _merged25;
+} catch (_) {}
 
 try {
   window.GraveGainMods = window.GraveGainMods || [];
