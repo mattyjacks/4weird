@@ -14,7 +14,7 @@ const bridge = read("../public/games/html/runtime-bridge.js");
 const usage = read("../app/api/my/usage/route.ts");
 const usageClient = read("../app/my/usage/usage-client.tsx");
 const pricing = read("../app/pricing/page.tsx");
-const skill = read("../../../skill.md");
+const skill = read("../public/skill.md");
 
 const rentPerSecond = read("../supabase/migrations/20260913000000_game_rentals_per_second.sql");
 

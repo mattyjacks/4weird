@@ -6,7 +6,7 @@ Goal: desktop (`v2/desktop/`) can do anything web (`v2/vcw4w/`) can.
 
 - **Native first** for QA core (already in `hub.html` + `modules/`): viewport,
   agent loop, vision scan, replay, subagents, patches, local GPU, bot/fal keys.
-- **New parity layer** in `v2/desktop/vibecodeworker/parity/` (no bundler, plain
+- **New parity layer** in `v2/desktop/code/frontend/parity/` (no bundler, plain
   scripts to keep Tauri `frontendDist` raw):
   - `config.js` — apiBase/siteUrl (default `https://4weird.com`, loopback http
     allowed for dev only), sessionStorage-persisted.
@@ -21,7 +21,7 @@ Goal: desktop (`v2/desktop/`) can do anything web (`v2/vcw4w/`) can.
   - `games_browser.js` — catalog fetch (`GET /api/games/catalog`, 24h TTL,
     cache → bundled fallback), client filter, `resolveRuntimeUrl()` (remote
     when online, local bundle offline), PLAY (clean viewport) vs TEST (QA path).
-- **Node layer** in `v2/desktop/ai/vibecodeworker/lib/parity/backend_client.js`:
+- **Node layer** in `v2/desktop/code/lib/parity/backend_client.js`:
   health-gated `web-vcw → local-ollama → heuristic` chains per task
   (testing web-first, healing/vision local-first), redacted errors.
 - **Web addition** (games lane): `GET /api/games/catalog` — public, cacheable,

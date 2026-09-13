@@ -2,7 +2,7 @@
    4WEIRD VIBECODEWORKER // AUTONOMOUS RUNNER & AGENT STEP CONTROLLER
    ========================================================================== */
 
-import { state, el, synth } from './core_state.js';
+import { state, el, synth, isTauriRuntime, invokeTauriCommand } from './core_state.js';
 import { log } from './telemetry_logger.js';
 import { discoverGameBrain, updateRSOLoop } from './game_brain.js';
 import { glideAgentCursorAndInteract, recordReplaySnapshot, runLunaVisionScan, setupIframeErrorListeners } from './viewport_manager.js';
@@ -355,4 +355,39 @@ export function autoRunEverything() {
   }
 
   resumeAllSubagents();
+}
+
+/* ─── OpenCode inside the Windows (Tauri) exe ─────────────────────
+   Tauri runtime: prefer invoke('opencode_status' / 'opencode_run') so the
+   exe path works without a sidecar CLI. Browser/dev: no bridge here, so
+   return a safe degraded status (never throws, never breaks the run loop).
+   Install hint: `npm i -g opencode-ai` + Enable toggle in the dashboard. */
+
+export function isOpencodeTauriAvailable() {
+  try { return isTauriRuntime(); } catch (e) { return false; }
+}
+
+export async function getOpencodeStatusSafe() {
+  try {
+    const s = await invokeTauriCommand('opencode_status', {});
+    if (s) return s;
+  } catch (e) { /* fall through to degraded status */ }
+  return {
+    enabled: false,
+    available: false,
+    source: 'browser',
+    hint: 'opencode binary not found. Install: `npm i -g opencode-ai`, then tick Enable.',
+  };
+}
+
+export async function runOpencodeFixSafe(payload = {}) {
+  try {
+    const res = await invokeTauriCommand('opencode_run', payload);
+    if (res) return res;
+  } catch (e) { /* fall through to degraded result */ }
+  return {
+    success: false,
+    error: 'OpenCode unavailable in this view (browser/dev fallback).',
+    hint: 'Install: `npm i -g opencode-ai`, then tick Enable.',
+  };
 }

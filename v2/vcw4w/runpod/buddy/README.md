@@ -7,7 +7,7 @@ runtime works with zero keys.
 
 | Runtime | Entry point | Brain |
 | --- | --- | --- |
-| Desktop | `v2/desktop/ai/vibecodeworker/lib/buddy_orchestrator.js` (`runOrchestrator`) | `OPENROUTER_API_KEY` or offline |
+| Desktop | `v2/desktop/code/lib/buddy_orchestrator.js` (`runOrchestrator`) | `OPENROUTER_API_KEY` or offline |
 | Web | `v2/vcw4w/lib/buddy-orchestrator.ts` + `/api/openrouter-plays` + smart `/api/buddy/chat` | OpenAI ↔ OpenRouter auto, Fal hints optional |
 | Runpod pod (dev/iterate) | this `runpod/buddy/handler.py` via `--selftest` on any pod | offline or `OPENROUTER_API_KEY` |
 | Runpod Serverless | same `handler.py` as a queue worker (below) | `OPENROUTER_API_KEY` env on endpoint |

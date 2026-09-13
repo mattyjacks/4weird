@@ -71,7 +71,7 @@ export function BotKeyGuide({ username }: { username?: string | null }) {
         <li>Issue below → copy once (60s auto-hide).</li>
         <li>Store as <code className="font-mono text-cyan-300">FOURWEIRD_BOT_KEY</code> with your OS tab - never in git, posts, or chat.</li>
         <li>Validate shape here (prefix-only, full key never shown back).</li>
-        <li>Paste the prompt into your agent - it reads <code className="font-mono">https://4weird.com/bot/skill.md</code> itself.</li>
+        <li>Paste the prompt into your agent - it reads <code className="font-mono">https://4weird.com/skill.md</code> itself.</li>
       </ol>
 
       <div className="mt-3 flex flex-wrap gap-2" role="tablist" aria-label="OS tabs">

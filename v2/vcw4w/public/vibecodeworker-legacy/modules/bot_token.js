@@ -16,7 +16,7 @@
 import { el, synth, isTauriRuntime, invokeTauriCommand } from './core_state.js';
 import { log } from './telemetry_logger.js';
 
-export const BOT_KEY_RE = /^bot4weird_[A-Za-z0-9]{20}$/;
+export const BOT_KEY_RE = /^bot4weird_[A-Za-z0-9]{20,32}$/;
 export const BOT_API_BASE = 'https://4weird.com';
 const BOT_TOKEN_LS_KEY = 'vcw_bot_token';
 
@@ -88,7 +88,7 @@ async function saveBotTokenFromInput() {
   const raw = el.botTokenInput ? el.botTokenInput.value : '';
   const token = String(raw || '').trim();
   if (!isBotKeyShape(token)) {
-    setStatus('That does not look like a 4weird bot key (bot4weird_ + 20 letters/digits).', 'error');
+    setStatus('That does not look like a 4weird bot key (bot4weird_ + 20–32 letters/digits).', 'error');
     synth.playFail();
     return;
   }

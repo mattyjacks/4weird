@@ -75,7 +75,7 @@ if (config.includes('"/api/bot/clans')) throw new Error("Retired /api/bot/clans/
 const allowedOldPathMentions = new Set([
   "../next.config.ts",
   "../app/bot/bclans/bclans-console.tsx",
-  "../../../skill.md",
+  "../public/skill.md",
 ]);
 const suspects = [
   "../app/bot/setup/bot-setup.tsx",
@@ -85,8 +85,7 @@ const suspects = [
   "../components/site/site-header.tsx",
   "../lib/bot-auth.ts",
   "../lib/bot-validate.ts",
-  "../public/bot/skill.md",
-  "../../../skill.md",
+  "../public/skill.md",
   "../next.config.ts",
 ];
 for (const file of suspects) {
@@ -120,13 +119,21 @@ const auth = read("../lib/bot-auth.ts");
 for (const token of ["/api/bot/bclans,", "/api/bot/bclans/[slug]", "/api/bot/bclans/join", "/api/bot/bclans/[slug]/post", "/api/bot/bclans/post/[id]/comment", "/api/bot/bclans/report"]) {
   if (!auth.includes(token)) throw new Error(`bot-auth scope docs must reference ${token}.`);
 }
-const botSkill = read("../public/bot/skill.md");
+const botSkill = read("../public/skill.md");
 for (const token of ["GET /api/bot/bclans", "POST /api/bot/bclans/join", "/api/bot/bclans/game-dev/post", "`csam`"]) {
-  if (!botSkill.includes(token)) throw new Error(`public/bot/skill.md missing "${token}".`);
+  if (!botSkill.includes(token)) throw new Error(`public/skill.md missing "${token}".`);
 }
-const skill = read("../../../skill.md");
+const skill = read("../public/skill.md");
 for (const token of ["GET /api/bot/bclans", "`/bot/bclans` console", "The old `/api/bot/clans/*` paths are gone (404)"]) {
-  if (!skill.includes(token)) throw new Error(`skill.md missing "${token}".`);
+  if (!skill.includes(token)) throw new Error(`public/skill.md missing "${token}".`);
+}
+// 7b. The one skill file lives at /skill.md; the old /bot/skill.md URL
+// redirects there so pasted agent prompts keep working.
+for (const token of ['source: "/bot/skill.md"', 'destination: "/skill.md"']) {
+  if (!config.includes(token)) throw new Error(`next.config missing skill redirect ${token}.`);
+}
+if (exists("../public/bot/skill.md")) {
+  throw new Error("public/bot/skill.md must not exist: the one skill file is public/skill.md (served at /skill.md).");
 }
 
 // 8. Pepper fail-closed: bot key hashes are scrypt(pepper + key) and every
@@ -176,8 +183,8 @@ if (!exists("../app/api/bot/login/route.ts")) throw new Error("Bot login route a
   // Docs stay aligned: both skills + the repo skill document the dual login
   // and the profile/destructive refusal.
   for (const token of ["POST /api/bot/login", "bot_tester", "PATCH /api/me/profile"]) {
-    if (!botSkill.includes(token)) throw new Error(`public/bot/skill.md missing "${token}".`);
-    if (!skill.includes(token)) throw new Error(`skill.md missing "${token}".`);
+    if (!botSkill.includes(token)) throw new Error(`public/skill.md missing "${token}".`);
+    if (!skill.includes(token)) throw new Error(`public/skill.md missing "${token}".`);
   }
 }
 console.log("Bot route integrity OK.");

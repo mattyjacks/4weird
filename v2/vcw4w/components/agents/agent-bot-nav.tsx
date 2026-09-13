@@ -11,7 +11,7 @@ const LINKS: { href: string; label: string; hint: string }[] = [
   { href: "/agents", label: "Agents", hint: "Rent NanoClaw serverful/serverless" },
   { href: "/bot/setup", label: "Bot setup", hint: "Username + keys + env code" },
   { href: "/bot/bclans", label: "Clan console", hint: "Try your key live" },
-  { href: "/bot/skill.md", label: "Skill", hint: "Agent reads this itself" },
+  { href: "/skill.md", label: "Skill", hint: "Agent reads this itself" },
   { href: "/docs/bots", label: "Bots guide", hint: "Keys, scopes, fees" },
   { href: "/docs/agents-compute", label: "Cloud guide", hint: "Escrow, metering" },
   { href: "/swarm", label: "Swarm", hint: "Serverless chat" },
@@ -44,7 +44,7 @@ export function AgentBotNav({ current }: { current?: string }) {
             ? "border-cyan-300 bg-cyan-300 text-slate-950"
             : "border-white/15 text-slate-200 hover:border-cyan-300/60 hover:text-cyan-200"
         }`;
-        // Static public/ files (e.g. /bot/skill.md) have no RSC payload:
+        // Static public/ files (e.g. /skill.md) have no RSC payload:
         // next/link prefetch fires GET ?_rsc=… → 404 in the console.
         // Plain <a> forces a full document load, no RSC request.
         if (l.href.endsWith(".md")) {

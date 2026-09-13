@@ -3,32 +3,32 @@
  * verify_exe_key_opencode.js — docs-lane verifier, no side effects, no network.
  *
  * Asserts the Windows .exe key + OpenCode wiring referenced by
- * v2/desktop/vibecodeworker/DESKTOP_BUILD_GUIDE.md ("Windows .exe" section):
+ * v2/desktop/code/frontend/DESKTOP_BUILD_GUIDE.md ("Windows .exe" section):
  *   1. bot_token.js has masked display + VERIFY fetch to /api/bot/me
  *   2. opencode_ui_controller has a Tauri invoke fallback
  *   3. tauri.conf.json has an nsis target + frontendDist
  *   4. package.json has a tauri:build:win script
  *
  * Exit 0 = all PASS. Exit 1 = any FAIL (prints which file/pattern missed).
- * Run: node scripts/node/verify_exe_key_opencode.js  (from v2/desktop/ai/vibecodeworker)
+ * Run: node scripts/node/verify_exe_key_opencode.js  (from v2/desktop/code)
  */
 
 const fs = require('fs');
 const path = require('path');
 
-const aiRoot = path.resolve(__dirname, '..', '..');
-const desktopFrontend = path.resolve(aiRoot, '..', '..', 'vibecodeworker');
+const codeRoot = path.resolve(__dirname, '..', '..');
+const desktopFrontend = path.join(codeRoot, 'frontend');
 
 const CANDIDATES = {
   botToken: [
     path.join(desktopFrontend, 'modules', 'bot_token.js'),
-    path.join(aiRoot, 'src', 'modules', 'bot_token.js'),
+    path.join(codeRoot, 'src', 'modules', 'bot_token.js'),
   ],
   opencodeController: [
-    path.join(aiRoot, 'src', 'components', 'opencode_ui_controller.js'),
+    path.join(codeRoot, 'src', 'components', 'opencode_ui_controller.js'),
   ],
-  tauriConf: [path.join(aiRoot, 'src-tauri', 'tauri.conf.json')],
-  packageJson: [path.join(aiRoot, 'package.json')],
+  tauriConf: [path.join(codeRoot, 'src-tauri', 'tauri.conf.json')],
+  packageJson: [path.join(codeRoot, 'package.json')],
 };
 
 let failures = 0;
@@ -43,7 +43,7 @@ function pickExisting(list) {
 }
 
 function check(name, file, patterns) {
-  const rel = file ? path.relative(path.resolve(aiRoot, '..', '..', '..'), file) : '(missing)';
+  const rel = file ? path.relative(path.resolve(codeRoot, '..', '..', '..'), file) : '(missing)';
   let content = null;
   if (file) {
     try {
@@ -69,7 +69,7 @@ function check(name, file, patterns) {
 }
 
 function checkJson(name, file, validate) {
-  const rel = path.relative(path.resolve(aiRoot, '..', '..', '..'), file);
+  const rel = path.relative(path.resolve(codeRoot, '..', '..', '..'), file);
   let data;
   try {
     data = JSON.parse(fs.readFileSync(file, 'utf8'));

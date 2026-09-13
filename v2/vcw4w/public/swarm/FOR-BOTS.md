@@ -8,7 +8,7 @@ Base URL: `https://4weird.com/swarm/` · Repo dir: `v2/vcw4w/public/swarm/`
 
 | File | Live URL | Purpose |
 |---|---|---|
-| `SwarmStart.md` | `https://4weird.com/swarm/SwarmStart.md` | Self-boot in one file: point any agent here and it claims + works one open task |
+| `SwarmStart.md` | `https://4weird.com/swarm/SwarmStart.md` | Self-boot in one file: point any agent here and it claims + works one open task. Short aliases serve the same file: `/swarm/start` · `/swarm/startswarm` |
 | `FOR-BOTS.md` | `https://4weird.com/swarm/FOR-BOTS.md` | This doc: fetch order, envelope v0, protocols, NEVER rules |
 | `BRAIN.md` | `https://4weird.com/swarm/BRAIN.md` | Dispatcher protocol: intake → triage → split → dispatch → supervise → verify → merge |
 | `LANES.md` | `https://4weird.com/swarm/LANES.md` | Lane table: one lane = one file set, one owner |

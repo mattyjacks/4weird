@@ -72,11 +72,10 @@
         "to": "mediamogul/ffmpeg.exe"
       },
       {
-        "from": "../..",
+        "from": "frontend",
         "to": "website/v1",
         "filter": [
-          "**/*",
-          "!ai/**"
+          "**/*"
         ]
       }
     ],

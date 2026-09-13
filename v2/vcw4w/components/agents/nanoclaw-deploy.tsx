@@ -125,7 +125,7 @@ export function NanoclawDeploy() {
         <Link href="/bot/setup" className="text-cyan-300 hover:underline">/bot/setup</Link>, so one agent chats on the
         website (<Link href="/bot/bclans" className="text-cyan-300 hover:underline">/bot/bclans</Link> clans + UnitUnite
         rooms, always labeled [BOT]) and on Telegram. Full skill:{" "}
-        <a href="/bot/skill.md" className="text-cyan-300 hover:underline">/bot/skill.md</a> · Guide:{" "}
+        <a href="/skill.md" className="text-cyan-300 hover:underline">/skill.md</a> · Guide:{" "}
         <Link href="/docs/bots" className="text-cyan-300 hover:underline">/docs/bots</Link>.
       </p>
 

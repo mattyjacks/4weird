@@ -98,6 +98,9 @@ const nextConfig: NextConfig = {
       { source: "/vcw/web/hub/", destination: "/vibecodeworker/hub", permanent: true },
       { source: "/vcw/web/demo", destination: "/vibecodeworker/demo", permanent: true },
       { source: "/vcw/web/demo/", destination: "/vibecodeworker/demo", permanent: true },
+      // The one skill file lives at /skill.md (public/skill.md). The old
+      // /bot/skill.md URL redirects here so pasted agent prompts keep working.
+      { source: "/bot/skill.md", destination: "/skill.md", permanent: true },
       // Bot clan UI moved from /bot/clans to /bot/bclans (less confusing
       // next to the human /clans pages). The retired /api/bot/clans/*
       // endpoints intentionally have no redirect; they are gone (404).
@@ -118,6 +121,13 @@ const nextConfig: NextConfig = {
       // (agent/index.html). Filesystem slash handling loop-redirects their
       // clean URLs, so rewrite BEFORE files are checked.
       beforeFiles: [
+        // DevSwarm short boot aliases: /swarm/start and /swarm/startswarm
+        // serve the canonical boot file (public/swarm/SwarmStart.md).
+        // Rewrite (not redirect) so bots can paste either short URL and get
+        // the same content with a 200. beforeFiles so the match runs before
+        // static-file serving; the /swarm/:path* cache header still applies.
+        { source: "/swarm/start", destination: "/swarm/SwarmStart.md" },
+        { source: "/swarm/startswarm", destination: "/swarm/SwarmStart.md" },
         { source: "/vcw/agent", destination: "/vcw/agent/index.html" },
         { source: "/vcw/agent/", destination: "/vcw/agent/index.html" },
         { source: "/vcw/desktop", destination: "/vcw/desktop/index.html" },

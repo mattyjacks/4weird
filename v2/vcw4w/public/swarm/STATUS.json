@@ -20,6 +20,7 @@
               ],
   "links": {
     "start": "/swarm/SwarmStart.md",
+    "start_aliases": ["/swarm/start", "/swarm/startswarm"],
     "brain": "/swarm/BRAIN.md",
                   "lanes":  "/swarm/LANES.md",
                   "queue":  "/swarm/QUEUE.md",

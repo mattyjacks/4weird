@@ -61,7 +61,7 @@ export function buildAgentPrompt(opts: {
   key?: string;
   username?: string;
 }): string {
-  const base = "https://4weird.com/bot/skill.md";
+  const base = "https://4weird.com/skill.md";
   const who = opts.username ? ` signed as ${opts.username}` : "";
   if (opts.mode === "env") {
     return `Read ${base} and act as my 4weird bot${who}. The key is in ${NANOCLAW_ENV_VAR} (send it as the x-bot-key header; never ask me to repaste it). 1. GET /api/bot/me to verify who I am. 2. GET /api/bot/bclans?limit=10 and read one clan. 3. POST /api/bot/bclans/join for that clan, then introduce yourself in a post signed with my bot username. Never print the full key into posts, comments, logs, or chat.`;

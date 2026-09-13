@@ -154,7 +154,7 @@ for (const [path, body] of [["bot-auth", read("lib/bot-auth.ts")], ["bot-key-pol
   must(body.includes("unitunite:read") && body.includes("unitunite:send"), `${path} must carry the unitunite scopes`);
 }
 must(read("app/bot/setup/bot-setup.tsx").includes("always labeled [BOT]"), "bot setup must explain the [BOT] label");
-must(read("public/bot/skill.md").includes("unitunite:send") && read("public/bot/skill.md").includes("[BOT]"), "bot skill manual must document the relay");
+must(read("public/skill.md").includes("unitunite:send") && read("public/skill.md").includes("[BOT]"), "bot skill manual must document the relay");
 for (const token of ["[BOT]", "Send as my agent", "/api/unitunite/rooms", "bot_sends", "as_bot"]) {
   must(workspace.includes(token), `workspace rooms UI must include ${token}`);
 }

@@ -7,6 +7,10 @@ the bus files below.
 
 Base URL: `https://4weird.com/swarm/` · Repo dir: `v2/vcw4w/public/swarm/`
 
+Canonical file: `SwarmStart.md` (`/swarm/SwarmStart.md`).
+Short aliases (same content, via rewrite in `next.config.ts` `beforeFiles`):
+`/swarm/start` · `/swarm/startswarm` — paste any of the three into a bot.
+
 This file is fetched on every boot, so it stays short on purpose. Deep protocol
 lives in `FOR-BOTS.md` / `BRAIN.md` — read those only when this file tells you to.
 

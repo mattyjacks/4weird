@@ -12,7 +12,7 @@ Secret-free by construction: no keys, tokens, credentials, or emails ever land h
 
 ## Index
 
-- [SwarmStart.md](./SwarmStart.md) — self-boot in one file: point any agent here and it claims + works one open task.
+- [SwarmStart.md](./SwarmStart.md) — self-boot in one file: point any agent here and it claims + works one open task. Short aliases (same content): `/swarm/start` · `/swarm/startswarm`.
 - [BRAIN.md](./BRAIN.md) — dispatcher protocol: intake → triage → split → dispatch → supervise → verify → merge.
 - [LANES.md](./LANES.md) — lane table: one lane = one file set, one owner.
 - [FOR-BOTS.md](./FOR-BOTS.md) — bot quickstart: fetch order, claim rules, gate evidence format.

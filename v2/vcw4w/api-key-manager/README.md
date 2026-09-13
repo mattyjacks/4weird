@@ -6,7 +6,7 @@ in one click; raw, PowerShell `$env:`, bash `export`, or `.env` line.
 
 ## Feature parity with the vibecodeworker desktop key manager
 
-| vibecodeworker desktop (`v2/desktop/vibecodeworker`) | This manager |
+| vibecodeworker desktop (`v2/desktop/code/frontend`) | This manager |
 |---|---|
 | Bot key drawer: `bot4weird_`+20 shape check, masked badge, save / live-verify (`GET /api/bot/me`) / clear / stored-or-not status | Same shapes, same verify endpoint, same masked display, same flows; slot **4weird Bot key** |
 | FAL KEY drawer: opaque-key shape guard, masked badge, save / **free** nil-UUID verify probe / clear / status | Same guard, same free probe, same flows; slot **fal.ai key** |

@@ -65,7 +65,7 @@ Before building the desktop application, ensure you have Installed Node.js (v18+
 
 1. **Navigate to the Tauri app project directory**:
    ```bash
-   cd v2/desktop/ai/vibecodeworker
+    cd v2/desktop/code
    ```
 
 2. **Install Node.js dependencies**:
@@ -135,3 +135,14 @@ Frontend integration is automatically handled in `website/v1/vibecodeworker/app.
 - [x] Clicking Export JSON/CSV in Desktop mode saves natively and notifies user.
 - [x] Triggering defects automatically dispatches native OS desktop notifications.
 - [x] Custom IPC command `get_gpu_info` retrieves hardware telemetry.
+
+---
+
+## 🪟 Windows .exe: paste key + run opencode inside
+
+1. **Install the .exe** — build with `npm run tauri:build:win` (in `v2/desktop/code`), then run the installer from `src-tauri/target/release/bundle/nsis/` (`.exe`; `.msi` beside it).
+2. **Open BOT TOKEN** — in the app header click **BOT TOKEN**, paste a `bot4weird_…` key (human issues it once at `4weird.com/bot/setup`, auto-hides after 60s), press **SAVE**.
+3. **Press VERIFY** — live read-only check: `GET /api/bot/me` with the `x-bot-key` header; the drawer shows the linked `@username` / `human_id` / scopes. Rejected key → re-copy (no spaces) or revoke + reissue at `/bot/setup`.
+4. **Enable OpenCode** — tick **Enable**, pick `cli` (`opencode` binary on PATH) or `server` (`opencode serve --port 4096` running); status dot goes 🟢 when ready.
+5. **Export / Fix / Heal** — **Export** writes `BUGFIX-<game>-<stamp>.{md,json}` (paste via `opencode run -f file` or press **Fix** so OpenCode edits code itself and shows the git diff); **Heal** loops test → fix → re-test until clean or the iteration budget is spent.
+6. **🔒 Leak rule: never print the full key** — UI shows a masked preview (`bot4weird_…` prefix) only; the desktop build stores it in a local-only OS app-data file, never logged, never committed. If a key may be exposed, revoke instantly at `/bot/setup` and reissue.

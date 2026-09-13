@@ -44,8 +44,8 @@ const orch = has(
 assert((orch.match(/SPECIALIST_PLAYS|specialist/g) || []).length > 5, "orchestrator looks stubbed");
 
 // 5. Desktop twins exist.
-has("../desktop/ai/vibecodeworker/lib/buddy_orchestrator.js", "planSpecialists", "runOrchestrator", "fallbackCount");
-has("../desktop/ai/vibecodeworker/tests/test_buddy_orchestrator.js", "TEST_OK", "planSpecialists");
+has("../desktop/code/lib/buddy_orchestrator.js", "planSpecialists", "runOrchestrator", "fallbackCount");
+has("../desktop/code/tests/test_buddy_orchestrator.js", "TEST_OK", "planSpecialists");
 
 // 6. Runpod serverless worker: queue contract + dual-mode + CPU-minimal image.
 const handler = has(
