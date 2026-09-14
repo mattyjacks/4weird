@@ -1,0 +1,50 @@
+{
+  "created": "2026-09-14T12:00:00.000Z",
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint components/vocrehab/vocrehab-shell.tsx components/vocrehab/vocrehab-a11y-toolbar.tsx components/vocrehab/vocrehab-course-card.tsx components/vocrehab/vocrehab-ssi-slider.tsx components/vocrehab/vocrehab-disclosure-tree.tsx components/vocrehab/vocrehab-session-review.tsx components/vocrehab/vocrehab-export-button.tsx"
+  ],
+  "goal": "CHEAP ss2 slice C6 (VocRehab shell + decide + hub): shell/a11y-toolbar/course-card/ssi-slider/disclosure-tree/session-review/export-button components plus hub, layout, discover (6), decide (3), course (2), export/privacy/accessibility pages plus ssi/disclosure/assessments/games/export APIs exist. Sliders keyboardable with aria-valuetext; gauge zones color+label+pattern. Reviewer runs tsc scope-clean and eslint clean.",
+  "id": "DS-VOCREHAB-C6",
+  "lane": "web",
+  "log": [
+    "2026-09-14T12:00:00.000Z unassigned: envelope created for ss2 CHEAP run (7 cheap agents), awaiting claim.",
+    "2026-09-14T02:25:00.6230770Z lead: claimed for vocrehab-c6, ss2 CHEAP fan-out (RUN-MU0MDHMR).",
+    "2026-09-14T12:00:00.000Z vocrehab-c6: C6 agent done-claimed | files:28 | tsc scope-clean, eslint clean (concurrent overwrites noted).",
+    "2026-09-14T02:56:30.133Z lead: presence 22/28 — 6 scope files ABSENT on disk (app/vocrehab/page.tsx, layout.tsx, course/page.tsx, course/[module]/page.tsx, privacy/page.tsx, accessibility/page.tsx) -> blocked. Hub/shell landing filed to QUEUE for integrator/next wave. No retries per CHEAP."
+  ],
+  "owner": "vocrehab-c6",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-shell.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-a11y-toolbar.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-course-card.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-ssi-slider.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-disclosure-tree.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-session-review.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-export-button.tsx",
+    "v2/vcw4w/app/vocrehab/page.tsx",
+    "v2/vcw4w/app/vocrehab/layout.tsx",
+    "v2/vcw4w/app/vocrehab/discover/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/ipe/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/barriers/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/readiness/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/goals/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/remote/page.tsx",
+    "v2/vcw4w/app/vocrehab/decide/page.tsx",
+    "v2/vcw4w/app/vocrehab/decide/ssi/page.tsx",
+    "v2/vcw4w/app/vocrehab/decide/disclosure-paths/page.tsx",
+    "v2/vcw4w/app/vocrehab/course/page.tsx",
+    "v2/vcw4w/app/vocrehab/course/[module]/page.tsx",
+    "v2/vcw4w/app/vocrehab/export/page.tsx",
+    "v2/vcw4w/app/vocrehab/privacy/page.tsx",
+    "v2/vcw4w/app/vocrehab/accessibility/page.tsx",
+    "v2/vcw4w/app/api/vocrehab/ssi/route.ts",
+    "v2/vcw4w/app/api/vocrehab/disclosure/route.ts",
+    "v2/vcw4w/app/api/vocrehab/assessments/route.ts",
+    "v2/vcw4w/app/api/vocrehab/games/route.ts",
+    "v2/vcw4w/app/api/vocrehab/export/route.ts"
+  ],
+  "status": "blocked",
+  "title": "VocRehab C6: shell + hub/discover/decide/course pages + core APIs",
+  "updated": "2026-09-14T02:56:30.133Z"
+}

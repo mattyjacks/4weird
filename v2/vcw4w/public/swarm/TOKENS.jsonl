@@ -1,0 +1,12 @@
+{"t":"ss2-token.v1","at":"2026-09-14T02:49:30.202Z","task":"DS-VOCREHAB-D4","run":null,"mode":null,"model":"--model","est_in":null,"est_out":null,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:49:55.638Z","task":"DS-VOCREHAB-D5","run":null,"mode":null,"model":"--model","est_in":null,"est_out":null,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:50:52.647Z","task":"DS-VOCREHAB-D6","run":null,"mode":null,"model":"--model","est_in":null,"est_out":null,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:51:35.038Z","task":"DS-VOCREHAB-D3","run":null,"mode":null,"model":"--model","est_in":null,"est_out":null,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:56:42.300Z","task":"DS-VOCREHAB-C1","run":"RUN-MU0MDHMR","mode":"cheap","model":"task-cheap","est_in":16250,"est_out":5500,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:56:42.377Z","task":"DS-VOCREHAB-C2","run":"RUN-MU0MDHMR","mode":"cheap","model":"task-cheap","est_in":21250,"est_out":1825,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:56:42.430Z","task":"DS-VOCREHAB-C3","run":"RUN-MU0MDHMR","mode":"cheap","model":"task-cheap","est_in":13750,"est_out":10961,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:56:42.511Z","task":"DS-VOCREHAB-C4","run":"RUN-MU0MDHMR","mode":"cheap","model":"task-cheap","est_in":13000,"est_out":7000,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:56:42.566Z","task":"DS-VOCREHAB-C5","run":"RUN-MU0MDHMR","mode":"cheap","model":"task-cheap","est_in":12500,"est_out":10000,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:56:42.620Z","task":"DS-VOCREHAB-C6","run":"RUN-MU0MDHMR","mode":"cheap","model":"task-cheap","est_in":13000,"est_out":9500,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:56:42.674Z","task":"DS-VOCREHAB-C7","run":"RUN-MU0MDHMR","mode":"cheap","model":"task-cheap","est_in":8750,"est_out":13250,"api_in":null,"api_out":null}
+{"t":"ss2-token.v1","at":"2026-09-14T02:57:37.099Z","task":"DS-VOCREHAB-D8","run":null,"mode":null,"model":"muse-spark-d-lead","est_in":9000,"est_out":1500,"api_in":null,"api_out":null}

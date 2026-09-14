@@ -1,0 +1,20 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-D5",
+  "goal_1line": "CHEAP ss2 slice D5 (READ-ONLY API smoke, zero file writes, zero DB writes): exercise Appendix-C safe calls against live :3222 — GET ssi estimate (guest, pure compute), POST disclosure transition (valid + forged jump expecting 400), POST roleplay/feedback tweak, GET assessments/documents/export unaut",
+  "scope": [
+    "v2/vcw4w/app/api/vocrehab/**"
+  ],
+  "gates": [
+    "curl API-smoke evidence in log (Appendix-C safe calls + codes/shapes)"
+  ],
+  "target_hashes": [
+    {
+      "path": "app/api/vocrehab/**",
+      "hash": null,
+      "note": "glob — list at claim time"
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:45:21.719Z"
+}

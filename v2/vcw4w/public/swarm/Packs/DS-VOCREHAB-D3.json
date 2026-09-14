@@ -1,0 +1,20 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-D3",
+  "goal_1line": "CHEAP ss2 slice D3 (VocRehab tsc-scope gate, NEW file): scripts/verify-vocrehab-tsc-scope.mjs runs npx tsc --noEmit, filters output for vocrehab mentions, exits nonzero listing them (durable one-command gate for the line-380 contract drift; C-owners converge libs-first per vocrehab-lead ruling). Exp",
+  "scope": [
+    "v2/vcw4w/scripts/verify-vocrehab-tsc-scope.mjs"
+  ],
+  "gates": [
+    "node --check scripts/verify-vocrehab-tsc-scope.mjs",
+    "node scripts/verify-vocrehab-tsc-scope.mjs"
+  ],
+  "target_hashes": [
+    {
+      "path": "scripts/verify-vocrehab-tsc-scope.mjs",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:45:21.529Z"
+}

@@ -1,0 +1,60 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-C5",
+  "goal_1line": "CHEAP ss2 slice C5 (VocRehab roleplay): components/vocrehab/vocrehab-roleplay-panel.tsx (VocrehabRoleplayPanel: chat + mic toggle + transcript + scenario prep|pivot|disclosure + scripted fallback badge) plus app/vocrehab/interview/** pages plus app/api/vocrehab/roleplay/** + documents routes exist; ",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-roleplay-panel.tsx",
+    "v2/vcw4w/app/vocrehab/interview/page.tsx",
+    "v2/vcw4w/app/vocrehab/interview/prep/page.tsx",
+    "v2/vcw4w/app/vocrehab/interview/pivot/page.tsx",
+    "v2/vcw4w/app/vocrehab/interview/disclosure/page.tsx",
+    "v2/vcw4w/app/vocrehab/interview/resume/page.tsx",
+    "v2/vcw4w/app/api/vocrehab/roleplay/route.ts",
+    "v2/vcw4w/app/api/vocrehab/roleplay/feedback/route.ts",
+    "v2/vcw4w/app/api/vocrehab/documents/route.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint components/vocrehab/vocrehab-roleplay-panel.tsx"
+  ],
+  "target_hashes": [
+    {
+      "path": "components/vocrehab/vocrehab-roleplay-panel.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/interview/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/interview/prep/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/interview/pivot/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/interview/disclosure/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/interview/resume/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/roleplay/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/roleplay/feedback/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/documents/route.ts",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:24:21.700Z"
+}

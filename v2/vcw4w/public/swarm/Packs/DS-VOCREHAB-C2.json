@@ -1,0 +1,60 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-C2",
+  "goal_1line": "CHEAP ss2 slice C2 (VocRehab pure contracts): types/vocrehab-*.ts (Vocrehab-prefixed interfaces) plus pure libs vocrehab-ssi (vocrehabSsiParams2026, vocrehabCalculateSsiEstimate, vocrehabSsiDisclaimer), vocrehab-disclosure (vocrehabDisclosureGraph, vocrehabDisclosureTransition), vocrehab-privacy (vo",
+  "scope": [
+    "v2/vcw4w/types/vocrehab-course.ts",
+    "v2/vcw4w/types/vocrehab-games.ts",
+    "v2/vcw4w/types/vocrehab-documents.ts",
+    "v2/vcw4w/types/vocrehab-sessions.ts",
+    "v2/vcw4w/lib/vocrehab-ssi.ts",
+    "v2/vcw4w/lib/vocrehab-disclosure.ts",
+    "v2/vcw4w/lib/vocrehab-privacy.ts",
+    "v2/vcw4w/lib/vocrehab-export.ts",
+    "v2/vcw4w/lib/vocrehab-interop.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint lib/vocrehab-ssi.ts lib/vocrehab-disclosure.ts lib/vocrehab-privacy.ts lib/vocrehab-export.ts lib/vocrehab-interop.ts types/vocrehab-course.ts types/vocrehab-games.ts types/vocrehab-documents.ts types/vocrehab-sessions.ts"
+  ],
+  "target_hashes": [
+    {
+      "path": "types/vocrehab-course.ts",
+      "hash": null
+    },
+    {
+      "path": "types/vocrehab-games.ts",
+      "hash": null
+    },
+    {
+      "path": "types/vocrehab-documents.ts",
+      "hash": null
+    },
+    {
+      "path": "types/vocrehab-sessions.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-ssi.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-disclosure.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-privacy.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-export.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-interop.ts",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:24:21.437Z"
+}

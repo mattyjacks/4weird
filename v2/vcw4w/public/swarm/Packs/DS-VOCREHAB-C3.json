@@ -1,0 +1,40 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-C3",
+  "goal_1line": "CHEAP ss2 slice C3 (VocRehab domain libs): lib/vocrehab-games.ts (vocrehabGameRegistry, vocrehabScoreFileSort/InboxSprint/FocusShift/BarrierRun/ScheduleJuggle, vocrehabValidateGameEvent, vocrehabSummarizeRun), vocrehab-assessments.ts (vocrehabBarrierStrategies, vocrehabReadinessBands, vocrehabAlignm",
+  "scope": [
+    "v2/vcw4w/lib/vocrehab-games.ts",
+    "v2/vcw4w/lib/vocrehab-assessments.ts",
+    "v2/vcw4w/lib/vocrehab-course.ts",
+    "v2/vcw4w/lib/vocrehab-roleplay.ts",
+    "v2/vcw4w/lib/vocrehab-session-assist.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint lib/vocrehab-games.ts lib/vocrehab-assessments.ts lib/vocrehab-course.ts lib/vocrehab-roleplay.ts lib/vocrehab-session-assist.ts"
+  ],
+  "target_hashes": [
+    {
+      "path": "lib/vocrehab-games.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-assessments.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-course.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-roleplay.ts",
+      "hash": null
+    },
+    {
+      "path": "lib/vocrehab-session-assist.ts",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:24:21.531Z"
+}

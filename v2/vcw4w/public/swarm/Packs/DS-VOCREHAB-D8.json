@@ -1,0 +1,19 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-D8",
+  "goal_1line": "Follow-up lint fix on the orphaned D1 game file (D1 envelope repurposed mid-wave by sibling lead; file ownerless, 2 eslint react-hooks/set-state-in-effect errors): move setVocrehabReduced into a lazy useState initializer (SSR-guarded) and move the countdown setVocrehabCount reset into the vocrehabBe",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-game-paycheck-plan.tsx"
+  ],
+  "gates": [
+    "npx eslint components/vocrehab/vocrehab-game-paycheck-plan.tsx"
+  ],
+  "target_hashes": [
+    {
+      "path": "components/vocrehab/vocrehab-game-paycheck-plan.tsx",
+      "hash": "432653376f8a"
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:56:23.484Z"
+}

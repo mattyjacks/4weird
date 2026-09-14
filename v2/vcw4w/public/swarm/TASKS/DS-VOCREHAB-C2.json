@@ -1,0 +1,31 @@
+{
+  "created": "2026-09-14T12:00:00.000Z",
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint lib/vocrehab-ssi.ts lib/vocrehab-disclosure.ts lib/vocrehab-privacy.ts lib/vocrehab-export.ts lib/vocrehab-interop.ts types/vocrehab-course.ts types/vocrehab-games.ts types/vocrehab-documents.ts types/vocrehab-sessions.ts"
+  ],
+  "goal": "CHEAP ss2 slice C2 (VocRehab pure contracts): types/vocrehab-*.ts (Vocrehab-prefixed interfaces) plus pure libs vocrehab-ssi (vocrehabSsiParams2026, vocrehabCalculateSsiEstimate, vocrehabSsiDisclaimer), vocrehab-disclosure (vocrehabDisclosureGraph, vocrehabDisclosureTransition), vocrehab-privacy (vocrehabConsentText, vocrehabRedactPii, vocrehabAuditCopy), vocrehab-export (vocrehabExportAllowlist, vocrehabSerializeExport), vocrehab-interop (vocrehabEmit, vocrehabInteropChannel) exist with exact export names (other slices import them; names are frozen). Reviewer runs tsc scope-clean (zero errors mentioning vocrehab) and eslint clean.",
+  "id": "DS-VOCREHAB-C2",
+  "lane": "web",
+  "log": [
+    "2026-09-14T12:00:00.000Z unassigned: envelope created for ss2 CHEAP run (7 cheap agents), awaiting claim.",
+    "2026-09-14T02:25:00.6230770Z lead: claimed for vocrehab-c2, ss2 CHEAP fan-out (RUN-MU0MDHMR).",
+    "2026-09-14T12:00:00.000Z vocrehab-c2: C2 agent partial | files:9 (3 created, 6 converged) | eslint clean, tsc errors all in sibling components.",
+    "2026-09-14T02:56:30.133Z lead: re-verified — presence 9/9; tsc exit 0 zero-vocrehab-errors (cross-slice mismatches converged by parallel wave); eslint clean on C2 paths -> done. Brief-vs-landed name drift filed to QUEUE as non-blocking follow-up."
+  ],
+  "owner": "vocrehab-c2",
+  "scope": [
+    "v2/vcw4w/types/vocrehab-course.ts",
+    "v2/vcw4w/types/vocrehab-games.ts",
+    "v2/vcw4w/types/vocrehab-documents.ts",
+    "v2/vcw4w/types/vocrehab-sessions.ts",
+    "v2/vcw4w/lib/vocrehab-ssi.ts",
+    "v2/vcw4w/lib/vocrehab-disclosure.ts",
+    "v2/vcw4w/lib/vocrehab-privacy.ts",
+    "v2/vcw4w/lib/vocrehab-export.ts",
+    "v2/vcw4w/lib/vocrehab-interop.ts"
+  ],
+  "status": "done",
+  "title": "VocRehab C2: types + pure libs (ssi/disclosure/privacy/export/interop)",
+  "updated": "2026-09-14T02:56:30.133Z"
+}
