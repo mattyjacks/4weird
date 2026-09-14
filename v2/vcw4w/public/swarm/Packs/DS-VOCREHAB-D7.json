@@ -1,0 +1,19 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-D7",
+  "goal_1line": "CHEAP ss2 slice D7 (READ-ONLY integrator-prep, zero manifest edits): verify the exact Appendix-E pointer rows against disk truth (E.1 site-nav row text, E.2 VOCREHAB const rows vs existing route files, E.3 filesystem auto-registration check for app/docs, E.4 package.json two-line diff) and file them",
+  "scope": [
+    "v2/vcw4w/public/swarm/vocrehab-IMPLEMENTATION-PLAN.md"
+  ],
+  "gates": [
+    "Appendix-E pointer pack filed in QUEUE for 08 + evidence in log"
+  ],
+  "target_hashes": [
+    {
+      "path": "public/swarm/vocrehab-IMPLEMENTATION-PLAN.md",
+      "hash": "4745a4c3b9c1"
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:45:21.911Z"
+}

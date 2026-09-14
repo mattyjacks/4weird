@@ -1,0 +1,21 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-D2",
+  "goal_1line": "CHEAP ss2 slice D2 (VocRehab API-contract gate, NEW file): scripts/verify-vocrehab-api-contract.mjs asserts each Appendix-C route file exports its contracted methods, uses the ok()/fail() success envelope, performs zero direct coin_ledger/coin_lots writes, imports nothing outside lib/vocrehab-*, @/l",
+  "scope": [
+    "v2/vcw4w/scripts/verify-vocrehab-api-contract.mjs"
+  ],
+  "gates": [
+    "node --check scripts/verify-vocrehab-api-contract.mjs",
+    "node scripts/verify-vocrehab-api-contract.mjs",
+    "npx tsc --noEmit"
+  ],
+  "target_hashes": [
+    {
+      "path": "scripts/verify-vocrehab-api-contract.mjs",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:45:21.438Z"
+}

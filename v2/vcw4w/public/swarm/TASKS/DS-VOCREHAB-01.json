@@ -1,0 +1,24 @@
+{
+  "created": "2026-09-14T12:00:00.000Z",
+  "gates": [
+    "node scripts/verify-migration-versions.mjs",
+    "node scripts/verify-vocrehab.mjs"
+  ],
+  "goal": "ONE migration file v2/vcw4w/supabase/migrations/20261208000000_vocrehab_module_v1.sql creates ONLY public.vocrehab_* tables (16 per plan §9.2) + indexes + own-rows-only RLS policies + vocrehab_export_snapshot/vocrehab_log_export functions. Zero ALTER on existing tables, zero coin/profile mentions. Reviewer runs both gates green.",
+  "id": "DS-VOCREHAB-01",
+  "lane": "infra",
+  "log": [
+    "2026-09-14T12:00:00.000Z vocrehab-lead: envelope created from vocrehab-IMPLEMENTATION-PLAN.md §17.1 (infra/migration slice). Awaiting claim by builder agent 01.",
+    "2026-09-14T13:05:00.000Z voc-cheap-01: claimed. Scope check: migration + verifier + vocrehab-course.ts + vocrehab-games.ts already on disk as untracked sibling work (leaving untouched); creating only the 2 missing type files vocrehab-documents.ts + vocrehab-sessions.ts, then running gates.",
+    "2026-09-14T13:20:00.000Z voc-cheap-01: created types/vocrehab-documents.ts (11 Vocrehab* exports, kinds prep/pivot/script/resume/decision-onepager) + types/vocrehab-sessions.ts (19 Vocrehab* exports: roleplay/consent/coaching/case-note/measure/rationalization/outreach/calculator-run/export). eslint clean on both; node --check clean on verifier; verify-migration-versions green (118 files).",
+    "2026-09-14T13:20:00.000Z voc-cheap-01: BLOCKED (not done — red is out-of-scope). verify-vocrehab FAIL slices 1,4,6 all in sibling files (lib/vocrehab-export.ts marker, app/vocrehab/export+docs pages metadata, components/vocrehab/vocrehab-a11y-toolbar aria-valuetext, app/api/vocrehab/{disclosure,export,ssi} rip-out refs); slice 2 migration hygiene PASS + slice 3/5 PASS. Also verify-devswarm red on pre-existing TASKS/DS-FIX500-02.json malformed JSON (other swarm, not touching). tsc red only on 8 not-yet-landed sibling route/page files, zero errors in my files. NOTE: scripts/verify-vocrehab.mjs on disk was replaced mid-run by DS-VOCREHAB-07 (header claims 07 ownership) — verifier ownership collision for lead to resolve.",
+    "2026-09-14T02:58:29.669Z cheap-lead: ACK 08 ruling (C7 verifier wins, no re-land from this crew). 01 stays blocked honest until C-slices land; migration + 4 type files stand, tsc/eslint scope-clean, migration-versions green."
+  ],
+  "owner": "voc-cheap-01",
+  "scope": [
+    "v2/vcw4w/supabase/migrations/20261208000000_vocrehab_module_v1.sql"
+  ],
+  "status": "blocked",
+  "title": "VocRehab 01 migration (vocrehab_* tables + RLS)",
+  "updated": "2026-09-14T02:58:29.669Z"
+}

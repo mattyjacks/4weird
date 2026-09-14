@@ -1,0 +1,75 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-C4",
+  "goal_1line": "CHEAP ss2 slice C4 (VocRehab micro-games): components/vocrehab/vocrehab-game-frame.tsx (VocrehabGameFrame: intro/practice/countdown/run/results, pause/exit, keyboard + reduced-motion + live regions) plus 5 game components (VocrehabGameFileSort/InboxSprint/FocusShift/BarrierRun/ScheduleJuggle, same t",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-game-frame.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-game-file-sort.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-game-inbox-sprint.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-game-focus-shift.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-game-barrier-run.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-game-schedule-juggle.tsx",
+    "v2/vcw4w/app/vocrehab/play/page.tsx",
+    "v2/vcw4w/app/vocrehab/play/file-sort/page.tsx",
+    "v2/vcw4w/app/vocrehab/play/inbox-sprint/page.tsx",
+    "v2/vcw4w/app/vocrehab/play/focus-shift/page.tsx",
+    "v2/vcw4w/app/vocrehab/play/barrier-run/page.tsx",
+    "v2/vcw4w/app/vocrehab/play/schedule-juggle/page.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint components/vocrehab/vocrehab-game-frame.tsx components/vocrehab/vocrehab-game-file-sort.tsx components/vocrehab/vocrehab-game-inbox-sprint.tsx components/vocrehab/vocrehab-game-focus-shift.tsx components/vocrehab/vocrehab-game-barrier-run.tsx components/vocrehab/vocrehab-game-schedule-juggle.tsx"
+  ],
+  "target_hashes": [
+    {
+      "path": "components/vocrehab/vocrehab-game-frame.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-game-file-sort.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-game-inbox-sprint.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-game-focus-shift.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-game-barrier-run.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-game-schedule-juggle.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/play/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/play/file-sort/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/play/inbox-sprint/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/play/focus-shift/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/play/barrier-run/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/play/schedule-juggle/page.tsx",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:24:21.615Z"
+}

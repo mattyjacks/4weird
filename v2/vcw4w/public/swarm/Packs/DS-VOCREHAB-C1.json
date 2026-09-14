@@ -1,0 +1,19 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-C1",
+  "goal_1line": "CHEAP ss2 slice C1 (VocRehab foundation): the ONE migration file v2/vcw4w/supabase/migrations/20261208000000_vocrehab_module_v1.sql exists with all 16 public.vocrehab_* tables, indexes, own-data-only RLS policies, and vocrehab_export_snapshot + vocrehab_log_export functions; zero ALTER on existing t",
+  "scope": [
+    "v2/vcw4w/supabase/migrations/20261208000000_vocrehab_module_v1.sql"
+  ],
+  "gates": [
+    "node scripts/verify-migration-versions.mjs"
+  ],
+  "target_hashes": [
+    {
+      "path": "supabase/migrations/20261208000000_vocrehab_module_v1.sql",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:24:21.352Z"
+}
