@@ -1140,6 +1140,12 @@ export default function Home() {
                 more="Through play and building."
               />
               <DirItem
+                href="/vocrehab"
+                label="🧭 Voc Rehab"
+                head="Figure out work at your pace — play first, decide with supports."
+                more="Bite-size lessons with XP and badges; runs save only when you ask, and your export is yours to take."
+              />
+              <DirItem
                 href="/tech"
                 label="⚙️ Technology"
                 head={

@@ -74,12 +74,13 @@ const BUSINESS: Entry[] = [
   { path: "/docs/business", changeFrequency: "monthly", priority: 0.7 },
 ];
 
-// IT Command suite: boss/it/work consoles + guide (added with the routes;
+// IT Command suite: boss/it/work consoles + vocrehab course + guide (added with the routes;
 // verify-sitemap requires every indexable route to be listed).
 const IT_COMMAND: Entry[] = [
   { path: "/boss", changeFrequency: "weekly", priority: 0.7 },
   { path: "/it", changeFrequency: "weekly", priority: 0.7 },
   { path: "/work", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/vocrehab", changeFrequency: "weekly", priority: 0.7 },
 ];
 
 // MMO realms: browser + rental + guides (renamed slug; old paths 308 via next.config.ts;
