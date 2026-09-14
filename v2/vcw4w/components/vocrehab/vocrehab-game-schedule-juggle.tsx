@@ -1,69 +1,44 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { makeSeed } from "@/lib/vocrehab-seed";
+import { vocrehabJugglePoolSets, vocrehabSelectJuggle } from "@/lib/vocrehab-seed-pools3";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
 
 const VOCREHAB_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 const VOCREHAB_SLOTS = ["Morning", "Afternoon", "Evening"] as const;
 
-interface VocrehabBlock {
-  id: string;
-  label: string;
-}
+// Blocks and constraints come from the seeded pool (lib/vocrehab-seed-pools3):
+// every seed replays the same fair schedule set. Cell key: `${day}-${slot}`.
 
-const VOCREHAB_BLOCKS: readonly VocrehabBlock[] = [
-  { id: "shift1", label: "Shift A" },
-  { id: "shift2", label: "Shift B" },
-  { id: "shift3", label: "Shift C" },
-  { id: "training", label: "Training block" },
-];
+export default function VocrehabGameScheduleJuggle({
+  vocrehabEmit,
+  vocrehabFinish,
+  vocrehabSeed,
+  vocrehabRunKey,
+}: VocrehabGameRunProps) {
+  // Seeded schedule set, resolved once per run key.
+  const vocrehabPool = useMemo(() => {
+    const seed = vocrehabSeed ?? makeSeed();
+    const selection = vocrehabSelectJuggle(seed);
+    const set =
+      vocrehabJugglePoolSets.find((s) => s.setId === selection.setId) ?? vocrehabJugglePoolSets[0];
+    return {
+      seed,
+      setId: selection.setId,
+      title: set.title,
+      briefing: set.briefing,
+      blocks: selection.blocks,
+      constraints: selection.constraints,
+    };
+  }, [vocrehabSeed, vocrehabRunKey]);
 
-interface VocrehabConstraint {
-  id: string;
-  title: string;
-  blocked: readonly string[];
-  why: string;
-}
+  const VOCREHAB_BLOCKS = vocrehabPool.blocks;
+  const VOCREHAB_CONSTRAINTS = vocrehabPool.constraints;
 
-// Cell key: `${day}-${slot}`.
-const VOCREHAB_CONSTRAINTS: readonly VocrehabConstraint[] = [
-  {
-    id: "transport",
-    title: "Transport windows",
-    blocked: ["Mon-Evening", "Tue-Evening", "Wed-Evening", "Thu-Evening", "Fri-Evening"],
-    why: "the bus does not run weekday evenings",
-  },
-  {
-    id: "medication",
-    title: "Medication appointment",
-    blocked: ["Wed-Morning"],
-    why: "a Wednesday morning appointment",
-  },
-  {
-    id: "childcare",
-    title: "Childcare pickup",
-    blocked: ["Sat-Afternoon"],
-    why: "Saturday afternoon pickup",
-  },
-  {
-    id: "rest",
-    title: "Rest day",
-    blocked: ["Sun-Morning", "Sun-Afternoon", "Sun-Evening"],
-    why: "Sunday is a protected rest day",
-  },
-  {
-    id: "class",
-    title: "Class",
-    blocked: ["Tue-Afternoon", "Thu-Afternoon"],
-    why: "class meets Tuesday and Thursday afternoons",
-  },
-];
+  const vocrehabConflictFor = (cell: string) =>
+    VOCREHAB_CONSTRAINTS.find((c) => c.blocked.includes(cell)) ?? null;
 
-function vocrehabConflictFor(cell: string): VocrehabConstraint | null {
-  return VOCREHAB_CONSTRAINTS.find((c) => c.blocked.includes(cell)) ?? null;
-}
-
-export default function VocrehabGameScheduleJuggle({ vocrehabEmit, vocrehabFinish }: VocrehabGameRunProps) {
   const [vocrehabSelected, setVocrehabSelected] = useState<string | null>(null);
   const [vocrehabPlaced, setVocrehabPlaced] = useState<Record<string, string>>({});
   const [vocrehabNote, setVocrehabNote] = useState<string | null>(null);
@@ -123,17 +98,18 @@ export default function VocrehabGameScheduleJuggle({ vocrehabEmit, vocrehabFinis
   const vocrehabDone = () => {
     if (doneRef.current || placedCount < VOCREHAB_BLOCKS.length || conflicts.length > 0) return;
     doneRef.current = true;
-    vocrehabFinish({ placements: Object.keys(vocrehabPlaced).length, conflictsResolved: vocrehabResolved });
+    vocrehabFinish({ placements: Object.keys(vocrehabPlaced).length, conflictsResolved: vocrehabResolved, seed: vocrehabPool.seed });
   };
 
   return (
     <div className="vocrehab-game-schedule-juggle space-y-3">
       <p className="text-sm text-muted-foreground" role="status">
-        Placed {placedCount} of {VOCREHAB_BLOCKS.length} blocks (3 shifts + 1 training) · Conflicts:{" "}
+        Placed {placedCount} of {VOCREHAB_BLOCKS.length} blocks ({vocrehabPool.title}) · Conflicts:{" "}
         {conflicts.length === 0 ? "✓ none" : `✗ ${conflicts.length} to fix`}
       </p>
+      <p className="text-sm text-muted-foreground">{vocrehabPool.briefing}</p>
       <div className="rounded-lg border p-3">
-        <h3 className="text-sm font-semibold">Constraint cards (5)</h3>
+        <h3 className="text-sm font-semibold">Constraint cards ({VOCREHAB_CONSTRAINTS.length})</h3>
         <ul className="list-disc space-y-1 pl-5 text-sm">
           {VOCREHAB_CONSTRAINTS.map((c) => (
             <li key={c.id}>

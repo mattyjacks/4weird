@@ -106,6 +106,7 @@ const SAVE_KIND: Record<VocrehabRoleplayScenario, VocrehabDocumentKind> = {
   prep: "prep",
   pivot: "pivot",
   disclosure: "script",
+  "job-interview": "script",
 };
 
 function speechConstructor(): SpeechRecognitionConstructor | null {

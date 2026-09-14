@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 export default function VocrehabPrivacyPage() {
   return (
     <main className="vocrehab-privacy mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900">Privacy: your data, your call</h1>
-      <div className="mt-4 space-y-4 text-stone-700">
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">Privacy: your data, your call</h1>
+      <div className="mt-4 space-y-4 text-stone-700 dark:text-stone-300">
         <p>
           Guests play everything with zero database writes — progress lives on
           your device only. Signed-in saves happen only when you tap save,

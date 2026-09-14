@@ -10,6 +10,12 @@ export const metadata: Metadata = {
 
 const vocrehabInterviewTools = [
   {
+    href: "/vocrehab/interview/jobs",
+    title: "Live job interview sim (20 jobs)",
+    blurb:
+      "Pick a real job, pick a difficulty, rehearse live — turn-based or voice, typing always free, report card at 6 turns.",
+  },
+  {
     href: "/vocrehab/interview/prep",
     title: "Interview prep generator",
     blurb:

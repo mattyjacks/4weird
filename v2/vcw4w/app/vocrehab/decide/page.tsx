@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 export default function VocrehabDecidePage() {
   return (
     <main className="vocrehab-decide mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900">Decide: sketches, not verdicts</h1>
-      <p className="mt-2 text-stone-700">
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">Decide: sketches, not verdicts</h1>
+      <p className="mt-2 text-stone-700 dark:text-stone-300">
         Two practice tools. The SSI slider sketches how earnings could shift a check — teaching math, never a promise. The disclosure
         adventure lets you rehearse timing before you choose anything for real.
       </p>

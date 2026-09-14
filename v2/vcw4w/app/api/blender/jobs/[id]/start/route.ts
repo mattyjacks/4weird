@@ -19,7 +19,7 @@ import {
 } from "@/lib/blender-render";
 
 
-const siteBase = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://4weird.com").replace(/\/+$/, "");
+const siteBase = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.4weird.com").replace(/\/+$/, "");
 
 /**
  * POST /api/blender/jobs/[id]/start {startFrame, endFrame}; provision the

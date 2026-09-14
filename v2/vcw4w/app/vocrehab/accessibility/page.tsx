@@ -20,8 +20,8 @@ const VOCREHAB_A11Y_ROWS = [
 export default function VocrehabAccessibilityPage() {
   return (
     <main className="vocrehab-accessibility mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900">Accessibility is the product</h1>
-      <p className="mt-2 text-stone-700">
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">Accessibility is the product</h1>
+      <p className="mt-2 text-stone-700 dark:text-stone-300">
         The toolbar pinned above every VocRehab page controls text size,
         contrast, voice, motion, and keyboard hints — applied to this module
         only, remembered on your device only.

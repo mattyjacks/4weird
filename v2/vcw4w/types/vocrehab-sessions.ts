@@ -4,6 +4,7 @@
 export type VocrehabConsentPurpose =
   | "session-assist"
   | "roleplay-save"
+  | "voice-rehearsal-save"
   | "data-export"
   | "course-sync";
 

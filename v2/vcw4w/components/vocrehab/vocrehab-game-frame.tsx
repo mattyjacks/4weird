@@ -8,12 +8,18 @@ import {
   type VocrehabGameEventKind,
   type VocrehabGameId,
 } from "@/lib/vocrehab-games";
+import {
+  makeSeed as vocrehabRandomSeed,
+  parseSeed as vocrehabParseSeed,
+} from "@/lib/vocrehab-seed";
 
 export interface VocrehabGameRunProps {
   vocrehabEmit: (kind: VocrehabGameEventKind, detail?: Record<string, unknown>) => void;
   vocrehabFinish: (summary?: Record<string, unknown>) => void;
   vocrehabExtraTimeSec: number;
   vocrehabRunKey: number;
+  vocrehabSeed?: string;
+  vocrehabNewSeed?: () => void;
 }
 
 interface VocrehabGameFrameProps {
@@ -23,6 +29,7 @@ interface VocrehabGameFrameProps {
   vocrehabPracticeSteps: string[];
   vocrehabTimeLimitSec: number | null;
   vocrehabExitHref: string;
+  vocrehabSeed?: string;
   children: (run: VocrehabGameRunProps) => React.ReactNode;
 }
 
@@ -45,6 +52,7 @@ export default function VocrehabGameFrame({
   vocrehabPracticeSteps,
   vocrehabTimeLimitSec,
   vocrehabExitHref,
+  vocrehabSeed: vocrehabSeedProp,
   children,
 }: VocrehabGameFrameProps) {
   const [vocrehabPhase, setVocrehabPhase] = useState<VocrehabPhase>("intro");
@@ -71,6 +79,17 @@ export default function VocrehabGameFrame({
   const [vocrehabRemainingOnPauseMs, setVocrehabRemainingOnPauseMs] = useState(0);
   const [vocrehabFinished, setVocrehabFinished] = useState(false);
   const [vocrehabSummaryExtra, setVocrehabSummaryExtra] = useState<Record<string, unknown>>({});
+  // Seed: `?seed=` replay wins when valid, else a fresh random shuffle.
+  // Resolved once per run key so retries deal fresh (replay stays pinned).
+  const [vocrehabSeedOverride, setVocrehabSeedOverride] = useState<string | null>(null);
+  const vocrehabSeed = useMemo(
+    () =>
+      vocrehabParseSeed(vocrehabSeedOverride ?? vocrehabSeedProp ?? null) ?? vocrehabRandomSeed(),
+    [vocrehabSeedOverride, vocrehabSeedProp, vocrehabRunKey],
+  );
+  const vocrehabNewSeed = useCallback(() => {
+    setVocrehabSeedOverride(vocrehabRandomSeed());
+  }, []);
   // Announcement flags are touched only inside effects, never during render.
   const announced60Ref = useRef(false);
   const announced10Ref = useRef(false);
@@ -93,7 +112,8 @@ export default function VocrehabGameFrame({
     (summary?: Record<string, unknown>) => {
       if (vocrehabFinished) return;
       setVocrehabFinished(true);
-      const extra = summary ?? {};
+      // Seed rides in every save + export so counselors see and replay it.
+      const extra = { ...(summary ?? {}), seed: vocrehabSeed };
       setVocrehabSummaryExtra(extra);
       const stamp = Math.max(0, Math.round(performance.now() - vocrehabRunStartMs - vocrehabPausedTotalMs));
       const completeEvent: VocrehabGameEvent = { t_ms: stamp, kind: "complete", detail: extra };
@@ -105,7 +125,7 @@ export default function VocrehabGameFrame({
       setVocrehabPhase("results");
       setVocrehabAnnounce(`${vocrehabTitle} finished. Results are shown below.`);
     },
-    [vocrehabFinished, vocrehabEvents, vocrehabRunStartMs, vocrehabPausedTotalMs, vocrehabGameId, vocrehabTitle],
+    [vocrehabFinished, vocrehabEvents, vocrehabRunStartMs, vocrehabPausedTotalMs, vocrehabGameId, vocrehabTitle, vocrehabSeed],
   );
 
   // Countdown ticker (no pause/exit in this state by design).
@@ -122,7 +142,7 @@ export default function VocrehabGameFrame({
           vocrehabTimeLimitSec === null ? null : (vocrehabTimeLimitSec + vocrehabExtraTimeSec) * 1000;
         setVocrehabEndAtMs(limitMs === null ? null : now + limitMs);
         setVocrehabRemainingMs(limitMs);
-        setVocrehabEvents([{ t_ms: 0, kind: "start", detail: { extraTimeSec: vocrehabExtraTimeSec } }]);
+        setVocrehabEvents([{ t_ms: 0, kind: "start", detail: { extraTimeSec: vocrehabExtraTimeSec, seed: vocrehabSeed } }]);
         setVocrehabPhase("run");
         setVocrehabAnnounce(`${vocrehabTitle} run started.`);
       } else {
@@ -130,7 +150,7 @@ export default function VocrehabGameFrame({
       }
     }, 1000);
     return () => window.clearTimeout(id);
-  }, [vocrehabPhase, vocrehabCountdown, vocrehabTimeLimitSec, vocrehabExtraTimeSec, vocrehabTitle]);
+  }, [vocrehabPhase, vocrehabCountdown, vocrehabTimeLimitSec, vocrehabExtraTimeSec, vocrehabTitle, vocrehabSeed]);
 
   // Run timer: performance.now deltas, never wall-clock math.
   useEffect(() => {
@@ -142,7 +162,7 @@ export default function VocrehabGameFrame({
       if (left <= 0) {
         window.clearInterval(id);
         setVocrehabRemainingMs(0);
-        vocrehabEmit("complete", { reason: "time-up" });
+        vocrehabEmit("complete", { reason: "time-up", seed: vocrehabSeed });
         vocrehabFinish();
         return;
       }
@@ -157,7 +177,7 @@ export default function VocrehabGameFrame({
       }
     }, 500);
     return () => window.clearInterval(id);
-  }, [vocrehabPhase, vocrehabPaused, vocrehabEndAtMs, vocrehabEmit, vocrehabFinish]);
+  }, [vocrehabPhase, vocrehabPaused, vocrehabEndAtMs, vocrehabEmit, vocrehabFinish, vocrehabSeed]);
 
   const vocrehabStartPractice = useCallback(() => {
     setVocrehabPhase("practice");
@@ -213,6 +233,7 @@ export default function VocrehabGameFrame({
   const vocrehabRetry = useCallback(() => {
     setVocrehabEvents([]);
     setVocrehabSummaryExtra({});
+    setVocrehabSeedOverride(null);
     setVocrehabFinished(false);
     setVocrehabPaused(false);
     setVocrehabPausedTotalMs(0);
@@ -259,8 +280,10 @@ export default function VocrehabGameFrame({
       vocrehabFinish,
       vocrehabExtraTimeSec,
       vocrehabRunKey,
+      vocrehabSeed,
+      vocrehabNewSeed,
     }),
-    [vocrehabEmit, vocrehabFinish, vocrehabExtraTimeSec, vocrehabRunKey],
+    [vocrehabEmit, vocrehabFinish, vocrehabExtraTimeSec, vocrehabRunKey, vocrehabSeed, vocrehabNewSeed],
   );
 
   const timed = vocrehabTimeLimitSec !== null;
@@ -372,6 +395,7 @@ export default function VocrehabGameFrame({
         <div className="vocrehab-game-results space-y-3 rounded-lg border p-5">
           <h2 className="text-xl font-semibold">✓ What happened</h2>
           <p>{vocrehabSummary}</p>
+          <p className="text-sm text-muted-foreground">Round seed {vocrehabSeed} — save it to replay this exact round</p>
           <div className="text-sm">
             <p className="font-medium">What this suggests</p>
             <p className="text-muted-foreground">

@@ -18,8 +18,8 @@ const LINKS = [
 export default function VocrehabDiscoverPage() {
   return (
     <main className="vocrehab-discover mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900">Discover: no tests that feel like tests</h1>
-      <p className="mt-2 text-stone-700">
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">Discover: no tests that feel like tests</h1>
+      <p className="mt-2 text-stone-700 dark:text-stone-300">
         You play short work scenarios instead of filling long forms. What you do in the game becomes your profile — strengths first, never labels.
       </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

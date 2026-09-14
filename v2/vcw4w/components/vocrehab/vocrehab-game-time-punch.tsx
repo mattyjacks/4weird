@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   vocrehabGame2AssessmentPayload,
   vocrehabGame2InteropChannel,
   vocrehabScoreTimePunch,
   type VocrehabGame2Event,
 } from "@/lib/vocrehab-games2";
+import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
+import { vocrehabSelectTimePunch } from "@/lib/vocrehab-seed-pools2";
 
 interface VocrehabShiftTask {
   id: string;
@@ -21,14 +23,10 @@ const VOCREHAB_GRACE_AT = 90;
 const VOCREHAB_GRACE_SEC = 20;
 const VOCREHAB_EXTRA_SEC = 60;
 
-const VOCREHAB_TASKS: VocrehabShiftTask[] = [
-  { id: "open", label: "Unlock front door + lights", openAt: 5, closeAt: 35 },
-  { id: "mail", label: "Sort morning mail", openAt: 25, closeAt: 65 },
-  { id: "restock", label: "Restock supply shelf", openAt: 55, closeAt: 100 },
-  { id: "calls", label: "Return morning callbacks", openAt: 95, closeAt: 140 },
-  { id: "lunch", label: "Cover lunch phones", openAt: 130, closeAt: 175 },
-  { id: "close", label: "Lock up + set alarm", openAt: 160, closeAt: 200 },
-];
+interface VocrehabGameTimePunchProps {
+  vocrehabSeed?: string;
+  vocrehabRunKey?: number;
+}
 
 type VocrehabTaskState = "upcoming" | "open" | "done" | "missed";
 type VocrehabSaveState = "idle" | "saving" | "saved" | "guest" | "error";
@@ -38,7 +36,7 @@ function vocrehabClock(sec: number): string {
   return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
 }
 
-export function VocrehabGameTimePunch(): React.ReactNode {
+export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): React.ReactNode {
   const [vocrehabStarted, setVocrehabStarted] = useState(false);
   const [vocrehabElapsed, setVocrehabElapsed] = useState(0);
   const [vocrehabPaused, setVocrehabPaused] = useState(false);
@@ -56,6 +54,16 @@ export function VocrehabGameTimePunch(): React.ReactNode {
   const eventsRef = useRef<VocrehabGame2Event[]>([]);
   const graceFiredRef = useRef(false);
   const finishedRef = useRef(false);
+  const vocrehabRunKey = props.vocrehabRunKey ?? 0;
+  const vocrehabSeed = useMemo(
+    () => parseSeed(props.vocrehabSeed ?? null) ?? makeSeed(),
+    [props.vocrehabSeed, vocrehabRunKey],
+  );
+  const vocrehabDeal = useMemo(
+    () => vocrehabSelectTimePunch(vocrehabSeed),
+    [vocrehabSeed, vocrehabRunKey],
+  );
+  const VOCREHAB_TASKS: VocrehabShiftTask[] = vocrehabDeal.tasks;
 
   const vocrehabEnd = VOCREHAB_SHIFT_END + vocrehabExtra;
 
@@ -95,7 +103,7 @@ export function VocrehabGameTimePunch(): React.ReactNode {
       }
       if (performance.now() >= endAtRef.current && !finishedRef.current) {
         finishedRef.current = true;
-        vocrehabPush("complete", { reason: "shift-end" });
+        vocrehabPush("complete", { reason: "shift-end", seed: vocrehabSeed });
         setVocrehabDone(true);
         setVocrehabNote("Shift over. Results are shown below.");
         try {
@@ -109,7 +117,7 @@ export function VocrehabGameTimePunch(): React.ReactNode {
       }
     }, 500);
     return () => window.clearInterval(id);
-  }, [vocrehabStarted, vocrehabPaused, vocrehabDone]);
+  }, [vocrehabStarted, vocrehabPaused, vocrehabDone, vocrehabSeed]);
 
   function vocrehabWindow(task: VocrehabShiftTask): { open: number; close: number } {
     const shift = vocrehabGrace && task.openAt >= VOCREHAB_GRACE_AT ? VOCREHAB_GRACE_SEC : 0;
@@ -167,7 +175,8 @@ export function VocrehabGameTimePunch(): React.ReactNode {
   async function vocrehabSend(): Promise<void> {
     setVocrehabSave("saving");
     try {
-      const body = vocrehabGame2AssessmentPayload("time-punch", score);
+      const base = vocrehabGame2AssessmentPayload("time-punch", score);
+      const body = { ...base, payload: { ...base.payload, seed: vocrehabSeed } };
       const res = await fetch("/api/vocrehab/assessments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

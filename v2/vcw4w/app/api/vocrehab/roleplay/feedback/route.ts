@@ -9,7 +9,7 @@ import {
   type VocrehabRoleplayScenarioId,
 } from "@/lib/vocrehab-roleplay";
 
-const SCENARIOS: readonly VocrehabRoleplayScenarioId[] = ["prep", "pivot", "disclosure"];
+const SCENARIOS: readonly VocrehabRoleplayScenarioId[] = ["prep", "pivot", "disclosure", "job-interview"];
 
 function isScenario(value: unknown): value is VocrehabRoleplayScenarioId {
   return typeof value === "string" && (SCENARIOS as readonly string[]).includes(value);
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   const { text, scenario } = (body ?? {}) as { text?: unknown; scenario?: unknown };
 
   if (!isScenario(scenario)) {
-    return fail("scenario must be one of: prep, pivot, disclosure.", 400);
+    return fail("scenario must be one of: prep, pivot, disclosure, job-interview.", 400);
   }
   if (
     typeof text !== "string" ||

@@ -168,14 +168,31 @@ export function validateBotExtras(input: unknown): ValidateBotExtrasResult {
   return { ok: true, value };
 }
 
+export const BOT_FEEDBACK_RATINGS = ["good", "okay", "bad"] as const;
+export type BotFeedbackRating = (typeof BOT_FEEDBACK_RATINGS)[number];
+
+export const BOT_FEEDBACK_CRITIQUES = ["positive", "negative"] as const;
+export type BotFeedbackCritique = (typeof BOT_FEEDBACK_CRITIQUES)[number];
+
 export interface SubmitBotFeedbackArgs {
-  title: string;
-  description: string;
+  /**
+   * Canonical report body (1..4000 chars). When omitted it is built from
+   * the legacy `title` + `description` pair as "title\n\ndescription".
+   */
+  text?: string;
+  /** Legacy body: title + description (mapped to `text` when `text` is absent). */
+  title?: string;
+  /** Legacy body: description (mapped to `text` when `text` is absent). */
+  description?: string;
+  /** Structured bot provenance (validated by validateBotExtras). */
   extras: unknown;
   /** Bot API key; sent only as the x-bot-key header, never logged/stored. */
   apiKey: string;
+  rating?: BotFeedbackRating;
+  critique?: BotFeedbackCritique;
   severity?: BotFeedbackSeverity;
   gameSlug?: string;
+  labels?: string[];
   /** URL the bot was acting on at submit moment (stored as page_url). */
   pageUrl?: string;
   /** URL at the moment the bot started the feedback-worthy run. */
@@ -193,17 +210,37 @@ export interface SubmitBotFeedbackResult {
 
 /**
  * Submit bot feedback programmatically: validates the bot extras, then
- * POSTs to /api/feedback with `reporterType: "bot"` and the bot API key
- * header. Returns a typed result; never throws on HTTP/API errors (only
- * on a missing fetch implementation, which is a caller bug).
+ * POSTs the canonical contract to /api/feedback —
+ * `{ reporterType: "bot", rating, critique, text, labels?, botExtras,
+ * pageUrl?, startedUrl? }` as JSON — with the bot API key header.
+ * `severity`/`gameSlug` have no table columns and ride inside `botExtras`.
+ * Returns a typed result; never throws on HTTP/API errors (only on a
+ * missing fetch implementation, which is a caller bug). Reads the shared
+ * `{ success, id?, error? }` envelope (see lib/api-respond).
  */
 export async function submitBotFeedback(args: SubmitBotFeedbackArgs): Promise<SubmitBotFeedbackResult> {
-  const title = String(args?.title ?? "").trim().slice(0, 200);
-  const description = String(args?.description ?? "").trim().slice(0, 8000);
-  if (!title) return { ok: false, status: 0, error: "title is required" };
-  if (!description) return { ok: false, status: 0, error: "description is required" };
+  // Canonical text, with legacy title+description mapping.
+  let text = String(args?.text ?? "").trim();
+  if (!text) {
+    const title = String(args?.title ?? "").trim().slice(0, 200);
+    const description = String(args?.description ?? "").trim();
+    if (title || description) {
+      text = (title && description ? `${title}\n\n${description}` : title || description).slice(0, 4000);
+    }
+  }
+  if (!text) return { ok: false, status: 0, error: "text (or legacy title+description) is required" };
+  if (text.length > 4000) return { ok: false, status: 0, error: "text must be 1..4000 chars" };
   const apiKey = String(args?.apiKey ?? "").trim();
   if (!apiKey) return { ok: false, status: 0, error: "apiKey is required" };
+
+  const rating: BotFeedbackRating = args?.rating ?? "okay";
+  if (!(BOT_FEEDBACK_RATINGS as readonly string[]).includes(rating)) {
+    return { ok: false, status: 0, error: "rating must be good|okay|bad" };
+  }
+  const critique: BotFeedbackCritique = args?.critique ?? "negative";
+  if (!(BOT_FEEDBACK_CRITIQUES as readonly string[]).includes(critique)) {
+    return { ok: false, status: 0, error: "critique must be positive|negative" };
+  }
 
   const checked = validateBotExtras(args?.extras);
   if (!checked.ok) return { ok: false, status: 0, error: checked.errors.join("; ") };
@@ -216,6 +253,20 @@ export async function submitBotFeedback(args: SubmitBotFeedbackArgs): Promise<Su
     severity = args.severity;
   }
   const gameSlug = cleanOptionalStr(args?.gameSlug, 64);
+  if (args?.gameSlug !== undefined && args?.gameSlug !== null && gameSlug === undefined) {
+    return { ok: false, status: 0, error: "gameSlug must be a non-empty string (<=64 chars) when provided" };
+  }
+  let labels: string[] | undefined;
+  if (args?.labels !== undefined) {
+    if (
+      !Array.isArray(args.labels) ||
+      args.labels.length > 20 ||
+      !args.labels.every((l) => typeof l === "string" && l.trim().length >= 1 && l.trim().length <= 64)
+    ) {
+      return { ok: false, status: 0, error: "labels must be a string array (<=20, each 1..64 chars)" };
+    }
+    labels = args.labels.map((l) => l.trim());
+  }
   const pageUrl = cleanOptionalStr(args?.pageUrl, 2048);
   const startedUrl = cleanOptionalStr(args?.startedUrl, 2048);
   const endpoint =
@@ -223,14 +274,20 @@ export async function submitBotFeedback(args: SubmitBotFeedbackArgs): Promise<Su
       ? args.endpoint.trim()
       : BOT_FEEDBACK_ENDPOINT;
 
+  // botExtras carries provenance + severity/gameSlug (no table columns exist
+  // for those two — bot_extras is their durable home).
+  const botExtras: Record<string, unknown> = { ...checked.value };
+  if (severity !== undefined) botExtras.severity = severity;
+  if (gameSlug !== undefined) botExtras.gameSlug = gameSlug;
+
   const body: Record<string, unknown> = {
     reporterType: BOT_FEEDBACK_REPORTER,
-    title,
-    description,
-    ...checked.value,
+    rating,
+    critique,
+    text,
+    botExtras,
   };
-  if (severity !== undefined) body.severity = severity;
-  if (gameSlug !== undefined) body.game_slug = gameSlug;
+  if (labels !== undefined) body.labels = labels;
   if (pageUrl !== undefined) body.pageUrl = pageUrl;
   if (startedUrl !== undefined) body.startedUrl = startedUrl;
 
@@ -254,7 +311,8 @@ export async function submitBotFeedback(args: SubmitBotFeedbackArgs): Promise<Su
   } catch {
     payload = {};
   }
-  if (!res.ok) {
+  // Shared envelope: { success: true, id, ... } / { success: false, error }.
+  if (!res.ok || payload.success === false) {
     const msg =
       cleanStr(payload.error ?? payload.message, 300) ?? `feedback submit failed (HTTP ${res.status})`;
     return { ok: false, status: res.status, error: msg };

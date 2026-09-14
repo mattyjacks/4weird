@@ -19,15 +19,15 @@ const VOCREHAB_CHAPTERS = [
 export default function VocrehabCoursePage() {
   return (
     <main className="vocrehab-course mx-auto w-full max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900">The course: play your way to work-ready</h1>
-      <p className="mt-2 max-w-2xl text-stone-700">
+      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">The course: play your way to work-ready</h1>
+      <p className="mt-2 max-w-2xl text-stone-700 dark:text-stone-300">
         Four chapters, fourteen bite-size modules. Each one ends in a game, a
         rehearsal, or a decision sketch — plus two reflect questions and XP.
         Guests keep progress on this device; signing in syncs it.
       </p>
       {VOCREHAB_CHAPTERS.map((c) => (
         <section key={c.vocrehabChapter} aria-label={`Chapter ${c.vocrehabChapter}: ${c.vocrehabTitle}`} className="mt-8">
-          <h2 className="text-xl font-semibold text-stone-900">
+          <h2 className="text-xl font-semibold text-stone-900 dark:text-stone-50">
             Chapter {c.vocrehabChapter} — {c.vocrehabTitle}
           </h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">

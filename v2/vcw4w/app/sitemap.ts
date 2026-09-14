@@ -9,19 +9,39 @@ type Entry = {
 };
 
 /**
- * Canonical sitemap; every crawlable, indexable page on 4weird Games.
+ * Canonical sitemap: every crawlable, indexable page on 4weird Games.
  *
- * Deliberately EXCLUDED (noindex / gated / non-content):
- * - /account, /auth/*, /my/usage, /my/rights (login-gated, robots noindex)
+ * Google Search Console rules enforced here (do NOT regress):
+ * - Only indexable, canonical URLs are listed. Submitting a noindex/gated
+ *   URL triggers "Submitted URL marked 'noindex'" / redirect / 401 coverage
+ *   errors and burns crawl budget. Discovery of game titles happens through
+ *   links from /games and each /games/<slug> detail page, not via sitemap.
+ * - No `lastModified` is emitted. The previous `new Date()` stamped every
+ *   URL with "now" on every /sitemap.xml fetch, so Google saw the whole
+ *   sitemap as changed hourly. Omit lastmod until a real per-page mtime
+ *   (git commit date / content mtime) is wired in; GSC accepts sitemaps
+ *   without it.
+ * - Absolute https URLs on the www canonical (https://www.4weird.com: apex
+ *   308s to www at the Vercel edge, so apex locs would report "Page with
+ *   redirect"). No trailing slash, no *.html, no legacy redirect sources.
+ *
+ * Deliberately EXCLUDED (noindex / gated / thin / non-content):
+ * - /account, /auth/*, /my/usage, /my/rights, /family/login, /runpods
+ *   (login-gated, robots noindex, robots.txt disallow)
  * - /api/* (data endpoints, no-store)
- * - /games/<slug>/play shells stay listed below at low priority so crawlers
- *   discover game titles through them, even though the shell itself is
- *   noindex (thin iframe wrapper; the /games/<slug> detail page is the
- *   canonical indexed surface per game).
- * - /games/gravegain4d/play and /feedback/admin are likewise robots-noindex
- *   but stay listed at low priority: verify-sitemap.mjs requires every
- *   non-gated static route to be listed, and this file follows the same
- *   low-priority precedent as the /play shells for those two.
+ * - /games/<slug>/play, /games/gravegain4d/play, /games/gravegain5d/play
+ *   (thin noindex iframe shells; the /games/<slug> detail page is the
+ *   canonical indexed surface per game)
+ * - /chat, /chat/[threadId] (private per-device threads, robots noindex)
+ * - /business/invoices/trash (owner-only bin, robots noindex)
+ * - /boss, /it (X-Robots-Tag: noindex via next.config headers)
+ * - /feedback/admin (admin-gated PII queue, robots noindex)
+ * - /gamestudio/debugplay, /vibecodeworker/debug-play (debug surfaces)
+ * - /swarm/control (login-only console, 401 anonymous)
+ * - /vocrehab/export, /vocrehab/pro/* (gated counselor tooling)
+ * - User-scoped dynamics with no canonical: /clans/[slug], /code/[id],
+ *   /fundraisers/[id], /games/servers/[id], /squads/[id](/kanban),
+ *   /vocrehab/pro/sessions/[id] (hubs stay listed; IDs stay out)
  * - Legacy mirrors (/v1-legacy/*, /vibecodeworker-legacy/*, /games/html/*)
  */
 
@@ -46,6 +66,7 @@ const PRIMARY: Entry[] = [
   { path: "/newgameplus", changeFrequency: "weekly", priority: 0.8 },
   { path: "/blender", changeFrequency: "weekly", priority: 0.8 },
   { path: "/xonotic", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/search", changeFrequency: "weekly", priority: 0.7 },
 ];
 
 // Community + competition surfaces.
@@ -63,28 +84,24 @@ const SUPPORT: Entry[] = [
   { path: "/fundraisers", changeFrequency: "weekly", priority: 0.7 },
 ];
 
-// Business suite: org-scoped tools + guide (Task E).
+// Business suite: org-scoped tools + guide. Trash is owner-only noindex
+// and stays out (see header).
 const BUSINESS: Entry[] = [
   { path: "/business", changeFrequency: "weekly", priority: 0.7 },
   { path: "/business/crm", changeFrequency: "weekly", priority: 0.6 },
   { path: "/business/invoices", changeFrequency: "weekly", priority: 0.6 },
   { path: "/business/invoices/new", changeFrequency: "weekly", priority: 0.5 },
-  { path: "/business/invoices/trash", changeFrequency: "weekly", priority: 0.5 },
   { path: "/business/tax", changeFrequency: "weekly", priority: 0.6 },
   { path: "/docs/business", changeFrequency: "monthly", priority: 0.7 },
 ];
 
-// IT Command suite: boss/it/work consoles + vocrehab course + guide (added with the routes;
-// verify-sitemap requires every indexable route to be listed).
-const IT_COMMAND: Entry[] = [
-  { path: "/boss", changeFrequency: "weekly", priority: 0.7 },
-  { path: "/it", changeFrequency: "weekly", priority: 0.7 },
+// Public work console. /boss and /it serve X-Robots-Tag: noindex and stay
+// out; /work is the indexable surface.
+const WORK: Entry[] = [
   { path: "/work", changeFrequency: "weekly", priority: 0.7 },
-  { path: "/vocrehab", changeFrequency: "weekly", priority: 0.7 },
 ];
 
-// MMO realms: browser + rental + guides (renamed slug; old paths 308 via next.config.ts;
-// verify-sitemap requires every indexable route to be listed).
+// MMO realms: browser + rental + guides (renamed slug; old paths 308 via next.config.ts).
 const MMO: Entry[] = [
   { path: "/mmo", changeFrequency: "daily", priority: 0.8 },
   { path: "/mmo/rent", changeFrequency: "weekly", priority: 0.7 },
@@ -92,20 +109,19 @@ const MMO: Entry[] = [
   { path: "/games/servers/rent", changeFrequency: "weekly", priority: 0.7 },
 ];
 
-// Solo compliance tools: deliverability + DNC scrubbing (sitemap parity).
+// Solo compliance tools: deliverability + DNC scrubbing.
 const COMPLIANCE: Entry[] = [
   { path: "/bouncer", changeFrequency: "weekly", priority: 0.6 },
   { path: "/easydnc", changeFrequency: "weekly", priority: 0.6 },
 ];
 
-// Single-purpose product surfaces: installer builder, game studio,
-// chat index, Quake-style power-user terminal + commander.
+// Single-purpose product surfaces: installer builder, game studio, code.
+// /chat is private per-device (robots noindex) and stays out; debug shells
+// (/gamestudio/debugplay) are non-content and stay out.
 const PRODUCT: Entry[] = [
   { path: "/builder", changeFrequency: "weekly", priority: 0.6 },
   { path: "/commander", changeFrequency: "weekly", priority: 0.6 },
   { path: "/gamestudio", changeFrequency: "weekly", priority: 0.6 },
-  { path: "/gamestudio/debugplay", changeFrequency: "weekly", priority: 0.5 },
-  { path: "/chat", changeFrequency: "weekly", priority: 0.6 },
   { path: "/code", changeFrequency: "weekly", priority: 0.6 },
   { path: "/terminal", changeFrequency: "monthly", priority: 0.6 },
 ];
@@ -123,15 +139,13 @@ const DESKTOP_EXTRA: Entry[] = [
   { path: "/desktop/wave3", changeFrequency: "monthly", priority: 0.6 },
 ];
 
-// Static game discovery surfaces (the [slug] detail/play pair stays
-// template-driven off the catalog below). The gravegain4d play route is a
-// noindex shell like the /play shells, listed so crawlers discover it.
+// Static game discovery surfaces. Per-game detail pages are template-driven
+// off the catalog below; noindex /play shells are never listed.
 const GAMES_EXTRA: Entry[] = [
   { path: "/games/compute", changeFrequency: "weekly", priority: 0.6 },
   { path: "/games/mods", changeFrequency: "weekly", priority: 0.6 },
   { path: "/games/plugins", changeFrequency: "weekly", priority: 0.6 },
   { path: "/games/fridgesimulator", changeFrequency: "weekly", priority: 0.6 },
-  { path: "/games/gravegain4d/play", changeFrequency: "monthly", priority: 0.4 },
 ];
 
 // Media studio suite: hub + audio + paint + recorder + image + video timeline + editor.
@@ -145,12 +159,18 @@ const STUDIO: Entry[] = [
   { path: "/studio/video/editor", changeFrequency: "weekly", priority: 0.5 },
 ];
 
-// Music maker suite: maker + public library (DS-MUSIC-03/05).
+// Music maker suite: maker + public library + instrument indexes.
 const MUSIC: Entry[] = [
   { path: "/music", changeFrequency: "weekly", priority: 0.7 },
   { path: "/music/all", changeFrequency: "weekly", priority: 0.6 },
   { path: "/music/maker", changeFrequency: "weekly", priority: 0.7 },
   { path: "/music/maker/help", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/music/maker/instruments", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/music/maker/help/instruments",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
 ];
 
 // Free browser tools hub + every tool.
@@ -160,12 +180,6 @@ const TOOLS: Entry[] = [
   { path: "/tools/image", changeFrequency: "monthly", priority: 0.6 },
   { path: "/tools/seo", changeFrequency: "monthly", priority: 0.6 },
   { path: "/tools/writing", changeFrequency: "monthly", priority: 0.6 },
-];
-
-// Admin-only feedback queue: robots noindex, but listed at low priority so
-// verify-sitemap parity holds (same precedent as the noindex /play shells).
-const ADMIN: Entry[] = [
-  { path: "/feedback/admin", changeFrequency: "monthly", priority: 0.3 },
 ];
 
 // Evergreen exhibits + explainers.
@@ -201,9 +215,102 @@ const VCW_STATIC: Entry[] = [
   { path: "/vcw/desktop", changeFrequency: "monthly", priority: 0.5 },
 ];
 
-// Standalone VCW pages outside the [section] closed list.
-const VCW_EXTRA: Entry[] = [
-  { path: "/vibecodeworker/debug-play", changeFrequency: "monthly", priority: 0.5 },
+// Vocational-rehab course: guest-playable, indexable. Gated counselor
+// tooling (/vocrehab/export, /vocrehab/pro/*) stays out; per-module lessons
+// expand template-driven off the catalog like the games below.
+const VOCREHAB: Entry[] = [
+  { path: "/vocrehab", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/vocrehab/accessibility", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/vocrehab/course", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/vocrehab/decide", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/vocrehab/decide/disclosure-paths",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  { path: "/vocrehab/decide/ssi", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/vocrehab/discover", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/vocrehab/discover/barriers", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/vocrehab/discover/goals", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/vocrehab/discover/ipe", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/vocrehab/discover/readiness",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  { path: "/vocrehab/discover/remote", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/vocrehab/interview", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/vocrehab/interview/disclosure",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  { path: "/vocrehab/interview/jobs", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/vocrehab/interview/pivot", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/vocrehab/interview/prep", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/vocrehab/interview/resume",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  { path: "/vocrehab/play", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/vocrehab/play/barrier-run",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/energy-budget",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  { path: "/vocrehab/play/file-sort", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/vocrehab/play/focus-shift",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/inbox-sprint",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/inbox-sprint/drill",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/paycheck-plan",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/phone-greeting",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/resume-rescue",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/schedule-juggle",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/time-punch",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/vocrehab/play/tool-match",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  { path: "/vocrehab/privacy", changeFrequency: "monthly", priority: 0.6 },
 ];
 
 // Docs hub + every doc chapter.
@@ -213,7 +320,11 @@ const DOCS: Entry[] = [
   { path: "/docs/getting-started", changeFrequency: "monthly", priority: 0.8 },
   { path: "/docs/playing-games", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/games/gravegain4d", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/games/gravegain4d/combat", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/docs/games/gravegain4d/combat",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
   { path: "/docs/games/saves", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/games-fridge", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/games-fridge/foods", changeFrequency: "monthly", priority: 0.6 },
@@ -242,30 +353,83 @@ const DOCS: Entry[] = [
   { path: "/docs/mmo/faq", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/runpod-vs-digitalocean", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/shadow-it", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/future-proof-web", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/search", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/docs/terminal-desktop", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/desktop/opencode", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/docs/desktop/opencode/heal-loops",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/docs/desktop/opencode/terminal",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
   { path: "/docs/remastery", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/remastery/axioms", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/remastery/chat", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/remastery/invoicing", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/remastery/invoicing-trash", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/docs/remastery/invoicing-trash",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
   { path: "/docs/remastery/kanban", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/remastery/kanban-sprints", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/docs/remastery/kanban-sprints",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
   { path: "/docs/remastery/migration", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/remastery/notifications-chat", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/docs/remastery/notifications-chat",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
   { path: "/docs/remastery/squads", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/remastery/squad-workspaces", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/remastery/time-tracking", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/docs/remastery/squad-workspaces",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/docs/remastery/time-tracking",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
   { path: "/docs/game-ai-buddy", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/studio", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/studio/commander", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/studio/dictate-pic", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/studio/luck-factory", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/studio/media-mogul", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/studio/plugin-checklist", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/docs/studio/plugin-checklist",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
   { path: "/docs/music", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/music/maker", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/music/bots", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/music/games", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/vibecodeworker", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/vocrehab", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/vocrehab/counselors", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/vocrehab/games", changeFrequency: "monthly", priority: 0.6 },
+  {
+    path: "/docs/vocrehab/getting-started",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  {
+    path: "/docs/vocrehab/privacy-safety",
+    changeFrequency: "monthly",
+    priority: 0.6,
+  },
+  { path: "/docs/vocrehab/ssi-math", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/vocrehab/seeds", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/explore-more", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/privacy-safety", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/security", changeFrequency: "monthly", priority: 0.6 },
@@ -281,13 +445,12 @@ const TRUST: Entry[] = [
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
   const staticEntries: MetadataRoute.Sitemap = [
     ...PRIMARY,
     ...COMMUNITY,
     ...SUPPORT,
     ...BUSINESS,
-    ...IT_COMMAND,
+    ...WORK,
     ...MMO,
     ...COMPLIANCE,
     ...PRODUCT,
@@ -297,34 +460,52 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...STUDIO,
     ...MUSIC,
     ...TOOLS,
-    ...ADMIN,
     ...EXPLORE,
     ...VCW_SECTIONS,
     ...VCW_STATIC,
-    ...VCW_EXTRA,
+    ...VOCREHAB,
     ...DOCS,
     ...TRUST,
   ].map((entry) => ({
     url: `${SITE_URL}${entry.path}`,
-    lastModified,
     changeFrequency: entry.changeFrequency,
     priority: entry.priority,
   }));
 
-  const gameEntries: MetadataRoute.Sitemap = games.flatMap((game) => [
-    {
-      url: `${SITE_URL}/games/${game.slug}`,
-      lastModified,
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/games/${game.slug}/play`,
-      lastModified,
-      changeFrequency: "monthly" as const,
-      priority: 0.4,
-    },
-  ]);
+  // Canonical indexed surface per game. Play shells are noindex and stay
+  // out of the submitted sitemap (see header); crawlers reach titles via
+  // /games and these detail URLs.
+  const gameEntries: MetadataRoute.Sitemap = games.map((game) => ({
+    url: `${SITE_URL}/games/${game.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
 
-  return [...staticEntries, ...gameEntries];
+  // Closed 14-module course catalog (mirrors
+  // app/vocrehab/course/vocrehab-course-catalog.ts; unknown slugs 404, so
+  // expansion is safe). Inlined as literals — not imported — so the
+  // vocrehab namespace keeps zero inbound imports (verify-vocrehab
+  // rip-out hygiene). If the catalog gains a slug, add it here too.
+  const courseEntries: MetadataRoute.Sitemap = [
+    "welcome",
+    "know-strengths",
+    "barriers-supports",
+    "pick-direction",
+    "interview-basics",
+    "the-pivot",
+    "the-ask",
+    "paper-trail",
+    "money-maps",
+    "when-to-share",
+    "decision-one-pager",
+    "what-ipes-are",
+    "how-sessions-help",
+    "next-3-steps",
+  ].map((module) => ({
+    url: `${SITE_URL}/vocrehab/course/${module}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticEntries, ...gameEntries, ...courseEntries];
 }

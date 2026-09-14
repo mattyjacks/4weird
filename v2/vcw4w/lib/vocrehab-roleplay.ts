@@ -21,8 +21,11 @@
  *   before any reply renders.
  */
 
-/** Rehearsal scenarios: `prep | pivot | disclosure` (§5.6.1). */
-export type VocrehabRoleplayScenarioId = "prep" | "pivot" | "disclosure";
+/** Rehearsal scenarios: `prep | pivot | disclosure | job-interview` (§5.6.1 + Wave 2). */
+export type VocrehabRoleplayScenarioId = "prep" | "pivot" | "disclosure" | "job-interview";
+
+export type VocrehabInterviewDifficulty = "beginner" | "advanced" | "expert";
+export type VocrehabInterviewSessionMode = "live" | "turn";
 
 export interface VocrehabRoleplayScenario {
   id: VocrehabRoleplayScenarioId;
@@ -85,7 +88,97 @@ export const vocrehabRoleplayScenarios: VocrehabRoleplayScenario[] = [
       "Well said. And remember: choosing not to disclose right now is completely valid too — want to practice that closing line once?",
     ],
   },
+  {
+    id: "job-interview",
+    title: "Job interview sim",
+    persona: "Neutral, encouraging hiring manager running a live job rehearsal",
+    opener:
+      "Welcome in — pick a job above and we will rehearse it live, one question at a time, up to 6 turns.",
+    hint: "20 real jobs × 3 difficulties. Typing is free; live voice uses your browser mic.",
+    followUps: [
+      "Thanks — I heard a clear strength in there. Can you give me one short example of you using it in this role?",
+      "Good detail. What was the result — what changed because of what you did?",
+      "Strong round. Want to try that answer once more in two sentences, ending on the result?",
+    ],
+  },
 ];
+
+/** Wave 2 grading axes (1-5 each): clarity, example (STAR), roleFit, professionalism, disclosure. */
+export type VocrehabGradeAxis = "clarity" | "example" | "roleFit" | "professionalism" | "disclosure";
+
+export type VocrehabGradeScores = Record<VocrehabGradeAxis, number>;
+
+export interface VocrehabTurnGrade {
+  turn: number;
+  praise: string;
+  tweak: string;
+  invitation: string;
+  scores: VocrehabGradeScores;
+  weakTurn: boolean;
+}
+
+export interface VocrehabReportCard {
+  axes: VocrehabGradeScores;
+  overall: number;
+  grade: "A" | "B" | "C" | "D" | "F";
+  verdict: "pass" | "retry";
+  weakTurns: number[];
+}
+
+function vocrehabClampScore(n: number): number {
+  return Math.max(1, Math.min(5, Math.round(n)));
+}
+
+/**
+ * Fail-open scripted turn grade (LLM offline): keyword/length heuristics.
+ * clarity = words<=60?5:2; example = action+result words?4:2;
+ * disclosure = blocklisted?1:5; roleFit/professionalism default 3.
+ */
+export function vocrehabScriptedTurnGrade(
+  text: string,
+  scenario: VocrehabRoleplayScenarioId | string,
+  turn: number,
+): VocrehabTurnGrade {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const clarity = words.length <= 60 ? 5 : 2;
+  const example = /(\b(i|we)\b.*\b(did|made|built|helped|led|fixed|organized|handled)\b|\bresult\b|\bbecause\b)/i.test(text) ? 4 : 2;
+  const disclosure = vocrehabBlocklistCheck(text).blocked ? 1 : 5;
+  const scores: VocrehabGradeScores = { clarity, example, roleFit: 3, professionalism: 3, disclosure };
+  const feedback = vocrehabFeedbackRubric(text, scenario);
+  const weak = Object.values(scores).some((s) => s <= 2);
+  return { turn, praise: feedback.praise, tweak: feedback.tweak, invitation: feedback.invitation, scores, weakTurn: weak };
+}
+
+/** Average per-turn grades into a report card. Fail-open: never throws. */
+export function vocrehabReportCardFor(grades: VocrehabTurnGrade[]): VocrehabReportCard {
+  const axes: VocrehabGradeScores = { clarity: 3, example: 3, roleFit: 3, professionalism: 3, disclosure: 5 };
+  if (grades.length) {
+    (Object.keys(axes) as VocrehabGradeAxis[]).forEach((k) => {
+      const mean = grades.reduce((s, g) => s + (g.scores[k] ?? 3), 0) / grades.length;
+      axes[k] = vocrehabClampScore(mean);
+    });
+  }
+  const overall = Math.round(((axes.clarity + axes.example + axes.roleFit + axes.professionalism + axes.disclosure) / 5) * 10) / 10;
+  const grade: VocrehabReportCard["grade"] = overall >= 4.5 ? "A" : overall >= 3.5 ? "B" : overall >= 2.5 ? "C" : overall >= 1.5 ? "D" : "F";
+  const weakTurns = grades.filter((g) => g.weakTurn).map((g) => g.turn);
+  const verdict: VocrehabReportCard["verdict"] = overall >= 3 && axes.disclosure >= 3 ? "pass" : "retry";
+  return { axes, overall, grade, verdict, weakTurns };
+}
+
+/** Difficulty persona clause appended to the system prompt (tone only; rubric invariant). */
+export function vocrehabDifficultyPrompt(d: VocrehabInterviewDifficulty): string {
+  if (d === "advanced") return "ADVANCED (Brisk Professional): friendly but businesslike; probe STAR results; one curveball per session; redirect rambling once, kindly. No hints.";
+  if (d === "expert") return "EXPERT (Stern + Technical): formal, terse, high standards; up to 3 curveballs; challenge vague claims; score concision (<=45 words). Respectful, never personal.";
+  return "BEGINNER (Patient Coach): warm, unhurried; simple questions; rephrase freely; zero curveballs; never interrupt; accept partial answers.";
+}
+
+export function vocrehabIsDifficulty(v: unknown): v is VocrehabInterviewDifficulty {
+  return v === "beginner" || v === "advanced" || v === "expert";
+}
+
+export function vocrehabIsSessionMode(v: unknown): v is VocrehabInterviewSessionMode {
+  return v === "live" || v === "turn";
+}
 
 /** Look up a scenario; falls back to `prep` for unknown ids (fail-open, never throws). */
 export function vocrehabRoleplayScenarioFor(
@@ -165,6 +258,8 @@ const vocrehabFeedbackTweaks: Record<VocrehabRoleplayScenarioId, string> = {
     "Try the 3-sentence shape: one neutral line about the past, one on what changed, one on what is true now — for instance: “That period taught me …; since then I …; today I ….”",
   disclosure:
     "Try the ask shape: what helps, plus one benefit line — for instance: “It helps to have …; that helps me do … well.”",
+  "job-interview":
+    "Try ending on the result — for instance: “I … and the result was ….”",
 };
 
 /**

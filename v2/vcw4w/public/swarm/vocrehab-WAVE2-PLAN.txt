@@ -1,0 +1,312 @@
+VOC REHAB WAVE 2 — LIVE INTERVIEW SIM + SHARED VOICE UPGRADE (FINAL PLAN)
+Date: 2026-09-14 | Source: consolidated from 4 draft plans via 10 spec agents (research-only, no code changed)
+Board state: READY.json count 0 (idle). CHEAP mode: NEW files only + QUEUE wiring, no shared-manifest edits by lane agents.
+
+================================================================
+0. GROUND TRUTH (what exists today)
+================================================================
+- Site voice is fragmented, no shared engine. lib/buddy-voice.ts = pure VAD helpers only
+  (frameEnergy RMS 0..1, updateVad threshold 0.02 / 8-frame hangover, mergePartialTranscript,
+  buildInterruptionSnapshot / resumptionPrefix / snapshotToPrompt / pruneHistoryWithInterruptions). Has tests.
+- Best in class: components/buddy/gaming-buddy.tsx — continuous webkitSpeechRecognition (interim) +
+  Analyser mic loop (fftSize 512) -> frameEnergy/updateVad -> handleBargeIn -> stopVoice + snapshot +
+  snapshotToPrompt prepend on next talk(), single-slot queuedTurn (voice wins).
+- Worst: swarm-chat.tsx — single-shot STT, speechSynthesis TTS, no barge-in.
+- Vocrehab today is TEXT-ONLY: components/vocrehab/vocrehab-roleplay-panel.tsx = dictation-into-draft
+  (SpeechRecognition interimResults:false, one-shot per mic toggle) + speechSynthesis toggle default OFF
+  (cancel()+speak slice 0,500). No VAD, no interrupt button, no chunking.
+- Backend: POST /api/vocrehab/roleplay {session_id?, scenario, message, turn 1..6}
+  -> {reply, feedback{praise,tweak,invitation}, done, offline}. Scenarios prep|pivot|disclosure only.
+  6-turn cap, 30 req/60s per IP, blocklist (legal/medical/benefits/identifier), fail-open scripted
+  fallback (followUps[turn-1 mod 3]). No audio accepted/stored. No jobId. Suite B interview index =
+  4 static cards; prep/pivot/disclosure share one panel; resume = static form, no AI.
+- Metering standard: 100 coins = $1.00, 25% platform cut INCLUDED (SERVICE_CUT_PCT, lib/economy.ts).
+  tts/buddy-tts 2 coins/1k chars, buddy-chat 3/1k tokens, fal npc/monster-voice 4/1k chars.
+  Live session start/end = 0 coins; turns metered; local speechSynthesis + typing = $0/0 coins.
+- Privacy: ephemeral default, text-only transcripts, no-audio-ever, vocrehabRedactPii, purposes
+  session-assist|roleplay-save|data-export|course-sync. A11y toolbar key vocrehab-a11y-prefs-v1.
+
+================================================================
+1. ARCHITECTURE (shared core + silo'd vocrehab, one-way deps)
+================================================================
+4weird shared (stays)                    /vocrehab silo (removable on spinoff)
+lib/voice-engine.ts  <---- imports ------ lib/vocrehab-interview-voice.ts (adapter)
+lib/buddy-voice.ts (pure VAD) <--------- components/vocrehab/vocrehab-interview-room.tsx
+components/voice/* (adapters) <--------- app/vocrehab/interview/jobs/** + live/**
+app/api/voice/tts (metered proxy) <----- app/api/vocrehab/** (text-only + save)
+
+Rules (enforced by verify-vocrehab.mjs slice 6):
+- Shared NEVER imports vocrehab-*. Vocrehab MAY import shared. One-way arrow only.
+- Shared engine lives at v2/vcw4w/lib/voice-engine.ts (site-owned, NOT vocrehab- prefixed).
+  Putting shared code under lib/vocrehab-* is spinoff-hostile: rip-out deletes it and breaks the site.
+- Spinoff = copy app/vocrehab/** (~47 files), components/vocrehab/** (23), app/api/vocrehab/**
+  (11 routes), lib/vocrehab-*.ts (15), types/vocrehab-* (4), vocrehab migrations + verifiers.
+  Vendor 4 tiny shims (api-respond, rate-limit, supabase/server, validate) or reimplement.
+  Env swap: NEXT_PUBLIC_VOCREHAB_BASE_URL / VOCREHAB_LLM_KEY.
+- No audio recording/upload/storage EVER in vocrehab. Only transcribed text POSTs on Send.
+- Text parity mandatory: every voice turn renders as text; mic/TTS unsupported never blocks.
+
+Shared engine API (5 functions, all call sites migrate here):
+  startListening(opts, callbacks): handle   // continuous recog + VAD loop
+  stopListening(handle)
+  speakChunked(text, opts): cancel          // sentence-chunked TTS, prefetch N+1, boundary events
+  interrupt(): InterruptionSnapshot         // = cancel TTS + snapshot + restart STT
+  getVoices(): Voice[]
+Barge-in MVP (browser-only, $0): chunked TTS + frameEnergy/updateVad + continuous recog onend-restart
+(copied from gaming-buddy pattern into engine, then delete 3 duplicates). Later upgrades
+(MediaRecorder+server VAD ~300-800ms $$, OpenAI Realtime ~200-500ms $$$): engine interface unchanged.
+Migration order: gaming-buddy.tsx -> swarm-chat.tsx (gives swarm metered /api/buddy/tts + VAD)
+  -> vocrehab-roleplay-panel.tsx -> gravegain sound-engine.js/flow4d.js via thin bridge.
+
+Silo files (NEW only, flat lib/vocrehab-* — no subdir per rip-out rule):
+- lib/vocrehab-voice.ts ............ Interface only (VocrehabVoiceEngine type, zero interview imports)
+- lib/vocrehab-interview-voice.ts .. Silo adapter (imports voice-engine + vocrehab-roleplay, never reverse)
+- lib/vocrehab-interview-jobs.ts ... 20-job catalog (section 2)
+- lib/vocrehab-interview-machine.ts . Pure state machine idle|asking|speaking|listening|interrupted|wrapup, 6-turn cap
+- components/vocrehab/vocrehab-interview-room.tsx .. NEW live room (job header, transcript, VAD meter,
+  Push-to-talk + auto-interrupt + Interrupt button, TTS voice select, Save toggle, mode toggles)
+- components/vocrehab/vocrehab-job-card.tsx ........ NEW picker card
+- app/vocrehab/interview/jobs/page.tsx ............. NEW /vocrehab/interview/jobs (20-job selector; do NOT overwrite prep)
+- app/api/vocrehab/roleplay/* ...................... EXTEND whitelist with job-interview + optional jobId + difficulty
+- app/api/vocrehab/roleplay/save ................... NEW save endpoint (auth, persists session+turns, section 6)
+
+================================================================
+2. THE 20 JOBS (static TS catalog, model text banned v1)
+================================================================
+Q1-4 SHARED FRAME (all jobs): Q1 about-yourself/why-role | Q2 strength+concrete example |
+Q3 challenge+what-you-did | Q4 teamwork/help-coworker. Disclosure never forced; accommodation
+practice opt-in. Q5 role-tailored + 2 follow-ups + 1 curveball interruption prompt each.
+
+type VocrehabInterviewJobId = "retail"|"warehouse"|"food"|"janitorial"|"admin"|"csr"|"hha"
+  |"delivery"|"helpdesk"|"childcare"|"grocery"|"custodial"|"fastfood"|"fileclerk"|"frontdesk"
+  |"kitchen"|"mailroom"|"clinic"|"grounds"|"security";
+interface VocrehabInterviewJobContent { id; title; questions:[Q1..Q5]; followUps:[string,string]; curveball:string; }
+
+ 1 retail (Retail Associate) .......... Q5: long checkout line? | rush+restock? / angry return?
+    CB: "Customer cuts in: 'This is taking too long!' — reply in 2 sentences."
+ 2 warehouse (Warehouse Picker) ....... Q5: hit pick-rate safely? | heavy+unsafe? / behind quota?
+    CB: "Alarm: spill in aisle 7 — what do you do first?"
+ 3 food (Food Service Worker) ......... Q5: lunch rush + wrong order? | food-safety step? / rude diner?
+    CB: "Phone rings while line grows — 2 sentences."
+ 4 janitorial (Janitor) ............... Q5: nightly close routine? | bio-spill found? / missed zone?
+    CB: "Guest reports flood right now — first 2 sentences."
+ 5 admin (Admin Assistant) ............ Q5: juggle calls+calendar? | filing error? / confidential info?
+    CB: "Boss interrupts: urgent memo needed now — reply briefly."
+ 6 csr (Customer Service Rep) ......... Q5: calm upset caller? | policy says no? / system down?
+    CB: "Caller yells 'get me your manager!' — de-escalate in 2 sentences."
+ 7 hha (Home Health Aide) ............. Q5: morning care routine? | client refuses meds? / fall risk?
+    CB: "Client feels dizzy mid-answer — respond now, safety first."
+ 8 delivery (Delivery Driver) ......... Q5: late + traffic? | wrong address? / package damaged?
+    CB: "Dispatch reroutes you mid-stop — acknowledge in 2 sentences."
+ 9 helpdesk (Helpdesk Tier 1) ......... Q5: first password-reset call? | user panics? / can't solve?
+    CB: "Chat pings while caller waits — handle both in 2 sentences."
+10 childcare (Childcare Assistant) .... Q5: settle crying child? | two kids fight? / parent late?
+    CB: "Child falls and cries mid-answer — respond in 2 sentences."
+11 grocery (Grocery Stocker) .......... Q5: overnight shelf plan? | expired item? / customer blocks bay?
+    CB: "Pallet tips nearby — what do you say/do first?"
+12 custodial (Custodial Helper) ....... Q5: day-school tidy route? | restroom complaint? / supply out?
+    CB: "Vomit in hall right now — 2-sentence response."
+13 fastfood (Fast-Food Crew) .......... Q5: fry+register rush? | order wrong? / slow teammate?
+    CB: "Drive-thru beeps nonstop — 2 sentences."
+14 fileclerk (Office File Clerk) ...... Q5: sort 100 files? | misfiling found? / deadline clash?
+    CB: "Manager needs one file NOW — reply briefly."
+15 frontdesk (Front-Desk Receptionist)  Q5: greet+sign-in flow? | double-booked? / visitor upset?
+    CB: "Two visitors arrive together — greet both in 2 sentences."
+16 kitchen (Kitchen Prep) ............. Q5: prep-list order? | knife/diet safety? / running behind?
+    CB: "Chef adds a rush dish — acknowledge in 2 sentences."
+17 mailroom (Mailroom/Shipping) ....... Q5: sort+label rush? | wrong label? / fragile item?
+    CB: "Truck arrives early at dock — respond now."
+18 clinic (Clinic Scheduler) .......... Q5: book+confirm day? | no-show gap? / anxious patient?
+    CB: "Phone + line patient together — handle in 2 sentences."
+19 grounds (Grounds/Landscaping) ...... Q5: mow+trash route? | heat/tool risk? / vandalism found?
+    CB: "Storm debris blocks path — first 2 sentences."
+20 security (Security Greeter) ........ Q5: post+rounds routine? | unbadged visitor? / distraction?
+    CB: "Alarm chirps mid-answer — respond calmly in 2 sentences."
+
+================================================================
+3. 3 DIFFICULTIES (persona + strictness scale, encouraging copy)
+================================================================
+- BEGINNER "Patient Coach" (warm, unhurried): simple behavioral Qs, no jargon, rephrases freely,
+  0 curveballs, never interrupts, gives hints, accepts partial answers. Pass >= 60 (0.8x strictness).
+- ADVANCED "Brisk Professional" (friendly but businesslike): STAR probing ("what was the RESULT —
+  numbers?"), moderate technical depth, 1 curveball/session (gap, weakness), interrupts ONLY to
+  redirect rambling ("Let me pause you there — the result?"). No hints, demands STAR example.
+  Pass >= 70 (1.0x).
+- EXPERT "Stern + Technical" (formal, terse, high standards): deep behavioral + technical + stress
+  Qs (conflict, failure, tradeoffs), 2-3 curveballs/session (pushback, silence, "convince me"),
+  may interrupt once to test poise; respectful, never personal. Challenges vague claims, scores
+  concision (clarity <= 45 words). Pass >= 80 (1.25x).
+- Same rubric axes all tiers; only thresholds/tone scale. Same 60-word/1-question-per-turn cap
+  (45 for Expert). Progression: Beginner always open; Advanced unlocks after 1 Beginner pass;
+  Expert after 1 Advanced pass — retries unlimited, tiers never lock out.
+- Copy: "Ready for a bigger challenge?" / "Advanced unlocked — nice reps!" /
+  "Expert is spicy — try it when you want. No score defines you." Never "failed / too easy".
+- BINDING GUARDRAIL (all tiers): feedback targets phrasing choices ONLY — never accent, dialect,
+  speech pattern, disability, or voice. Applies to personas, curveballs, interruptions.
+
+================================================================
+4. MODES: LIVE vs TURN-BASED x SPEAK vs TYPE (all 4 valid)
+================================================================
+Default: Turn-based + Type (cheapest, calmest). Toggle per-turn; Send NEVER gated on mic/TTS state.
+
+ LIVE-FULLY (realtime + barge-in): mic streams via SpeechRecognition interim ->
+   mergePartialTranscript() -> live draft; coach TTS via speechSynthesis (or metered OpenAI).
+   Typing any key cancels TTS (= text barge-in); Send interrupts same as voice.
+   Barge-in protocol: VAD event "started" while speaking -> (1) speechSynthesis.cancel() + stop
+   STT-streaming, (2) buildInterruptionSnapshot({partialUserText, coachSoFar, jobId+difficulty}),
+   (3) next POST prepends snapshotToPrompt/resumptionPrefix ("[barge-in]...continue, don't restart").
+   Interrupted turns tagged, count toward 6-turn cap, single queued-turn voice-wins. Noisy toggle ->
+   threshold 0.05/12 frames + manual-send. pruneHistoryWithInterruptions(...,8).
+ TURN-BASED (take your time): no VAD, no timer, no auto-submit. Mic dictates into composer only;
+   edit freely, Send when ready. send() does stopListening() then POST.
+ TYPE INSTEAD OF SPEAKING: always available in both session modes. Full keyboard path
+   (Tab+Enter/arrows, no positive tabindex). Mic unsupported -> button disabled +
+   "typing works fully". speak() try/catch — text reply always stays visible.
+ TEXT PARITY: every voice turn renders as chat text (aria-live). Voice never POSTs audio.
+
+================================================================
+5. GRADING + HOW TO IMPROVE (AI report card)
+================================================================
+Per-turn TurnGrade: {turn, praise, tweak, invitation, scores:{clarity, example, roleFit,
+professionalism, disclosure}, weakTurn:bool}. Axes 1-5:
+ clarity (<=60w grade 6-8; Expert <=45w), example (STAR: Situation/Task/Action/Result),
+ roleFit (names skill tied to role), professionalism (no blame/slang),
+ disclosure (pivot: 1 neutral line + forward; disclosure: owns choice, no identifiers; prep: blocklist-clean=5).
+End-of-session report card (POST /roleplay/grade or computed at done=true): averages per axis,
+overall 1-5 mean, grade A-F, verdict pass|retry, weakTurns[]. Pass = overall >= tier threshold
+AND disclosure >= 3 AND zero blocklist hits. 6-turn cap triggers card + warm wrap-up.
+How-to-improve per weak turn (score <= 2): one modelRewrite (<= 2 sentences, scenario-shaped:
+ prep "I... result was..."; pivot "That period... since then... today I..."; disclosure
+ "It helps to have... that helps me...") + one drill ("30-sec STAR retell", "3-sentence pivot rep",
+ "1-sentence accommodation rephrase"). Reuses existing tweak (one rewritten sentence, never a
+ command) + invitation retry. Difficulty scales strictness only; rubric/blocklist invariant.
+Fail-open (LLM offline): reply = vocrehabRoleplayFallback(turn-1), feedback = rubric heuristics,
+ offline:true. Scripted scores: clarity = words<=60?5:2; example = action+result words?4:2;
+ disclosure = blocklisted?1:5; roleFit/professionalism default 3. Never throws; badge
+ "Practice script — provider offline".
+
+================================================================
+6. BACKEND / DB / ADMIN-SAVE (no new table)
+================================================================
+- NO new table. Reuse vocrehab_roleplay_sessions(id,user_id,scenario,turns,saved,created_at) +
+  vocrehab_roleplay_turns(session_id,user_id,role[user|manager|feedback],text 1..2000).
+  ONE migration: widen scenario CHECK ('prep','pivot','disclosure') -> + 'job-interview';
+  add metadata jsonb DEFAULT '{}' for {jobId, difficulty, mode, scores, reportCard}.
+  role='feedback' rows store report-card lines. Do NOT overload assessments kind=readiness (games-only).
+- POST /api/vocrehab/roleplay stays stateless text-only (validates scenario/message/turn<=6, echoes
+  session_id, zero DB writes). EXTEND whitelist: add "job-interview" to SCENARIOS
+  (roleplay/route + feedback/route + lib/vocrehab-roleplay.ts) + optional jobId + difficulty
+  ("beginner"|"advanced"|"expert", default beginner) + optional mode ("live"|"turn").
+  Accept + echo like session_id; cap/blocklist/fallback untouched.
+- Optional metered TTS: POST /api/vocrehab/roleplay/speak {text 1..600} mirroring buddy/tts
+  (IP 20/min, fallback:true no key, no wallet) — vocrehab defaults to local speechSynthesis ($0).
+- Save flow: ephemeral default (in-memory, discard on close). Explicit "Save rehearsal" ->
+  signed-in only (guest 401, mirror documents/route): POST /api/vocrehab/roleplay/save inserts
+  session (saved=true) + turns batch; or snapshot as documents kind='interview-report'.
+  PATCH /save flags saved. Admin/pro reads saved=true sessions only (private by default;
+  counselor sees only explicitly shared saved rehearsal).
+- Admin view: full transcript (turns ordered) + rubric report card (praise/tweak/invitation +
+  scores in metadata) + job/difficulty/mode header. Never audio (none exists).
+
+================================================================
+7. COINS (standard 25%-included margin)
+================================================================
+- Free defaults: local speechSynthesis + typing = $0 / 0 coins. Turn-based/offline scripted = 0 coins.
+- Live turn metered per turn via estimateBuddyTurn(): chat ~3 coins/1k tokens + TTS 2/1k chars
+  (OpenAI) or 4/1k chars (fal dia/minimax). Typical turn ~0.05-0.30 gross; ~9-10 coins per
+  30-turn-equivalent session at current rates. Session start/end = 0 coins.
+- Suggested shelf prices (same 25%-included rule; no per-difficulty markup in code today):
+  Turn-based graded session = ~5 coins | Live Beginner = ~8 | Live Advanced = ~10 | Live Expert = ~12.
+  (Reconcile against true-cost legs at build: gross = providerUSD*100/0.75, floor 0.01.)
+- Enforcement point: roleplay/speak + interview-turn routes: get_my_coin_balance pre-check ->
+  402 when short -> provider call -> meter_game_ai_usage debit (spend-lock, fail-closed) before
+  bytes delivered. Never charge for failed calls.
+- Pre-Start copy: "Live AI is metered, typing + browser voice free. This session ≈ X coins
+  (incl. 25% platform cut, 100 coins = $1). See /my/usage."
+
+================================================================
+8. PRIVACY / A11Y / VERIFY GATES
+================================================================
+- Privacy: transcripts text-only; ephemeral default, save only via voice-rehearsal-save consent
+  (NEW 5th purpose in lib/vocrehab-privacy.ts + consent copy); vocrehabRedactPii before render/save
+  (email/ssn/dob/phone/id-9, no bare 4-digit); no-audio-ever (never persist blobs/base64);
+  export-allowlist: roleplay_turns IN, raw audio DENIED.
+- A11y (extend vocrehab-a11y-toolbar, key vocrehab-a11y-prefs-v1, scoped .vocrehab-layout):
+  captions toggle default ON; Esc/Stop as first-tab stop control; vocrehabMotion full|reduced
+  honors prefers-reduced-motion (freezes waveform); live regions role=status throttled;
+  high-contrast focus #ffff00; vocrehabVoice:false default.
+- verify-vocrehab.mjs additions: interview routes present; scenario-enum includes job-interview;
+  voice-consent purpose wired; PII-redact + no-audio check; panel-voice check; export-allowlist.
+- ss2 CHEAP: 1 file/scope, snapshot packs, gates only (node --check / tsc --noEmit / eslint /
+  verify-vocrehab 6 slices / verify-buddy-presence), 0 retries, one-line reports. NEVER: secrets
+  under public/swarm/, index.html in swarm, old-v1/ edits, lockfile fights.
+
+================================================================
+9. EXECUTION WAVES (for the swarm — NEW files only + QUEUE wiring)
+================================================================
+WAVE 1 (shared, proves barge-in): land lib/voice-engine.ts; migrate gaming-buddy first
+  (zero behavior change), then swarm-chat (gives swarm metered TTS + VAD).
+WAVE 2 (silo room): land vocrehab-interview-jobs.ts (20 jobs) + vocrehab-voice.ts +
+  vocrehab-interview-voice.ts + vocrehab-interview-machine.ts + vocrehab-interview-room.tsx +
+  vocrehab-job-card.tsx + jobs/page.tsx; extend roleplay API whitelist (job-interview/jobId/
+  difficulty/mode) + grade + save routes; wire Beginner/Advanced/Expert personas + report card.
+WAVE 3 (wire, integrator-only LAST): QUEUE lines only — hub card -> jobs link, site-nav,
+  docs (getting-started + counselors), sitemap, verify:vocrehab chain. Integrator-owned pointers
+  untouched by lane agents. From v2/vcw4w/: verify-pack -> claim (TASKS/DS-*.json) -> work ->
+  gates -> release + tokens-note. Run npm test chain incl. verify:devswarm before done.
+
+Suggested 10 envelopes (mint as DS-VOCREHAB-W2-01..10, lane web except 08 docs / 09 infra):
+ 01 lib/voice-engine.ts (shared extract, zero vocrehab imports)
+ 02 lib/vocrehab-voice.ts + lib/vocrehab-interview-voice.ts (silo adapter)
+ 03 lib/vocrehab-interview-jobs.ts (20-job catalog + validators)
+ 04 lib/vocrehab-interview-machine.ts + barge-in policy + mirror tests
+ 05 components/vocrehab/vocrehab-interview-room.tsx (room shell + modes + toolbar)
+ 06 components/vocrehab/vocrehab-job-card.tsx + jobs/page.tsx (picker)
+ 07 app/api/vocrehab/roleplay/* (whitelist job-interview/jobId/difficulty/mode + grade + save)
+ 08 docs (interview guide + QUEUE nav wiring ask)
+ 09 scripts/verify-vocrehab*.mjs (interview/difficulty/consent/no-audio/export checks)
+ 10 integrator lib/site-nav.ts + QUEUE/STATUS wiring in one pass
+
+================================================================
+10. PROS AND CONS OF THIS FINAL PLAN
+================================================================
+PROS:
+ + Best-of-4 synthesis: keeps Agent-1 ground truth, Agent-5/8 spinoff-safe engine placement,
+   Agent-7 flat-file rip-out rule, Agent-6/9 content, Agent-10 DB/privacy verdict. No reinvention.
+ + Spinoff-safe by construction: one-way deps, flat lib/vocrehab-*, shared engine survives rip-out.
+   Copy-list is explicit (dirs + file counts + env swap).
+ + $0 entry path: typing + turn-based + local TTS works fully with zero coins, zero mic, zero key.
+   Metering only touches live/server-TTS legs at the standard 25%-included margin — no new economy code.
+ + No new table: one migration (enum + metadata jsonb) reuses sessions/turns + documents path.
+   Admin-save is explicit-consent only; ephemeral default preserves current privacy guarantee.
+ + 20 jobs x 3 difficulties x 2 session modes x 2 inputs = real practice breadth without content
+   explosion (Q1-4 shared frame; only Q5/follow-ups/curveball per job; difficulty = prompt clause +
+   strictness multiplier, not new content).
+ + Accessibility + guardrails baked in (captions, Esc-stop, reduced-motion, text parity,
+   never-grade-accent/disability), not bolted on. Verifier slices make it enforceable.
+ + CHEAP-executable: 10 one-file scopes, NEW-files-only, integrator-last — minimal collision with
+   in_progress VocRehab lanes (C3/C4/C6/C7/V1/V3/V6) and open V2/V4/G1-G10.
+
+CONS / RISKS:
+ - Browser STT variance: Web Speech accuracy/noise differs by browser/locale; VAD thresholds
+   (0.02/8) need the noisy-toggle fallback (0.05/12 + manual-send) and full type-parity, or live
+   mode frustrates users with accents, stutters, or cheap mics.
+ - No true full-duplex: browser-only barge-in is ~half-duplex (cancel + resume), not Realtime
+   (~200-500ms). Interruptions feel abrupt; TTS boundary tracking is approximate. Upgrade path
+   exists but costs $$/$$$ and new latency work.
+ - Grading subjectivity: LLM rubric scores drift; strictness multipliers are heuristic until
+   calibrated against counselor review. Fail-open scripted scores are crude (keyword/length).
+   Needs a counselor spot-check loop before "grades" carry weight with admins.
+ - Coin friction: even small per-session prices (~5-12 coins) may deter the exact users vocrehab
+   serves. Mitigate with free turn-based default + clear pre-start price + first-session-free.
+ - Scope creep surface: 20 jobs + 3 personas + 2 modes + grading + save + docs + verifiers is a
+   lot for CHEAP (no retries). Wave discipline (1-file scopes, integrator-last) is load-bearing;
+   any lane touching shared manifests early will collide.
+ - Admin data sensitivity: saved transcripts + report cards become reviewable records. Requires
+   consent copy, retention/export allowlist, and counselor-training note (scores = practice signal,
+   not hiring decision) — otherwise misinterpretation risk.
+
+OPEN QUESTIONS FOR YOU (no build blocked):
+ 1) Lock the 20-job list above (grocery/custodial/fastfood/fileclerk/frontdesk/kitchen/mailroom/
+    clinic/grounds/security as the +10)?  2) Shelf prices OK (5 / 8 / 10 / 12)?
+ 3) Progression gating OK (Advanced needs 1 Beginner pass, Expert needs 1 Advanced pass, unlimited retries)?

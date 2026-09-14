@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
+import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
+import { vocrehabSelectInbox } from "@/lib/vocrehab-seed-pools";
 
 type VocrehabTriage = "reply" | "schedule" | "file" | "flag";
 type VocrehabMsgKind = "urgent" | "normal" | "fyi" | "phishing" | "accommodation";
@@ -14,17 +16,6 @@ interface VocrehabMessage {
   kind: VocrehabMsgKind;
 }
 
-const VOCREHAB_MESSAGES: readonly VocrehabMessage[] = [
-  { id: "m1", from: "Supervisor", subject: "Shift starts 30 min early today", body: "Heads up — today's shift starts at 8:30, not 9. Reply so I know you saw this.", kind: "urgent" },
-  { id: "m2", from: "Client", subject: "Running late, need to reschedule", body: "Something came up — can we move our 2pm to tomorrow? This needs an answer today.", kind: "urgent" },
-  { id: "m3", from: "Coworker", subject: "Swap Friday?", body: "Can you take my Friday evening? I can take your Sunday morning.", kind: "normal" },
-  { id: "m4", from: "Training", subject: "New safety video posted", body: "Watch the 5-minute safety refresher before Friday.", kind: "normal" },
-  { id: "m5", from: "Payroll", subject: "Timesheet due Thursday", body: "Submit hours by Thursday noon so pay is on time.", kind: "normal" },
-  { id: "m6", from: "Office", subject: "Fridge cleanout Friday", body: "Label anything you want to keep by Friday.", kind: "fyi" },
-  { id: "m7", from: "IT-Support!", subject: "URGENT verify your password now", body: "Your account will be locked! Click now to verify your password immediately.", kind: "phishing" },
-  { id: "m8", from: "New teammate", subject: "A request about how I work best", body: "Hi — written instructions help me start tasks confidently. Could my training steps come in writing too? Please reply.", kind: "accommodation" },
-];
-
 const VOCREHAB_ACTIONS: readonly { id: VocrehabTriage; label: string }[] = [
   { id: "reply", label: "Reply now" },
   { id: "schedule", label: "Schedule" },
@@ -34,7 +25,25 @@ const VOCREHAB_ACTIONS: readonly { id: VocrehabTriage; label: string }[] = [
 
 const VOCREHAB_STARTER = "Thank you for sharing this. What would help is ";
 
-export default function VocrehabGameInboxSprint({ vocrehabEmit, vocrehabFinish }: VocrehabGameRunProps) {
+export default function VocrehabGameInboxSprint({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey }: VocrehabGameRunProps) {
+  // Seeded deal: 8 scenarios (4 phish + 4 legit), same seed replays the same set+order.
+  const sel = useMemo(
+    () => vocrehabSelectInbox(parseSeed(vocrehabSeed ?? null) ?? makeSeed()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [vocrehabSeed, vocrehabRunKey],
+  );
+  const VOCREHAB_MESSAGES: readonly VocrehabMessage[] = sel.scenarios.map((s) => ({
+    id: s.id,
+    from: s.sender,
+    subject: s.subject,
+    body: s.bodySnippet,
+    kind: s.verdict === "phish" ? "phishing" : "normal",
+  }));
+  // Reply-box target: first legit scenario asking for a reply, else first legit, else first dealt.
+  const vocrehabReplyTargetId =
+    sel.scenarios.find((s) => s.verdict === "legit" && s.safeAction === "reply")?.id ??
+    sel.scenarios.find((s) => s.verdict === "legit")?.id ??
+    sel.scenarios[0].id;
   const [vocrehabTriaged, setVocrehabTriaged] = useState<Record<string, VocrehabTriage>>({});
   const [vocrehabReply, setVocrehabReply] = useState("");
   const [vocrehabReplySaved, setVocrehabReplySaved] = useState(false);
@@ -62,18 +71,22 @@ export default function VocrehabGameInboxSprint({ vocrehabEmit, vocrehabFinish }
       return;
     }
     setVocrehabReplySaved(true);
-    vocrehabEmit("action", { message: "m8", action: "reply-saved", replyLength: text.length });
+    vocrehabEmit("action", { message: vocrehabReplyTargetId, action: "reply-saved", replyLength: text.length });
     setVocrehabCoach("✓ Reply saved — clear and kind.");
   };
 
   const triagedCount = Object.keys(vocrehabTriaged).length;
-  const urgentRight = ["m1", "m2"].filter((id) => vocrehabTriaged[id] === "reply" || vocrehabTriaged[id] === "schedule").length;
-  const phishingFlagged = vocrehabTriaged["m7"] === "flag";
+  const urgentRight = sel.scenarios
+    .filter((s) => s.verdict === "legit")
+    .filter((s) => vocrehabTriaged[s.id] === "reply" || vocrehabTriaged[s.id] === "schedule").length;
+  const phishingFlagged = sel.scenarios
+    .filter((s) => s.verdict === "phish")
+    .every((s) => vocrehabTriaged[s.id] === "flag");
 
   const vocrehabDone = () => {
     if (doneRef.current || triagedCount < VOCREHAB_MESSAGES.length || !vocrehabReplySaved) return;
     doneRef.current = true;
-    vocrehabFinish({ triaged: triagedCount, urgentHandled: urgentRight, phishingFlagged });
+    vocrehabFinish({ triaged: triagedCount, urgentHandled: urgentRight, phishingFlagged, seed: sel.seed });
   };
 
   return (
@@ -109,7 +122,7 @@ export default function VocrehabGameInboxSprint({ vocrehabEmit, vocrehabFinish }
                   </button>
                 ))}
               </div>
-              {msg.id === "m8" && (chosen === "reply" || vocrehabReplySaved) && (
+              {msg.id === vocrehabReplyTargetId && (chosen === "reply" || vocrehabReplySaved) && (
                 <div className="mt-2 space-y-2">
                   <label htmlFor="vocrehab-inbox-reply" className="text-sm font-medium">
                     Your 1–2 sentence reply (start from the sentence starter, finish in your own words)

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { makeSeed } from "@/lib/vocrehab-seed";
 import {
-  VOCREHAB_PAYCHECK_SCENARIOS,
-  type VocrehabPaycheckScenario,
-} from "@/components/vocrehab/vocrehab-game-paycheck-scenarios";
+  vocrehabSelectPaycheck,
+  type VocrehabPaycheckPoolScenario,
+} from "@/lib/vocrehab-seed-pools3";
 
 type VocrehabPaycheckPhase = "intro" | "practice" | "countdown" | "run" | "results";
 type VocrehabPaycheckStep = "gross" | "allocate" | "curveball" | "roundDone";
@@ -29,6 +30,8 @@ interface VocrehabPaycheckProps {
   vocrehabTimeLimitSec?: number;
   vocrehabOnComplete?: (vocrehabTelemetry: VocrehabPaycheckEvent[]) => void;
   vocrehabOnExit?: () => void;
+  vocrehabSeed?: string;
+  vocrehabRunKey?: number;
 }
 
 interface VocrehabPaycheckRound {
@@ -60,7 +63,7 @@ function vocrehabPaycheckStr(vocrehabValue: unknown, vocrehabFallback: string): 
 }
 
 function vocrehabPaycheckNorm(
-  vocrehabRaw: VocrehabPaycheckScenario,
+  vocrehabRaw: VocrehabPaycheckPoolScenario,
   vocrehabIndex: number,
 ): VocrehabPaycheckRound {
   const vocrehabRec = vocrehabRaw as unknown as Record<string, unknown>;
@@ -206,9 +209,13 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
   const vocrehabEventsRef = useRef<VocrehabPaycheckEvent[]>([]);
   const vocrehabTimersRef = useRef<number[]>([]);
 
-  const vocrehabScenarios: VocrehabPaycheckScenario[] = Array.isArray(VOCREHAB_PAYCHECK_SCENARIOS)
-    ? VOCREHAB_PAYCHECK_SCENARIOS
-    : [];
+  // Seeded budget scenarios: every seed replays the same fair 3-round set.
+  const vocrehabSelected = useMemo(() => {
+    const seed = vocrehabProps.vocrehabSeed ?? makeSeed();
+    return vocrehabSelectPaycheck(seed);
+  }, [vocrehabProps.vocrehabSeed, vocrehabProps.vocrehabRunKey]);
+  const vocrehabSeed = vocrehabSelected.seed;
+  const vocrehabScenarios: readonly VocrehabPaycheckPoolScenario[] = vocrehabSelected.scenarios;
   const vocrehabRounds: VocrehabPaycheckRound[] = vocrehabScenarios
     .slice(0, 3)
     .map((vocrehabS, vocrehabI) => vocrehabPaycheckNorm(vocrehabS, vocrehabI));
@@ -276,13 +283,13 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
     const vocrehabId = window.setTimeout(() => {
       vocrehabPush("interrupt", { reason: "time-limit", game: vocrehabGameId });
       setVocrehabPhase("results");
-      vocrehabPush("complete", { game: vocrehabGameId, points: vocrehabPoints });
+      vocrehabPush("complete", { game: vocrehabGameId, points: vocrehabPoints, seed: vocrehabSeed });
     }, vocrehabLimitMs);
     vocrehabTimersRef.current.push(vocrehabId);
     return () => {
       window.clearTimeout(vocrehabId);
     };
-  }, [vocrehabPhase, vocrehabProps.vocrehabTimeLimitSec, vocrehabGameId, vocrehabPoints]);
+  }, [vocrehabPhase, vocrehabProps.vocrehabTimeLimitSec, vocrehabGameId, vocrehabPoints, vocrehabSeed]);
 
   function vocrehabBeginPractice(): void {
     vocrehabStartRef.current = performance.now();
@@ -408,7 +415,7 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
   function vocrehabNextRound(): void {
     if (vocrehabRound + 1 >= vocrehabRounds.length) {
       setVocrehabPhase("results");
-      vocrehabPush("complete", { game: vocrehabGameId, points: vocrehabPoints, rounds: vocrehabRounds.length });
+      vocrehabPush("complete", { game: vocrehabGameId, points: vocrehabPoints, rounds: vocrehabRounds.length, seed: vocrehabSeed });
       return;
     }
     setVocrehabRound((vocrehabR) => vocrehabR + 1);
@@ -466,7 +473,7 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
   }
 
   function vocrehabSend(): void {
-    vocrehabPush("complete", { game: vocrehabGameId, points: vocrehabPoints, sent: true });
+    vocrehabPush("complete", { game: vocrehabGameId, points: vocrehabPoints, sent: true, seed: vocrehabSeed });
     if (vocrehabProps.vocrehabOnComplete) vocrehabProps.vocrehabOnComplete([...vocrehabEventsRef.current]);
     setVocrehabSent(true);
   }

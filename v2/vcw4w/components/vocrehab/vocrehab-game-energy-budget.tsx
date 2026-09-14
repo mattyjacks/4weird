@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { makeSeed } from "@/lib/vocrehab-seed";
+import { vocrehabSelectEnergy } from "@/lib/vocrehab-seed-pools3";
 import { vocrehabEmit as vocrehabPostInterop } from "@/lib/vocrehab-interop";
 
 const VOCREHAB_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
@@ -20,14 +22,8 @@ interface VocrehabPaletteBlock {
   label: string;
   cost: number;
   hint: string;
+  kind: string;
 }
-
-const VOCREHAB_PALETTE: readonly VocrehabPaletteBlock[] = [
-  { id: "work", label: "Work shift", cost: 2, hint: "A regular shift. Costs 2 energy tokens." },
-  { id: "appointment", label: "Appointment", cost: 1, hint: "A short appointment. Costs 1 energy token." },
-  { id: "rest", label: "Rest", cost: 0, hint: "Rest costs nothing and protects the slot." },
-  { id: "deepwork", label: "Deep work", cost: 3, hint: "Big focused work. Costs 3 tokens, at most one per day." },
-];
 
 type VocrehabEventKind = "start" | "action" | "error" | "help" | "pause" | "resume" | "complete";
 
@@ -37,8 +33,11 @@ interface VocrehabRunEvent {
   detail: Record<string, unknown>;
 }
 
-function vocrehabBlockById(id: string): VocrehabPaletteBlock | null {
-  return VOCREHAB_PALETTE.find((b) => b.id === id) ?? null;
+function vocrehabBlockById(
+  palette: readonly VocrehabPaletteBlock[],
+  id: string,
+): VocrehabPaletteBlock | null {
+  return palette.find((b) => b.id === id) ?? null;
 }
 
 function vocrehabCellKey(day: VocrehabDay, slot: VocrehabSlot): string {
@@ -56,7 +55,26 @@ function vocrehabReadRuns(): number {
   }
 }
 
-export default function VocrehabGameEnergyBudget() {
+export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?: string } = {}) {
+  // Seeded weekly menu: every seed replays the same fair 6-item set.
+  const vocrehabPool = useMemo(() => {
+    const seed = vocrehabProps.vocrehabSeed ?? makeSeed();
+    const selection = vocrehabSelectEnergy(seed);
+    return {
+      seed,
+      palette: selection.items.map((item) => ({
+        id: item.id,
+        label: item.label,
+        cost: item.cost,
+        hint: item.strengthNote,
+        kind: item.kind,
+      })),
+    };
+  }, [vocrehabProps.vocrehabSeed]);
+  const vocrehabSeed = vocrehabPool.seed;
+  const vocrehabPalette: readonly VocrehabPaletteBlock[] = vocrehabPool.palette;
+  const vocrehabWorkLabel = vocrehabPalette.find((b) => b.kind === "work")?.label ?? "Work shift";
+  const vocrehabRestLabel = vocrehabPalette.find((b) => b.kind === "rest")?.label ?? "Rest";
   const [vocrehabPhase, setVocrehabPhase] = useState<VocrehabPhase>("intro");
   const [vocrehabPaused, setVocrehabPaused] = useState(false);
   const [vocrehabSelected, setVocrehabSelected] = useState<string | null>(null);
@@ -98,12 +116,12 @@ export default function VocrehabGameEnergyBudget() {
     (day: VocrehabDay, board: Record<string, string>): number => {
       let total = 0;
       for (const slot of VOCREHAB_SLOTS) {
-        const block = vocrehabBlockById(board[vocrehabCellKey(day, slot)] ?? "");
+        const block = vocrehabBlockById(vocrehabPalette, board[vocrehabCellKey(day, slot)] ?? "");
         if (block) total += block.cost;
       }
       return total;
     },
-    [],
+    [vocrehabPalette],
   );
 
   const vocrehabWeekTotal = useCallback(
@@ -113,13 +131,17 @@ export default function VocrehabGameEnergyBudget() {
     [vocrehabDayTotal],
   );
 
-  // A "free evening" is an evening slot holding nothing or only Rest.
-  const vocrehabFreeEvenings = useCallback((board: Record<string, string>): VocrehabDay[] => {
-    return VOCREHAB_DAYS.filter((day) => {
-      const occupant = board[vocrehabCellKey(day, "Evening")];
-      return !occupant || occupant === "rest";
-    });
-  }, []);
+  // A "free evening" is an evening slot holding nothing or only a rest-kind block.
+  const vocrehabFreeEvenings = useCallback(
+    (board: Record<string, string>): VocrehabDay[] => {
+      return VOCREHAB_DAYS.filter((day) => {
+        const occupant = board[vocrehabCellKey(day, "Evening")];
+        if (!occupant) return true;
+        return vocrehabBlockById(vocrehabPalette, occupant)?.kind === "rest";
+      });
+    },
+    [vocrehabPalette],
+  );
 
   const vocrehabPlace = (day: VocrehabDay, slot: VocrehabSlot) => {
     const cell = vocrehabCellKey(day, slot);
@@ -132,11 +154,11 @@ export default function VocrehabGameEnergyBudget() {
       setVocrehabNote("Pick a block from the palette first, then choose a day and time.");
       return;
     }
-    const block = vocrehabBlockById(vocrehabSelected);
+    const block = vocrehabBlockById(vocrehabPalette, vocrehabSelected);
     if (!block) return;
     const occupant = vocrehabPlaced[cell];
     if (occupant && occupant !== vocrehabSelected) {
-      const label = vocrehabBlockById(occupant)?.label ?? occupant;
+      const label = vocrehabBlockById(vocrehabPalette, occupant)?.label ?? occupant;
       setVocrehabNote(
         `${day} ${slot} already holds ${label}. Use its Remove button to free it first, then place ${block.label}. Nothing is graded here.`,
       );
@@ -146,11 +168,14 @@ export default function VocrehabGameEnergyBudget() {
       setVocrehabNote(`${block.label} is already planned for ${day} ${slot}.`);
       return;
     }
-    if (block.id === "deepwork") {
-      const already = VOCREHAB_SLOTS.some((s) => vocrehabPlaced[vocrehabCellKey(day, s)] === "deepwork");
-      if (already) {
+    if (block.cost >= 3) {
+      const heavy =
+        VOCREHAB_SLOTS.map((s) => vocrehabPlaced[vocrehabCellKey(day, s)] ?? "")
+          .map((id) => vocrehabBlockById(vocrehabPalette, id))
+          .find((b) => b !== null && b.cost >= 3) ?? null;
+      if (heavy) {
         setVocrehabNote(
-          `${day} already has its one Deep work block. Deep work is powerful, so one per day keeps the week steady. Try a Work shift or an Appointment instead.`,
+          `${day} already has its high-energy ${heavy.label} block. High-energy blocks are powerful, so one per day keeps the week steady. Try a lighter block instead.`,
         );
         return;
       }
@@ -173,7 +198,7 @@ export default function VocrehabGameEnergyBudget() {
     const cell = vocrehabCellKey(day, slot);
     const occupant = vocrehabPlaced[cell];
     if (!occupant) return;
-    const label = vocrehabBlockById(occupant)?.label ?? occupant;
+    const label = vocrehabBlockById(vocrehabPalette, occupant)?.label ?? occupant;
     setVocrehabPlaced((prev) => {
       const next = { ...prev };
       delete next[cell];
@@ -192,10 +217,10 @@ export default function VocrehabGameEnergyBudget() {
     const free = vocrehabFreeEvenings(vocrehabPlaced);
     setVocrehabHint(
       week > VOCREHAB_WEEK_BUDGET
-        ? `Gentle idea: the week uses ${week} of ${VOCREHAB_WEEK_BUDGET} tokens. Try swapping a Work shift for Rest, or moving an Appointment to a lighter day.`
+        ? `Gentle idea: the week uses ${week} of ${VOCREHAB_WEEK_BUDGET} tokens. Try swapping a higher-cost block for ${vocrehabRestLabel}, or moving something to a lighter day.`
         : free.length === 0
-          ? "Gentle idea: every evening is busy. Leaving one evening with only Rest protects recovery time."
-          : "Gentle idea: Rest blocks cost nothing. An evening with only Rest keeps that evening protected.",
+          ? `Gentle idea: every evening is busy. Leaving one evening with only ${vocrehabRestLabel} protects recovery time.`
+          : `Gentle idea: ${vocrehabRestLabel} is the lightest way to hold a slot. An evening with only ${vocrehabRestLabel} keeps that evening protected.`,
     );
     setVocrehabAnnounce("Hint shown. No penalty for asking.");
   };
@@ -274,7 +299,7 @@ export default function VocrehabGameEnergyBudget() {
       return;
     }
     finishedRef.current = true;
-    const detail = { weekTotal: week, freeEvenings: free.length, budget: VOCREHAB_WEEK_BUDGET };
+    const detail = { weekTotal: week, freeEvenings: free.length, budget: VOCREHAB_WEEK_BUDGET, seed: vocrehabSeed };
     try {
       if (eventsRef.current.length < VOCREHAB_MAX_EVENTS) {
         eventsRef.current.push({ t_ms: vocrehabNow(), kind: "complete", detail });
@@ -292,11 +317,14 @@ export default function VocrehabGameEnergyBudget() {
     } else {
       strengths.push(`You kept ${free[0]} evening free, so the week has protected recovery time.`);
     }
-    const deepDays = VOCREHAB_DAYS.filter((day) =>
-      VOCREHAB_SLOTS.some((slot) => vocrehabPlaced[vocrehabCellKey(day, slot)] === "deepwork"),
+    const heavyDays = VOCREHAB_DAYS.filter((day) =>
+      VOCREHAB_SLOTS.some(
+        (slot) =>
+          (vocrehabBlockById(vocrehabPalette, vocrehabPlaced[vocrehabCellKey(day, slot)] ?? "")?.cost ?? 0) >= 3,
+      ),
     );
-    if (deepDays.length > 0) {
-      strengths.push(`You gave deep work its own space on ${deepDays.join(", ")} without doubling it up.`);
+    if (heavyDays.length > 0) {
+      strengths.push(`You gave high-energy blocks their own space on ${heavyDays.join(", ")} without doubling them up.`);
     } else {
       strengths.push("You kept the week steady with shifts, appointments, and rest — a calm mix.");
     }
@@ -345,8 +373,12 @@ export default function VocrehabGameEnergyBudget() {
   };
 
   const weekTotal = vocrehabWeekTotal(vocrehabPlaced);
-  const practicePlacedWork = Object.values(vocrehabPlaced).includes("work");
-  const practicePlacedRest = Object.values(vocrehabPlaced).includes("rest");
+  const practicePlacedWork = Object.values(vocrehabPlaced).some(
+    (id) => vocrehabBlockById(vocrehabPalette, id)?.kind === "work",
+  );
+  const practicePlacedRest = Object.values(vocrehabPlaced).some(
+    (id) => vocrehabBlockById(vocrehabPalette, id)?.kind === "rest",
+  );
 
   return (
     <section aria-label="Energy Budget" className="vocrehab-game-energy-budget space-y-4">
@@ -359,9 +391,9 @@ export default function VocrehabGameEnergyBudget() {
           <h2 className="vocrehab-energy-title text-xl font-semibold">Energy Budget</h2>
           <p className="vocrehab-energy-instructions">
             You have {VOCREHAB_WEEK_BUDGET} energy tokens for the Monday to Friday week. Plan Morning,
-            Afternoon, and Evening blocks: Work shifts cost 2, Appointments cost 1, Rest costs nothing and
-            protects its slot, and Deep work costs 3 with at most one per day. Keep the week within budget
-            and leave one evening free.
+            Afternoon, and Evening blocks from this week&apos;s menu:{" "}
+            {vocrehabPalette.map((b) => `${b.label} (${b.cost})`).join(", ")}. Blocks costing 3 or more
+            are limited to one per day. Keep the week within budget and leave one evening with only rest.
           </p>
           <p className="vocrehab-energy-comfort text-sm text-muted-foreground">
             There is no timer and no fail state. Practice first, then try the scored run. Retry always
@@ -394,8 +426,8 @@ export default function VocrehabGameEnergyBudget() {
         <div className="vocrehab-energy-practice space-y-3 rounded-lg border p-5">
           <h2 className="vocrehab-energy-title text-xl font-semibold">Practice round</h2>
           <ol className="vocrehab-energy-steps list-decimal space-y-1 pl-5">
-            <li>{practicePlacedWork ? "✓ " : ""}Pick Work shift and place it anywhere.</li>
-            <li>{practicePlacedRest ? "✓ " : ""}Place a Rest block in an evening to protect it.</li>
+            <li>{practicePlacedWork ? "✓ " : ""}Pick {vocrehabWorkLabel} and place it anywhere.</li>
+            <li>{practicePlacedRest ? "✓ " : ""}Place {vocrehabRestLabel} in an evening to protect it.</li>
             <li>{vocrehabPracticeRemoved ? "✓ " : ""}Remove a block with its Remove button.</li>
           </ol>
           <div className="vocrehab-energy-practice-actions flex flex-wrap gap-2">
@@ -413,6 +445,7 @@ export default function VocrehabGameEnergyBudget() {
           <div className="vocrehab-energy-board-wrap">
             <VocrehabEnergyBoard
               placed={vocrehabPlaced}
+              palette={vocrehabPalette}
               selected={vocrehabSelected}
               onSelect={setVocrehabSelected}
               onPlace={vocrehabPlace}
@@ -476,6 +509,7 @@ export default function VocrehabGameEnergyBudget() {
             <>
               <VocrehabEnergyBoard
                 placed={vocrehabPlaced}
+                palette={vocrehabPalette}
                 selected={vocrehabSelected}
                 onSelect={setVocrehabSelected}
                 onPlace={vocrehabPlace}
@@ -542,6 +576,7 @@ export default function VocrehabGameEnergyBudget() {
 }
 
 interface VocrehabEnergyBoardProps {
+  palette: readonly VocrehabPaletteBlock[];
   placed: Record<string, string>;
   selected: string | null;
   onSelect: (id: string) => void;
@@ -553,14 +588,14 @@ interface VocrehabEnergyBoardProps {
 }
 
 function VocrehabEnergyBoard(props: VocrehabEnergyBoardProps) {
-  const { placed, selected, onSelect, onPlace, onRemove, paused, dayTotal, weekTotal } = props;
+  const { palette, placed, selected, onSelect, onPlace, onRemove, paused, dayTotal, weekTotal } = props;
   return (
     <div className="vocrehab-energy-board space-y-3">
       <p className="vocrehab-energy-week text-sm text-muted-foreground" role="status">
         Week total: {weekTotal} of {VOCREHAB_WEEK_BUDGET} tokens
       </p>
       <div className="vocrehab-energy-palette flex flex-wrap gap-1.5" role="group" aria-label="Energy blocks">
-        {VOCREHAB_PALETTE.map((b) => (
+        {palette.map((b) => (
           <button
             key={b.id}
             type="button"
@@ -603,7 +638,7 @@ function VocrehabEnergyBoard(props: VocrehabEnergyBoardProps) {
                 {VOCREHAB_DAYS.map((day) => {
                   const cell = vocrehabCellKey(day, slot);
                   const occupant = placed[cell];
-                  const block = occupant ? vocrehabBlockById(occupant) : null;
+                  const block = occupant ? vocrehabBlockById(palette, occupant) : null;
                   return (
                     <td key={cell} className="vocrehab-energy-td border p-1">
                       <button

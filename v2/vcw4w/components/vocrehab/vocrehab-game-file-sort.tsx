@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
+import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
+import { vocrehabSelectFileSort } from "@/lib/vocrehab-seed-pools";
 
 type VocrehabFolder = "Invoices" | "Schedules" | "Client Notes";
 
@@ -13,22 +15,14 @@ interface VocrehabFileCard {
 
 const VOCREHAB_FOLDERS: readonly VocrehabFolder[] = ["Invoices", "Schedules", "Client Notes"];
 
-const VOCREHAB_CARDS: readonly VocrehabFileCard[] = [
-  { id: "f1", name: "Invoice — March supplies", folder: "Invoices" },
-  { id: "f2", name: "Invoice #1042 — printer paper", folder: "Invoices" },
-  { id: "f3", name: "Past-due invoice reminder", folder: "Invoices" },
-  { id: "f4", name: "Receipt — March (file with invoices)", folder: "Invoices" },
-  { id: "f5", name: "April shift schedule", folder: "Schedules" },
-  { id: "f6", name: "Holiday coverage rota", folder: "Schedules" },
-  { id: "f7", name: "Training calendar invite", folder: "Schedules" },
-  { id: "f8", name: "Swap request — Friday evening", folder: "Schedules" },
-  { id: "f9", name: "Client note — J. prefers mornings", folder: "Client Notes" },
-  { id: "f10", name: "Client feedback form", folder: "Client Notes" },
-  { id: "f11", name: "Case note draft — intake call", folder: "Client Notes" },
-  { id: "f12", name: "Thank-you email from client", folder: "Client Notes" },
-];
-
-export default function VocrehabGameFileSort({ vocrehabEmit, vocrehabFinish }: VocrehabGameRunProps) {
+export default function VocrehabGameFileSort({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey }: VocrehabGameRunProps) {
+  // Seeded deal: 12 cards (4 per folder), same seed replays the same set+order.
+  const sel = useMemo(
+    () => vocrehabSelectFileSort(parseSeed(vocrehabSeed ?? null) ?? makeSeed()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [vocrehabSeed, vocrehabRunKey],
+  );
+  const VOCREHAB_CARDS = sel.cards;
   const [vocrehabPlaced, setVocrehabPlaced] = useState<Record<string, VocrehabFolder>>({});
   const [vocrehabNotice, setVocrehabNotice] = useState<string | null>(null);
   const [vocrehabInterrupted, setVocrehabInterrupted] = useState(false);
@@ -105,6 +99,7 @@ export default function VocrehabGameFileSort({ vocrehabEmit, vocrehabFinish }: V
       total: VOCREHAB_CARDS.length,
       interruptionShown: vocrehabInterrupted,
       interruptionHandled: vocrehabInterruptHandled,
+      seed: sel.seed,
     });
   };
 

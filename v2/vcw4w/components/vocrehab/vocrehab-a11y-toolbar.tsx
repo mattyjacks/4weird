@@ -46,7 +46,9 @@ function vocrehabReadA11yPrefs(): VocrehabA11yPrefs {
 }
 
 function vocrehabApplyA11yPrefs(vocrehabPrefs: VocrehabA11yPrefs) {
-  const vocrehabRoot = document.querySelector(".vocrehab-shell");
+  // Module root from app/vocrehab/layout.tsx: prefs apply to every
+  // /vocrehab/ page, never to the rest of 4weird.
+  const vocrehabRoot = document.querySelector(".vocrehab-layout");
   if (!(vocrehabRoot instanceof HTMLElement)) return;
   vocrehabRoot.style.setProperty(
     "--vocrehab-text-scale",
@@ -75,7 +77,8 @@ function vocrehabApplyA11yPrefs(vocrehabPrefs: VocrehabA11yPrefs) {
  * Text size 100/112/125%, contrast standard/high, voice toggle,
  * motion toggle, keyboard hints. Persists to
  * `vocrehab-a11y-prefs-v1` and applies `vocrehab-` classes plus
- * `--vocrehab-` variables on the `.vocrehab-shell` root only —
+ * `--vocrehab-` variables on the `.vocrehab-layout` module root (see
+ * app/vocrehab/vocrehab.css for the rules that consume them) —
  * never on `body`, never leaking to the rest of 4weird.
  */
 export function VocrehabA11yToolbar() {

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { VocrehabA11yToolbar } from "@/components/vocrehab/vocrehab-a11y-toolbar";
+import "./vocrehab.css";
 
 /**
  * VocRehab module shell. Pins the accessibility toolbar above every

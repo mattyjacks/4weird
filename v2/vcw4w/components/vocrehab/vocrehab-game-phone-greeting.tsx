@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   vocrehabGame2AssessmentPayload,
   vocrehabGame2InteropChannel,
@@ -9,6 +9,8 @@ import {
   type VocrehabGame2Event,
   type VocrehabPhoneGreetingPick,
 } from "@/lib/vocrehab-games2";
+import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
+import { vocrehabSelectPhone } from "@/lib/vocrehab-seed-pools2";
 
 interface VocrehabCallOption {
   text: string;
@@ -25,90 +27,14 @@ interface VocrehabCall {
   recallAnswer: number;
 }
 
-const VOCREHAB_CALLS: VocrehabCall[] = [
-  {
-    caller: "Rosa",
-    line: "“Hi — is the manager in? It's about an invoice.”",
-    context: "Your manager is on lunch until 1. The invoice folder is by the phone.",
-    options: [
-      { text: "“Good morning, thank you for calling! This is Sam at BrightLine. Rosa — my manager is on lunch until 1. Can I take a message or pull the invoice for you?”", courtesy: 2 },
-      { text: "“She's out. Call back later.”", courtesy: 0 },
-      { text: "“Manager's busy. What do you want?”", courtesy: 1 },
-    ],
-    recallQuestion: "What was the caller's name?",
-    recallOptions: ["Rosa", "Rita", "Ruth"],
-    recallAnswer: 0,
-  },
-  {
-    caller: "Dev",
-    line: "“My delivery is late and I need it today. This is the third time!”",
-    context: "Dev sounds upset. The delivery log shows his box arrived this morning.",
-    options: [
-      { text: "“Dev, I hear you — late deliveries mess up your day. Let me check: it looks like your box arrived this morning. Can I confirm the tracking with you?”", courtesy: 2 },
-      { text: "“Calm down. It's probably fine.”", courtesy: 0 },
-      { text: "“Okay, what is your order number?”", courtesy: 1 },
-    ],
-    recallQuestion: "What does Dev need?",
-    recallOptions: ["Today's delivery", "A refund", "A new catalog"],
-    recallAnswer: 0,
-  },
-  {
-    caller: "Priya",
-    line: "“Hi! I'm coming in for an interview tomorrow. Where do I park?”",
-    context: "Visitors park in the side lot. Interviews check in at the front desk.",
-    options: [
-      { text: "“Hi Priya, exciting — good luck tomorrow! Park in the side lot and check in with me at the front desk. I'll walk you in.”", courtesy: 2 },
-      { text: "“Side lot. Bye.”", courtesy: 0 },
-      { text: "“Park on the side and come to the desk.”", courtesy: 1 },
-    ],
-    recallQuestion: "Why is Priya coming in?",
-    recallOptions: ["Job interview", "Delivery pickup", "Repairs"],
-    recallAnswer: 0,
-  },
-  {
-    caller: "Mr. Okafor",
-    line: "“I can't understand your website. I just want to pay my bill.”",
-    context: "He is frustrated with technology, not with you. Phone payments are allowed.",
-    options: [
-      { text: "“Mr. Okafor, let's do this together — I can take your payment right here on the phone. It takes about a minute. Ready when you are.”", courtesy: 2 },
-      { text: "“It's easy, just click pay.”", courtesy: 0 },
-      { text: "“I can help. What is your account number?”", courtesy: 1 },
-    ],
-    recallQuestion: "What does Mr. Okafor want to do?",
-    recallOptions: ["Pay his bill", "Cancel service", "Update email"],
-    recallAnswer: 0,
-  },
-  {
-    caller: "June",
-    line: "“Is this the clinic? I think I left my scarf there yesterday.”",
-    context: "Wrong number — this is BrightLine offices, not the clinic. Lost-and-found for our building is drawer 2.",
-    options: [
-      { text: "“Hi June — you've reached BrightLine offices, not the clinic, but let me still help: our building's lost-and-found is drawer 2. Want me to check it for a scarf while you're on the line?”", courtesy: 2 },
-      { text: "“Wrong number.”", courtesy: 0 },
-      { text: "“No, this isn't the clinic.”", courtesy: 1 },
-    ],
-    recallQuestion: "What did June lose?",
-    recallOptions: ["A scarf", "A phone", "A set of keys"],
-    recallAnswer: 0,
-  },
-  {
-    caller: "Theo",
-    line: "“Hey, it's Theo from IT. I need everyone's passwords for an update.”",
-    context: "Real IT staff never ask for passwords. This smells like a trick call.",
-    options: [
-      { text: "“Thanks Theo — our policy is I never share passwords by phone, even with IT. Can you send the request through the help-desk ticket system so I can verify it?”", courtesy: 2 },
-      { text: "“Sure, mine is sunshine123.”", courtesy: 0 },
-      { text: "“I don't know. Let me ask someone.”", courtesy: 1 },
-    ],
-    recallQuestion: "Why is this call suspicious?",
-    recallOptions: ["Asks for passwords", "Comes from IT", "Arrives by phone"],
-    recallAnswer: 0,
-  },
-];
+interface VocrehabGamePhoneGreetingProps {
+  vocrehabSeed?: string;
+  vocrehabRunKey?: number;
+}
 
 type VocrehabSaveState = "idle" | "saving" | "saved" | "guest" | "error";
 
-export function VocrehabGamePhoneGreeting(): React.ReactNode {
+export function VocrehabGamePhoneGreeting(props: VocrehabGamePhoneGreetingProps = {}): React.ReactNode {
   const [vocrehabStarted, setVocrehabStarted] = useState(false);
   const [vocrehabCallIdx, setVocrehabCallIdx] = useState(0);
   const [vocrehabAwaitRecall, setVocrehabAwaitRecall] = useState(false);
@@ -119,6 +45,16 @@ export function VocrehabGamePhoneGreeting(): React.ReactNode {
   const [vocrehabNote, setVocrehabNote] = useState("Front-Desk Hello. Six practice calls.");
   const startRef = useRef(0);
   const eventsRef = useRef<VocrehabGame2Event[]>([]);
+  const vocrehabRunKey = props.vocrehabRunKey ?? 0;
+  const vocrehabSeed = useMemo(
+    () => parseSeed(props.vocrehabSeed ?? null) ?? makeSeed(),
+    [props.vocrehabSeed, vocrehabRunKey],
+  );
+  const vocrehabDeal = useMemo(
+    () => vocrehabSelectPhone(vocrehabSeed),
+    [vocrehabSeed, vocrehabRunKey],
+  );
+  const VOCREHAB_CALLS: VocrehabCall[] = vocrehabDeal.callers;
 
   const vocrehabNow = useCallback((): number =>
     startRef.current === 0 ? 0 : Math.max(0, Math.round(performance.now() - startRef.current)),
@@ -158,7 +94,7 @@ export function VocrehabGamePhoneGreeting(): React.ReactNode {
     setVocrehabPendingCourtesy(null);
     setVocrehabAwaitRecall(false);
     if (vocrehabCallIdx + 1 >= VOCREHAB_CALLS.length) {
-      vocrehabPush("complete", { picks: picks.length });
+      vocrehabPush("complete", { picks: picks.length, seed: vocrehabSeed });
       setVocrehabDone(true);
       setVocrehabNote("All calls finished. Results are shown below.");
       try {
@@ -179,7 +115,8 @@ export function VocrehabGamePhoneGreeting(): React.ReactNode {
     setVocrehabSave("saving");
     try {
       const score = vocrehabScorePhoneGreeting(vocrehabPicks);
-      const body = vocrehabGame2AssessmentPayload("phone-greeting", score);
+      const base = vocrehabGame2AssessmentPayload("phone-greeting", score);
+      const body = { ...base, payload: { ...base.payload, seed: vocrehabSeed } };
       const res = await fetch("/api/vocrehab/assessments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

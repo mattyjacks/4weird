@@ -30,5 +30,9 @@ const sitemap = read("../app/sitemap.ts");
 for (const path of ["/games", "/pricing", "/tech", "/privacy", "/terms", "/squads"]) {
   if (!sitemap.includes(`"${path}"`)) throw new Error(`Sitemap missing canonical page: ${path}.`);
 }
-if (!sitemap.includes("game.slug}/play")) throw new Error("Sitemap must include per-game play URLs.");
+// Per-game canonical detail URLs only. Play shells are robots-noindex and
+// must stay OUT of the Google-submitted sitemap (GSC "Submitted URL marked
+// 'noindex'"); crawlers discover titles via /games + detail pages.
+if (!sitemap.includes("game.slug")) throw new Error("Sitemap must derive per-game detail URLs from the games catalog.");
+if (sitemap.includes("slug}/play")) throw new Error("Sitemap must not list noindex per-game play shells.");
 console.log("Robots policy checks OK.");

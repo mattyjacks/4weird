@@ -175,7 +175,7 @@ export default function VocrehabInterviewResumePage() {
         <button
           type="button"
           onClick={vocrehabDownload}
-          className="rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white"
+          className="rounded-md bg-emerald-700 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-800"
         >
           Download JSON
         </button>

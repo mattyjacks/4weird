@@ -36,7 +36,7 @@ export default async function VocrehabModulePage({
   if (!vocrehabModule) notFound();
   return (
     <main className="vocrehab-module mx-auto w-full max-w-3xl px-4 py-8">
-      <Link href="/vocrehab/course" className="text-sm font-medium text-emerald-700 underline">
+      <Link href="/vocrehab/course" className="text-sm font-medium text-emerald-700 underline dark:text-emerald-400">
         &larr; All lessons
       </Link>
       <div className="mt-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">

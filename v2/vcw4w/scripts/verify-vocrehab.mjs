@@ -284,6 +284,11 @@ function walk(dir, out = []) {
     "app/sitemap.ts",
     "components/docs/docs-data.ts",
     "package.json",
+    // Nav pointers: href + label literals only (no vocrehab imports) —
+    // homepage directory, header MORE menu (menu 1), and menu 2 reads
+    // its entry from lib/site-nav.ts.
+    "app/page.tsx",
+    "components/site/site-header.tsx",
   ]);
   const stray = [];
   const all = walk(root).filter((p) => /\.(ts|tsx|mjs|sql)$/.test(p));

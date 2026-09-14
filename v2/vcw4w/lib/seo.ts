@@ -12,8 +12,14 @@
  *   engines extract those verbatim.
  */
 
+// Canonical origin is www: production 308s apex -> www at the Vercel edge
+// (primary-domain redirect), so the fallback default must be the www host.
+// Otherwise any build without NEXT_PUBLIC_SITE_URL emits apex canonicals,
+// sitemap locs, and robots pointers that all 308 ("Page with redirect" in
+// GSC). Production sets NEXT_PUBLIC_SITE_URL=https://www.4weird.com, which
+// keeps winning over this default when present.
 export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://4weird.com"
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.4weird.com"
 ).replace(/\/$/, "");
 
 export const SITE_NAME = "4weird Games";

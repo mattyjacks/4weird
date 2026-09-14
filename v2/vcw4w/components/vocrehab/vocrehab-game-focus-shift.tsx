@@ -1,43 +1,14 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
+import { makeSeed, mulberry32, parseSeed, shuffle, xmur3 } from "@/lib/vocrehab-seed";
+import { vocrehabSelectFocus } from "@/lib/vocrehab-seed-pools";
 
 interface VocrehabCard {
   key: string;
   symbol: string;
   label: string;
-}
-
-const VOCREHAB_SYMBOLS: readonly { symbol: string; label: string }[] = [
-  { symbol: "★", label: "star" },
-  { symbol: "▲", label: "triangle" },
-  { symbol: "●", label: "circle" },
-  { symbol: "■", label: "square" },
-  { symbol: "◆", label: "diamond" },
-  { symbol: "♥", label: "heart" },
-  { symbol: "♣", label: "club" },
-  { symbol: "✚", label: "plus" },
-  { symbol: "◉", label: "bullseye" },
-  { symbol: "▼", label: "down-triangle" },
-];
-
-function vocrehabBuildDeck(): VocrehabCard[] {
-  const deck: VocrehabCard[] = [];
-  VOCREHAB_SYMBOLS.forEach((s, i) => {
-    deck.push({ key: `a${i}`, symbol: s.symbol, label: s.label });
-    deck.push({ key: `b${i}`, symbol: s.symbol, label: s.label });
-  });
-  return deck;
-}
-
-function vocrehabShuffled(deck: VocrehabCard[]): VocrehabCard[] {
-  const shuffled = [...deck];
-  for (let i = shuffled.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
 }
 
 export default function VocrehabGameFocusShift(props: VocrehabGameRunProps) {
@@ -46,8 +17,21 @@ export default function VocrehabGameFocusShift(props: VocrehabGameRunProps) {
   return <VocrehabFocusShiftBoard key={props.vocrehabRunKey} {...props} />;
 }
 
-function VocrehabFocusShiftBoard({ vocrehabEmit, vocrehabFinish }: VocrehabGameRunProps) {
-  const [vocrehabDeck] = useState<VocrehabCard[]>(() => vocrehabShuffled(vocrehabBuildDeck()));
+function VocrehabFocusShiftBoard({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey }: VocrehabGameRunProps) {
+  // Seeded deal: 10 pair types, same seed replays the same set+order.
+  const sel = useMemo(
+    () => vocrehabSelectFocus(parseSeed(vocrehabSeed ?? null) ?? makeSeed()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [vocrehabSeed, vocrehabRunKey],
+  );
+  const [vocrehabDeck] = useState<VocrehabCard[]>(() => {
+    const deck: VocrehabCard[] = [];
+    sel.pairs.forEach((p, i) => {
+      deck.push({ key: `a${i}`, symbol: p.symbol, label: p.label });
+      deck.push({ key: `b${i}`, symbol: p.symbol, label: p.label });
+    });
+    return shuffle(mulberry32(xmur3(`${sel.seed}|focus-shift:layout`)()), deck);
+  });
   const [vocrehabOpen, setVocrehabOpen] = useState<string[]>([]);
   const [vocrehabMatched, setVocrehabMatched] = useState<string[]>([]);
   const [vocrehabInterrupted, setVocrehabInterrupted] = useState(false);
@@ -97,6 +81,7 @@ function VocrehabFocusShiftBoard({ vocrehabEmit, vocrehabFinish }: VocrehabGameR
               mismatches: vocrehabMismatches,
               interruptionShown: vocrehabInterrupted || matchedNow.length / 2 >= 5,
               refocusMs: refocusMsRef.current,
+              seed: sel.seed,
             });
           }
         } else {
@@ -106,7 +91,7 @@ function VocrehabFocusShiftBoard({ vocrehabEmit, vocrehabFinish }: VocrehabGameR
         }
       }
     },
-    [vocrehabOverlay, vocrehabOpen, vocrehabMatched, deck, vocrehabMismatches, vocrehabInterrupted, vocrehabEmit, vocrehabFinish],
+    [vocrehabOverlay, vocrehabOpen, vocrehabMatched, deck, vocrehabMismatches, vocrehabInterrupted, vocrehabEmit, vocrehabFinish, sel.seed],
   );
 
   return (

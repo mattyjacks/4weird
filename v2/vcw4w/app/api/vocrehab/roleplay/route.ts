@@ -4,14 +4,20 @@ import { clientIp } from "@/lib/validate";
 import {
   vocrehabBlocklistCheck,
   vocrehabFeedbackRubric,
+  vocrehabIsDifficulty,
+  vocrehabIsSessionMode,
   vocrehabRoleplayFallback,
   vocrehabRoleplayMaxMessageChars,
   vocrehabRoleplaySystemPrompt,
   vocrehabRoleplayTurnCap,
   type VocrehabRoleplayScenarioId,
 } from "@/lib/vocrehab-roleplay";
+import {
+  vocrehabInterviewQuestionFor,
+  vocrehabIsInterviewJobId,
+} from "@/lib/vocrehab-interview-jobs";
 
-const SCENARIOS: readonly VocrehabRoleplayScenarioId[] = ["prep", "pivot", "disclosure"];
+const SCENARIOS: readonly VocrehabRoleplayScenarioId[] = ["prep", "pivot", "disclosure", "job-interview"];
 const MODEL_TIMEOUT_MS = 15_000;
 const MODEL_MAX_CHARS = 1200;
 
@@ -78,16 +84,23 @@ export async function POST(req: Request) {
   } catch {
     return fail("Invalid JSON body.", 400);
   }
-  const { session_id, scenario, message, turn } = (body ?? {}) as {
+  const { session_id, scenario, message, turn, jobId, difficulty, mode } = (body ?? {}) as {
     session_id?: unknown;
     scenario?: unknown;
     message?: unknown;
     turn?: unknown;
+    jobId?: unknown;
+    difficulty?: unknown;
+    mode?: unknown;
   };
 
   if (!isScenario(scenario)) {
-    return fail("scenario must be one of: prep, pivot, disclosure.", 400);
+    return fail("scenario must be one of: prep, pivot, disclosure, job-interview.", 400);
   }
+  // Wave 2 extras: optional jobId + difficulty + mode, accepted + echoed like session_id.
+  const job = vocrehabIsInterviewJobId(jobId) ? jobId : undefined;
+  const diff = vocrehabIsDifficulty(difficulty) ? difficulty : undefined;
+  const sessMode = vocrehabIsSessionMode(mode) ? mode : undefined;
   if (
     typeof message !== "string" ||
     message.trim().length < 1 ||
@@ -113,7 +126,12 @@ export async function POST(req: Request) {
 
   const done = turnNumber >= vocrehabRoleplayTurnCap;
   const modelText = await modelReply(scenario, message, turnNumber);
-  const reply = modelText ?? vocrehabRoleplayFallback(scenario, turnNumber - 1);
+  // Wave 2: job-interview falls back to the static 20-job catalog line when offline.
+  const reply =
+    modelText ??
+    (scenario === "job-interview" && job
+      ? vocrehabInterviewQuestionFor(job, turnNumber - 1)
+      : vocrehabRoleplayFallback(scenario, turnNumber - 1));
   const feedback = vocrehabFeedbackRubric(message, scenario);
   const usedFallback = modelText === null;
 
@@ -126,5 +144,8 @@ export async function POST(req: Request) {
     offline: usedFallback,
     fallback: usedFallback,
     ...(typeof session_id === "string" && session_id ? { session_id } : {}),
+    ...(job ? { jobId: job } : {}),
+    ...(diff ? { difficulty: diff } : {}),
+    ...(sessMode ? { mode: sessMode } : {}),
   });
 }

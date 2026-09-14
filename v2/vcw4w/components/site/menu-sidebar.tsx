@@ -278,6 +278,16 @@ export function MenuSidebar() {
     }
   }, [quick, hydrated]);
 
+  // FeedbackBar bridge (layout lane): the bar's Menu 2 button dispatches
+  // "fw:open-menu2" — open the existing drawer, no duplicate nav tree.
+  // Mouse users keep pointer context (no focus steal); keyboard users land
+  // on the drawer via the existing Escape/backdrop + pill focus paths.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("fw:open-menu2", onOpen);
+    return () => window.removeEventListener("fw:open-menu2", onOpen);
+  }, []);
+
   // Shift desktop content + footer so the drawer docks instead of covering.
   useEffect(() => {
     const main = document.getElementById("main-content");

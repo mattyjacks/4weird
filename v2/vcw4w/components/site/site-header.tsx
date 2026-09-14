@@ -795,6 +795,14 @@ export function SiteHeader() {
     setExpanded((prev) => prev ?? current?.label ?? "Play");
   }, [pathname]);
 
+  // FeedbackBar bridge (layout lane): the bar's Menu 1 button dispatches
+  // "fw:open-menu1" — open the existing sheet, no duplicate nav tree.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("fw:open-menu1", onOpen);
+    return () => window.removeEventListener("fw:open-menu1", onOpen);
+  }, []);
+
   // Close desktop/tablet dropdowns on Escape or outside pointer-down.
   useEffect(() => {
     if (!openMenu) return;

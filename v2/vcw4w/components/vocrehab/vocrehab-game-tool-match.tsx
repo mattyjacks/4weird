@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   vocrehabGame2AssessmentPayload,
   vocrehabGame2InteropChannel,
@@ -9,6 +9,8 @@ import {
   type VocrehabGame2Event,
   type VocrehabToolMatchPick,
 } from "@/lib/vocrehab-games2";
+import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
+import { vocrehabSelectToolMatch } from "@/lib/vocrehab-seed-pools2";
 
 interface VocrehabJob {
   job: string;
@@ -18,68 +20,14 @@ interface VocrehabJob {
   gearNote: string;
 }
 
-const VOCREHAB_JOBS: VocrehabJob[] = [
-  {
-    job: "Mop the lobby floor after lunch rush",
-    tools: ["Wet mop + bucket", "Dry duster", "Leaf blower", "Paint roller"],
-    toolAnswer: 0,
-    gearNeeded: true,
-    gearNote: "Wet-floor sign + non-slip shoes.",
-  },
-  {
-    job: "Replace the flickering bulb in hallway B",
-    tools: ["Step ladder + spare bulb", "Hammer", "Garden hose", "Stapler"],
-    toolAnswer: 0,
-    gearNeeded: true,
-    gearNote: "Power off at the switch + gloves.",
-  },
-  {
-    job: "File 40 invoices alphabetically",
-    tools: ["File trays + labels", "Chainsaw", "Floor buffer", "Lawn mower"],
-    toolAnswer: 0,
-    gearNeeded: false,
-    gearNote: "No gear — just good lighting.",
-  },
-  {
-    job: "Assemble a flat-pack shelf for the break room",
-    tools: ["Allen key + instructions", "Sledgehammer", "Hedge trimmer", "Microwave"],
-    toolAnswer: 0,
-    gearNeeded: false,
-    gearNote: "No gear — keep small parts off the floor.",
-  },
-  {
-    job: "Clear the blocked break-room sink drain",
-    tools: ["Plunger + bucket", "Hair dryer", "Crowbar", "Extension cord"],
-    toolAnswer: 0,
-    gearNeeded: true,
-    gearNote: "Rubber gloves + eye protection.",
-  },
-  {
-    job: "Water the office plants on floor 2",
-    tools: ["Watering can", "Pressure washer", "Snow shovel", "Jackhammer"],
-    toolAnswer: 0,
-    gearNeeded: false,
-    gearNote: "No gear — wipe spills so nobody slips.",
-  },
-  {
-    job: "Hang the new safety poster in the warehouse",
-    tools: ["Tape measure + level + pins", "Welding torch", "Cement mixer", "Leaf blower"],
-    toolAnswer: 0,
-    gearNeeded: true,
-    gearNote: "High-visibility vest in the warehouse.",
-  },
-  {
-    job: "Shred a box of old receipts",
-    tools: ["Cross-cut shredder", "Paper clips", "Coffee maker", "Space heater"],
-    toolAnswer: 0,
-    gearNeeded: false,
-    gearNote: "No gear — feed a few sheets at a time.",
-  },
-];
+interface VocrehabGameToolMatchProps {
+  vocrehabSeed?: string;
+  vocrehabRunKey?: number;
+}
 
 type VocrehabSaveState = "idle" | "saving" | "saved" | "guest" | "error";
 
-export function VocrehabGameToolMatch(): React.ReactNode {
+export function VocrehabGameToolMatch(props: VocrehabGameToolMatchProps = {}): React.ReactNode {
   const [vocrehabStarted, setVocrehabStarted] = useState(false);
   const [vocrehabJobIdx, setVocrehabJobIdx] = useState(0);
   const [vocrehabTool, setVocrehabTool] = useState<number | null>(null);
@@ -90,6 +38,16 @@ export function VocrehabGameToolMatch(): React.ReactNode {
   const [vocrehabNote, setVocrehabNote] = useState("Tool Crib. Eight jobs to kit out.");
   const startRef = useRef(0);
   const eventsRef = useRef<VocrehabGame2Event[]>([]);
+  const vocrehabRunKey = props.vocrehabRunKey ?? 0;
+  const vocrehabSeed = useMemo(
+    () => parseSeed(props.vocrehabSeed ?? null) ?? makeSeed(),
+    [props.vocrehabSeed, vocrehabRunKey],
+  );
+  const vocrehabDeal = useMemo(
+    () => vocrehabSelectToolMatch(vocrehabSeed),
+    [vocrehabSeed, vocrehabRunKey],
+  );
+  const VOCREHAB_JOBS: VocrehabJob[] = vocrehabDeal.jobs;
 
   function vocrehabPush(kind: VocrehabGame2Event["kind"], detail: Record<string, unknown>): void {
     if (eventsRef.current.length >= 200) return;
@@ -118,7 +76,7 @@ export function VocrehabGameToolMatch(): React.ReactNode {
     setVocrehabTool(null);
     setVocrehabGear(null);
     if (vocrehabJobIdx + 1 >= VOCREHAB_JOBS.length) {
-      vocrehabPush("complete", { picks: picks.length });
+      vocrehabPush("complete", { picks: picks.length, seed: vocrehabSeed });
       setVocrehabDone(true);
       setVocrehabNote("All jobs kitted out. Results are shown below.");
       try {
@@ -139,7 +97,8 @@ export function VocrehabGameToolMatch(): React.ReactNode {
     setVocrehabSave("saving");
     try {
       const score = vocrehabScoreToolMatch(vocrehabPicks);
-      const body = vocrehabGame2AssessmentPayload("tool-match", score);
+      const base = vocrehabGame2AssessmentPayload("tool-match", score);
+      const body = { ...base, payload: { ...base.payload, seed: vocrehabSeed } };
       const res = await fetch("/api/vocrehab/assessments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

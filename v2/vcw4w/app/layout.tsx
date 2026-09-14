@@ -10,6 +10,7 @@ import { DailyBonusBanner } from "@/components/site/daily-bonus-banner";
 import { CachedSiteFooter } from "@/components/site/site-footer-cached";
 import { SiteHeader } from "@/components/site/site-header";
 import { MenuSidebar } from "@/components/site/menu-sidebar";
+import { FeedbackBar } from "@/components/feedback/feedback-bar";
 import { A11yProvider } from "@/components/site/a11y-provider";
 import { UsaFireworksLazy } from "@/components/site/themes/usa-fireworks-lazy";
 import { GreenGuyCamoLazy } from "@/components/site/themes/green-guy-camo-lazy";
@@ -139,6 +140,9 @@ export default function RootLayout({
                 CLIENT_HOOK_DYNAMIC. Fallbacks are static shells (no hooks). */}
             <Suspense fallback={null}>
               <DailyBonusBanner />
+            </Suspense>
+            <Suspense fallback={null}>
+              <FeedbackBar />
             </Suspense>
             <Suspense
               fallback={

@@ -1,0 +1,95 @@
+/**
+ * VocRehab module styles. Scoped under .vocrehab-layout (the module root
+ * rendered by app/vocrehab/layout.tsx) so nothing leaks to the rest of
+ * 4weird. Gives the a11y toolbar's prefs real effect: text size, focus
+ * ring, high-contrast strengthening, and reduced motion — plus readable
+ * chrome for the toolbar itself and the progress rail.
+ */
+
+/* Text-size pref: the toolbar sets --vocrehab-text-scale (100/112/125%). */
+.vocrehab-layout {
+  font-size: var(--vocrehab-text-scale, 100%);
+}
+
+/* Visible focus everywhere in the module, in the toolbar's focus color
+   (cyan standard, yellow high-contrast — set as --vocrehab-focus). */
+.vocrehab-layout :focus-visible {
+  outline: 3px solid var(--vocrehab-focus, #22d3ee);
+  outline-offset: 2px;
+}
+
+/* High-contrast pref: links always underlined and thicker. Body text
+   already ships at 4.5:1+ pairs (fixed stone ink on fixed white cards,
+   stone-50/stone-300 on the dark page background), so the toggle
+   strengthens affordances instead of recoloring. */
+.vocrehab-layout.vocrehab-contrast-high a {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* Reduced-motion pref: kill animation and transitions module-wide. */
+.vocrehab-layout.vocrehab-motion-reduced *,
+.vocrehab-layout.vocrehab-motion-reduced *::before,
+.vocrehab-layout.vocrehab-motion-reduced *::after {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Toolbar chrome: fixed white buttons with dark ink read on both the
+   dark page background and in light mode. */
+.vocrehab-a11y-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.vocrehab-a11y-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.vocrehab-a11y-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.vocrehab-a11y-button {
+  border-radius: 0.5rem;
+  border: 1px solid #a8a29e;
+  background: #ffffff;
+  color: #1c1917;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vocrehab-a11y-button[aria-pressed="true"] {
+  background: #1c1917;
+  color: #fafaf9;
+  border-color: #1c1917;
+}
+
+.vocrehab-a11y-hints {
+  flex-basis: 100%;
+  font-size: 0.875rem;
+}
+
+/* Progress rail link: emerald pair passes on the dark page background
+   (emerald-400) and in light mode (emerald-700). */
+.vocrehab-progress-link {
+  color: #047857;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dark .vocrehab-progress-link {
+  color: #34d399;
+}

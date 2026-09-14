@@ -70,7 +70,7 @@ function VocrehabProgressRailInner() {
 export default function VocrehabShell() {
   return (
     <div className="vocrehab-shell mx-auto w-full max-w-5xl px-4 py-8">
-      <p className="vocrehab-hero text-2xl font-bold text-stone-900">
+      <p className="vocrehab-hero text-2xl font-bold text-stone-900 dark:text-stone-50">
         Figure out work at your pace — play first, decide with supports, keep your data.
       </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -86,7 +86,7 @@ export default function VocrehabShell() {
           <VocrehabProgressRailInner />
         </Suspense>
       </div>
-      <p className="vocrehab-trust mt-6 text-xs text-stone-500">
+      <p className="vocrehab-trust mt-6 text-xs text-stone-500 dark:text-stone-400">
         Teaching sketches only — never a benefits promise or a label. Your runs save only when you ask, and your export is yours to take.
       </p>
     </div>

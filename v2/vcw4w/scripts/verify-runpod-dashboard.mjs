@@ -49,7 +49,9 @@ if (!dash.includes("/desktop") || !dash.includes("/agents") || !dash.includes("/
 // Page: login-gated dashboard; noindex, never in the sitemap.
 if (!page.includes("RunpodDashboard")) throw new Error("runpods page must render RunpodDashboard.");
 if (!page.includes("index: false")) throw new Error("runpods page must stay noindex (login-gated dashboard).");
-if (sitemap.includes("/runpods")) throw new Error("sitemap must exclude /runpods (login-gated, like /account).");
+// Match `path: "/runpods"` entries only: the sitemap header documents the
+// exclusion in prose, which a bare substring check would trip on.
+if (sitemap.includes('path: "/runpods"')) throw new Error("sitemap must exclude /runpods (login-gated, like /account).");
 if (robots.includes("/runpods")) throw new Error("robots must not single out /runpods.");
 
 // Control routes: auth + ownership + all five actions, no key handling.

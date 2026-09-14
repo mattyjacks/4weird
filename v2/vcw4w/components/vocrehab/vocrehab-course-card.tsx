@@ -49,24 +49,24 @@ export function VocrehabCourseCard({
   return (
     <Link
       href={`/vocrehab/course/${vocrehabModule.vocrehabSlug}`}
-      className="vocrehab-course-card"
+      className="vocrehab-course-card block rounded-xl border border-stone-200 bg-white p-5 shadow-sm hover:shadow"
       aria-label={`${vocrehabModule.vocrehabTitle}${vocrehabDone ? " (completed)" : ""}`}
     >
-      <p className="vocrehab-course-card-kicker">
+      <p className="vocrehab-course-card-kicker text-xs font-medium uppercase tracking-wide text-stone-500">
         Chapter {vocrehabModule.vocrehabChapter} ·{" "}
         {vocrehabModule.vocrehabChapterTitle}
       </p>
-      <h3 className="vocrehab-course-card-title">
+      <h3 className="vocrehab-course-card-title mt-1 text-lg font-semibold text-cyan-700">
         {vocrehabModule.vocrehabTitle}
       </h3>
-      <p className="vocrehab-course-card-meta">
+      <p className="vocrehab-course-card-meta mt-1 text-sm text-stone-600">
         <span>{vocrehabModule.vocrehabXp} XP</span>
         <span aria-hidden="true"> · </span>
         <span>Badge: {vocrehabModule.vocrehabBadge}</span>
         {vocrehabDone ? (
           <>
             <span aria-hidden="true"> · </span>
-            <span className="vocrehab-course-card-done">Done ✓</span>
+            <span className="vocrehab-course-card-done font-semibold text-emerald-700">Done ✓</span>
           </>
         ) : null}
       </p>
@@ -117,34 +117,34 @@ export function VocrehabLessonPlayer({
 
   return (
     <div className="vocrehab-lesson">
-      <p className="vocrehab-lesson-kicker">
+      <p className="vocrehab-lesson-kicker text-sm text-stone-500">
         Chapter {vocrehabModule.vocrehabChapter} ·{" "}
         {vocrehabModule.vocrehabChapterTitle} · {vocrehabModule.vocrehabXp} XP ·
         Badge: {vocrehabModule.vocrehabBadge}
       </p>
-      <h1 className="vocrehab-lesson-title">{vocrehabModule.vocrehabTitle}</h1>
-      <p className="vocrehab-lesson-explainer">
+      <h1 className="vocrehab-lesson-title mt-1 text-2xl font-bold text-cyan-700">{vocrehabModule.vocrehabTitle}</h1>
+      <p className="vocrehab-lesson-explainer mt-2 text-stone-600">
         {vocrehabModule.vocrehabExplainer}
       </p>
 
-      <section aria-label="Try it" className="vocrehab-lesson-tryit">
-        <h2 className="vocrehab-lesson-heading">Try it</h2>
+      <section aria-label="Try it" className="vocrehab-lesson-tryit mt-6">
+        <h2 className="vocrehab-lesson-heading text-lg font-semibold text-stone-900">Try it</h2>
         <Link
           href={vocrehabModule.vocrehabTryIt.vocrehabHref}
-          className="vocrehab-lesson-tryit-link"
+          className="vocrehab-lesson-tryit-link mt-1 inline-block font-medium text-emerald-700 underline underline-offset-4 hover:text-emerald-800"
         >
           {vocrehabModule.vocrehabTryIt.vocrehabLabel} &rarr;
         </Link>
       </section>
 
-      <section aria-label="Reflect" className="vocrehab-lesson-reflect">
-        <h2 className="vocrehab-lesson-heading">Reflect</h2>
-        <ol className="vocrehab-lesson-questions">
+      <section aria-label="Reflect" className="vocrehab-lesson-reflect mt-6">
+        <h2 className="vocrehab-lesson-heading text-lg font-semibold text-stone-900">Reflect</h2>
+        <ol className="vocrehab-lesson-questions mt-2 list-decimal space-y-1 pl-5 text-stone-600">
           {vocrehabModule.vocrehabReflect.map((vocrehabQuestion) => (
             <li key={vocrehabQuestion}>{vocrehabQuestion}</li>
           ))}
         </ol>
-        <p className="vocrehab-lesson-note">
+        <p className="vocrehab-lesson-note mt-3 text-sm text-stone-600">
           There are no wrong answers. Jot your thoughts anywhere you like —
           nothing here is saved or sent unless you choose to share it.
         </p>
@@ -155,12 +155,12 @@ export function VocrehabLessonPlayer({
         onClick={vocrehabMarkDone}
         disabled={vocrehabDone}
         aria-pressed={vocrehabDone}
-        className="vocrehab-lesson-done"
+        className="vocrehab-lesson-done mt-6 rounded-md bg-emerald-700 px-4 py-2 font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
       >
         {vocrehabDone ? "Done ✓ — nice work" : "Mark lesson done"}
       </button>
       {vocrehabDone ? (
-        <p className="vocrehab-lesson-saved" role="status">
+        <p className="vocrehab-lesson-saved mt-2 text-sm text-stone-600" role="status">
           Saved on this device. Sign in to sync it to your account.
         </p>
       ) : null}

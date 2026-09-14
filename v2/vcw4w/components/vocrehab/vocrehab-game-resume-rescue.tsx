@@ -9,13 +9,16 @@
 // forwards VocrehabGameEvent objects through { onEvent, onDone }.
 // Imports from the frame module and the games lib are type-only (read-only).
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { makeSeed } from "@/lib/vocrehab-seed";
+import { vocrehabSelectResume, type VocrehabResumePoolLine } from "@/lib/vocrehab-seed-pools3";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
 import type { VocrehabGameEvent, VocrehabGameEventKind } from "@/lib/vocrehab-games";
 
 export interface VocrehabResumeRescueProps {
   onEvent?: (event: VocrehabGameEvent) => void;
   onDone?: (summary: Record<string, unknown>) => void;
+  vocrehabSeed?: string;
 }
 
 type VocrehabResumePhase = "intro" | "practice" | "countdown" | "run" | "results";
@@ -56,128 +59,37 @@ const VOCREHAB_PRACTICE_LINE: VocrehabResumeLine = {
   rewriteIndex: 0,
 };
 
-const VOCREHAB_LINES: readonly VocrehabResumeLine[] = [
-  {
-    id: "line-1",
-    text: "Recieved shipments and organzied the stockroom daily.",
-    issue: "typo",
-    why: "“Recieved” should be “Received” and “organzied” should be “organized”.",
-    rewrites: [
-      "Did stockroom stuff every day.",
-      "Received daily shipments and kept the stockroom organized for fast restocking.",
-      "Recieved shipments and organzied stock daily.",
-    ],
-    rewriteIndex: 1,
-  },
-  {
-    id: "line-2",
-    text: "Helped with stuff around the office.",
-    issue: "vague-verb",
-    why: "“Helped with stuff” is vague — it names no skill an employer can picture.",
-    rewrites: [
-      "Supported the office team by filing records, scheduling meetings, and greeting visitors.",
-      "Did various office things when asked.",
-      "Helped out with stuff in the office environment.",
-    ],
-    rewriteIndex: 0,
-  },
-  {
-    id: "line-3",
-    text: "Increased sales.",
-    issue: "missing-number",
-    why: "No number or result — by how much, and over what time?",
-    rewrites: [
-      "Increased sales a lot over some time.",
-      "Worked on sales tasks.",
-      "Grew monthly accessory sales 18% over six months by suggesting add-ons at checkout.",
-    ],
-    rewriteIndex: 2,
-  },
-  {
-    id: "line-4",
-    text: "Operated the cash register and balanced the drawer each shift.",
-    issue: "clean",
-    why: "Specific verb, clear task, clear scope — nothing to fix.",
-    rewrites: [
-      "Operated the cash register and balanced the drawer each shift.",
-      "Did register stuff.",
-      "Was responsible for cash-related duties.",
-    ],
-    rewriteIndex: 0,
-  },
-  {
-    id: "line-5",
-    text: "Responsible for various duties asigned by management.",
-    issue: "typo",
-    why: "“asigned” should be “assigned” — plus “various duties” is vague, but the typo is the catch.",
-    rewrites: [
-      "Completed opening and closing checklists assigned by management each shift.",
-      "Was responsible for various duties asigned by management.",
-      "Did duties assigned by bosses.",
-    ],
-    rewriteIndex: 0,
-  },
-  {
-    id: "line-6",
-    text: "Did customer service tasks.",
-    issue: "vague-verb",
-    why: "“Did tasks” could mean anything — strong verbs name the actual skill.",
-    rewrites: [
-      "Did customer service tasks daily.",
-      "Resolved customer questions by phone and in person, logging each request for follow-up.",
-      "Helped customers with things they needed.",
-    ],
-    rewriteIndex: 1,
-  },
-  {
-    id: "line-7",
-    text: "Trained new team members.",
-    issue: "missing-number",
-    why: "How many people, and with what result? Numbers make it believable.",
-    rewrites: [
-      "Onboarded 6 new team members on register and closing routines; all passed probation.",
-      "Trained people sometimes.",
-      "Helped new workers learn the ropes.",
-    ],
-    rewriteIndex: 0,
-  },
-  {
-    id: "line-8",
-    text: "Prepared weekly schedules for a team of twelve associates.",
-    issue: "clean",
-    why: "Specific verb, clear cadence, concrete scope — nothing to fix.",
-    rewrites: [
-      "Made schedules.",
-      "Prepared weekly schedules for a team of twelve associates.",
-      "Was in charge of scheduling-related responsibilities.",
-    ],
-    rewriteIndex: 1,
-  },
-  {
-    id: "line-9",
-    text: "Coordinated delevery routes across three locations.",
-    issue: "typo",
-    why: "“delevery” should be “delivery” — one letter changes the impression.",
-    rewrites: [
-      "Coordinated delivery routes across three locations, keeping on-time drop-offs steady.",
-      "Coordinated delevery routes for multiple places.",
-      "Handled driving stuff between stores.",
-    ],
-    rewriteIndex: 0,
-  },
-  {
-    id: "line-10",
-    text: "Reduced customer wait times.",
-    issue: "missing-number",
-    why: "A result with no measure — faster by how much?",
-    rewrites: [
-      "Made wait times shorter.",
-      "Helped customers faster than before.",
-      "Cut average morning wait times 25% by prepping registers before the rush.",
-    ],
-    rewriteIndex: 2,
-  },
-];
+// Seeded resume lines: 8 sampled from the pool (bank 16, play 8). Each pool
+// line carries its own fix + hint; the spot category is derived from the hint
+// text and the rewrite trio is [fix, original, next-line fix] rotated by
+// position, so every seed replays the same fair, answerable set.
+function vocrehabResumeIssueFor(hint: string): VocrehabResumeIssue {
+  if (/number|digit/i.test(hint)) return "missing-number";
+  if (/verb|starting style/i.test(hint)) return "vague-verb";
+  return "typo";
+}
+
+function vocrehabResumeBuildLines(pool: readonly VocrehabResumePoolLine[]): VocrehabResumeLine[] {
+  if (pool.length === 0) return [];
+  return pool.map((line, i) => {
+    const distractor = pool[(i + 1) % pool.length].fix;
+    const rot = i % 3;
+    const ordered: readonly [string, string, string] = [line.fix, line.text, distractor];
+    const rewrites: readonly [string, string, string] = [
+      ordered[(rot + 0) % 3],
+      ordered[(rot + 1) % 3],
+      ordered[(rot + 2) % 3],
+    ];
+    return {
+      id: line.id,
+      text: line.text,
+      issue: vocrehabResumeIssueFor(line.errorHint),
+      why: line.errorHint,
+      rewrites,
+      rewriteIndex: (3 - rot) % 3,
+    };
+  });
+}
 
 function vocrehabIssueLabel(issue: VocrehabResumeIssue): string {
   const found = VOCREHAB_SPOT_OPTIONS.find((o) => o.id === issue);
@@ -203,7 +115,13 @@ function vocrehabRunSummaryText(spot: number, rewrite: number, total: number): s
 // into VocrehabGameFrame unchanged once the game id is registered.
 // Identity reset is owned by the parent via React `key` (fresh mount = fresh
 // state), so this view holds no reset effect.
-function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish }: VocrehabGameRunProps) {
+function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey }: VocrehabGameRunProps) {
+  // Seeded lines, resolved once per run key.
+  const vocrehabSelected = useMemo(() => {
+    const seed = vocrehabSeed ?? makeSeed();
+    return { seed, lines: vocrehabResumeBuildLines(vocrehabSelectResume(seed).lines) };
+  }, [vocrehabSeed, vocrehabRunKey]);
+  const vocrehabLines = vocrehabSelected.lines;
   const [vocrehabIndex, setVocrehabIndex] = useState(0);
   const [vocrehabStep, setVocrehabStep] = useState<VocrehabResumeStep>("spot");
   const [vocrehabSpotPicked, setVocrehabSpotPicked] = useState<VocrehabResumeIssue | null>(null);
@@ -227,8 +145,8 @@ function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish }: VocrehabGameR
     return () => query.removeEventListener("change", onChange);
   }, []);
 
-  const line = VOCREHAB_LINES[vocrehabIndex];
-  const isLast = vocrehabIndex >= VOCREHAB_LINES.length - 1;
+  const line = vocrehabLines[vocrehabIndex];
+  const isLast = vocrehabIndex >= vocrehabLines.length - 1;
 
   const vocrehabAnswerSpot = useCallback(
     (choice: VocrehabResumeIssue) => {
@@ -296,14 +214,15 @@ function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish }: VocrehabGameR
       if (doneRef.current) return;
       doneRef.current = true;
       vocrehabEmit("action", {
-        finishedLines: VOCREHAB_LINES.length,
+        finishedLines: vocrehabLines.length,
         spotScore: vocrehabSpotScore,
         rewriteScore: vocrehabRewriteScore,
       });
       vocrehabFinish({
         spotCorrect: vocrehabSpotScore,
         rewriteCorrect: vocrehabRewriteScore,
-        total: VOCREHAB_LINES.length,
+        total: vocrehabLines.length,
+        seed: vocrehabSelected.seed,
       });
       return;
     }
@@ -319,7 +238,7 @@ function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish }: VocrehabGameR
   return (
     <div className="vocrehab-game-resume-rescue space-y-3">
       <p className="text-sm text-muted-foreground" role="status">
-        Line {vocrehabIndex + 1} of {VOCREHAB_LINES.length} ·{" "}
+        Line {vocrehabIndex + 1} of {vocrehabLines.length} ·{" "}
         {vocrehabStep === "spot" ? "Step 1: spot the issue" : "Step 2: pick the rewrite"} ·{" "}
         {vocrehabSpotScore + vocrehabRewriteScore} strong choices so far
       </p>
@@ -407,7 +326,7 @@ function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish }: VocrehabGameR
   );
 }
 
-export default function VocrehabGameResumeRescue({ onEvent, onDone }: VocrehabResumeRescueProps) {
+export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed }: VocrehabResumeRescueProps) {
   const [vocrehabPhase, setVocrehabPhase] = useState<VocrehabResumePhase>("intro");
   const [vocrehabCountdown, setVocrehabCountdown] = useState(3);
   const [vocrehabRunKey, setVocrehabRunKey] = useState(0);
@@ -415,6 +334,14 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone }: VocrehabRe
   const [vocrehabAnnounce, setVocrehabAnnounce] = useState("Resume Rescue. Introduction.");
   const [vocrehabPracticeStep, setVocrehabPracticeStep] = useState<VocrehabResumeStep>("spot");
   const [vocrehabPracticePicked, setVocrehabPracticePicked] = useState<number | string | null>(null);
+
+  // Seeded selection, resolved once per run key; the inner run receives the
+  // resolved seed so both agree on the same line set.
+  const vocrehabSelected = useMemo(() => {
+    const seed = vocrehabSeed ?? makeSeed();
+    return { seed, lineCount: vocrehabSelectResume(seed).lines.length };
+  }, [vocrehabSeed, vocrehabRunKey]);
+  const vocrehabLineCount = vocrehabSelected.lineCount;
 
   const eventsRef = useRef<VocrehabGameEvent[]>([]);
   const startRef = useRef(0);
@@ -439,18 +366,20 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone }: VocrehabRe
       const spot = typeof summary?.["spotCorrect"] === "number" ? (summary["spotCorrect"] as number) : 0;
       const rewrite =
         typeof summary?.["rewriteCorrect"] === "number" ? (summary["rewriteCorrect"] as number) : 0;
-      const text = vocrehabRunSummaryText(spot, rewrite, VOCREHAB_LINES.length);
+      const total = typeof summary?.["total"] === "number" ? (summary["total"] as number) : vocrehabLineCount;
+      const text = vocrehabRunSummaryText(spot, rewrite, total);
       setVocrehabSummary(text);
       setVocrehabPhase("results");
       setVocrehabAnnounce("Resume Rescue finished. Results are shown below.");
-      onDone?.(summary ?? {});
+      onDone?.({ ...summary, seed: vocrehabSelected.seed });
     },
-    [onDone],
+    [onDone, vocrehabLineCount, vocrehabSelected],
   );
 
   const vocrehabRunProps: VocrehabGameRunProps = {
     vocrehabEmit,
     vocrehabFinish,
+    vocrehabSeed: vocrehabSelected.seed,
     vocrehabExtraTimeSec: 0,
     vocrehabRunKey,
   };
@@ -466,18 +395,18 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone }: VocrehabRe
         const startEvent: VocrehabGameEvent = {
           t_ms: 0,
           kind: "start",
-          detail: { lines: VOCREHAB_LINES.length },
+          detail: { lines: vocrehabLineCount },
         };
         eventsRef.current = [startEvent];
         onEvent?.(startEvent);
         setVocrehabPhase("run");
-        setVocrehabAnnounce("Resume Rescue run started. Line 1 of 10.");
+        setVocrehabAnnounce(`Resume Rescue run started. Line 1 of ${vocrehabLineCount}.`);
       }, 0);
       return () => window.clearTimeout(id);
     }
     const id = window.setTimeout(() => setVocrehabCountdown((c) => c - 1), 1000);
     return () => window.clearTimeout(id);
-  }, [vocrehabPhase, vocrehabCountdown, onEvent]);
+  }, [vocrehabPhase, vocrehabCountdown, onEvent, vocrehabLineCount]);
 
   const vocrehabStartPractice = useCallback(() => {
     setVocrehabPracticeStep("spot");
@@ -521,7 +450,7 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone }: VocrehabRe
         <div className="space-y-3 rounded-lg border p-5">
           <h2 className="text-xl font-semibold">How this game works</h2>
           <p>
-            You are proofreading resume lines. For each of 10 lines, first spot the issue — a typo, a
+            You are proofreading resume lines. For each of {vocrehabLineCount} lines, first spot the issue — a typo, a
             vague verb, a missing number, or nothing at all — then pick the most professional rewrite.
             There is no timer and no fail state; retry always counts the same.
           </p>

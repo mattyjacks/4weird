@@ -26,7 +26,8 @@ async function CachedTermsBody() {
           Games; including its games, play shells, guides, leaderboards, Clans social features, bot platform, agent
           rentals, persistent-world/MMORPG modes, server rentals, third-party stock media (Pexels),
           Vibe Coins economy, Teams/enterprise workspaces, VibeCodeWorker surfaces, exhibits, accounts,
-          virtual items, software, APIs, and related websites and services (collectively, the “Service”). By accessing
+          virtual items, software, APIs, the Vocational Rehabilitation (VocRehab) practice module (Section 8F),
+          and related websites and services (collectively, the “Service”). By accessing
           or using the Service, you accept these Terms. If you do not agree, do not use the Service. Our{" "}
           <a className={a} href="/privacy">Privacy Policy</a> is incorporated by reference, as are any additional
           terms presented for a specific feature or purchase. By using the Service you consent to receive
@@ -586,6 +587,53 @@ async function CachedTermsBody() {
           <strong>configured:false</strong>, search is honestly unavailable until configured.
         </p>
 
+        <h2 className={h2}>8F. Vocational Rehabilitation (VocRehab) practice module</h2>
+        <p>
+          <strong>What VocRehab is.</strong> VocRehab (/vocrehab) is a voluntary, educational
+          practice tool: micro-games, interview rehearsal rooms, resume and disclosure
+          drafting aids, benefits-math sketches, and counselor session-draft helpers. It is
+          practice and orientation only. It is not a vocational-rehabilitation agency, not a
+          staffing or placement service, not legal, medical, benefits, or tax advice, and not
+          a guarantee of employment, benefits, or any outcome. Nothing in VocRehab creates an
+          employment, agency, counseling, or professional relationship between you and
+          MattyJacks, and nothing there is a promise that any rehearsal, draft, score, or
+          sketch will be accepted by any employer, agency, or authority. Consult a licensed
+          professional or your own counselor for decisions about your case.
+        </p>
+        <p>
+          <strong>Interview sim + grading.</strong> The live interview sim offers 20 static
+          practice jobs across three difficulties (Beginner “Patient Coach,” Advanced “Brisk
+          Professional,” Expert “Stern + Technical”) in turn-based or live-voice modes, capped
+          at 6 turns per rehearsal. Per-turn feedback and end-of-session report cards target
+          your <em>phrasing choices only</em> — never accent, dialect, speech pattern,
+          disability, or voice — and difficulty changes tone and strictness only, never the
+          rubric. Grades, scores, and report cards are an automated <em>practice signal</em>,
+          not a hiring decision and not an assessment of employability; counselors must treat
+          them as such. Curveballs and interruptions are scripted rehearsal devices, always
+          respectful and never personal.
+        </p>
+        <p>
+          <strong>No audio, ever; ephemeral by default.</strong> VocRehab never records,
+          uploads, or stores audio: microphone input is transcribed on your device and only
+          the text you send is transmitted. Rehearsals are ephemeral (this tab only) unless
+          you explicitly tap Save while signed in, which stores the text transcript plus the
+          report card under a separate voice-rehearsal-save consent; guests cannot save.
+          Typing plus on-device browser voice is always free (0 coins); any live or
+          server-voiced legs are metered like other AI usage with the 25% platform cut
+          already included (100 coins = $1.00), quoted before you start.
+        </p>
+        <p>
+          <strong>Counselor drafts; human approval required.</strong> Session-assist outputs
+          (case notes, measures, rationales, outreach) are drafts only: a counselor must
+          review, edit, and approve each one before any use, and nothing auto-files,
+          auto-sends, or auto-decides. Counselors see only rehearsals you explicitly saved
+          or shared; saved work exports with your own data and deletes with your account
+          under Section 12. Do not paste Social Security numbers, claim numbers, case
+          numbers, or birth dates into VocRehab; sensitive text is redacted and blocklisted
+          rehearsal topics (legal conclusions, medical conclusions, benefits guarantees,
+          identifier requests) are refused with a rephrase prompt.
+        </p>
+
         <h2 className={h2}>9. Agent rentals and Teams compute (25% cut on all computing)</h2>
         <p>
           The marketplace lists rentable agents (openclaw/nanoclaw/custom) on providers such as RunPod and
@@ -777,7 +825,7 @@ async function CachedTermsBody() {
           Our failure to enforce a provision is not a waiver. You may not assign these Terms; we may assign them
           without restriction (for example, in a merger or sale). These Terms, together with the Privacy Policy and
           any additional terms presented for a feature or purchase, are the complete agreement concerning the Service.
-          Sections 3 (license), 4C-4D (multiplayer and server rentals), 8-8E (economy), 10-10A (IP), and 14-18 (disclaimers, liability, indemnity, disputes)
+          Sections 3 (license), 4C-4D (multiplayer and server rentals), 8-8F (economy, including VocRehab), 10-10A (IP), and 14-18 (disclaimers, liability, indemnity, disputes)
           survive termination. We are not liable for delays/failures caused by events beyond reasonable control
           (force majeure: outages, attacks, provider failures, disasters, labor, government action). We aim for
           accessibility (WCAG-minded design) but make no ADA guarantee; report barriers to the contact below. EU

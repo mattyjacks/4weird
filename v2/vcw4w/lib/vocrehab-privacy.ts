@@ -24,6 +24,14 @@ export function vocrehabConsentText(purpose: VocrehabConsentPurpose): string {
         "be saved to their VocRehab record. Drafts only; nothing is shared outside " +
         "the record without a separate approval."
       );
+    case "voice-rehearsal-save":
+      return (
+        "Voice-rehearsal-save consent: the client agreed that a live interview " +
+        "rehearsal (text transcript + report card only — never audio) may be saved " +
+        "to their VocRehab record. Rehearsals are ephemeral by default and persist " +
+        "only on explicit save; nothing is shared outside the record without a " +
+        "separate approval."
+      );
     case "data-export":
       return (
         "Data-export consent: the client agreed that their own VocRehab data may be " +
