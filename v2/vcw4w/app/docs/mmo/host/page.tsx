@@ -67,7 +67,7 @@ export default function MmoHostPage() {
         ]}
       />
       <Callout tone="cyan" title="Match the band to the crowd.">
-        Adults enter all shards, teens enter kids + teens, kids enter kids-only — pick the band your players can actually enter. The full matrix lives in <Link className="underline" href="/docs/mmo/safety">Safety</Link> and <Link className="underline" href="/docs/mmorpg/age-bands">MMORPG age bands</Link>.
+        Adults enter all shards, teens enter kids + teens, kids enter kids-only — pick the band your players can actually enter. The full matrix lives in <Link className="underline" href="/docs/mmo/safety">Safety</Link> and <Link className="underline" href="/docs/mmo/age-bands">MMORPG age bands</Link>.
       </Callout>
 
       <SectionHead
@@ -112,7 +112,7 @@ export default function MmoHostPage() {
         </div>
       </MockWindow>
       <Callout tone="gold" title="Do not build budgets on quotes alone.">
-        Today the rent and billing flows return price quotes without moving coins — the charge path settles nothing until the guarded ledger settlement lands. Past quotes will not be back-billed. Same standing as <Link className="underline" href="/docs/mmorpg/hosting">Hosting a realm</Link>.
+        Today the rent and billing flows return price quotes without moving coins — the charge path settles nothing until the guarded ledger settlement lands. Past quotes will not be back-billed. Same standing as <Link className="underline" href="/docs/mmo/hosting">Hosting a realm</Link>.
       </Callout>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-3">

@@ -555,7 +555,13 @@ export async function resolveBotKey(req: Request): Promise<BotIdentity | null> {
   // ---- Power-manager policy enforcement (all denials collapse to null:
   // ---- the route layer answers the uniform "Invalid credentials."). ----
   const now = Date.now();
-  if (matched.expires_at && Date.parse(matched.expires_at) <= now) return null;
+  if (matched.expires_at) {
+    const exp = Date.parse(matched.expires_at);
+    // Fail closed: a present-but-unparseable expiry never grants access.
+    // (Date.parse NaN compares false, which would otherwise read as
+    // "never expires".)
+    if (!Number.isFinite(exp) || exp <= now) return null;
+  }
   if (Number(matched.max_uses) > 0 && Number(matched.use_count) >= Number(matched.max_uses)) {
     return null;
   }

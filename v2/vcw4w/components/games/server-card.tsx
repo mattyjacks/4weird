@@ -31,7 +31,7 @@ export type GameServer = {
   status?: string;
 };
 
-/** Raw row shape served by GET /api/mmorpg/servers (live lobby rows). */
+/** Raw row shape served by GET /api/mmo/servers (live lobby rows). */
 export type ServersApiRow = {
   id?: unknown;
   game?: unknown;

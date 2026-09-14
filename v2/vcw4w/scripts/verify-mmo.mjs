@@ -521,6 +521,171 @@ for (const rel of parityBundles) {
 }
 if (parityChecked === 0) skip("no parity bundles present to check");
 
+// ---- [7] MMO move gate (DS-MMOMV-07: /mmorpg -> /mmo) ----
+// Read-only: fails closed unless the move is complete on disk.
+console.log("[7] mmo move (/mmorpg -> /mmo)");
+
+// [7a] new routes exist
+for (const rel of ["app/mmo/page.tsx", "app/mmo/rent/page.tsx"]) {
+  if (exists(rel)) ok(`${rel} exists`);
+  else fail(`${rel} exists`, "missing /mmo page route");
+}
+const mmoApiRoutes = [
+  "app/api/mmo/servers/route.ts",
+  "app/api/mmo/rent/route.ts",
+  "app/api/mmo/join/route.ts",
+  "app/api/mmo/gate/route.ts",
+  "app/api/mmo/quote/route.ts",
+  "app/api/mmo/billing/quote/route.ts",
+  "app/api/mmo/billing/charge/route.ts",
+];
+for (const rel of mmoApiRoutes) {
+  if (exists(rel)) ok(`${rel} exists`);
+  else fail(`${rel} exists`, "missing /api/mmo route");
+}
+
+// [7b] old page routes gone; old API dupes gone (rewrite covers compat)
+for (const rel of ["app/mmorpg", "app/docs/mmorpg"]) {
+  if (!exists(rel)) ok(`${rel} absent (moved to /mmo)`);
+  else fail(`${rel} absent (moved to /mmo)`, "stale page route still on disk");
+}
+{
+  const stale = [];
+  const walk = (dirRel) => {
+    let entries = [];
+    try {
+      entries = readdirSync(join(root, ...dirRel.split("/")), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const child = `${dirRel}/${e.name}`;
+      if (e.isDirectory()) walk(child);
+      else if (e.name === "route.ts") stale.push(child);
+    }
+  };
+  if (exists("app/api/mmorpg")) walk("app/api/mmorpg");
+  if (stale.length === 0) ok("app/api/mmorpg carries zero route.ts (rewrite covers compat)");
+  else fail("app/api/mmorpg carries zero route.ts (rewrite covers compat)", `stale: ${stale.join(", ")}`);
+}
+
+// [7c] next.config.ts redirects + rewrite carry the move
+if (!exists("next.config.ts")) {
+  fail("next.config.ts exists", "missing config");
+} else {
+  const cfg = read("next.config.ts");
+  for (const token of [
+    '"/mmorpg"',
+    '"/mmo"',
+    '"/docs/mmorpg"',
+    '"/docs/mmo"',
+    '"/api/mmorpg/:path*"',
+    '"/api/mmo/:path*"',
+  ]) {
+    if (cfg.includes(token)) ok(`next.config.ts carries ${token}`);
+    else fail(`next.config.ts carries ${token}`, "missing redirect/rewrite entry");
+  }
+}
+
+// [7d] droplet constants present in lib/mmorpg-economy.ts
+{
+  const rel = "lib/mmorpg-economy.ts";
+  if (!exists(rel)) {
+    fail(`${rel} exists`, "missing economy module");
+  } else {
+    const src = read(rel);
+    for (const token of [
+      "MMORPG_DROPLET_USD_PER_MONTH",
+      "MMORPG_DROPLET_TOTAL_PER_MIN_COINS",
+      "MMORPG_DROPLET_TOTAL_PER_MIN_CC",
+    ]) {
+      if (src.includes(token)) ok(`${rel} exposes ${token}`);
+      else fail(`${rel} exposes ${token}`, "missing droplet constant");
+    }
+  }
+}
+
+// [7e] sitemap/nav carry /mmo paths
+{
+  const rel = "app/sitemap.ts";
+  if (!exists(rel)) fail(`${rel} exists`, "missing sitemap");
+  else {
+    const src = read(rel);
+    for (const token of ['"/mmo"', '"/mmo/rent"']) {
+      if (src.includes(token)) ok(`${rel} carries ${token}`);
+      else fail(`${rel} carries ${token}`, "sitemap missing /mmo path");
+    }
+  }
+  const nav = "lib/site-nav.ts";
+  if (!exists(nav)) fail(`${nav} exists`, "missing nav");
+  else {
+    const src = read(nav);
+    for (const token of ['"/mmo"', '"/mmo/rent"']) {
+      if (src.includes(token)) ok(`${nav} carries ${token}`);
+      else fail(`${nav} carries ${token}`, "nav missing /mmo path");
+    }
+  }
+}
+
+// [7f] no stray /mmorpg page/API refs outside next.config.ts + compat comments.
+// Rule: scan app/, lib/, components/ (*.ts/*.tsx, minus node_modules/.next).
+// A line fails only when it carries a path-shaped /mmorpg hit (leading
+// delimiter + /mmorpg or /api/mmorpg, case-insensitive) that is NOT a module
+// import (@/lib/mmorpg, ./mmorpg, mmorpg-age/net/presence) and NOT a compat
+// comment (compat/redirect/rewrite/legacy/rename/moved/DS-MMOMV/bookmark/
+// crawler/bot compat). Prose like persistent-world/MMORPG never matches
+// (no leading delimiter) and stays green.
+{
+  const roots = ["app", "lib", "components"];
+  const exts = new Set([".ts", ".tsx"]);
+  const pathHit = /(^|[\s"'`(\[{/])\/(api\/)?mmorpg(?=[\s"'`)\]}?/#.,:;!?-]|$)/i;
+  const moduleAllow = /@\/lib\/mmorpg|\.\/mmorpg|mmorpg-(age|net|presence)|shared\/mmorpg/i;
+  const compatAllow = /compat|redirect|rewrite|legacy|rename|moved|DS-MMOMV|bookmark|crawler|bot compat|old path|former/i;
+  const files = [];
+  const walkSrc = (dirRel) => {
+    let entries = [];
+    try {
+      entries = readdirSync(join(root, ...dirRel.split("/")), { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const child = `${dirRel}/${e.name}`;
+      if (child.includes("node_modules") || child.includes(".next")) continue;
+      if (e.isDirectory()) walkSrc(child);
+      else {
+        const dot = e.name.lastIndexOf(".");
+        const ext = dot === -1 ? "" : e.name.slice(dot);
+        if (exts.has(ext)) files.push(child);
+      }
+    }
+  };
+  for (const r of roots) walkSrc(r);
+  const offenders = [];
+  for (const f of files) {
+    if (f === "next.config.ts") continue;
+    let lines = [];
+    try {
+      lines = read(f).split("\n");
+    } catch {
+      continue;
+    }
+    lines.forEach((line, i) => {
+      if (!pathHit.test(line)) return;
+      if (moduleAllow.test(line)) return;
+      if (compatAllow.test(line)) return;
+      offenders.push(`${f}:${i + 1}: ${line.trim().slice(0, 140)}`);
+    });
+  }
+  if (offenders.length === 0) ok("no stray /mmorpg page/API refs (next.config + compat only)");
+  else {
+    fail(
+      "no stray /mmorpg page/API refs (next.config + compat only)",
+      `${offenders.length} hit(s): ${offenders.slice(0, 5).join(" | ")}${offenders.length > 5 ? " | …" : ""}`,
+    );
+  }
+}
+
 // ---- summary (fail-list + exit 1) ----
 if (failures) {
   console.error(`verify-mmo FAILED: ${failures} check(s) failed, ${skips} skipped.`);

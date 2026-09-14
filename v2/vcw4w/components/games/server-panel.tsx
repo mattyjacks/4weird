@@ -95,7 +95,7 @@ export function ServerDetail({ id }: { id: string }) {
     setMessage("Loading room…");
     setServer(null);
     try {
-      const response = await fetch("/api/mmorpg/servers", {
+      const response = await fetch("/api/mmo/servers", {
         credentials: "include",
         cache: "no-store",
       });

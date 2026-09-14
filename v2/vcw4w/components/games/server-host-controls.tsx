@@ -40,7 +40,7 @@ export function ServerHostControls({ serverId, isHost = false }: { serverId: str
     setPending(action);
     setMessage("");
     try {
-      const response = await fetch("/api/mmorpg/servers", {
+      const response = await fetch("/api/mmo/servers", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

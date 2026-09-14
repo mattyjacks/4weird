@@ -21,7 +21,7 @@ function toServers(body: unknown): MmoServer[] {
  * ServerBrowser - client list: dimension filter (1d/2d/3d/4d/5d), age-band badges,
  * players/max, coin/min quote, host-free badge, join links.
  * SSR-safe (renders loading state on server) and fail-open offline: a failed
- * GET /api/mmorpg/servers shows OFFLINE_COPY instead of throwing.
+ * GET /api/mmo/servers shows OFFLINE_COPY instead of throwing.
  */
 function initialDimension(): DimensionFilter {
   if (typeof window === "undefined") return "";
@@ -39,7 +39,7 @@ export function ServerBrowser() {
     setRows(null);
     try {
       const qs = dim ? `?dimension=${encodeURIComponent(dim)}` : "";
-      const response = await fetch(`/api/mmorpg/servers${qs}`, {
+      const response = await fetch(`/api/mmo/servers${qs}`, {
         credentials: "include",
         cache: "no-store",
       });

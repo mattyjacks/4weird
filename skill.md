@@ -7,3 +7,6 @@
 > `Read https://4weird.com/skill.md and act as my 4weird bot. The key is in FOURWEIRD_BOT_KEY (send it as the x-bot-key header).`
 > into your agent after issuing a `bot4weird_` key at https://4weird.com/bot/setup.
 > The old https://4weird.com/bot/skill.md URL redirects to https://4weird.com/skill.md.
+> Fallback (lazy dev / agent without repo checkout): if you can't read
+> `v2/vcw4w/public/skill.md` locally, fetch https://4weird.com/skill.md instead —
+> same content, canonical source.

@@ -30,13 +30,13 @@ function isFull(server: GameServer): boolean {
 
 /**
  * ServerBrowser — client list for /games/servers: dimension, age-band,
- * and population filters over GET /api/mmorpg/servers, with live
+ * and population filters over GET /api/mmo/servers, with live
  * per-minute quotes + free-play badges on every ServerCard.
  * SSR-safe (renders loading state on server) and fail-open offline: a
  * failed fetch shows OFFLINE_COPY instead of throwing. The dimension
  * facet only lists values the data actually declares; age-band filtering
  * is display-only here — join-time enforcement stays server-side
- * (DS-MMO-08 age-band entry + /api/mmorpg/gate).
+ * (DS-MMO-08 age-band entry + /api/mmo/gate).
  */
 export function ServerBrowser() {
   const [dimension, setDimension] = useState<DimensionFilter>(initialDimension);
@@ -49,7 +49,7 @@ export function ServerBrowser() {
     setMessage("Loading servers…");
     setRows(null);
     try {
-      const response = await fetch("/api/mmorpg/servers", {
+      const response = await fetch("/api/mmo/servers", {
         credentials: "include",
         cache: "no-store",
       });

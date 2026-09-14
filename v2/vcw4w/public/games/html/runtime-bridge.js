@@ -869,7 +869,7 @@
   //  1. Broadcast "fourweird-cloud-load" so live-aware games can hot-apply
   //     without a reload (detail: { slug, slot, data, restored, reason }).
   //  2. Reload once so init-time reads re-run against the restored keys.
-  // Reload guards (all must pass):
+  // Reload guards (all must pass for an AUTO reload):
   //  - restored > 0 (nothing written → nothing to apply, never reload).
   //  - once per document (in-memory flag: the reloaded page restores 0 keys
   //    because local now has them, so even without the other guards this
@@ -881,6 +881,53 @@
   //    duplicate/late auto-load must never wipe mid-session progress.
   //    Manual loads (reason "manual", i.e. the player pressed Load) always
   //    apply — that click IS the consent to replace local state.
+  //  - DS-FIX500-06 storage-blocked hardening (auto loads only):
+  //    (1) sessionStorage must actually work (probed once at boot). When it
+  //    is blocked the per-session fingerprint never persists and the
+  //    in-memory flag resets per document, so every load would reload.
+  //    (2) at most one auto cloud-save reload per slug per 60s, tracked in
+  //    localStorage (cross-document). Fail-closed: when storage cannot be
+  //    read or the slot cannot be recorded, no auto reload happens.
+  //    Manual loads bypass both — the click is explicit consent.
+  var sessionStorageOK = (function () {
+    try {
+      var probeKey = "fourweird-ss-probe:" + SLUG;
+      window.sessionStorage.setItem(probeKey, "1");
+      window.sessionStorage.removeItem(probeKey);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  })();
+  var CLOUD_RELOAD_WINDOW_MS = 60000;
+  function claimAutoReloadSlot() {
+    var now = 0;
+    try {
+      now = Date.now();
+    } catch (e) {
+      return false;
+    }
+    if (!now) return false;
+    var slotKey = "fourweird-cloud-reloaded-at:" + SLUG;
+    var last = 0;
+    try {
+      if (!window.localStorage) return false;
+      var raw = window.localStorage.getItem(slotKey);
+      if (raw !== null && raw !== undefined && raw !== "") {
+        last = parseInt(raw, 10);
+        if (isNaN(last)) last = 0;
+      }
+    } catch (e) {
+      return false; /* storage unreadable: fail closed, no auto reload */
+    }
+    if (now - last < CLOUD_RELOAD_WINDOW_MS) return false;
+    try {
+      window.localStorage.setItem(slotKey, String(now));
+    } catch (e) {
+      return false; /* slot not recorded: fail closed, no auto reload */
+    }
+    return true;
+  }
   var cloudReloadedThisDocument = false;
   function applyCloudSave(message, reason) {
     var data = (message && message.data) || null;
@@ -906,6 +953,8 @@
     if (!(restored > 0) || cloudReloadedThisDocument) return;
     var isManual = reason === "manual";
     if (!isManual && statActions !== 0) return;
+    if (!isManual && !sessionStorageOK) return;
+    if (!isManual && !claimAutoReloadSlot()) return;
     var fingerprint = SLUG + ":" + (message && message.slot) + ":" + restored;
     try {
       var flagKey = "fourweird-cloud-applied:" + SLUG;

@@ -1,1 +1,24 @@
-{"created":"2026-09-13T14:05:00Z","gates":["npx tsc --noEmit","npx eslint components/games/game-runtime-frame.tsx"],"goal":"Single-mount audit of the game iframe: prove the runtime frame mounts its iframe exactly once per Start (stable src/key, no effect remount loop, no StrictMode double-boot metering) and patch minimally ONLY if a remount loop is found; a clean audit with evidence is an acceptable close. Done = audit + gates green with output in log, zero edits outside scope.","id":"DS-FIX500-07","lane":"games","log":["2026-09-13T14:05:00Z lead: envelope created, awaiting claim."],"owner":null,"scope":["v2/vcw4w/components/games/game-runtime-frame.tsx"],"status":"open","title":"Runtime frame: single-mount audit","updated":"2026-09-13T14:05:00Z"}
+{
+  "created": "2026-09-13T14:05:00Z",
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint components/games/game-runtime-frame.tsx"
+  ],
+  "goal": "Single-mount audit of the game iframe: prove the runtime frame mounts its iframe exactly once per Start (stable src/key, no effect remount loop, no StrictMode double-boot metering) and patch minimally ONLY if a remount loop is found; a clean audit with evidence is an acceptable close. Done = audit + gates green with output in log, zero edits outside scope.",
+  "id": "DS-FIX500-07",
+  "lane": "games",
+  "log": [
+    "2026-09-13T14:05:00Z lead: envelope created, awaiting claim.",
+    "2026-09-14T00:25:16.102Z auto-fix500-07: claimed, starting single-mount audit of game-runtime-frame.tsx",
+    "2026-09-14T00:26:07.491Z auto-fix500-07: in_progress, auditing game-runtime-frame.tsx mount path",
+    "2026-09-14T00:33:24.540Z auto-fix500-07: AUDIT CLEAN — iframe mounts exactly once per Start: no key prop, stable src from props, no conditional iframe render, all 9 effects return cleanups (StrictMode-safe), stats/metering POSTs fire only on bridge messages (no double-boot metering). No remount loop found, zero bytes changed per brief.",
+    "2026-09-14T00:33:24.540Z auto-fix500-07: GATE SPLIT — npx tsc --noEmit exit 0 GREEN; npx eslint RED pre-existing (untracked-mods none, git tree clean): react-hooks/set-state-in-effect at 196:5 ([src] status re-arm on game switch) and 600:7 ([slug] localStorage autosave read, must stay in effect for SSR) + unused autosaveMirrorKey warning 62:10. All pre-existing (git status clean), none is a mount bug; fixing would change runtime behavior beyond brief scope (patch ONLY if remount loop found). Blocked per protocol, never done on red."
+  ],
+  "owner": "auto-fix500-07",
+  "scope": [
+    "v2/vcw4w/components/games/game-runtime-frame.tsx"
+  ],
+  "status": "blocked",
+  "title": "Runtime frame: single-mount audit",
+  "updated": "2026-09-14T00:33:24.540Z"
+}

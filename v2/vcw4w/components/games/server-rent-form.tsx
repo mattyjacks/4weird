@@ -36,8 +36,8 @@ function quoteNum(value: unknown): number | null {
 
 /**
  * ServerRentForm — 5-step room rental: game, size, age band, subsidy,
- * quote + confirm. Quotes live via POST /api/mmorpg/rent and confirms
- * via POST /api/mmorpg/servers; both fail open (local rate-card math +
+ * quote + confirm. Quotes live via POST /api/mmo/rent and confirms
+ * via POST /api/mmo/servers; both fail open (local rate-card math +
  * a pending notice) so the form never throws when the lobby API is down.
  * QUOTE ONLY — no ledger writes happen here; settlement stays
  * economy-lane owned.
@@ -65,7 +65,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
     setQuoteError("");
     setQuote(null);
     try {
-      const response = await fetch("/api/mmorpg/rent", {
+      const response = await fetch("/api/mmo/rent", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -101,7 +101,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
     setConfirmState("working");
     setConfirmDetail("");
     try {
-      const response = await fetch("/api/mmorpg/servers", {
+      const response = await fetch("/api/mmo/servers", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

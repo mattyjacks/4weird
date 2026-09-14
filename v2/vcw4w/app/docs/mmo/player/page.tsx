@@ -58,7 +58,7 @@ export default function MmoPlayerPage() {
           ],
           [
             "Join through the gate",
-            <>Joining names the server and your band (<code>POST /api/mmorpg/join</code>). A pure preview lives at <code>GET /api/mmorpg/gate?playerBand=…&serverBand=…</code> — no session, nothing stored.</>,
+            <>Joining names the server and your band (<code>POST /api/mmo/join</code>). A pure preview lives at <code>GET /api/mmo/gate?playerBand=…&serverBand=…</code> — no session, nothing stored.</>,
           ],
           [
             "A deny names the rule",
@@ -67,7 +67,7 @@ export default function MmoPlayerPage() {
         ]}
       />
       <Callout tone="emerald" title="Same gate as the realms guide.">
-        This entry matrix is identical to <Link className="underline" href="/docs/mmorpg/age-bands">MMORPG age bands</Link> — one rule everywhere, enforced by the same band comparison. Unknown or forged bands fail closed.
+        This entry matrix is identical to <Link className="underline" href="/docs/mmo/age-bands">MMORPG age bands</Link> — one rule everywhere, enforced by the same band comparison. Unknown or forged bands fail closed.
       </Callout>
 
       <SectionHead

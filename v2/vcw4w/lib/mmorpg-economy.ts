@@ -17,10 +17,23 @@
  *     back to coins rounded to 2dp — so every returned coin value is
  *     centicentcoin-exact (no float dust like 0.1 + 0.2).
  *
- * GAME RATE CARD (`MMORPG_SERVER_COSTS_BY_GAME`): one row per GraveGain
- * dimension. Costs rise with dimension: 4d sits slightly above 3d, 5d is
- * the highest. `MMORPG_SERVER_COSTS` stays as the legacy 3d default so
- * existing callers quote unchanged; pass `gameKind` to quote another row.
+ * DROPLET COST MODEL (one shared $6/mo box for every game):
+ *   - `MMORPG_DROPLET_USD_PER_MONTH` is the real DigitalOcean droplet price.
+ *   - The monthly coin value is grossed UP so the 25% platform cut stays
+ *     INSIDE: 600 coins / 0.75 = 800 coins
+ *     (`MMORPG_DROPLET_TOTAL_PER_MIN_COINS = 800 / 43200`, exported for the
+ *     API lane; 43200 = minutes in a 30-day month).
+ *   - `quoteSession` prices EVERY dimension from that single droplet total
+ *     (one box, one price — `gameKind` is still cleaned and echoed for
+ *     compat but no longer changes the price), then splits the per-minute
+ *     total across seated players (more heads = cheaper each, floored at
+ *     1 centicentcoin so a seat is never free-by-dust).
+ *   - There is NO per-room rental on a shared box: rental is always 0 and
+ *     the host pays 0 unless `hostFree` sponsors the room (then the host
+ *     pays the full per-minute burn, players pay 0).
+ *   - `MMORPG_SERVER_COSTS` / `MMORPG_SERVER_COSTS_BY_GAME` remain as the
+ *     legacy persisted-row rate card (room rows still store those figures)
+ *     but they no longer drive quotes.
  *
  * FAIL-OPEN CLAMPS: bad inputs never throw and never bill phantom money —
  * negatives clamp to 0, non-finite values fall back to defaults, player
@@ -28,21 +41,23 @@
  * Only integer-safe, bounded outputs leave this module.
  *
  * ASCII money flow (per session minute, totals scale linearly by minutes):
+ * one shared $6/mo droplet, burn split across seats, no rental meter.
  *
  *   hostFree = false (normal split)
- *   +----------------+  server+load  +----------------------+
- *   |  SERVER METER  | ------------> |  PLAYERS (split even)|
- *   | base + load/min|  /playerCount |  each pays 1/N share |
- *   +----------------+               +----------------------+
- *   +----------------+   rental/hr   +----------------------+
- *   |  RENTAL METER  | ------------> |  HOST (always pays)  |
- *   |  prorated/min  |               |  rental fee only     |
- *   +----------------+               +----------------------+
+ *   +----------------+  droplet/min +----------------------+
+ *   | DROPLET METER  | ------------> |  PLAYERS (split even)|
+ *   | 800 coins/mo / |  /playerCount |  each pays 1/N share |
+ *   | 43200 min, cut |  floor 1cc    |  (min 0.01 coin)     |
+ *   | INCLUDED       |               +----------------------+
+ *   +----------------+                    HOST pays 0
+ *   | NO RENTAL METER|  (shared box, no per-room rental)
+ *   +----------------+
  *
  *   hostFree = true (host sponsors the room)
- *   +----------------+  server+load  +----------------------+
- *   |  SERVER METER  | ------------> |  HOST (pays all)     |
- *   | base + load/min|  + rental/hr  |  players pay 0       |
+ *   +----------------+  droplet/min +----------------------+
+ *   | DROPLET METER  | ------------> |  HOST (pays full     |
+ *   | 800 coins/mo / |  full burn    |  per-minute burn)    |
+ *   | 43200 min      |               |  players pay 0       |
  *   +----------------+               +----------------------+
  *
  * LEDGER PAIRING: `splitLedgerEntries()` turns a quote into balanced
@@ -62,6 +77,33 @@ export const MMORPG_MAX_SESSION_MINUTES = 1440;
 
 /** Platform cut INCLUDED in every per-minute price (same rule everywhere). */
 export const MMORPG_SERVICE_CUT_PCT = 25;
+
+/** Real droplet price: one shared $6/mo DigitalOcean box for all games. */
+export const MMORPG_DROPLET_USD_PER_MONTH = 6;
+
+/** Minutes in a 30-day droplet billing month (30 * 24 * 60). */
+export const MMORPG_DROPLET_MINUTES_PER_MONTH = 43200;
+
+/**
+ * Canonical per-minute droplet burn in coins, exported for the API lane.
+ * Grossed UP so the 25% cut stays INSIDE: $6/mo = 600 coins at parity,
+ * 600 / 0.75 = 800 coins gross per month, spread over 43200 minutes.
+ * Integer billing uses `MMORPG_DROPLET_TOTAL_PER_MIN_CC` (rounded to the
+ * smallest unit); this float is the display/settlement reference.
+ */
+export const MMORPG_DROPLET_TOTAL_PER_MIN_COINS = 800 / 43200;
+
+/**
+ * Canonical per-minute droplet burn in integer centicentcoins
+ * (authoritative for billing math): 800 coins = 80000cc over 43200 min,
+ * rounded to the smallest accountable unit (2cc = 0.02 coins).
+ */
+export const MMORPG_DROPLET_TOTAL_PER_MIN_CC = Math.round(
+  ((MMORPG_DROPLET_USD_PER_MONTH * MMORPG_COINS_PER_USD) /
+    (1 - MMORPG_SERVICE_CUT_PCT / 100) /
+    MMORPG_DROPLET_MINUTES_PER_MONTH) *
+    MMORPG_CENTICENTCOINS_PER_COIN,
+);
 
 /** Largest player roster quotable in one call (fail-open slice cap). */
 export const MMORPG_MAX_PLAYERS_PER_SESSION = 500;
@@ -110,7 +152,11 @@ export type MmorpgServerCosts = {
 };
 
 /**
- * Per-dimension server price book, in whole coins (cut INCLUDED).
+ * Legacy persisted-row price book, in whole coins (cut INCLUDED).
+ * Kept verbatim for backwards compatibility: room rows still store these
+ * figures and `resolveMmorpgServerCosts` still serves them, but
+ * `quoteSession` no longer prices from them — every dimension quotes the
+ * single shared droplet total (`MMORPG_DROPLET_TOTAL_PER_MIN_CC`).
  * Ordering: 4d sits slightly above 3d, 5d is the highest.
  */
 export const MMORPG_SERVER_COSTS_BY_GAME: Record<MmorpgGameKind, MmorpgServerCosts> = {
@@ -143,11 +189,11 @@ export function resolveMmorpgServerCosts(gameKind: unknown): MmorpgServerCosts {
 
 /** Input to {@link quoteSession}. All coin fields are Vibe Coins. */
 export type QuoteSessionInput = {
-  /** GraveGain dimension row to quote (fail-open to gravegain3d). */
+  /** GraveGain dimension row to quote (cleaned + echoed, price is droplet-flat). */
   gameKind?: unknown;
-  /** Base server cost per minute (coins). Defaults to the game row `basePerMin`. */
+  /** IGNORED for pricing (compat only): one shared box, one droplet price. */
   serverCostPerMin?: unknown;
-  /** Total load cost per minute across the room (coins). Defaults to `loadPerPlayerPerMin * playerCount` of the game row. */
+  /** IGNORED for pricing (compat only): one shared box, one droplet price. */
   loadCostPerMin?: unknown;
   /** Seated players sharing the bill. Clamped to an integer >= 0. */
   playerCount?: unknown;
@@ -165,7 +211,7 @@ export type MmorpgSessionQuote = {
   perPlayerPerMin: number;
   /** Coins each player pays for the whole session. */
   perPlayerTotal: number;
-  /** Coins the host pays for the whole session (rental always included). */
+  /** Coins the host pays for the whole session (0 unless hostFree; no rental). */
   hostTotal: number;
   /** Echo of the clamped minutes billed. */
   minutesBilled: number;
@@ -210,17 +256,6 @@ function toCoins(centicentcoins: number): number {
   return Math.round(centicentcoins) / MMORPG_CENTICENTCOINS_PER_COIN;
 }
 
-/**
- * Fail-open coin cleaner: finite, within [0, cap], rounded to the smallest
- * unit. Returns `fallbackCc` (integer cc) for anything malformed.
- */
-function cleanCoinsToCc(value: unknown, fallbackCc: number, capCoins: number): number {
-  const v = Number(value);
-  if (!Number.isFinite(v) || v < 0) return fallbackCc;
-  const capped = Math.min(v, capCoins);
-  return toCenticentcoins(capped);
-}
-
 /** Fail-open player count: integer in [0, MMORPG_MAX_PLAYERS_PER_SESSION]. */
 function cleanPlayerCount(value: unknown): number {
   const v = Number(value);
@@ -249,41 +284,37 @@ function cleanAccountId(value: unknown): string {
 /**
  * Quote one MMORPG session. Pure: no I/O, no ledger reads or writes.
  *
- * Rules:
- * - Players split `(serverCostPerMin + loadCostPerMin) / playerCount` per
- *   minute, each share rounded to the nearest centicentcoin; the session
- *   total per player scales linearly by minutes.
- * - `hostFree = true` => players pay 0 and the host pays the full
- *   server + load for every minute, PLUS the prorated rental fee.
- * - Otherwise the host pays ONLY the prorated rental fee
- *   (`rentalPerHour * minutes / 60`) while players split server + load.
+ * Droplet model (one shared $6/mo box, single price for every dimension):
+ * - The per-minute room total is ALWAYS `MMORPG_DROPLET_TOTAL_PER_MIN_CC`
+ *   (800 grossed-up coins/mo over 43200 min, 25% cut INCLUDED) — `gameKind`
+ *   is cleaned and echoed for compat but never changes the price, and the
+ *   legacy `serverCostPerMin` / `loadCostPerMin` inputs are ignored.
+ * - Players split that total evenly per minute, each share rounded to the
+ *   nearest centicentcoin with a floor of 1cc (0.01 coin) so a seat is
+ *   never free-by-dust; the session total per player scales linearly.
+ * - `hostFree = true` => players pay 0 and the host pays the full droplet
+ *   burn for every minute. Otherwise the host pays 0 — there is NO
+ *   per-room rental on a shared box.
  * - Zero players => per-player quotes are 0 (no phantom bills); the host
- *   still owes the prorated rental, plus everything when hostFree.
+ *   still pays the full burn when hostFree, else 0.
  * - All money math runs in integer centicentcoins; outputs are coins.
  */
 export function quoteSession(input: QuoteSessionInput): MmorpgSessionQuote {
   const gameKind = cleanMmorpgGameKind(input.gameKind);
-  const row = MMORPG_SERVER_COSTS_BY_GAME[gameKind];
   const playersSplit = cleanPlayerCount(input.playerCount);
   const minutesBilled = cleanMinutes(input.minutesOnServer);
   const hostFree = cleanHostFree(input.hostFree);
 
-  const baseCc = toCenticentcoins(row.basePerMin);
-  const defaultLoadCc =
-    toCenticentcoins(row.loadPerPlayerPerMin) * playersSplit;
-
-  const serverCc = cleanCoinsToCc(input.serverCostPerMin, baseCc, MMORPG_MAX_COST_PER_MIN_COINS);
-  const loadCc = cleanCoinsToCc(input.loadCostPerMin, defaultLoadCc, MMORPG_MAX_COST_PER_MIN_COINS);
-  const totalPerMinCc = serverCc + loadCc;
+  const totalPerMinCc = MMORPG_DROPLET_TOTAL_PER_MIN_CC;
 
   const perPlayerPerMinCc =
-    !hostFree && playersSplit > 0 ? Math.round(totalPerMinCc / playersSplit) : 0;
+    !hostFree && playersSplit > 0
+      ? Math.max(1, Math.round(totalPerMinCc / playersSplit))
+      : 0;
   const perPlayerTotalCc = perPlayerPerMinCc * minutesBilled;
 
-  const rentalTotalCc = Math.round(
-    (toCenticentcoins(row.rentalPerHour) * minutesBilled) / 60,
-  );
-  const hostTotalCc = rentalTotalCc + (hostFree ? totalPerMinCc * minutesBilled : 0);
+  // No per-room rental on a shared box: host pays 0 unless hostFree.
+  const hostTotalCc = hostFree ? totalPerMinCc * minutesBilled : 0;
 
   return {
     gameKind,
@@ -373,7 +404,7 @@ export function splitLedgerEntries(input: SplitLedgerEntriesInput): MmorpgLedger
         amountCoins: hostCoins,
         amountCenticentcoins: hostTotalCc,
         sessionId,
-        memo: `MMORPG session ${sessionId}: host rental${quote.hostFree ? " + sponsored room" : ""}`,
+          memo: `MMORPG session ${sessionId}: host sponsored droplet burn`,
       },
       credit: {
         accountId: MMORPG_HOUSE_POOL_ACCOUNT_ID,
@@ -381,7 +412,7 @@ export function splitLedgerEntries(input: SplitLedgerEntriesInput): MmorpgLedger
         amountCoins: hostCoins,
         amountCenticentcoins: hostTotalCc,
         sessionId,
-        memo: `MMORPG session ${sessionId}: host rental${quote.hostFree ? " + sponsored room" : ""}`,
+          memo: `MMORPG session ${sessionId}: host sponsored droplet burn`,
       },
     });
   }

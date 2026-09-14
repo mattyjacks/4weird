@@ -13,7 +13,7 @@ export function formatUsd(coins: unknown): string {
 }
 
 export type ServerQuoteInput = {
-  /** Live quote lookup for a known server id (GET /api/mmorpg/quote). */
+  /** Live quote lookup for a known server id (GET /api/mmo/quote). */
   serverId?: string;
   /** Fallback per-player per-minute rate when no live quote loads. */
   coinPerMin?: number | null;
@@ -33,7 +33,7 @@ type LiveQuote = {
 /**
  * ServerQuote — live per-minute quote with a fail-open local fallback.
  *
- * Tries GET /api/mmorpg/quote?serverId=<id> first; on any failure it quotes
+ * Tries GET /api/mmo/quote?serverId=<id> first; on any failure it quotes
  * from the `coinPerMin` prop (or 0 = free) with identical display math, so
  * the browser and rent flow never blank-screen when the API is down.
  * QUOTE ONLY — settlement stays economy-lane owned (paired coin_ledger
@@ -45,7 +45,7 @@ export function ServerQuote({ serverId, coinPerMin, hostFree, minutes = 60 }: Se
   useEffect(() => {
     if (!serverId) return;
     let cancelled = false;
-    fetch(`/api/mmorpg/quote?serverId=${encodeURIComponent(serverId)}`, {
+    fetch(`/api/mmo/quote?serverId=${encodeURIComponent(serverId)}`, {
       credentials: "include",
       cache: "no-store",
     })
