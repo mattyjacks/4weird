@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 // exports are server-only.
 export const metadata: Metadata = {
   title: "CryptArt Commander",
-  description: "Local power-user terminal for 4weird Games. Allow-listed commands only — no server execution, works offline.",
+  description: "Local power-user terminal for 4weird Games with virtual-desktop pod attach. Allow-listed commands only — the pod panel reuses the desktop APIs read-only.",
   alternates: { canonical: "/terminal" },
 };
 

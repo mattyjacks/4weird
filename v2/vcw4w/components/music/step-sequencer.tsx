@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+
 export type SequencerNote = { t: number; n: number };
 
 export type StepSequencerProps = {
@@ -35,8 +37,10 @@ function noteLabel(midi: number): string {
 }
 
 /**
- * 16-step grid x one octave+ of pitches for a single track. Click a cell to
- * toggle that note; changes bubble up via `onToggle`. Pure render — no
+ * 16-step grid x one octave+ of pitches for a single track. Cells toggle on
+ * touch/pen `pointerdown` (no tap delay, works inside the scrolling grid)
+ * and on mouse/keyboard `click` — a tap toggles exactly once because the
+ * follow-up click after a touch pointerdown is suppressed. Pure render — no
  * browser APIs outside event handlers.
  */
 export function StepSequencer({
@@ -57,11 +61,11 @@ export function StepSequencer({
     <div
       role="group"
       aria-label={`Step sequencer, ${steps} steps, ${noteLabel(lowNote)} to ${noteLabel(lowNote + 12)}`}
-      className="overflow-x-auto"
+      className="max-w-full overflow-x-auto overscroll-x-contain pb-1"
     >
       <div
-        className="grid gap-1"
-        style={{ gridTemplateColumns: `3.5rem repeat(${steps}, minmax(1.5rem, 1fr))` }}
+        className="grid w-max min-w-full gap-1"
+        style={{ gridTemplateColumns: `3.5rem repeat(${steps}, minmax(2.75rem, 1fr))` }}
       >
         {/* Header row: step numbers */}
         <span aria-hidden="true" />
@@ -103,6 +107,10 @@ function StepRow({
 }) {
   const label = noteLabel(midi);
   const isBlackKey = label.includes("#");
+  // Steps toggled by a touch/pen pointerdown are recorded here so the
+  // compatibility click that follows the tap is skipped (exactly one
+  // toggle per tap). Mouse and keyboard keep the plain click path.
+  const touchToggledRef = useRef<Set<number>>(new Set());
   return (
     <>
       <span
@@ -121,8 +129,22 @@ function StepRow({
             type="button"
             aria-pressed={active}
             aria-label={`${active ? "Remove" : "Add"} ${label} at step ${step + 1}`}
-            onClick={() => onToggle(step, midi)}
-            className={`aspect-square w-full rounded-md border transition-colors ${
+            onPointerDown={(event) => {
+              let isMouse = false;
+              try {
+                isMouse = event.pointerType === "mouse";
+              } catch {
+                // Fail open: unknown pointer type toggles like touch.
+              }
+              if (isMouse) return;
+              touchToggledRef.current.add(step);
+              onToggle(step, midi);
+            }}
+            onClick={() => {
+              if (touchToggledRef.current.delete(step)) return;
+              onToggle(step, midi);
+            }}
+            className={`aspect-square min-h-[40px] w-full min-w-[40px] touch-manipulation rounded-md border transition-colors ${
               active
                 ? "border-cyan-300 bg-cyan-400/80 hover:bg-cyan-300"
                 : downbeat

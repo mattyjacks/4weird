@@ -33,7 +33,7 @@
             this.masterGain.connect(this.ctx.destination);
 
             this.musicGain = this.ctx.createGain();
-            this.musicGain.gain.setValueAtTime(0.22, this.ctx.currentTime);
+            this.musicGain.gain.setValueAtTime(0.09, this.ctx.currentTime);
             this.musicGain.connect(this.masterGain);
 
             this.sfxGain = this.ctx.createGain();
@@ -77,6 +77,14 @@
                 this.musicTimer = setTimeout(tick, stepDuration);
             };
             this.musicTimer = setTimeout(tick, stepDuration);
+        },
+
+        stopMusic() {
+            if (this.musicTimer) {
+                clearTimeout(this.musicTimer);
+                this.musicTimer = null;
+            }
+            this.musicPlaying = false;
         },
 
         playMusicStep(step, mode) {
@@ -3302,6 +3310,7 @@
         document.getElementById('gameMain').classList.add('hidden');
 
         if (newMode === 'MENU') {
+            audio.stopMusic();
             document.getElementById('mainMenuScreen').classList.remove('hidden');
         }
         else if (newMode === 'SELECT') {
@@ -3312,12 +3321,14 @@
         else if (newMode === 'PLAY') {
             document.getElementById('gameMain').classList.remove('hidden');
             resizeCanvas();
+            audio.startMusic();
         }
         else if (newMode === 'SHOP') {
             document.getElementById('elevatorShopOverlay').classList.remove('hidden');
             renderShopUpgrades();
         }
         else if (newMode === 'GAMEOVER') {
+            audio.stopMusic();
             document.getElementById('gameOverScreen').classList.remove('hidden');
 
             const info = ROSTER.find(r => r.id === state.selectedId);

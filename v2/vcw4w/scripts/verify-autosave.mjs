@@ -57,3 +57,25 @@ if (!/cutscene/i.test(template)) fail("template-demo/game.js must mention the cu
 console.log("verify-autosave: template requestAutosave/__fourweirdRequestSave + cutscene mention.");
 
 console.log("verify-autosave: bridge 60s + on-request, frame default-ON, panel default-ON, lib defaults, template hook — all green.");
+
+// 6. Dual-save autosave target: autosave writes kind=auto (the auto companion
+// of the active slot), never the manual copy. Fail-open: dual-save may not
+// have landed yet; skip instead of failing.
+{
+  const haystacks = [];
+  try {
+    haystacks.push(read("../components/games/game-runtime-frame.tsx"));
+  } catch { /* frame unreadable; skip below */ }
+  try {
+    haystacks.push(read("../components/games/universal-save-panel.tsx"));
+  } catch { /* panel unreadable; skip below */ }
+  try {
+    haystacks.push(read("../lib/game-autosave.ts"));
+  } catch { /* lib unreadable; skip below */ }
+  const hay = haystacks.join("\n");
+  if (!/kind.*auto|autoSlotKey|:auto/.test(hay)) {
+    console.log("verify-autosave: check 6 SKIP — no kind=auto / autoSlotKey / :auto target yet (dual-save autosave not landed yet).");
+  } else {
+    console.log("verify-autosave: check 6 green (autosave writes kind auto / active-slot companion).");
+  }
+}

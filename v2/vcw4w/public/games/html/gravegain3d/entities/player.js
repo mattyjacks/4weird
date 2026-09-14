@@ -127,8 +127,8 @@
 
                 const cosYaw = Math.cos(this.yaw);
                 const sinYaw = Math.sin(this.yaw);
-                this.vx = (normX * cosYaw - normZ * sinYaw) * currentSpeed;
-                this.vy = (normX * sinYaw + normZ * cosYaw) * currentSpeed;
+                this.vx = (normX * cosYaw + normZ * sinYaw) * currentSpeed;
+                this.vy = (-normX * sinYaw + normZ * cosYaw) * currentSpeed;
             } else {
                 this.vx = 0;
                 this.vy = 0;

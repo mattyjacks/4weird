@@ -1258,8 +1258,8 @@
 
                 const cosYaw = Math.cos(this.player.yaw);
                 const sinYaw = Math.sin(this.player.yaw);
-                const dx = (nx * cosYaw - nz * sinYaw) * stepDist;
-                const dy = (nx * sinYaw + nz * cosYaw) * stepDist;
+                const dx = (nx * cosYaw + nz * sinYaw) * stepDist;
+                const dy = (-nx * sinYaw + nz * cosYaw) * stepDist;
 
                 this.physics.moveEntityWithCollision(this.player, dx, dy, this.dungeon);
                 this.audio.playSfx('swing', 2.0);

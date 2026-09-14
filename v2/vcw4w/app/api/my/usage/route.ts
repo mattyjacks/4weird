@@ -116,6 +116,7 @@ export async function GET(req: Request) {
     let query = supabase
       .from("game_ai_usage")
       .select("game_slug,kind,mode,session_id,qty,gross_coins,cut_coins,provider_coins,source,created_at")
+      .eq("user_id", data.user.id)
       .order("created_at", { ascending: false })
       .limit(limit);
     if (session) query = query.eq("session_id", session);
@@ -162,7 +163,17 @@ export async function GET(req: Request) {
     byService: { service: string; unit: string; qty: number; gross: number; cut: number; provider: number }[];
   } = { gross: 0, cut: 0, provider: 0, charges: 0, functions: { gross: 0, cut: 0, charges: 0 }, byService: [] };
   try {
-    const { data: provisions } = await supabase.from("cloud_provisions").select("id,service_key").limit(200);
+    // Scope provisions to the caller's orgs: an unscoped list would expose
+    // every tenant's spend metadata to any login.
+    const { data: memberships } = await supabase
+      .from("org_members")
+      .select("org_id")
+      .eq("user_id", data.user.id)
+      .limit(100);
+    const orgIds = ((memberships ?? []) as { org_id: string }[]).map((m) => m.org_id);
+    const { data: provisions } = orgIds.length
+      ? await supabase.from("cloud_provisions").select("id,service_key").in("org_id", orgIds).limit(200)
+      : { data: [] as { id: string; service_key: string }[] };
     const provRows = (provisions ?? []) as { id: string; service_key: string }[];
     if (provRows.length) {
       const ids = provRows.map((p) => p.id).slice(0, 200);

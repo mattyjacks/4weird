@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug } from "@/lib/validate";
@@ -33,6 +33,19 @@ export async function PUT(req: Request) {
     { user_id: u.id, game_slug: game, actor_kind: kind, last_seen_at: new Date().toISOString() },
     { onConflict: "user_id,game_slug" },
   );
-  if (error) return fail("Unable to record presence.", 500);
+  if (error) {
+    // Presence is best-effort telemetry (the game_presence table ships in a
+    // later migration than this route); a prod DB that hasn't applied it yet
+    // (42P01 / PGRST205 / missing-table) should read as recorded:false,
+    // not a 500. Real DB faults still 500 via dbFail (server-side evidence,
+    // stable public text, no PII).
+    const code = String((error as { code?: unknown }).code ?? "");
+    const msg = String((error as { message?: unknown }).message ?? "");
+    if (code === "42P01" || code === "PGRST205" || /game_presence.*(does not exist|could not find)/i.test(msg)) {
+      console.error("[api] api/presence game_presence table missing, returning recorded:false", { code: code.slice(0, 16) });
+      return ok({ recorded: false });
+    }
+    return dbFail("api/presence", error, "Unable to record presence.");
+  }
   return ok({ actor_kind: kind });
 }

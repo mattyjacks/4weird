@@ -394,7 +394,7 @@ class AudioManager {
         filter.type = 'lowpass';
         filter.frequency.setValueAtTime(theme === 'industrial' ? 300 : 150, t);
         
-        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.setValueAtTime(0.09, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
         
         osc.connect(filter);

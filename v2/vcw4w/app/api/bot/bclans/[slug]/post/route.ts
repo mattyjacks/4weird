@@ -43,6 +43,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   }
   if (exceedsBodyLimit(body, maxRequestBytes)) return fail("Post is too large.", 413);
   const input = (body ?? {}) as Record<string, unknown>;
+  // Reject overlong input before truncation: silently slicing would lose tail
+  // bytes and undercharge the byte-metered fee computed below.
+  if (String(input.title ?? "").length > 120 || String(input.body ?? "").length > 5000) {
+    return fail("Title needs 1-120 characters, body 1-5000.", 413);
+  }
   const title = cleanPostTitle(input.title);
   const postBody = cleanPostBody(input.body);
   if (!title) return fail("Title needs 1-120 characters.", 400);

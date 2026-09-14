@@ -11,6 +11,11 @@ function cleanNext(value: string): string {
   if (!v.startsWith("/") || v.startsWith("//")) return "/";
   if (v.includes("\\")) return "/";
   if (v.length > 2048) return "/";
+  // Reject scheme tricks and encoded separators in the path part outright
+  // (colons stay legal inside ?query=#hash, e.g. ISO timestamps).
+  const pathPart = v.split(/[?#]/, 1)[0] ?? "";
+  if (pathPart.includes(":")) return "/";
+  if (/%2f|%5c/i.test(pathPart)) return "/";
   for (let i = 0; i < v.length; i++) {
     const code = v.charCodeAt(i);
     if (code <= 0x1f || code === 0x7f) return "/";

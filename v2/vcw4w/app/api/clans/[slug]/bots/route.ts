@@ -5,6 +5,7 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isBotUsername } from "@/lib/bot-validate";
 import { botDeploysAllowed } from "@/lib/clan-types";
+import { checkEgressUrl } from "@/lib/ssrf-guard";
 
 
 function isClanSlug(v: unknown): string {
@@ -89,6 +90,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     if (!botUsername) return fail("Invalid bot username (a-z0-9_, 3-24 chars).", 400);
     const webhook = input.webhook_url === undefined ? "" : isHttpsUrl(input.webhook_url);
     if (input.webhook_url && !webhook) return fail("webhook_url must be https.", 400);
+    // Stored webhooks become stored-SSRF the day any delivery feature reads
+    // this column: validate with the DNS-aware guard at store time (and
+    // re-check immediately before any future server-side delivery).
+    if (webhook) {
+      const egress = await checkEgressUrl(webhook);
+      if ("error" in egress) return fail("webhook_url host is not allowed.", 400);
+    }
     const { data: rpcData, error } = await supabase.rpc("deploy_clan_bot", {
       p_clan_id: clanRow.id,
       p_bot_username: botUsername,

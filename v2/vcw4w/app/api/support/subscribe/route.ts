@@ -44,7 +44,11 @@ export async function POST(req: Request) {
   const botBlock = await requireHuman(req, "POST /api/support/subscribe", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`support-sub:${data.user.id}`, 10, 60_000);
-  if (!throttle.allowed) return fail("Too many requests.", 429);
+  if (!throttle.allowed) {
+    return fail("Too many requests.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
   let body: unknown;
   try {
     body = await req.json();

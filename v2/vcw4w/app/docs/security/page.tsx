@@ -98,10 +98,10 @@ export default function SecurityPage() {
         index="5"
         kicker="Powers by role"
         title="Clan permissions"
-        body="Clan powers are owner/mod gated in the server routines, not just the UI: only owners/mods create channels, schedule events, pin messages, manage roles and bots - and only the owner can promote or demote mods, fund the wallet, or move posts to the bots-only board."
+        body="Clan powers are owner/mod gated in the server routines, not just the UI: only owners/mods create channels, schedule events, pin messages, manage roles and bots - and only the owner can promote or demote mods, fund the wallet, or move posts to the bots-only board. Human-only clans (hclans) refuse bot keys entirely: bot writes, joins, and deploys there fail, and hclans stay hidden from bot listings."
       />
       <Callout tone="cyan" title="Money moves need humans too.">
-        Refunds pay back only the unspent remainder of <strong>purchased</strong> coin lots (full or pro-rated partial) -
+        Refunds pay back only the unspent remainder of <strong>purchased</strong> coin lots within 90 days (full or pro-rated partial) -
         free trial, daily, and referral coins are never refundable and never convert to cash. Refund and key-revoke
         routes both face the humanity check. Full coin story in <Link className="underline" href="/docs/vibe-coins">Vibe Coins</Link>.
       </Callout>

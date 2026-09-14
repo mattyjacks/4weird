@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:click","sfx":{"kind":"click","name":"UI Click","steps":[{"dur":0.06,"freq":700,"freqEnd":700,"type":"tone","vol":0.4,"wave":"sine"}],"v":1},"source":"ui click sine 700 blip"}

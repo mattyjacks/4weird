@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isUuid } from "@/lib/validate";
@@ -19,7 +19,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     .select("id,phone_id,desktop_id,phone_state,desktop_state,status,created_at")
     .eq("id", id)
     .maybeSingle();
-  if (error || !match) return fail("Match not found.", 404);
+  if (error) return dbFail("api/matches/[id]", error, "Match not found.", 404);
+  if (!match) return fail("Match not found.", 404);
   // Defense in depth over the matches_participant RLS policy: never render
   // a match to a non-participant, even if policies are later relaxed.
   const m = match as { phone_id?: string; desktop_id?: string };
@@ -52,7 +53,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     .select("id,phone_id,desktop_id,status")
     .eq("id", id)
     .maybeSingle();
-  if (matchError || !match) return fail("Match not found.", 404);
+  if (matchError) return dbFail("api/matches/[id]", matchError, "Match not found.", 404);
+  if (!match) return fail("Match not found.", 404);
   const m = match as { phone_id?: string; desktop_id?: string; status?: string };
   if (m.phone_id !== u.id && m.desktop_id !== u.id) return fail("Match not found.", 404);
   if (m.status !== "active") return fail("Match is no longer active.", 403);
@@ -97,6 +99,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     p_match: id,
     p_state: clean,
   });
-  if (error || !rpcData) return fail("Match update denied.", 403);
+  if (error) return rpcFail("api/matches/[id]", error, () => 403, "Match update denied.");
+  if (!rpcData) return fail("Match update denied.", 403);
   return ok({});
 }

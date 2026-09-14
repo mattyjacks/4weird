@@ -117,6 +117,39 @@ export async function POST(req: Request) {
   ) {
     return fail("Telemetry exceeds plausible play rates.", 400);
   }
+  // Cheated-save invariant on the leaderboard write path: a cheat-branded
+  // slot (game_saves cheat_mode on ANY slot/kind, or cheat_settings
+  // cheated_at) must never farm the all-time leaderboards via forged or
+  // post-cheat telemetry. Slot 0 is cheat-proof by construction so it is
+  // excluded from the scan. Fail-open on read errors (the session + rate
+  // guards above already ran); a branded read fails closed with 403.
+  try {
+    const [{ data: cheatMarks }, { data: saveMarks }] = await Promise.all([
+      supabase
+        .from("cheat_settings")
+        .select("slot")
+        .eq("user_id", u.id)
+        .eq("game_slug", game)
+        .not("cheated_at", "is", null)
+        .limit(1),
+      supabase
+        .from("game_saves")
+        .select("slot")
+        .eq("user_id", u.id)
+        .eq("game_slug", game)
+        .neq("slot", 0)
+        .filter("data->>cheat_mode", "eq", "true")
+        .limit(1),
+    ]);
+    if (
+      (Array.isArray(cheatMarks) && cheatMarks.length > 0) ||
+      (Array.isArray(saveMarks) && saveMarks.length > 0)
+    ) {
+      return fail("Cheat-marked saves cannot post leaderboard stats.", 403);
+    }
+  } catch {
+    // Fail-open: telemetry stays writable when the cheat scan itself throws.
+  }
   const { error } = await supabase.from("game_stat_events").insert({
     user_id: u.id,
     game_slug: game,

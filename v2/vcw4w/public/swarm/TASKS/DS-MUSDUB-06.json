@@ -1,0 +1,22 @@
+{
+    "created":  "2026-09-13T23:07:58.000Z",
+    "gates":  [
+                  "npx tsc --noEmit (zero errors mention theory-compose)",
+                  "npx eslint lib/music/theory-compose.ts (exit 0)"
+              ],
+    "goal":  "NEW lib/music/theory-compose.ts: deterministic music-theory composer (THE DEFAULT mode). Seeded PRNG (mulberry32, string seed): major/natural-minor/dorian/mixolydian scales, diatonic chord progressions (I-V-vi-IV etc.), voice-led bass roots, call/response melody with tension->release incl. dubstep drop-section structure (intro/build/drop/break), outputs structural song JSON (tracks+notes, no imports from other music libs). Pure functions, SSR-safe, ASCII-only. Done when 3 seeded outputs are valid songs (16+ notes, in-key proof %) with evidence in log.",
+    "id":  "DS-MUSDUB-06",
+    "lane":  "web",
+    "log":  [
+                "2026-09-13T23:07:58.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T23:20:00.000Z musdub-6: claimed, theory-compose.ts verified ABSENT in lib/music (4 files: format-4w, sfx, synth, synth-4w), building.",
+                "2026-09-13T23:35:00.000Z musdub-6: gates GREEN. tsc --noEmit: zero errors mention theory-compose (only pre-existing foreign lib/music/dubstep-recipes.ts TS2352 + lib/music/synth-modfx.ts TS2739, untouched). eslint lib/music/theory-compose.ts exit 0. ASCII-only verified (15838 bytes, 0 non-ASCII). 3 seeded songs via tsx: musdub-06-alpha D# natural-minor 218 notes 100.0% in-key valid=true; musdub-06-beta C# mixolydian 216 notes 100.0% in-key valid=true; drop-C-minor F natural-minor 217 notes 100.0% in-key valid=true; deterministic=true (same seed identical JSON). Envelope done."
+            ],
+    "owner":  "musdub-6",
+    "scope":  [
+                  "v2/vcw4w/lib/music/theory-compose.ts"
+              ],
+    "status":  "done",
+    "title":  "Theory composer (default mode)",
+    "updated":  "2026-09-13T23:35:00.000Z"
+}

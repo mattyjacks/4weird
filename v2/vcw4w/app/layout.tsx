@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "next-themes";
 import { SiteThemeProvider } from "@/components/site/site-theme-provider";
 import { COLOR_THEME_IDS, DEFAULT_COLOR_THEME, SITE_COLOR_STORAGE_KEY } from "@/lib/site-theme";
@@ -91,6 +91,17 @@ export const metadata: Metadata = {
     icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
     apple: [{ url: "/vcw/vcw-logo.png" }],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#8b5cf6",
 };
 
 export default function RootLayout({

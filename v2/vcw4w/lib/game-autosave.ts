@@ -48,6 +48,54 @@ export function localSlotKey(slug: string, slot: number): string {
   return `fourweird:save:${slug}:${slot}`;
 }
 
+/** Cloud save kind for autosave (load-only auto companion) writes. */
+export const AUTO_KIND = "auto" as const;
+
+/** Cloud save kind for explicit manual slot writes. */
+export const MANUAL_KIND = "manual" as const;
+
+/** localStorage key for a per-game auto companion payload (load-only). */
+export function autoSlotKey(slug: string, slot: number): string {
+  return `fourweird:save:${slug}:${slot}:auto`;
+}
+
+/** localStorage key tracking the active save slot per game (default 0). */
+export function activeSlotKey(slug: string): string {
+  return `fourweird:active-slot:${slug}`;
+}
+
+/**
+ * Read the active save slot for a game (last manual save/load, default 0).
+ * Fail-open: returns 0 when running on the server, when storage throws,
+ * or when the stored value is not an integer slot 0-3.
+ */
+export function getActiveSlot(slug: string): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const raw = window.localStorage.getItem(activeSlotKey(slug));
+    if (raw === null) return 0;
+    const parsed = Number.parseInt(raw, 10);
+    if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 3) return parsed;
+    return 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Persist the active save slot for a game. No-op on the server; swallows
+ * storage errors and ignores out-of-range slots (fail-open).
+ */
+export function setActiveSlot(slug: string, slot: number): void {
+  if (typeof window === "undefined") return;
+  if (!Number.isInteger(slot) || slot < 0 || slot > 3) return;
+  try {
+    window.localStorage.setItem(activeSlotKey(slug), String(slot));
+  } catch {
+    // Fail-open: an active-slot write failing must not break gameplay.
+  }
+}
+
 /**
  * Read whether autosave is enabled for a game.
  *

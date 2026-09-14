@@ -215,7 +215,7 @@ export default function AboutPage() {
             Studio, cloud desktops, UnitUnite squads, the work timer, VibeCodeWorker, and web apps.
           </p>
         </Link>
-        <Link href="/spaceships" className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-amber-400/50">
+        <Link href="/game/spaceships" className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-amber-400/50">
           <p className="font-bold group-hover:underline">🧭 Explore: lore and lessons</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Collectible spaceships, Academy lessons, Technology explainers, and one-sentence pricing: 100

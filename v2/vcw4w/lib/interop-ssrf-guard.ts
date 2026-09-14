@@ -36,8 +36,10 @@ export function setCanonicalEgressCheck(fn: CanonicalEgressCheck | null): void {
 }
 
 /**
- * Full check when a canonical checker is wired (DNS + rebinding guards), else falls back
- * to shape-only validation. Never throws — returns { url } or { error }.
+ * Full check when a canonical checker is wired (DNS + rebinding guards).
+ * FAILS CLOSED when unwired: shape-only validation cannot catch DNS
+ * rebinding, so callers must not treat this as an egress verdict.
+ * Never throws — returns { url } or { error }.
  */
 export async function delegateToCanonicalEgressCheck(
   raw: string,
@@ -49,13 +51,7 @@ export async function delegateToCanonicalEgressCheck(
       return { error: "Egress check failed." };
     }
   }
-  const shape = assertSafeEgressUrlShape(raw);
-  if (!shape.ok) return { error: shape.error ?? "URL not allowed." };
-  try {
-    return { url: new URL(String(raw).trim()) };
-  } catch {
-    return { error: "Invalid URL." };
-  }
+  return { error: "Egress checker not wired." };
 }
 
 function parseNumPart(part: string): number | null {

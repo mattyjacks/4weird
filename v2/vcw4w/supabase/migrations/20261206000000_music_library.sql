@@ -14,7 +14,7 @@
 --
 -- Rerunnable: IF NOT EXISTS / DROP ... IF EXISTS guards (repo rule).
 -- Version 20261206000000 is the next-free slot after
--- 20261205000000_vault_meter_cents.sql (verified before landing).
+-- 20261205000001_vault_meter_cents.sql (verified before landing).
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS public.music_songs (

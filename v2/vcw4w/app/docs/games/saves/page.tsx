@@ -88,6 +88,19 @@ export default function GameSavesPage() {
         Slots 1-3 are yours for experiments and alternate runs — cheats brand them permanently. Autosave&apos;s slot-0 home stays cheat-free, so leave it as the run you care about.
       </Callout>
 
+      <SectionHead
+        index="3"
+        kicker="Dual-save"
+        title="Manual + load-only autosave per slot"
+        body="Each slot 0-3 holds two copies: your manual save (Save + Load) and its autosave companion (Load-only backup). Autosave writes the auto companion of the active slot every minute — a load-only safety net if the manual copy corrupts."
+      />
+      <ul className="mt-5 list-disc space-y-2 pl-6 text-sm leading-relaxed text-muted-foreground">
+        <li><strong className="text-foreground">Manual vs autosave:</strong> Save writes the manual copy; the minute-timer autosave writes the auto companion of the active slot. Autosave never overwrites your manual save.</li>
+        <li><strong className="text-foreground">Active-slot rule:</strong> autosave follows the slot you are playing — the companion belongs to the active slot, not always slot 0.</li>
+        <li><strong className="text-foreground">Cloud kind:</strong> <code>?kind=manual|auto</code> selects which copy (omitted = both); PUT defaults to <code>kind=manual</code>. On this device the auto mirror lives under the <code>:auto</code> suffix.</li>
+        <li><strong className="text-foreground">Corrupt-manual recovery:</strong> if a manual copy fails to parse or apply, Load-autosave restores the auto companion for the same slot — same run, one minute older at most.</li>
+      </ul>
+
       <p className="mt-8 text-sm text-muted-foreground">
         Slot mechanics in full in <Link className="font-bold underline" href="/docs/playing-games">Playing games</Link> ·
         Fridge Simulator handoff in <Link className="font-bold underline" href="/docs/games-fridge/saves">Resume anywhere</Link>.

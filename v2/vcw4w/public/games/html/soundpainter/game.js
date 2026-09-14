@@ -15,6 +15,24 @@
     let audioContext;
     let isPlaying = false;
     let isPaused = false;
+    // Live-mute flag per AUDIO SPEC: one-shot notes only, no ambient bed,
+    // so gating playNote silences output immediately.
+    let isMuted = false;
+    // Pending staggered playAll timeouts, cleared on stop paths.
+    const pendingTimeouts = [];
+
+    function setMuted(m) {
+        isMuted = !!m;
+        if (isMuted) stopPlayingPattern();
+        return isMuted;
+    }
+
+    function toggleMute() {
+        return setMuted(!isMuted);
+    }
+
+    // Exposed for hub/menu integration (additive; playSfx shapes unchanged).
+    window.SoundPainterAudio = { setMuted, toggleMute, get muted() { return isMuted; } };
 
     // Musical notes (frequencies in Hz)
     const NOTES = [
@@ -99,7 +117,7 @@
 
     // Play a single note
     function playNote(frequency, duration = 0.3, waveType = 'sine', row = 0) {
-        if (!audioContext) return;
+        if (!audioContext || isMuted) return;
 
         const now = audioContext.currentTime;
         const env = 0.05;
@@ -169,11 +187,12 @@
 
         // Stagger notes
         tiledesc.forEach((tile, idx) => {
-            setTimeout(() => {
+            const id = setTimeout(() => {
                 const frequency = NOTES[tile.col];
                 const waveType = getWaveType(tile.row);
                 playNote(frequency, 0.25, waveType, tile.row);
             }, idx * 100);
+            pendingTimeouts.push(id);
         });
     }
 
@@ -279,6 +298,9 @@
     // End game
     function endGame() {
         state.isPlaying = false;
+        // Stop path per AUDIO SPEC: no stacked loops or ringing timeouts.
+        stopPlayingPattern();
+        while (pendingTimeouts.length) clearTimeout(pendingTimeouts.pop());
         if (state.score > state.highScore) {
             state.highScore = state.score;
             localStorage.setItem('soundpainter_tilesCount', state.highScore);

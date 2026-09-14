@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok } from "@/lib/api-respond";
+import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clampLimit, isUuid } from "@/lib/validate";
@@ -26,7 +26,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     p_since: since,
     p_limit: limit,
   });
-  if (error) return fail("Event history denied.", 403);
+  if (error) return rpcFail("api/matches/[id]/events", error, () => 403, "Event history denied.");
   const rows = (Array.isArray(rpcData) ? rpcData : []) as Record<string, unknown>[];
   const events = rows.map((e) => ({
     id: String(e.id ?? ""),
@@ -69,6 +69,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     p_kind: kind,
     p_text: text,
   });
-  if (error) return fail("Event denied.", 403);
+  if (error) return rpcFail("api/matches/[id]/events", error, () => 403, "Event denied.");
   return ok({ posted: true });
 }

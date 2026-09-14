@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type StatusBody = {
   success?: boolean;
   available?: boolean;
+  unavailable?: boolean;
   nextAward?: number;
   streak?: number;
   today?: string;
@@ -59,6 +60,11 @@ export function DailyBonusBanner() {
   // `new Date()` in a Client Component prerender). Seeded empty, set on mount.
   const lastCheckedDayRef = useRef<string>("");
   const inflightRef = useRef(false);
+  // Indirection for the midnight timer: scheduleMidnightRecheck is declared
+  // before check, so the timer calls through this ref (wired in the mount
+  // effect) instead of closing over check directly. Same single-timer
+  // behavior, no polling.
+  const checkRef = useRef<() => void>(() => {});
 
   const clearTimer = () => {
     if (timerRef.current !== null) {
@@ -73,9 +79,8 @@ export function DailyBonusBanner() {
     // midnight, when a new bonus may exist. No hourly interval.
     timerRef.current = window.setTimeout(() => {
       timerRef.current = null;
-      void check();
+      checkRef.current();
     }, msUntilUtcMidnight());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const check = useCallback(async () => {
@@ -90,6 +95,12 @@ export function DailyBonusBanner() {
       if (!response.ok) return;
       const body = (await response.json().catch(() => null)) as StatusBody | null;
       if (!body || body.success === false) return;
+      // Backend degraded (e.g. daily_claims table missing): stay hidden
+      // and silent — no UI, no console, no retry beyond the midnight timer.
+      if (body.unavailable) {
+        setVisible(false);
+        return;
+      }
       lastCheckedDayRef.current = utcToday();
       if (body.available && !dismissedToday()) {
         setNextAward(typeof body.nextAward === "number" && body.nextAward > 0 ? body.nextAward : 5);
@@ -108,6 +119,10 @@ export function DailyBonusBanner() {
 
   useEffect(() => {
     lastCheckedDayRef.current = utcToday();
+    checkRef.current = () => {
+      void check();
+    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch-on-mount necessarily populates state.
     void check();
     const onClaimed = () => {
       setVisible(false);

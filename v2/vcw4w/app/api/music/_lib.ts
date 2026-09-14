@@ -108,6 +108,44 @@ function isUnit(v: unknown): v is number {
   return typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 1;
 }
 
+// Teen-clean titles/names: family jukebox, no profanity/slurs/sexual
+// content, no links/markup. Game-violence words (death, raygun, hit)
+// are legitimate SFX kinds and are NOT blocked.
+const TEEN_BLOCKED = [
+  "fuck",
+  "shit",
+  "bitch",
+  "cunt",
+  "dick",
+  "cock",
+  "pussy",
+  "whore",
+  "slut",
+  "rape",
+  "porn",
+  "hentai",
+  "nigger",
+  "nigga",
+  "faggot",
+  "tranny",
+  "hitler",
+  "nazi",
+];
+
+export function isTeenClean(s: string): boolean {
+  const lowered = s.toLowerCase();
+  if (lowered.includes("<") || lowered.includes(">") || lowered.includes("http")) {
+    return false;
+  }
+  const tokens = lowered.split(/[^a-z]+/).filter(Boolean);
+  for (const tok of tokens) {
+    for (const bad of TEEN_BLOCKED) {
+      if (tok.startsWith(bad)) return false;
+    }
+  }
+  return true;
+}
+
 function byteLen(s: string): number {
   return Buffer.byteLength(s, "utf8");
 }
@@ -191,6 +229,8 @@ export function validateSong(raw: unknown): { ok: boolean; song: Song4W | null; 
     diagnostics.push("title: must be 1..128 chars");
   } else if (!isAsciiPrintable(title)) {
     diagnostics.push("title: ASCII printable only");
+  } else if (!isTeenClean(title)) {
+    diagnostics.push("title: must be teen-clean");
   }
   const bpm = raw.bpm;
   if (typeof bpm !== "number" || !Number.isFinite(bpm) || bpm < BPM_MIN || bpm > BPM_MAX) {
@@ -266,6 +306,8 @@ export function validateSfx(raw: unknown): { ok: boolean; sfx: Sfx4W | null; dia
     diagnostics.push("name: must be 1..64 chars");
   } else if (!isAsciiPrintable(name)) {
     diagnostics.push("name: ASCII printable only");
+  } else if (!isTeenClean(name)) {
+    diagnostics.push("name: must be teen-clean");
   }
   if (!SFX_KINDS.includes(raw.kind as SfxKind4W)) {
     diagnostics.push("kind: must be one of raygun|death|putt|coin|hit|jump|win|lose|click|alarm");
@@ -378,9 +420,15 @@ function pickSfx(mod: Record<string, unknown>): unknown[] {
 
 async function tryImportSeeds(): Promise<SeedPair> {
   const out: SeedPair = { songs: [], sfx: [] };
-  // DS-MUS-09 lands content/music-seeds.ts (SONGS + SFX). Variable specifier
-  // keeps tsc green while the file is absent mid-flight; failure => empty.
-  const candidates = ["../../content/music-seeds", "../../../content/music-seeds"];
+  // DS-MUS-09 content/music-seeds.ts (SONGS + SFX) plus the
+  // content/music/*.4ws.json sidecars ({song,sfx,from,source} wrapping
+  // verbatim 4W-1). Variable specifier keeps tsc green while a source is
+  // absent mid-flight; any failure => fail-open empty.
+  const candidates = [
+    "@/content/music-seeds",
+    "../../../content/music-seeds",
+    "../../content/music-seeds",
+  ];
   for (const spec of candidates) {
     try {
       const mod = (await import(spec)) as Record<string, unknown>;
@@ -397,13 +445,22 @@ async function tryImportSeeds(): Promise<SeedPair> {
       // absent mid-flight: fall through to JSON sidecars, then empty
     }
   }
-  // JSON sidecars under content/music/*.json (per-seed files).
+  // JSON sidecars under content/music/*.json plus the nested
+  // songs/*.4ws.json and sfx/*.4ws.json per-seed files (each wraps the
+  // verbatim 4W-1 payload as {song,sfx,from,source}; loaders read
+  // .song ?? raw / .sfx ?? raw). One bad sidecar never fails the list.
   try {
     const fs = await import("node:fs/promises");
     const path = await import("node:path");
     const roots = [process.cwd(), path.join(process.cwd(), "v2", "vcw4w")];
+    const dirs = [
+      "content/music",
+      "content/music/songs",
+      "content/music/sfx",
+      "content/music-seeds",
+    ];
     for (const root of roots) {
-      for (const dir of ["content/music", "content/music-seeds"]) {
+      for (const dir of dirs) {
         let files: string[] = [];
         try {
           files = await fs.readdir(path.join(root, dir));

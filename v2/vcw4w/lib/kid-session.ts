@@ -189,7 +189,8 @@ export function kidSessionCookie(token: string): {
     options: {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      // Unconditional: staging/LAN cleartext must never carry the session.
+      secure: true,
       path: "/",
       maxAge: KID_SESSION_DAYS * 24 * 60 * 60,
     },

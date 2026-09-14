@@ -34,6 +34,19 @@
             return this.muted;
         }
 
+        // Live-mute hook per AUDIO SPEC: silences output immediately.
+        setMuted(m) {
+            const want = !!m;
+            if (want === this.muted) return this.muted;
+            this.muted = want;
+            if (this.muted) {
+                this.stopMusic();
+            } else {
+                this.startMusic();
+            }
+            return this.muted;
+        }
+
         playMenu() {
             this.init();
             if (this.muted) return;
@@ -255,7 +268,9 @@
 
         startMusic() {
             this.init();
+            // Restart guard: never stack schedulers; bgIntervalActive gates the chain.
             if (this.bgInterval) return;
+            this.bgIntervalActive = true;
             this.bgStep = 0;
             this.scheduleNextBeat();
         }

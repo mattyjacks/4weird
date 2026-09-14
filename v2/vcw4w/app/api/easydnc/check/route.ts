@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
+import { sameOrigin } from "@/lib/csrf";
 import { ok, fail, dbFail } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import {
@@ -21,11 +22,13 @@ interface CheckDncUpstreamResponse {
   error?: string;
 }
 
-// GET /api/easydnc/check?number=<phone>&key=<optional_byok>
+// GET /api/easydnc/check?number=<phone> — BYOK key arrives via header (never
+// ?key=, which leaks into proxy/history/logs). Non-BYOK lookups spend the
+// server key and require a session + throttle, mirroring the POST path.
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const rawNumber = searchParams.get("number");
-  const byokKey = searchParams.get("key");
+  const byokKey = req.headers.get("x-easydnc-key");
 
   if (!rawNumber) {
     return fail("Missing required query parameter: number", 400);
@@ -38,7 +41,23 @@ export async function GET(req: Request) {
     return fail(err instanceof Error ? err.message : "Invalid phone number format", 400);
   }
 
-  const apiKey = byokKey || process.env.EASYDNC_API_KEY || "DEMO_KEY";
+  if (!byokKey) {
+    if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      return fail("Authentication required. Log in or supply a BYOK key.", 401);
+    }
+    const throttle = rateLimit(`easydnc-single:${data.user.id}`, 30, 60_000);
+    if (!throttle.allowed) {
+      return fail("Rate limit exceeded.", 429);
+    }
+  }
+
+  const apiKey = byokKey || process.env.EASYDNC_API_KEY;
+  if (!apiKey) {
+    return fail("Lookup service not configured.", 503);
+  }
   const url = `${EASYDNC_API_ENDPOINT}?key=${encodeURIComponent(apiKey)}&number=${encodeURIComponent(normalized)}`;
 
   try {
@@ -88,6 +107,14 @@ export async function POST(req: Request) {
   };
 
   const rawNumbers = Array.isArray(input.numbers) ? input.numbers : [];
+  // CSRF guard for the cookie-authed (Vibe-Coin) path: that path debits
+  // coin_ledger via RPC keyed to the ambient session cookie, so a
+  // cross-site POST must not ride it. BYOK callers supply their own key
+  // and touch no session state, so non-browser BYOK callers (no Origin)
+  // stay callable. Fail closed: missing Origin AND Referer is rejected.
+  if (!(input.is_byok && input.api_key) && !sameOrigin(req)) {
+    return fail("Invalid request origin.", 403);
+  }
   if (rawNumbers.length === 0) {
     return fail("Payload must include an array of phone numbers", 400);
   }
@@ -156,7 +183,7 @@ export async function POST(req: Request) {
     );
 
     if (paymentError) {
-      return dbFail("POST /api/easydnc/check (payment)", paymentError, paymentError.message || "Failed to process Vibe Coins payment.");
+      return dbFail("POST /api/easydnc/check (payment)", paymentError, "Failed to process Vibe Coins payment.");
     }
 
     if (paymentResult && paymentResult[0]) {

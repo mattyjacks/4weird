@@ -7,6 +7,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { isSlug, isUuid } from "@/lib/validate";
 import { rpcStatus } from "@/lib/agent-market";
 import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
+import { getGame } from "@/content/games";
 import {
   canUseContentMode,
   effectiveMinAge,
@@ -97,6 +98,11 @@ export async function POST(req: NextRequest) {
   if (action === "start") {
     const game = isSlug(input.game_slug ?? input.game);
     if (!game) return fail("Invalid game_slug.", 400);
+    // Fail closed: shape-valid but unlisted slugs never reach the rating
+    // default (kids), the band gate, or metering. Catalog is the single
+    // source of truth (same closed catalog the [slug] page enforces via
+    // generateStaticParams/notFound).
+    if (!getGame(game)) return fail("Unknown game.", 404);
     const version = isBundleVersion(input.bundle_version ?? input.version ?? "1") || "1";
     const bytes = isNewBytes(input.new_bytes ?? input.bytes ?? 0);
     if (bytes < 0) return fail("Invalid new_bytes.", 400);
@@ -119,6 +125,30 @@ export async function POST(req: NextRequest) {
       const { data: profile, error: bandError } = await supabase.from("profiles").select("age_band").eq("id", data.user.id).maybeSingle();
       if (bandError) throw bandError;
       const band = String((profile as { age_band?: unknown } | null)?.age_band ?? "unknown").trim().toLowerCase();
+      // Upgrade cooldown: a teen->adult self-upgrade unlocks 18+ play 7 days
+      // after the change (profile_audit_log is tamper-evident; RLS
+      // SELECT-own covers this self-read). Legacy adult accounts (no audit
+      // row) and downgrades are unaffected.
+      let adultSince: number | null = null;
+      if (band === "adult") {
+        try {
+          const { data: lastUpgrade } = await supabase
+            .from("profile_audit_log")
+            .select("created_at")
+            .eq("user_id", data.user.id)
+            .eq("action", "age_band_changed")
+            .eq("new_value", "adult")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          const ts = lastUpgrade ? Date.parse(String((lastUpgrade as { created_at?: unknown }).created_at ?? "")) : NaN;
+          adultSince = Number.isFinite(ts) ? (ts as number) : null;
+        } catch {
+          adultSince = null;
+        }
+      }
+      const adultUpgradePending =
+        band === "adult" && adultSince !== null && Date.now() - adultSince < 7 * 24 * 3600 * 1000;
       if (hasContentModes(game)) {
         // Band-vs-mode gate first: kid bands may only use kid, teen bands
         // kid+teen, guests/unknown kid+teen ("all" needs adult sign-in).
@@ -137,6 +167,10 @@ export async function POST(req: NextRequest) {
           console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "adults-need-adult" });
           return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
         }
+        if (minAge >= 18 && adultUpgradePending) {
+          console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "adult-upgrade-cooldown" });
+          return fail("Your Adult (18+) age band is new: 18+ play unlocks 7 days after an upgrade. Teen/Kids games stay open meanwhile.", 403);
+        }
         if (minAge >= 13 && band !== "adult" && band !== "teen") {
           console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "teens-need-teen" });
           return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
@@ -146,6 +180,10 @@ export async function POST(req: NextRequest) {
         if (minAge >= 18 && band !== "adult") {
           console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "adults-need-adult" });
           return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
+        }
+        if (minAge >= 18 && adultUpgradePending) {
+          console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "adult-upgrade-cooldown" });
+          return fail("Your Adult (18+) age band is new: 18+ play unlocks 7 days after an upgrade. Teen/Kids games stay open meanwhile.", 403);
         }
         if (minAge >= 13 && band !== "adult" && band !== "teen") {
           console.error("[api] api/games/session band denial", { game, band, contentMode, reason: "teens-need-teen" });
@@ -257,6 +295,11 @@ async function kidSessionPlay(req: NextRequest, supabase: Awaited<ReturnType<typ
   if (action === "start") {
     const game = isSlug(input.game_slug ?? input.game);
     if (!game) return fail("Invalid game_slug.", 400);
+    // Fail closed: shape-valid but unlisted slugs never reach the rating
+    // default (kids), the band gate, or metering. Catalog is the single
+    // source of truth (same closed catalog the [slug] page enforces via
+    // generateStaticParams/notFound).
+    if (!getGame(game)) return fail("Unknown game.", 404);
     const version = isBundleVersion(input.bundle_version ?? input.version ?? "1") || "1";
     const bytes = isNewBytes(input.new_bytes ?? input.bytes ?? 0);
     if (bytes < 0) return fail("Invalid new_bytes.", 400);

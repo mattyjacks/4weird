@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:death","sfx":{"kind":"death","name":"Death Rattle","steps":[{"dur":0.15,"freq":300,"freqEnd":150,"type":"tone","vol":0.45,"wave":"saw"},{"dur":0.25,"freq":150,"freqEnd":60,"type":"tone","vol":0.45,"wave":"saw"}],"v":1},"source":"death rattle saw 300-60"}

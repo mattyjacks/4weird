@@ -70,6 +70,15 @@ export function isSlot(value: unknown): number | null {
   return Number.isInteger(v) && v >= 0 && v <= 3 ? v : null;
 }
 
+/**
+ * Save-kind check: each slot holds a `manual` save (default) and an `auto`
+ * backup. Returns the kind string when valid, null otherwise (omitted and
+ * invalid both map to null; callers apply the default/400).
+ */
+export function isSaveKind(value: unknown): "manual" | "auto" | null {
+  return value === "manual" ? "manual" : value === "auto" ? "auto" : null;
+}
+
 export function isUuid(value: unknown): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value ?? ""));
 }

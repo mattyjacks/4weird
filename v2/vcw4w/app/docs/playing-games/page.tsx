@@ -116,6 +116,12 @@ export default function PlayingGamesPage() {
         deleting and recreating the save cannot launder it. Experiment on a throwaway slot. Slot 0 can never be
         marked or allow cheats, so it is always safe.
       </Callout>
+      <Callout tone="cyan" title="Dual-save: manual plus load-only autosave per slot.">
+        Each slot 0-3 holds your manual save (Save + Load) plus its autosave companion (Load-only backup).
+        Autosave writes the auto companion of the active slot every minute — it never overwrites the manual copy.
+        Cloud: <code>?kind=manual|auto</code> (omitted = both), PUT defaults to manual; device mirror uses the
+        <code>:auto</code> suffix. If a manual copy corrupts, Load-autosave restores the same slot&apos;s companion.
+      </Callout>
 
       <SectionHead
         index="5"

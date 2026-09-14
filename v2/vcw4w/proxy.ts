@@ -32,7 +32,18 @@ export async function proxy(request: NextRequest) {
     const hasSecretAuth = looksLikeBotKey || looksLikeBearer;
     const hasSessionCookie = request.cookies
       .getAll()
-      .some((c) => c.name === "kid_session" || c.name.startsWith("sb-"));
+      .some(
+        (c) =>
+          c.name === "kid_session" ||
+          c.name.startsWith("sb-") ||
+          // Stale-marker parity with POST /api/bot/login (DS-SEC2-05):
+          // bot_tester / full_login outlive the sb-* session (30d), so a
+          // browser carrying ONLY a stale marker must still prove
+          // same-origin on mutating /api calls. Fresh curl bots carry no
+          // cookies and stay exempt; secret-shape callers stay exempt below.
+          c.name === "bot_tester" ||
+          c.name === "full_login",
+      );
     // Logout only destroys the session (it clears the sb-* cookies and
     // revokes nothing else), so a forged cross-site logout is at worst a
     // nuisance, never data theft or a state change on someone else's

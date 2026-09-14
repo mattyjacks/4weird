@@ -39,7 +39,26 @@ export async function POST(req: Request) {
     return fail("Too many attempts. Try again shortly.", 429, throttleHeaders(dailyDist.retryAfter));
   }
   const { data: rows, error } = await supabase.rpc("claim_daily_bonus");
-  if (error) return dbFail("api/coins/daily", error);
+  if (error) {
+    // Fail CLOSED on a missing daily_claims table (migration not applied
+    // yet): 42P01 / PGRST205 / missing-table text. No coins may be credited
+    // when the ledger state is unknown, so this returns 503 with zero coins
+    // instead of 500 — and never an ok() with coins. Real DB faults still
+    // 500 with evidence via dbFail.
+    const code = String((error as { code?: unknown }).code ?? "");
+    const msg = String((error as { message?: unknown }).message ?? "");
+    if (
+      code === "42P01" ||
+      code === "PGRST205" ||
+      /(daily_claims|claim_daily_bonus).*(does not exist|could not find)/i.test(msg)
+    ) {
+      console.error("[api] api/coins/daily daily_claims table missing, failing closed with zero coins", {
+        code: code.slice(0, 16),
+      });
+      return fail("Daily bonus is temporarily unavailable. No coins were claimed — try again shortly.", 503);
+    }
+    return dbFail("api/coins/daily", error);
+  }
   const row = (rows as { coins: number; streak: number; love_letters?: number }[] | null)?.[0] ?? { coins: 0, streak: 0 };
   return ok({ coins: row.coins, streak: row.streak, claimed: row.coins > 0, love_letters: row.love_letters ?? (row.coins > 0 ? 1 : 0) });
 }

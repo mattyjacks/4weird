@@ -43,7 +43,24 @@ export async function GET() {
     .select("last_claim_date,streak")
     .eq("user_id", user.user.id)
     .maybeSingle();
-  if (error) return dbFail("api/coins/daily/status", error);
+  if (error) {
+    // The daily_claims table ships in a later migration; a prod DB that
+    // hasn't applied it yet (42P01 / PGRST205 / missing-table) must read as
+    // "bonus unavailable" (FAIL-CLOSED — never "available"), not a bare 500.
+    // Real DB faults still 500 via dbFail.
+    const code = String((error as { code?: unknown }).code ?? "");
+    const msg = String((error as { message?: unknown }).message ?? "");
+    if (code === "42P01" || code === "PGRST205" || /daily_claims.*(does not exist|could not find)/i.test(msg)) {
+      console.error("[api] api/coins/daily/status daily_claims table missing, returning unavailable", { code: code.slice(0, 16) });
+      const today = utcDateString(new Date());
+      return ok(
+        { available: false, lastClaimDate: null, streak: 0, today, nextAward: 0, retryAfterMs: nextUtcMidnightMs(), unavailable: true },
+        200,
+        { "Cache-Control": "private, max-age=60" },
+      );
+    }
+    return dbFail("api/coins/daily/status", error);
+  }
   const today = utcDateString(new Date());
   const lastClaimDate = (row as { last_claim_date?: string; streak?: number } | null)?.last_claim_date ?? null;
   const streak = Number((row as { streak?: number } | null)?.streak ?? 0) || 0;

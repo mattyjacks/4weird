@@ -43,7 +43,7 @@ export default function ExploreMorePage() {
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {[
-          ["🚀 Spaceships", "/spaceships", "The classic fleet exhibit - specs, lore, and the ships that started it all."],
+          ["🚀 Spaceships", "/game/spaceships", "The classic fleet exhibit - specs, lore, and the ships that started it all."],
           ["🎓 Academy", "/academy", "Learn-by-playing: the concepts behind the games, taught where they&apos;re used."],
           ["🔬 Tech", "/tech", "The technology shelf - what the arcade runs on and why."],
           ["🧪 Web Apps", "/web-apps", "Small interactive web toys and tools from the early 4weird lab."],

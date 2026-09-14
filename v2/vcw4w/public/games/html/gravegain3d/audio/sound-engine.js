@@ -7,9 +7,13 @@ class SoundEngine {
         this.masterVolume = 0.8;
         this.musicVolume = 0.5;
         this.sfxVolume = 0.8;
+        this.muted = false;
         this.ambientOsc1 = null;
         this.ambientOsc2 = null;
         this.ambientGain = null;
+        this.ambientFilter = null;
+        this.ambientLfo = null;
+        this.ambientLfoGain = null;
         this.ambientPlaying = false;
     }
 
@@ -184,39 +188,114 @@ class SoundEngine {
         }
     }
 
+    _ambientTarget() {
+        if (this.muted) return 0;
+        const t = 0.08 * this.masterVolume * this.musicVolume;
+        return Math.min(0.1, Math.max(0, t));
+    }
+
+    _applyAmbientGain() {
+        if (!this.ctx || !this.ambientGain) return;
+        try {
+            const t = this._ambientTarget();
+            const now = this.ctx.currentTime;
+            this.ambientGain.gain.cancelScheduledValues(now);
+            this.ambientGain.gain.setTargetAtTime(t, now, 0.08);
+        } catch (e) {}
+    }
+
+    setMuted(muted) {
+        this.muted = !!muted;
+        this._applyAmbientGain();
+        return this.muted;
+    }
+
+    toggleMute() {
+        return this.setMuted(!this.muted);
+    }
+
     startAmbientMusic() {
         this.initCtx();
-        if (!this.ctx || this.ambientPlaying) return;
+        if (!this.ctx) return;
+        if (this.ctx.state === 'closed') return;
+        // Restart guard: never stack oscillators.
+        if (this.ambientPlaying || this.ambientOsc1 || this.ambientOsc2) return;
 
         try {
+            const now = this.ctx.currentTime;
+            const target = this._ambientTarget();
+
             this.ambientGain = this.ctx.createGain();
-            this.ambientGain.gain.setValueAtTime(0.08 * this.masterVolume * this.musicVolume, this.ctx.currentTime);
+            // Slow attack: start silent, bloom to quiet bed (<=0.1).
+            this.ambientGain.gain.setValueAtTime(0.0001, now);
+            this.ambientGain.gain.linearRampToValueAtTime(Math.max(0.0001, target), now + 2.5);
 
+            this.ambientFilter = this.ctx.createBiquadFilter();
+            this.ambientFilter.type = 'lowpass';
+            this.ambientFilter.frequency.setValueAtTime(520, now);
+
+            // Quiet musical bed: detuned triangle/sine pair on A2 (110Hz).
             this.ambientOsc1 = this.ctx.createOscillator();
-            this.ambientOsc1.type = 'sawtooth';
-            this.ambientOsc1.frequency.setValueAtTime(55, this.ctx.currentTime); // A1 note
+            this.ambientOsc1.type = 'triangle';
+            this.ambientOsc1.frequency.setValueAtTime(110, now);
+            this.ambientOsc1.detune.setValueAtTime(-6, now);
 
-            const filter = this.ctx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(160, this.ctx.currentTime);
+            this.ambientOsc2 = this.ctx.createOscillator();
+            this.ambientOsc2.type = 'sine';
+            this.ambientOsc2.frequency.setValueAtTime(110, now);
+            this.ambientOsc2.detune.setValueAtTime(7, now);
 
-            this.ambientOsc1.connect(filter);
-            filter.connect(this.ambientGain);
+            // Gentle tremolo LFO on bed level.
+            this.ambientLfo = this.ctx.createOscillator();
+            this.ambientLfo.type = 'sine';
+            this.ambientLfo.frequency.setValueAtTime(3.5, now);
+            this.ambientLfoGain = this.ctx.createGain();
+            this.ambientLfoGain.gain.setValueAtTime(Math.max(0.0001, target * 0.3), now);
+            this.ambientLfo.connect(this.ambientLfoGain);
+            this.ambientLfoGain.connect(this.ambientGain.gain);
+
+            this.ambientOsc1.connect(this.ambientFilter);
+            this.ambientOsc2.connect(this.ambientFilter);
+            this.ambientFilter.connect(this.ambientGain);
             this.ambientGain.connect(this.ctx.destination);
 
-            this.ambientOsc1.start();
+            this.ambientOsc1.start(now);
+            this.ambientOsc2.start(now);
+            this.ambientLfo.start(now);
             this.ambientPlaying = true;
         } catch (e) {
-            // Audio autoplay might be blocked until user gesture
+            // Audio autoplay might be blocked until user gesture: full cleanup.
+            this._teardownAmbientNodes();
         }
     }
 
-    stopAmbientMusic() {
-        if (this.ambientOsc1) {
-            try { this.ambientOsc1.stop(); } catch(e) {}
-            this.ambientOsc1 = null;
+    _teardownAmbientNodes() {
+        const nodes = ['ambientOsc1', 'ambientOsc2', 'ambientLfo'];
+        for (const key of nodes) {
+            const n = this[key];
+            if (n) {
+                try { n.stop(); } catch (e) {}
+                try { n.disconnect(); } catch (e) {}
+                this[key] = null;
+            }
+        }
+        if (this.ambientLfoGain) {
+            try { this.ambientLfoGain.disconnect(); } catch (e) {}
+            this.ambientLfoGain = null;
+        }
+        if (this.ambientFilter) {
+            try { this.ambientFilter.disconnect(); } catch (e) {}
+            this.ambientFilter = null;
+        }
+        if (this.ambientGain) {
+            try { this.ambientGain.disconnect(); } catch (e) {}
+            this.ambientGain = null;
         }
         this.ambientPlaying = false;
+    }
+
+    stopAmbientMusic() {
+        this._teardownAmbientNodes();
     }
 
     speak(text) {

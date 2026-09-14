@@ -3,7 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
-import { isSlug, isSlot, jsonBytes } from "@/lib/validate";
+import { isSaveKind, isSlug, isSlot, jsonBytes } from "@/lib/validate";
 
 
 const slugPattern = /^[a-z0-9-]{1,64}$/;
@@ -83,9 +83,15 @@ export async function GET(req: Request) {
   const q = new URL(req.url).searchParams;
   const game = q.get("game");
   const slot = q.get("slot");
+  const kindParam = q.get("kind");
+  let kindFilter: "manual" | "auto" | null = null;
+  if (kindParam !== null) {
+    kindFilter = isSaveKind(kindParam);
+    if (kindFilter === null) return fail("Invalid save kind.", 400);
+  }
   let query = supabase
     .from("game_saves")
-    .select("id,game_slug,slot,schema_version,data,created_at,updated_at")
+    .select("id,game_slug,slot,kind,schema_version,data,created_at,updated_at")
     .eq("user_id", u.id)
     .order("updated_at", { ascending: false })
     .limit(50);
@@ -96,6 +102,9 @@ export async function GET(req: Request) {
   if (slot) {
     if (!/^[0-3]$/.test(slot)) return fail("Invalid slot.", 400);
     query = query.eq("slot", Number(slot));
+  }
+  if (kindFilter !== null) {
+    query = query.eq("kind", kindFilter);
   }
   try {
     const { data: rows, error } = await query;
@@ -129,9 +138,12 @@ export async function PUT(req: Request) {
   const input = body as Record<string, unknown>;
   const slug = isSlug(input.game_slug);
   const slot = isSlot(input.slot);
+  const kind: "manual" | "auto" | null =
+    input.kind === undefined ? "manual" : isSaveKind(input.kind);
   const schemaVersion = input.schema_version === undefined ? 1 : Number(input.schema_version);
   if (!slug) return fail("Invalid game slug.", 400);
   if (slot === null) return fail("Slot must be 0, 1, 2, or 3.", 400);
+  if (kind === null) return fail("Invalid save kind.", 400);
   if (!Number.isInteger(schemaVersion) || schemaVersion < 1 || schemaVersion > 1000) {
     return fail("Invalid save schema version.", 400);
   }
@@ -154,31 +166,53 @@ export async function PUT(req: Request) {
   }
   // Cheat marking is irreversible per save slot. A later client save cannot
   // erase it after a cheat was used, even if the browser was tampered with.
-  const { data: existing, error: existingError } = await supabase
+  // Check BOTH kinds (manual + auto): set_cheat_setting only marks the
+  // manual row, so a kind-scoped read would let the auto companion launder
+  // a cheated slot. Cross-check cheat_settings.cheated_at too (a fresh
+  // cheat toggle with no save row yet still brands the slot).
+  const { data: existingRows, error: existingError } = await supabase
     .from("game_saves")
-    .select("data")
+    .select("data,kind")
     .eq("user_id", u.id)
     .eq("game_slug", slug)
-    .eq("slot", slot)
-    .maybeSingle();
+    .eq("slot", slot);
   if (existingError) return dbFail("api/saves", existingError);
+  const { data: cheatRow } =
+    slot === 0
+      ? { data: null }
+      : await supabase
+          .from("cheat_settings")
+          .select("cheated_at")
+          .eq("user_id", u.id)
+          .eq("game_slug", slug)
+          .eq("slot", slot)
+          .maybeSingle();
+  const existing = (existingRows as { data?: { cheat_mode?: boolean } }[] | null)?.find(
+    (r) => r?.data?.cheat_mode,
+  ) ?? null;
+  const cheatBranded = Boolean(
+    (cheatRow as { cheated_at?: string | null } | null)?.cheated_at,
+  );
   const dataObj = saveData as Record<string, unknown>;
   if (slot === 0) {
     // Slot 0 is the cheat-proof safety slot: it can never be marked
     // cheat-moded, so any client-supplied marker is stripped. (A database
     // trigger enforces the same invariant for non-API writes.)
     delete dataObj.cheat_mode;
-  } else if ((existing as { data?: { cheat_mode?: boolean } } | null)?.data?.cheat_mode) {
+  } else if (
+    (existing as { data?: { cheat_mode?: boolean } } | null)?.data?.cheat_mode ||
+    cheatBranded
+  ) {
     dataObj.cheat_mode = true;
   }
   // user_id comes from the session, never the body; RLS re-checks it.
   const { data: saved, error } = await supabase
     .from("game_saves")
     .upsert(
-      { user_id: u.id, game_slug: slug, slot, schema_version: schemaVersion, data: dataObj },
-      { onConflict: "user_id,game_slug,slot" },
+      { user_id: u.id, game_slug: slug, slot, kind, schema_version: schemaVersion, data: dataObj },
+      { onConflict: "user_id,game_slug,slot,kind" },
     )
-    .select("id,game_slug,slot,schema_version,created_at,updated_at")
+    .select("id,game_slug,slot,kind,schema_version,created_at,updated_at")
     .single();
   if (error) return dbFail("api/saves", error, "Unable to save game state.");
   return ok({ ok: true, save: saved });

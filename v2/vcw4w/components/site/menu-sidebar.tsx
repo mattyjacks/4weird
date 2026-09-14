@@ -12,6 +12,16 @@ import { cn } from "@/lib/utils";
 const OPEN_KEY = "fw-sidebar-open";
 const QUICK_KEY = "fw-sidebar-quickinfo";
 
+// Demo quick-links (DS-MOB-01): same four beats as the header sheet so a
+// phone demo reaches Play / Music / Servers / Rent in two taps (pill +
+// shortcut). Hrefs mirror lib/site-nav.ts literals. Fail-open: plain Links.
+const DEMO_SIDEBAR_LINKS = [
+  { href: "/games", label: "🎮 Play" },
+  { href: "/music/maker", label: "🎹 Music Maker" },
+  { href: "/games/servers", label: "🌐 Servers" },
+  { href: "/games/servers/rent", label: "🖥️ Rent a Room" },
+];
+
 // (?) detail popovers (portal + viewport-clamping measure math) stay off the
 // first-paint bundle; a same-size placeholder holds layout until they hydrate.
 function InfoTipSkeleton() {
@@ -64,7 +74,7 @@ const FavoriteRow = memo(function FavoriteRow({
         href={link.href}
         aria-current={active ? "page" : undefined}
         title={`${link.label} - ${link.quick}`}
-        className="min-w-0 flex-1 truncate text-sm font-semibold"
+        className="min-w-0 flex-1 truncate text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:flex max-lg:min-h-[44px] max-lg:items-center"
       >
         <span aria-hidden="true" className="mr-1 text-amber-500">★</span>
         {link.label}
@@ -98,7 +108,7 @@ const SidebarLinkRow = memo(function SidebarLinkRow({
       <span className="flex items-start justify-between gap-1.5">
         <span className="min-w-0 flex-1">
           {link.external ? (
-            <a href={link.href} target="_blank" rel="noreferrer noopener" title={`${link.label} - ${link.quick}`} className="block">
+            <a href={link.href} target="_blank" rel="noreferrer noopener" title={`${link.label} - ${link.quick}`} className="flex flex-col justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:min-h-[44px] max-lg:py-2">
               <span className={cn("font-semibold", active && "text-cyan-700 dark:text-cyan-300")}>
                 {link.label}
                 <span aria-hidden="true"> ↗</span>
@@ -109,7 +119,7 @@ const SidebarLinkRow = memo(function SidebarLinkRow({
               )}
             </a>
           ) : (
-            <Link href={link.href} aria-current={active ? "page" : undefined} title={`${link.label} - ${link.quick}`} className="block">
+            <Link href={link.href} aria-current={active ? "page" : undefined} title={`${link.label} - ${link.quick}`} className="flex flex-col justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:min-h-[44px] max-lg:py-2">
               <span className={cn("font-semibold", active && "text-cyan-700 dark:text-cyan-300")}>
                 {link.label}
                 {active && <span aria-hidden="true"> ●</span>}
@@ -156,7 +166,7 @@ const SidebarGroup = memo(function SidebarGroup({
 }) {
   return (
     <details open={defaultOpen} className="ui-details mb-2">
-      <summary className="ui-details-summary">
+      <summary className="ui-details-summary max-lg:min-h-[44px]">
         <span aria-hidden="true" className="ui-details-caret">▾</span>
         <span className="ui-details-label">{group.label} · {group.links.length}</span>
         {showQuick && <span className="hidden truncate text-[11px] font-normal text-muted-foreground sm:block">{group.tagline}</span>}
@@ -370,7 +380,7 @@ export function MenuSidebar() {
           aria-expanded={false}
           aria-controls={panelId}
           title="Open menu 2 - every link explained"
-          className="fixed left-3 top-16 z-40 inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 truncate rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent"
+          className="fixed left-3 top-16 z-40 inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 truncate rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 max-lg:min-h-[44px]"
         >
           <span aria-hidden="true" className="shrink-0 text-base leading-none">☰</span>
           <span className="truncate">menu 2</span>
@@ -416,11 +426,39 @@ export function MenuSidebar() {
             onClick={hideSidebar}
             aria-label="Hide menu sidebar"
             title="Hide sidebar (it stays one click away, top-left)"
-            className="rounded-lg border border-border px-2.5 py-1.5 text-sm font-bold transition hover:bg-accent"
+            className="rounded-lg border border-border px-2.5 py-1.5 text-sm font-bold transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:min-h-[44px] max-lg:px-3"
           >
             <span aria-hidden="true">⟨⟩</span> Hide
           </button>
         </div>
+
+        {/* Demo shortcuts (DS-MOB-01): four demo beats, two taps from anywhere
+            (pill + shortcut). Mobile-only (lg:hidden) — desktop dock untouched.
+            Auto-closes on navigation via the existing mobile pathname effect. */}
+        <nav aria-label="Demo quick links" className="border-b border-border px-3 py-2 lg:hidden dark:border-white/10">
+          <p className="mb-1.5 px-1 text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+            ⚡ Demo shortcuts
+          </p>
+          <ul className="grid grid-cols-2 gap-2">
+            {DEMO_SIDEBAR_LINKS.map((link) => {
+              const active = isActive(pathname, link.href);
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex min-h-[44px] items-center justify-center gap-1 rounded-xl border px-2 py-2 text-center text-[13px] font-bold transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500",
+                      active && "border-cyan-600/60 text-cyan-700 dark:border-cyan-300/60 dark:text-cyan-200",
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
 
         {/* Search - UX trick: filter 30+ links live */}
         <div className="border-b border-border px-3 py-2 dark:border-white/10">
@@ -431,7 +469,7 @@ export function MenuSidebar() {
             value={query}
             onChange={handleQueryChange}
             placeholder="Filter… try “gpu”, “coins”, “bot”"
-            className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-cyan-500 focus:bg-background focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1"
+            className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-cyan-500 focus:bg-background focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1 max-lg:min-h-[44px]"
           />
         </div>
 
@@ -444,7 +482,7 @@ export function MenuSidebar() {
             <Link
               href="/favorites"
               title="Open your favorites page"
-              className="text-xs font-bold text-cyan-600 hover:underline dark:text-cyan-300"
+              className="inline-flex items-center rounded-lg text-xs font-bold text-cyan-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:text-cyan-300 max-lg:min-h-[44px] max-lg:px-2"
             >
               Open page →
             </Link>
@@ -486,7 +524,7 @@ export function MenuSidebar() {
         <nav aria-label="All site links" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-2 [-webkit-overflow-scrolling:touch]">
           {filtered.length === 0 && (
             <p className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
-              No links match “{query}”. <button type="button" className="font-bold underline underline-offset-4" onClick={clearQuery}>Clear</button>
+              No links match “{query}”. <button type="button" className="rounded-lg font-bold underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:inline-block max-lg:min-h-[44px] max-lg:px-3" onClick={clearQuery}>Clear</button>
             </p>
           )}
           {filtered.map((group, gi) => (
@@ -505,8 +543,13 @@ export function MenuSidebar() {
           </p>
         </nav>
 
-        {/* Footer: Toggle Quick Info + hide */}
-        <div className="border-t border-border px-3 py-2.5 dark:border-white/10">
+        {/* Footer: Toggle Quick Info + hide (safe-area pad for home-bar phones;
+            inline style with env() fallback: unsupported browsers drop the
+            declaration and keep the py-2.5 class = fail-open). */}
+        <div
+          className="border-t border-border px-3 py-2.5 dark:border-white/10"
+          style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom, 0.625rem))" }}
+        >
           <div className="flex items-center justify-between gap-2 rounded-xl bg-muted/50 px-3 py-2">
             <span className="text-xs font-bold">Quick info <span className="font-normal text-muted-foreground">{quick ? "on" : "off"}</span></span>
             <button
@@ -516,15 +559,15 @@ export function MenuSidebar() {
               aria-label="Toggle quick info descriptions"
               onClick={toggleQuick}
               className={cn(
-                "relative h-6 w-11 shrink-0 rounded-full transition",
+                "relative h-6 w-11 shrink-0 rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 max-lg:h-8 max-lg:w-[3.75rem]",
                 quick ? "bg-cyan-600 dark:bg-cyan-300" : "bg-muted-foreground/30",
               )}
             >
               <span
                 aria-hidden="true"
                 className={cn(
-                  "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all",
-                  quick ? "left-[1.375rem]" : "left-0.5",
+                  "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all max-lg:top-1 max-lg:h-6 max-lg:w-6",
+                  quick ? "left-[1.375rem] max-lg:left-[2.125rem]" : "left-0.5 max-lg:left-1",
                 )}
               />
             </button>
@@ -533,14 +576,14 @@ export function MenuSidebar() {
             <button
               type="button"
               onClick={focusSearch}
-              className="flex-1 rounded-full border border-border px-3 py-1.5 text-xs font-bold transition hover:bg-accent"
+              className="flex-1 rounded-full border border-border px-3 py-1.5 text-xs font-bold transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:min-h-[44px] max-lg:py-2"
             >
               Find a link
             </button>
             <button
               type="button"
               onClick={hideSidebar}
-              className="flex-1 rounded-full border border-border px-3 py-1.5 text-xs font-bold transition hover:bg-accent"
+              className="flex-1 rounded-full border border-border px-3 py-1.5 text-xs font-bold transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:min-h-[44px] max-lg:py-2"
             >
               Hide sidebar
             </button>

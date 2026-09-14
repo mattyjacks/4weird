@@ -21,6 +21,10 @@ document.getElementById('TEMPLATE-4weird-high-score').textContent = highScore;
 
 // Audio context for sound effects
 let audioCtx = null;
+// Live mute (AUDIO SPEC): SFX one-shots only, no ambient drone; gate output.
+let muted = false;
+function setMuted(m) { muted = !!m; return muted; }
+function toggleMute() { return setMuted(!muted); }
 
 function initAudio() {
     if (!audioCtx) {
@@ -32,7 +36,7 @@ function initAudio() {
 }
 
 function playSound(frequency, duration, type = 'square', volume = 0.1) {
-    if (!audioCtx) return;
+    if (!audioCtx || muted) return;
     const oscillator = audioCtx.createOscillator();
     const gainNode = audioCtx.createGain();
     
@@ -128,6 +132,8 @@ document.addEventListener('keydown', (e) => {
     } else if ((e.code === 'KeyP' || e.code === 'Escape') && gameState === 'paused') {
         resumeGame();
     }
+
+    if (e.code === 'KeyM') toggleMute();
     
     // Restart on game over
     if (e.code === 'Space' && gameState === 'gameOver') {
@@ -760,6 +766,9 @@ window.addEventListener('message', (event) => {
         if (!isNaN(speed) && speed > 0) {
             window.speedMultiplier = speed;
         }
+    }
+    if (event.data && event.data.type === 'SET_MUTED') {
+        setMuted(!!event.data.muted);
     }
 });
 

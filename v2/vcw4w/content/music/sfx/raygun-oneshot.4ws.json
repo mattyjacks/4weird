@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:raygun","sfx":{"kind":"raygun","name":"Raygun Zap","steps":[{"dur":0.15,"freq":880,"freqEnd":110,"type":"tone","vol":0.5,"wave":"saw"}],"v":1},"source":"raygun zap saw 880-110"}

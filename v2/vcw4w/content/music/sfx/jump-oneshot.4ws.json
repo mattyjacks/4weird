@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:jump","sfx":{"kind":"jump","name":"Jump Boing","steps":[{"dur":0.2,"freq":300,"freqEnd":900,"type":"tone","vol":0.5,"wave":"square"}],"v":1},"source":"jump boing square 300-900"}

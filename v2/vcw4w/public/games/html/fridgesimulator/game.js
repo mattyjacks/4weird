@@ -556,7 +556,9 @@ function showToast(message, color = '#00f2fe') {
     toast.className = 'game-toast';
     toast.style.borderColor = color;
     toast.style.boxShadow = `0 0 15px ${color}40`;
-    toast.innerHTML = message;
+    // Text-only: toast strings are plain text + emoji; innerHTML here would
+    // execute any markup a future caller interpolates.
+    toast.textContent = message;
     container.appendChild(toast);
     setTimeout(() => {
         toast.classList.add('fade-out');

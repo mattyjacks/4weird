@@ -1,11 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MusicInst, MusicSong, MusicTrack } from "@/lib/music-format";
 import { validateMusic } from "@/lib/music-format";
 import { getAudioContext, playSong, renderSongWav } from "@/lib/music-synth";
 import { SfxLab } from "@/components/music/sfx-lab";
 import { StepSequencer } from "@/components/music/step-sequencer";
+import { DubstepPanel } from "@/components/music/dubstep-panel";
+import type { DubstepDropEvent } from "@/components/music/dubstep-panel";
+import { ModFxLanes } from "@/components/music/modfx-lanes";
+import type {
+  ModLaneId,
+  ModTrack,
+  ModTrackLanes,
+} from "@/components/music/modfx-lanes";
+import { ModeSwitch } from "@/components/music/mode-switch";
+import type { MusicMode } from "@/components/music/mode-switch";
 
 const STORAGE_KEY = "4weird-music:mine";
 const STEPS = 16;
@@ -76,6 +86,19 @@ function clampBpm(value: number): number {
   if (!Number.isFinite(value)) return 120;
   return Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(value) || 120));
 }
+
+/**
+ * Empty per-step modulation lanes for DS-MUSDUB-10 wiring. `ModFxLanes`
+ * normalizes missing/short lanes to zeros, so shared empty arrays are safe
+ * (never mutated — the panel copies on edit).
+ */
+const EMPTY_MOD_LANES: ModTrackLanes = {
+  cutoff: [],
+  wobble: [],
+  vibrato: [],
+  detune: [],
+  vol: [],
+};
 
 /** Canonical `$music:1` guard via music-01's validator (never throws). */
 function isStoredSong(value: unknown): value is MusicSong {
@@ -191,6 +214,13 @@ export function MakerShell() {
   const [status, setStatus] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState(false);
   const stopRef = useRef<{ stop: () => void } | null>(null);
+  // DS-MUSDUB-10 (additive): compose mode (default theory) + editor-side
+  // modulation lane state. Neither feeds `buildSong`, so the exported song
+  // JSON and existing sequencer/SFX flows are unchanged.
+  const [musicMode, setMusicMode] = useState<MusicMode>("theory");
+  const [modLaneState, setModLaneState] = useState<
+    Record<string, Partial<ModTrackLanes>>
+  >({});
 
   // Hydrate: a `?song=` share link wins, then the most recent localStorage
   // save. Effect-only so SSR never touches browser APIs; failures fall back
@@ -332,6 +362,60 @@ export function MakerShell() {
     [],
   );
 
+  // DS-MUSDUB-10 (additive): bridge sequencer tracks to ModFX lane tracks.
+  // Lane edits live in `modLaneState` only; song export is untouched.
+  const modFxTracks: ModTrack[] = useMemo(
+    () =>
+      tracks.map((track, index) => {
+        const saved = modLaneState[track.id];
+        return {
+          id: track.id,
+          name: `Track ${index + 1} · ${track.inst}`,
+          lanes: {
+            cutoff: saved?.cutoff ?? EMPTY_MOD_LANES.cutoff,
+            wobble: saved?.wobble ?? EMPTY_MOD_LANES.wobble,
+            vibrato: saved?.vibrato ?? EMPTY_MOD_LANES.vibrato,
+            detune: saved?.detune ?? EMPTY_MOD_LANES.detune,
+            vol: saved?.vol ?? EMPTY_MOD_LANES.vol,
+          },
+        };
+      }),
+    [tracks, modLaneState],
+  );
+
+  const handleModLaneChange = useCallback(
+    (trackId: string, lane: ModLaneId, values: number[]) => {
+      setModLaneState((prev) => ({
+        ...prev,
+        [trackId]: { ...prev[trackId], [lane]: values },
+      }));
+    },
+    [],
+  );
+
+  // DS-MUSDUB-10 (additive): dubstep panel callbacks stage recipes as status
+  // text only (fail-open) — they never mutate tracks or the song build.
+  const handleInsertDubstepFx = useCallback(
+    (recipe: string | DubstepDropEvent) => {
+      try {
+        if (typeof recipe === "string") {
+          setStatus(`Dubstep FX staged: ${recipe} (apply manually to a track).`);
+        } else {
+          setStatus(
+            `Dubstep drop staged: ${recipe.recipeId} (apply manually to a track).`,
+          );
+        }
+      } catch {
+        // Fail open: the panel keeps its own status line.
+      }
+    },
+    [],
+  );
+
+  const handlePreviewDubstep = useCallback((recipeId: string) => {
+    setStatus(`Previewing dubstep recipe ${recipeId} (audition only).`);
+  }, []);
+
   const handleSave = useCallback(() => {
     try {
       const song = buildSong();
@@ -466,7 +550,8 @@ export function MakerShell() {
   }, [buildSong]);
 
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 max-w-full space-y-8 overflow-x-clip">
+      <style>{`.music-tempo-slider{-webkit-appearance:none;appearance:none;height:44px;background:transparent;cursor:pointer}.music-tempo-slider::-webkit-slider-runnable-track{height:8px;border-radius:9999px;background:rgba(255,255,255,.15)}.music-tempo-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-10px;height:28px;width:28px;border-radius:9999px;background:#67e8f9;border:2px solid #0e7490}.music-tempo-slider::-moz-range-track{height:8px;border-radius:9999px;background:rgba(255,255,255,.15)}.music-tempo-slider::-moz-range-thumb{height:28px;width:28px;border-radius:9999px;background:#67e8f9;border:2px solid #0e7490}`}</style>
       <section
         aria-label="Song settings"
         className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-6"
@@ -479,7 +564,7 @@ export function MakerShell() {
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={80}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-base font-normal text-white placeholder:text-slate-500"
+              className="mt-2 min-h-[44px] w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-base font-normal text-white placeholder:text-slate-500"
               placeholder="Name your song"
             />
           </label>
@@ -492,7 +577,7 @@ export function MakerShell() {
               step={1}
               value={bpm}
               onChange={(event) => setBpm(Number(event.target.value))}
-              className="mt-2 w-full accent-cyan-300"
+              className="music-tempo-slider mt-2 h-[44px] w-full touch-manipulation accent-cyan-300"
             />
           </label>
         </div>
@@ -501,7 +586,7 @@ export function MakerShell() {
             <button
               type="button"
               onClick={stopPlayback}
-              className="rounded-xl bg-rose-400 px-4 py-2 text-sm font-black text-slate-950 hover:bg-rose-300"
+              className="min-h-[44px] touch-manipulation rounded-xl bg-rose-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-rose-300"
             >
               Stop
             </button>
@@ -510,7 +595,7 @@ export function MakerShell() {
               type="button"
               onClick={handlePlay}
               disabled={tracks.length === 0}
-              className="rounded-xl bg-cyan-300 px-4 py-2 text-sm font-black text-slate-950 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
+              className="min-h-[44px] touch-manipulation rounded-xl bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Play (loop)
             </button>
@@ -518,28 +603,28 @@ export function MakerShell() {
           <button
             type="button"
             onClick={handleSave}
-            className="rounded-xl border border-white/15 bg-white/[.05] px-4 py-2 text-sm font-bold text-white hover:bg-white/[.12]"
+            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
           >
             Save to browser
           </button>
           <button
             type="button"
             onClick={handleDownloadJson}
-            className="rounded-xl border border-white/15 bg-white/[.05] px-4 py-2 text-sm font-bold text-white hover:bg-white/[.12]"
+            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
           >
             Download JSON
           </button>
           <button
             type="button"
             onClick={handleCopyJson}
-            className="rounded-xl border border-white/15 bg-white/[.05] px-4 py-2 text-sm font-bold text-white hover:bg-white/[.12]"
+            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
           >
             Copy JSON
           </button>
           <button
             type="button"
             onClick={handleCopyLink}
-            className="rounded-xl border border-white/15 bg-white/[.05] px-4 py-2 text-sm font-bold text-white hover:bg-white/[.12]"
+            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
           >
             Copy link
           </button>
@@ -547,7 +632,7 @@ export function MakerShell() {
             type="button"
             onClick={handleExportWav}
             disabled={isBusy || tracks.length === 0}
-            className="rounded-xl border border-white/15 bg-white/[.05] px-4 py-2 text-sm font-bold text-white hover:bg-white/[.12] disabled:cursor-not-allowed disabled:opacity-40"
+            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isBusy ? "Rendering…" : "Export WAV"}
           </button>
@@ -567,7 +652,7 @@ export function MakerShell() {
           <button
             type="button"
             onClick={handleAddTrack}
-            className="rounded-xl bg-white px-4 py-2 text-sm font-black text-slate-950 hover:bg-slate-200"
+            className="min-h-[44px] touch-manipulation rounded-xl bg-white px-5 py-3 text-sm font-black text-slate-950 hover:bg-slate-200"
           >
             Add track
           </button>
@@ -581,7 +666,7 @@ export function MakerShell() {
           <article
             key={track.id}
             aria-label={`Track ${index + 1}`}
-            className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-5"
+            className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-5"
           >
             <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center">
               <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">
@@ -602,7 +687,7 @@ export function MakerShell() {
                     onChange={(event) =>
                       handleInstrumentChange(track.id, event.target.value)
                     }
-                    className="ml-1 rounded-lg border border-white/10 bg-slate-950 px-2 py-1 text-sm font-normal text-white"
+                    className="ml-1 max-w-full touch-manipulation rounded-lg border border-white/10 bg-slate-950 px-3 py-3 text-base font-normal text-white"
                   >
                     {INSTRUMENTS.map((inst) => (
                       <option key={inst} value={inst}>
@@ -615,7 +700,7 @@ export function MakerShell() {
                   type="button"
                   onClick={() => handleRemoveTrack(track.id)}
                   aria-label={`Remove track ${index + 1}`}
-                  className="rounded-lg border border-rose-300/30 px-3 py-1 text-xs font-bold text-rose-200 hover:bg-rose-400/10"
+                  className="min-h-[44px] touch-manipulation rounded-lg border border-rose-300/30 px-4 py-3 text-xs font-bold text-rose-200 hover:bg-rose-400/10"
                 >
                   Remove
                 </button>
@@ -629,6 +714,45 @@ export function MakerShell() {
           </article>
         ))}
       </section>
+
+      <section
+        aria-label="Compose mode"
+        className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-6"
+      >
+        <h2 className="text-xl font-black text-white">Compose mode</h2>
+        <p className="mt-2 max-w-2xl text-sm text-slate-300">
+          Theory Forge guides scales and grids, Pure AI Summon dreams the
+          whole track, and Human Hands keeps your notes in the lead. The
+          panels below stay available in every mode.
+        </p>
+        <div className="mt-4">
+          <ModeSwitch value={musicMode} onChange={setMusicMode} />
+        </div>
+      </section>
+
+      <section
+        aria-label="Modulation lanes"
+        className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-6"
+      >
+        <h2 className="text-xl font-black text-white">Mod FX lanes</h2>
+        <p className="mt-2 max-w-2xl text-sm text-slate-300">
+          Per-step filter cutoff, wobble, vibrato, detune, and volume trims
+          for each track. Lane edits stay in the editor — the exported song
+          JSON is unchanged.
+        </p>
+        <div className="mt-4">
+          <ModFxLanes
+            tracks={modFxTracks}
+            onChange={handleModLaneChange}
+            steps={STEPS}
+          />
+        </div>
+      </section>
+
+      <DubstepPanel
+        onInsertFx={handleInsertDubstepFx}
+        onPreview={handlePreviewDubstep}
+      />
 
       <section
         aria-label="Sound effects lab"

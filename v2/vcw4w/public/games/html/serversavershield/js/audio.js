@@ -1,5 +1,18 @@
 // Audio System
 var audioCtx = null;
+// Live-mute flag per AUDIO SPEC: one-shot SFX only, no ambient bed, so
+// gating playSound plus immediate return silences output at once.
+var audioMuted = false;
+
+function setMuted(m) {
+    audioMuted = !!m;
+    return audioMuted;
+}
+
+function toggleMute() {
+    audioMuted = !audioMuted;
+    return audioMuted;
+}
 
 function initAudio() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -12,7 +25,7 @@ var _lastSoundAt = {};
 var _soundThrottleMs = { shoot: 60, hit: 50, die: 90, powerup: 80, nuke: 200, damage: 100 };
 
 function playSound(type) {
-    if (!audioCtx) return;
+    if (!audioCtx || audioMuted) return;
     const nowMs = Date.now();
     const minGap = _soundThrottleMs[type] || 60;
     if (nowMs - (_lastSoundAt[type] || 0) < minGap) return;

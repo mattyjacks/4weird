@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:powerup","sfx":{"kind":"win","name":"Powerup Spark","steps":[{"dur":0.12,"freq":440,"freqEnd":440,"type":"tone","vol":0.5,"wave":"tri"},{"dur":0.2,"freq":660,"freqEnd":660,"type":"tone","vol":0.5,"wave":"tri"}],"v":1},"source":"powerup spark tri 440 660"}

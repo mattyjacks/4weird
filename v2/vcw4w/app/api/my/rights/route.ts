@@ -65,6 +65,16 @@ export async function GET(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Sign in to export your data.", 401);
+  // Bot tester sessions (POST /api/bot/login email+password) can play but
+  // never bulk-harvest PII: the export dump stays full-session-only.
+  if (isBotTester(req)) return fail(botTesterBlocked(), 403);
+  {
+    const blocked = privilegedSessionBlocked(req, u.id);
+    if (blocked) {
+      const status = blocked === botTesterBlocked() ? 403 : 401;
+      return fail(blocked, status);
+    }
+  }
 
   const perUser = rateLimit(`rights-export:${u.id}`, 5, 60 * 60 * 1000);
   if (!perUser.allowed) {

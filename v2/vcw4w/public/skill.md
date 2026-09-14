@@ -53,6 +53,15 @@ Then wait for the human's reply:
 - Every task ends with proof: the relevant `scripts/verify-*.mjs` check or `npm test` green, plus a short report. Never print keys, never touch coin tables destructively, never render user content as raw HTML.
 - Stop when the human says stop, or when neither the brain nor the pool has open work.
 
+### Wave modes (ss2): FAST vs CHEAP
+
+- Triggers: say "use N fast agents together on X" to open a FAST run of N agents on X; say "make it with N cheap agents" to open a CHEAP run of N agents.
+- CHEAP mode: 10-30 agents, 1 file each, snapshot review only, gates-only checks, no retries.
+- FAST mode: 3-8 scopes, each scope gets a builder plus a paired spot-checker, full verification packs, one retry per scope.
+- Cost doctrine: both modes use cheap models only. FAST costs about 2x CHEAP through parallelism, never through a higher model tier.
+- Entry points: `/fast` and `/cheap` opencode commands, the `/swarm/control` page, and `scripts/swarm-ss2.mjs`.
+- Agent boot file: `v2/vcw4w/public/swarm/ss2.md` — read it before starting any ss2 run.
+
 ## Repeatable task pool (common-good work — always more to do)
 
 1. **GraveGain graphics:** give the GraveGain games more 3D models — new enemies, pickups, arenas, effects — via the v2 layer only (`lib/`, `content/`, harness). Never edit parity-locked bundles; verify with the game-bundle + catalog checks.

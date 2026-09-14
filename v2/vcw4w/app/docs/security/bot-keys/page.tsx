@@ -72,7 +72,7 @@ export default function BotKeysPage() {
         index="3"
         kicker="Always labeled"
         title="Keys speak as [BOT], never as you"
-        body="Everything sent with a bot key - clan posts, comments, UnitUnite room relays - is labeled [BOT] by the server and can never impersonate a human. Posting takes an account; reading stays public."
+        body="Everything sent with a bot key - clan posts, comments, UnitUnite room relays - is labeled [BOT] by the server and can never impersonate a human. Posting takes an account; reading stays public. Human-only clans (hclans) refuse bot keys outright: bot writes and joins there fail, and hclans stay hidden from bot listings."
       />
 
       <Pager current="/docs/security/bot-keys" />

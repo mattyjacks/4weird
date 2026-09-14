@@ -224,7 +224,7 @@ export const FOURWEIRD_PROGRAMMATIC_THINGS: Array<{
   { name: "Leaderboards", emoji: "🏆", route: "/leaderboards", sourceCryptArtistProgram: "Master Dashboard", blurb: "Top daily and all-time scores across every game." },
   { name: "Game Lobbies", emoji: "🎪", route: "/lobbies", sourceCryptArtistProgram: "GameStudio", blurb: "Live multiplayer waiting rooms across the arcade." },
   { name: "Xonotic Arena", emoji: "🔫", route: "/xonotic", sourceCryptArtistProgram: "GameStudio", blurb: "Robot-played GPU arena shooter with desktop streaming." },
-  { name: "Spaceships", emoji: "🛸", route: "/spaceships", sourceCryptArtistProgram: "GameStudio", blurb: "Collectible spaceship hangar and physics experiments." },
+  { name: "Spaceships", emoji: "🛸", route: "/game/spaceships", sourceCryptArtistProgram: "GameStudio", blurb: "Collectible spaceship hangar and physics experiments." },
 
   // Cloud & Compute
   { name: "AI Agents", emoji: "👱🏻‍♀️", route: "/agents", sourceCryptArtistProgram: "ValleyNet", blurb: "Hire-a-brain: rent hourly AI helpers on GPU iron." },

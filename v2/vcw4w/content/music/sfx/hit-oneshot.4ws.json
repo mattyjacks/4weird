@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:hit","sfx":{"kind":"hit","name":"Hit Thump","steps":[{"dur":0.12,"freq":200,"freqEnd":90,"type":"tone","vol":0.6,"wave":"square"}],"v":1},"source":"hit thump square 200-90"}

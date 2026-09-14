@@ -6,7 +6,7 @@ import { ParentDashboard } from "@/components/family/parent-dashboard";
 
 type Friendship = { id: string; display_name?: string | null; public_handle?: string | null; status?: string; direction?: string };
 type ChatMessage = { body: string; created_at?: string };
-type Save = { game_slug: string; slot: number; data?: { cheat_mode?: boolean } | null; updated_at?: string };
+type Save = { game_slug: string; slot: number; kind?: string | null; data?: { cheat_mode?: boolean } | null; updated_at?: string };
 type Submission = { id: string; title: string; status: string; monetization_status?: string };
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -248,13 +248,15 @@ function SavesTab() {
   const games = ["platform-wars", ...new Set(saves.map((s) => s.game_slug))].filter((g, i, a) => a.indexOf(g) === i);
   return (
     <Card title="Cloud saves">
-      <p>Every game includes four independent save slots. Slot 0 is cheat-proof and can never be marked. Cheated status is permanent per other slot after its first cheat.</p>
+      <p>Every game includes four independent save slots, each with a manual save and a load-only autosave backup. Slot 0 is cheat-proof and can never be marked. Cheated status is permanent per other slot after its first cheat.</p>
       <p role="status" className="text-slate-400">{message}</p>
       {games.map((game) => (
         <div key={game}>
           <h3 className="font-semibold">{game === "platform-wars" ? "Platform Wars: Phone vs Desktop" : game}</h3>
           {[0, 1, 2, 3].map((slot) => {
-            const s = saves.find((x) => x.game_slug === game && x.slot === slot);
+            const manual = saves.find((x) => x.game_slug === game && x.slot === slot && (x.kind ?? "manual") === "manual");
+            const auto = saves.find((x) => x.game_slug === game && x.slot === slot && x.kind === "auto");
+            const cheatSource = manual ?? auto;
             return (
               <Row key={slot}>
                 <span>
@@ -262,12 +264,16 @@ function SavesTab() {
                   {slot === 0 ? (
                     <b className="rounded-full border border-emerald-400/40 px-2 py-0.5 text-xs text-emerald-300">CHEAT-PROOF</b>
                   ) : (
-                    s?.data?.cheat_mode && (
+                    cheatSource?.data?.cheat_mode && (
                       <b className="rounded-full border border-red-400/40 px-2 py-0.5 text-xs text-red-300">CHEAT MODE</b>
                     )
                   )}
                 </span>
-                <span className="text-slate-400">{s ? `Last synced ${new Date(s.updated_at ?? "").toLocaleDateString()}` : "Empty"}</span>
+                <span className="text-slate-400">
+                  Manual: {manual ? `Last synced ${new Date(manual.updated_at ?? "").toLocaleDateString()}` : "Empty"}
+                  {" · "}
+                  Autosave: {auto ? `Last synced ${new Date(auto.updated_at ?? "").toLocaleDateString()}` : "Empty"}
+                </span>
               </Row>
             );
           })}

@@ -1,0 +1,65 @@
+import type { Metadata, Viewport } from "next";
+
+export const metadata: Metadata = {
+  title: "Play GraveGain5D | 4weird Games",
+  description:
+    "Play GraveGain5D: transcend six parallel Arroyos in a 5D multiverse golf rogue-like — chain hops, vent paradox, beat the collapse timers.",
+  robots: { index: false, follow: false },
+};
+
+// Same viewport contract as the canonical play shell
+// (app/games/[slug]/play): the runtime lives inside an iframe, so the
+// shell owns the viewport meta. resizes-visual keeps the mobile keyboard
+// from shrinking the layout viewport and jumping the game frame.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-visual",
+};
+
+// NOTE: this static route takes precedence over app/games/[slug]/play for
+// the gravegain5d slug (static beats dynamic in Next.js routing). It frames
+// the v2 bundle (/games/gravegain5d/index.html) directly — no new shared
+// components — mirroring app/games/gravegain4d/play. Catalog/sitemap/nav
+// wiring for this route is requested via QUEUE (shared manifests are
+// steward-owned).
+export default function GraveGain5DPlayPage() {
+  return (
+    <div className="bg-black text-white" data-theme-lock="dark">
+      <div className="mx-auto max-w-6xl px-4 pb-10 pt-4 sm:px-5">
+        <nav
+          aria-label="Game breadcrumb"
+          className="flex flex-wrap items-center gap-2 text-sm"
+        >
+          <a
+            href="/games"
+            className="font-semibold text-cyan-300 hover:underline"
+          >
+            ← All games
+          </a>
+          <span aria-hidden="true" className="text-white/30">
+            /
+          </span>
+          <span className="font-semibold text-white">GraveGain5D</span>
+        </nav>
+        <h1 className="mt-3 text-2xl font-black sm:text-3xl">
+          🌀 Play GraveGain5D
+        </h1>
+        <div className="mt-4" id="game-frame">
+          <iframe
+            src="/games/gravegain5d/index.html"
+            title="GraveGain5D — Multiverse Transcendence"
+            className="aspect-[5/3] w-full rounded-xl border border-white/10 bg-black"
+            allow="fullscreen; autoplay; gamepad"
+            allowFullScreen
+          />
+        </div>
+        <p className="mt-3 text-sm text-white/60">
+          4D golf across 6 universes — hop with U, putt with Space, vent
+          paradox before hot universes collapse.
+        </p>
+      </div>
+    </div>
+  );
+}

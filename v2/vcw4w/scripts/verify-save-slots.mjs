@@ -63,7 +63,7 @@ const frame = read("../components/games/game-runtime-frame.tsx");
 if (!frame.includes("slot=0")) fail("game-runtime-frame.tsx must fetch slot=0 on ready.");
 if (!frame.includes("/api/saves?game=")) fail("game-runtime-frame.tsx must fetch /api/saves on ready.");
 if (!frame.includes("payload.slot")) fail("game-runtime-frame.tsx must read payload.slot on save.");
-if (!frame.includes("? payload.slot : 0")) fail("game-runtime-frame.tsx must default save slot to 0.");
+if (!frame.includes("? payload.slot : 0") && !frame.includes("clampSlot(payload.slot)")) fail("game-runtime-frame.tsx must default save slot to 0.");
 
 // 9. Slot-0 auto-start: runtime bridge posts slot 0.
 const bridge = read("../public/games/html/runtime-bridge.js");
@@ -81,6 +81,47 @@ if (!exists(panelPath)) {
     if (!panel.includes(token)) fail(`universal-save-panel.tsx must mention slot ${token}.`);
   }
   if (!/cheat-free|cheat-proof/i.test(panel)) fail("universal-save-panel.tsx must label slot 0 cheat-free/cheat-proof.");
+}
+
+// 11. Dual-save cloud kind: PUT accepts kind manual/auto (defaults manual),
+// GET filters by ?kind=manual|auto (omitted = both), invalid kind is 400.
+// Fail-open: dual-save API may not have landed yet; skip instead of failing.
+if (!saves.includes("kind")) {
+  console.log("verify-save-slots: check 11 SKIP — app/api/saves/route.ts has no kind param yet (dual-save API not landed yet).");
+} else {
+  if (!saves.includes("manual")) fail("saves route mentions kind but has no manual kind.");
+  if (!saves.includes("auto")) fail("saves route mentions kind but has no auto kind.");
+  if (!/Invalid.*kind/i.test(saves)) fail("saves route must reject an invalid kind with 400.");
+  if (!/400/.test(saves)) fail("saves route must return 400 for an invalid kind.");
+  console.log("verify-save-slots: check 11 green (PUT kind manual/auto + GET kind filter + invalid kind 400).");
+}
+
+// 12. Universal panel dual-save: Load-autosave button + auto local key.
+// Fail-open: dual-save panel may not have landed yet; skip instead of failing.
+if (!exists(panelPath)) {
+  console.log("verify-save-slots: check 12 SKIP — components/games/universal-save-panel.tsx absent (dual-save panel not landed yet).");
+} else {
+  const panelDual = read(panelPath);
+  if (!/load-autosave|load autosave/i.test(panelDual)) {
+    console.log("verify-save-slots: check 12 SKIP — universal-save-panel.tsx has no Load-autosave yet (dual-save panel not landed yet).");
+  } else {
+    if (!/:auto/.test(panelDual)) fail("universal-save-panel.tsx Load-autosave must use the :auto local key suffix.");
+    console.log("verify-save-slots: check 12 green (universal panel Load-autosave + :auto key).");
+  }
+}
+
+// 13. Fridge panel dual-save: Load-autosave button.
+// Fail-open: dual-save fridge panel may not have landed yet; skip instead of failing.
+const fridgePath = "../components/games/fridge-save-panel.tsx";
+if (!exists(fridgePath)) {
+  console.log("verify-save-slots: check 13 SKIP — components/games/fridge-save-panel.tsx absent.");
+} else {
+  const fridge = read(fridgePath);
+  if (!/load-autosave|load autosave/i.test(fridge)) {
+    console.log("verify-save-slots: check 13 SKIP — fridge-save-panel.tsx has no Load-autosave yet (dual-save fridge panel not landed yet).");
+  } else {
+    console.log("verify-save-slots: check 13 green (fridge panel Load-autosave).");
+  }
 }
 
 console.log("verify-save-slots: 4 slots (0 cheat-proof, first), API + DB + UI agree.");

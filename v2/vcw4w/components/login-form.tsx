@@ -24,6 +24,11 @@ function safeNext(value: string | null): string {
   if (!v.startsWith("/") || v.startsWith("//")) return "/account";
   if (v.includes("\\")) return "/account";
   if (v.length > 2048) return "/account";
+  // Reject scheme tricks and encoded separators in the path part outright
+  // (colons stay legal inside ?query=#hash, e.g. ISO timestamps).
+  const pathPart = v.split(/[?#]/, 1)[0] ?? "";
+  if (pathPart.includes(":")) return "/account";
+  if (/%2f|%5c/i.test(pathPart)) return "/account";
   for (let i = 0; i < v.length; i++) {
     const code = v.charCodeAt(i);
     if (code <= 0x1f || code === 0x7f) return "/account";

@@ -1,1 +1,24 @@
-{"created":"2026-09-13T13:03:00Z","gates":["npx tsc --noEmit","npx eslint components/music/sfx-lab.tsx lib/music-sfx-presets.ts"],"goal":"The SFX laboratory exists: `export function SfxLab()` in v2/vcw4w/components/music/sfx-lab.tsx (wave picker, freqStart/freqEnd sliders, dur/vol/noiseMix sliders, live preview via @/lib/music-synth playSfx, one-click preset buttons, download-JSON) plus v2/vcw4w/lib/music-sfx-presets.ts exporting RAYGUN/DEATH/JUMP/COIN/EXPLOSION/LASER/POWERUP/GAMEOVER as $music:1 sfx objects. Done = files on disk, SfxLab importable by the maker shell, both gates green with output in log, zero edits outside scope.","id":"DS-MUSIC-04","lane":"web","log": ["2026-09-13T13:03:00Z lead: envelope created, awaiting claim.", "2026-09-13T13:04:06Z music-04: claimed, starting sfx lab", "2026-09-13T13:08:24Z music-m4: no-fight defer — owner music-04 is live (scope files on disk at 13:05:43Z/13:06:18Z, post-claim); claim NOT taken, zero scope writes, status/owner untouched", "2026-09-13T13:11:31Z music-04: done. Wrote lib/music-sfx-presets.ts (8 presets) + components/music/sfx-lab.tsx (SfxLab). Gates: tsc --noEmit exit 0 no output; eslint both files ESLINT_EXIT=0. Presets: all dur<=4s, JSON ~128-135B (<=2048). music-format/music-synth still absent -> kept documented local typing + fail-open fallback; handoff notes in-file.", "2026-09-13T13:23:56Z music-04: close update — music-01/music-02 landed mid-task, switched to real imports per re-read discipline: presets import type {MusicSfx as Base, Wave} from @/lib/music-format (interface extends it; factory sets name=title as BRIDGE, see in-file note), lab uses static playSfx(sfx) from @/lib/music-synth (signature changed ctx-first -> single-arg during concurrent edit; adapted). Gates: eslint both files ESLINT_EXIT=0; tsc filtered to my files = ZERO errors. Full-tree tsc red ONLY from sibling lanes (maker-shell, song-card, music-api, music-synth waveName typo) — out of scope, not touched, flagged as follow-up."],"owner": "music-04", "scope":["v2/vcw4w/components/music/sfx-lab.tsx","v2/vcw4w/lib/music-sfx-presets.ts"],"status": "done", "title": "SFX lab UI + raygun/death preset recipes", "updated": "2026-09-13T13:23:56Z"}
+{
+    "created":  "2026-09-13T11:45:00.000Z",
+    "id":  "DS-MUSIC-04",
+    "goal":  "Electronic voices: theremin synth-lead synth-pad chiptune. CONTRACT (all 7 lanes build to this; lead-fixed): 20 ids = piano,guitar,bass,harp,marimba,music-box (melodic) | flute,trumpet,sax,violin,organ (wind) | theremin,synth-lead,synth-pad,chiptune (electronic) | kick,snare,hihat,tom,crash (drums). Core file lib/music/instruments/core.ts exports: InstrumentId union, InstrumentKind, InstrumentNote{midi,freq?,time,dur?,vel?}, VoiceFn type (ctx:BaseAudioContext,dest:AudioNode,note:Required\u003cPick\u003cInstrumentNote,\u0027time\u0027\u003e\u003e \u0026 InstrumentNote)=\u003evoid, registerInstrument(id:InstrumentId,fn:VoiceFn), playInstrument(id,ctx,dest,note):boolean, INSTRUMENT_META:Record\u003cInstrumentId,{name,kind,description}\u003e, helpers midiToFreq/noiseBuffer/adsrGain. Family files import ONLY from ./core and call registerInstrument at load; core NEVER imports families (no cycles). Do NOT touch TrackWave4W/format-4w validators.",
+    "status":  "done",
+    "owner":  "mus-04b",
+    "scope":  [
+                  "v2/vcw4w/lib/music/instruments/electronic.ts"
+              ],
+    "updated":  "2026-09-13T23:55:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Electronic voices: theremin synth-lead synth-pad chiptune",
+    "log":  [
+                "2026-09-13T11:45:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T12:00:00.000Z mus-04: claimed; boot read core.ts FIRST -\u003e absent (File not found + Test-Path False; no lib/music/instruments/ dir at all). Reference-read synth-4w.ts (622 lines, 4W-1 engine, no core/registry exports) then re-checked -\u003e still absent. BLOCKED waiting on DS-MUSIC-01 (core contract). Wrote nothing; no scope file created; gates N/A with no file to check.",
+                "2026-09-13T23:55:00.000Z lead: core.ts landed (253 lines, exact contract). Re-dispatched wave 2: read core.ts (exists) then build your family file for real.",
+                "2026-09-14T00:00:00.000Z mus-04b: claimed; boot read MEMORY top-3 (mob-lead phone-readiness, spaceship-lead /spaceships move, mvaf-lead movement+audio sweep) + core.ts (269 lines, exact contract) + verified electronic.ts absent. Building scope file now.",
+                "2026-09-14T00:10:00.000Z mus-04b: DONE. Created lib/music/instruments/electronic.ts (imports ONLY from ./core; ELECTRONIC_IDS + 4 registerInstrument calls + startTheremin{setFreq,setVol,stop}). Gates: tsc --noEmit zero errors in instruments/electronic scope (only 4 pre-existing extrinsic errors in app/music/maker/maker-client.tsx commitSong use-before-declare, untouched); eslint lib/music/instruments/electronic.ts ESLINT_CLEAN exit True. Scope-only write; core/format-4w/rack untouched; no STATUS.json edit."
+            ],
+    "lane":  "web"
+}

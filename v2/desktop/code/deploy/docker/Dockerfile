@@ -24,6 +24,9 @@ RUN apt-get update \
   && useradd -m -s /bin/bash vibe
 
 # Optional: OpenCode.ai CLI for direct-code-editing + self-healing (installed as `vibe`).
+# The install script drops the binary in ~/.opencode/bin (already on PATH above);
+# the `npm install -g opencode-ai` fallback lands in the npm global bin. No
+# secrets are baked into this image — tokens arrive via env/.env at runtime.
 ARG INSTALL_OPENCODE
 USER vibe
 RUN if [ "$INSTALL_OPENCODE" = "true" ]; then \

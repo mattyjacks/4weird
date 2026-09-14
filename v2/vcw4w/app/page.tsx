@@ -32,7 +32,7 @@ const TICKER = [
 
 const CLASSICS = [
   {
-    href: "/spaceships",
+    href: "/game/spaceships",
     emoji: "🛸",
     title: "Spaceships",
     body: "The classic 4weird exhibit; strange ships, strange physics, pure joy.",
@@ -1129,7 +1129,7 @@ export default function Home() {
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Explore</h3>
             <ul className="mt-3 space-y-3">
               <DirItem
-                href="/spaceships"
+                href="/game/spaceships"
                 label="🛸 Spaceships"
                 head="The classic 4weird spaceship exhibit."
               />

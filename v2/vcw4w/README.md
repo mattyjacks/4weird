@@ -24,7 +24,7 @@ self-hosting requires a paid plan ($420/mo per org + 15% markup, Enterprise down
 | Money + me | `/pricing`, `/account`, `/my/usage/`, `/my/rights` |
 | QA | `/vibecodeworker`, `/vibecodeworker/[section]` (overview, hub, run, full, phone, docs, demo) |
 | Docs | `/docs` + 12 guides (`about`, `getting-started`, `playing-games`, `vibe-coins`, `clans`, `bots`, `agents-compute`, `game-ai-buddy`, `vibecodeworker`, `explore-more`, `privacy-safety`, `faq`) |
-| Classics | `/spaceships`, `/academy`, `/tech`, `/web-apps` (legacy redirects preserved) |
+| Classics | `/game/spaceships`, `/academy`, `/tech`, `/web-apps` (legacy redirects preserved) |
 | Legal | `/terms`, `/privacy`, `/accessibility` |
 
 ## APIs (`app/api/`)

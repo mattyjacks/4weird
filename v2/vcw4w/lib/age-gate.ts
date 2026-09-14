@@ -55,6 +55,10 @@ export const GAME_RATINGS: Record<string, AgeRating> = {
 };
 
 export function getGameRating(slug: string): AgeRating {
+  // Display/catalog fallback only ("kids" for unlisted slugs). Play entry
+  // paths (session start, guest-pass start) must fail closed on unlisted
+  // slugs via the content/games.ts catalog BEFORE calling this, so an
+  // unknown slug can never be metered or gated as kids.
   return GAME_RATINGS[slug] ?? "kids";
 }
 

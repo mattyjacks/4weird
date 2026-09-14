@@ -15,7 +15,9 @@ function isOwnStorageUrl(v: string): boolean {
     const base = (supabaseUrl() ?? "").trim();
     if (!base) return false;
     if (parsed.host !== new URL(base).host) return false;
-    return /\/storage\/v1\/object\//.test(parsed.pathname + parsed.search);
+    // Pathname only: matching against pathname+search lets a query string
+    // smuggle the bucket marker (…/evil?x=/storage/v1/object/…).
+    return /\/storage\/v1\/object\//.test(parsed.pathname);
   } catch {
     return false;
   }

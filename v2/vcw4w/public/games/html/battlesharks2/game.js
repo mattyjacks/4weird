@@ -12,6 +12,7 @@ const sfx = {
     init() {
         if (this.ctx) {
             if (this.ctx.state === 'suspended') this.ctx.resume();
+            if (!this.bgmInterval && !this.muted) this.startBGM();
             return;
         }
         try {
@@ -167,15 +168,20 @@ const sfx = {
             const now = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
+            const filter = this.ctx.createBiquadFilter();
             
-            osc.type = 'sawtooth';
+            osc.type = 'triangle';
             const freq = notes[step % notes.length];
             osc.frequency.setValueAtTime(freq, now);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(600, now);
             
             gain.gain.setValueAtTime(0.04, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
             
-            osc.connect(gain);
+            osc.connect(filter);
+            filter.connect(gain);
             gain.connect(this.ctx.destination);
             
             osc.start(now);
@@ -596,6 +602,7 @@ function toggleLab() {
 
 function gameOver() {
     state.running = false;
+    sfx.stopBGM();
     sfx.playGameOver();
 
     // Check and save high score

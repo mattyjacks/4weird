@@ -125,10 +125,12 @@ const nextConfig: NextConfig = {
       { source: "/games/html/platform-wars/", destination: "/games/platform-wars/play", permanent: true },
       { source: "/tech.html", destination: "/tech", permanent: true },
       { source: "/web-apps.html", destination: "/web-apps", permanent: true },
-      // NOTE: /spaceships.html is the live WebGL embed framed by /spaceships
+      // NOTE: /spaceships.html is the live WebGL embed framed by /game/spaceships
       // (see components/spaceships/spaceship-runtime.tsx). Do NOT redirect it
-      // to /spaceships; that makes the page frame itself (infinite nesting).
-      { source: "/spaceships/index.html", destination: "/spaceships", permanent: true },
+      // to /game/spaceships; that makes the page frame itself (infinite nesting).
+      { source: "/spaceships", destination: "/game/spaceships", permanent: true },
+      { source: "/spaceships/", destination: "/game/spaceships", permanent: true },
+      { source: "/spaceships/index.html", destination: "/game/spaceships", permanent: true },
       { source: "/pricing/index.html", destination: "/pricing", permanent: true },
       { source: "/academy/index.html", destination: "/academy", permanent: true },
       { source: "/privacy.html", destination: "/privacy", permanent: true },
@@ -174,6 +176,16 @@ const nextConfig: NextConfig = {
       { source: "/teams", destination: "/squads", permanent: true },
       { source: "/teams/:path*", destination: "/squads/:path*", permanent: true },
       { source: "/api/teams/:path*", destination: "/api/squads/:path*", permanent: true },
+      // MMO rename (DS-MMOMV-05): old /mmorpg page + docs paths redirect
+      // permanently so bookmarks, crawlers, and bots keep working. Bare +
+      // :path* pair mirrors the squads convention above (explicit bare entry
+      // keeps it greppable; :path* already matches zero segments per the
+      // redirects doc). NOTE: /api/mmorpg/* has NO redirect here; it is
+      // rewritten (method/body-preserving) in rewrites() below for bot compat.
+      { source: "/mmorpg", destination: "/mmo", permanent: true },
+      { source: "/mmorpg/:path*", destination: "/mmo/:path*", permanent: true },
+      { source: "/docs/mmorpg", destination: "/docs/mmo", permanent: true },
+      { source: "/docs/mmorpg/:path*", destination: "/docs/mmo/:path*", permanent: true },
       // Auth short link: old bookmarks + pasted URLs use /login; the
       // canonical route is /auth/login (see app/auth/login/page.tsx).
       { source: "/login", destination: "/auth/login", permanent: true },
@@ -192,6 +204,10 @@ const nextConfig: NextConfig = {
         // static-file serving; the /swarm/:path* cache header still applies.
         { source: "/swarm/start", destination: "/swarm/SwarmStart.md" },
         { source: "/swarm/startswarm", destination: "/swarm/SwarmStart.md" },
+        // MMO rename (DS-MMOMV-05): old /api/mmorpg/* rewritten (not
+        // redirected) to /api/mmo/* so POST/PUT method + body survive for
+        // bot compat. beforeFiles so the match runs before route serving.
+        { source: "/api/mmorpg/:path*", destination: "/api/mmo/:path*" },
         { source: "/vcw/agent", destination: "/vcw/agent/index.html" },
         { source: "/vcw/agent/", destination: "/vcw/agent/index.html" },
         { source: "/vcw/desktop", destination: "/vcw/desktop/index.html" },

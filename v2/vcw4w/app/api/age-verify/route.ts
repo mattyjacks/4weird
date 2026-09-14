@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, randomBytes } from "node:crypto";
+import { sameOrigin } from "@/lib/csrf";
 import { checkDob } from "@/lib/age-gate";
 import {
   SERVER_BAND_LABEL,
@@ -142,6 +143,16 @@ function attestResponse(band: ServerAgeBand | null, status: number) {
 }
 
 export async function POST(req: NextRequest) {
+  // Cookie-state mutation (issues the signed httpOnly attestation cookie):
+  // a cross-site POST could otherwise plant an attacker-chosen band
+  // (e.g. adults) on the victim's browser and bypass the age gate.
+  // Fail closed: missing Origin AND Referer is rejected (lib/csrf.ts).
+  if (!sameOrigin(req)) {
+    return NextResponse.json(
+      { band: null, reason: "Invalid request origin." },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } },
+    );
+  }
   let body: unknown;
   try {
     body = await req.json();
@@ -179,7 +190,15 @@ export async function GET(req: NextRequest) {
   return attestResponse(band, band ? 200 : 401);
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  // Cookie-state mutation (clears the attestation cookie): same CSRF bar
+  // as POST so a cross-site request cannot downgrade/reset the victim.
+  if (!sameOrigin(req)) {
+    return NextResponse.json(
+      { band: null, reason: "Invalid request origin." },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } },
+    );
+  }
   const res = NextResponse.json(
     { band: null, cleared: true },
     { headers: { "Cache-Control": "private, no-store" } },

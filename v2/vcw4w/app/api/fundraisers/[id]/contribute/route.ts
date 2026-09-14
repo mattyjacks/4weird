@@ -40,7 +40,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const botBlock = await requireHuman(req, "POST /api/fundraisers/contribute", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`launch-back:${data.user.id}`, 10, 60_000);
-  if (!throttle.allowed) return fail("Too many requests.", 429);
+  if (!throttle.allowed) {
+    return fail("Too many requests.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
   // Distributed shield: backing spends coins, so cap it per account across
   // all instances (the RPC itself is atomic; this stops the storm first).
   const backDist = await globalBucket(acctBucketKey("launch-back-hour", data.user.id), 60, 3600);

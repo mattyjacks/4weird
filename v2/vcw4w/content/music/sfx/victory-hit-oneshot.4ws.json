@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:victory","sfx":{"kind":"win","name":"Victory Smash","steps":[{"dur":0.12,"freq":660,"freqEnd":660,"type":"tone","vol":0.5,"wave":"square"},{"dur":0.25,"freq":880,"freqEnd":880,"type":"tone","vol":0.5,"wave":"square"}],"v":1},"source":"victory smash square 660 880"}

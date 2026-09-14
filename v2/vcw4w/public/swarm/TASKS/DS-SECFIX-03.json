@@ -1,0 +1,29 @@
+{
+  "created": "2026-09-13T15:00:00.000Z",
+  "gates": [
+    "npx tsc --noEmit clean on touched files",
+    "npx eslint clean on touched files",
+    "node scripts/verify-age-gate.mjs stays green"
+  ],
+  "goal": "Unknown game slugs fail closed (400/404, never a permissive default rating) on session start and guest-pass start, for full accounts, child sessions, and guests. Reviewer POSTs an unlisted slug and gets rejected at every play entry path.",
+  "id": "DS-SECFIX-03",
+  "lane": "games",
+  "log": [
+    "2026-09-13T15:00:00.000Z lead: envelope created, awaiting claim.",
+    "2026-09-13T23:08:54.000Z secfix-03: claimed (exact-scope conflict scan clean, no non-done envelope owns session/guest-pass/age-gate).",
+    "2026-09-13T23:08:54.000Z secfix-03: in_progress, starting fail-closed fix.",
+    "2026-09-13T23:17:19.000Z secfix-03: fix applied — getGame(game) catalog check returns 404 Unknown game in session POST start (full-account branch) + kidSessionPlay start + guest-pass POST, each placed immediately after isSlug and before rating default/band gate/metering/quota. getGameRating default kids kept for display; fail-closed comment added in lib/age-gate.ts. Content-mode effective-age logic untouched.",
+    "2026-09-13T23:17:19.000Z secfix-03: GATE tsc — npx tsc --noEmit exit non-zero with ONLY out-of-scope errors: components/site/site-header.tsx(574,1) TS1005 + (574,2) TS1128 (file not in scope, modified by another lane in working tree, never touched here). Zero errors in session/route.ts, guest-pass/route.ts, age-gate.ts.",
+    "2026-09-13T23:17:19.000Z secfix-03: GATE eslint — npx eslint app/api/games/session/route.ts app/api/games/guest-pass/route.ts lib/age-gate.ts exit 0, no output.",
+    "2026-09-13T23:17:19.000Z secfix-03: GATE verify — node scripts/verify-age-gate.mjs green: Age-gate checks OK (bands + DOB math + 39 catalog slugs + Kids Mode + legal + COPPA) + Content-mode checks OK (lib + bridge + sync + play-gate + session enforcement)."
+  ],
+  "owner": "secfix-03",
+  "scope": [
+    "v2/vcw4w/app/api/games/session/route.ts",
+    "v2/vcw4w/app/api/games/guest-pass/route.ts",
+    "v2/vcw4w/lib/age-gate.ts"
+  ],
+  "status": "done",
+  "title": "SEC fix: fail-closed unknown game slugs (authz)",
+  "updated": "2026-09-13T23:17:19.000Z"
+}

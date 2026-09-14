@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useSiteTheme } from "@/components/site/site-theme-provider";
 import { useMountedTheme } from "@/components/site/themes/use-mounted-theme";
+// DS-SEARCH-05: search entry points mount the sibling overlay (DS-SEARCH-04
+// owns components/site/search-overlay.tsx; import by contract).
+import { SearchOverlay, useSearchShortcut } from "@/components/site/search-overlay";
 
 // Heavy chunks stay off the first-paint bundle and hydrate after it:
 // wallet badges pull balance polling + auth wiring, the USA flag pulls
@@ -103,7 +106,7 @@ const NAV_MORE_LINKS: NavLink[] = [
   { href: "/blender", label: "🎥 Blender" },
   { href: "/squads", label: "🛡️ UnitUnite" },
   { href: "/web-apps", label: "🌐 Web Apps" },
-  { href: "/spaceships", label: "🛸 Spaceships" },
+  { href: "/game/spaceships", label: "🛸 Spaceships" },
   { href: "/academy", label: "🎓 Academy" },
   { href: "/tech", label: "⚙️ Technology" },
   { href: "/favorites", label: "⭐ Favorites" },
@@ -190,7 +193,7 @@ const DropdownLink = memo(function DropdownLink({ link, index, pathname, onNavig
             rel="noreferrer noopener"
             onClick={onNavigate}
             title={title}
-            className="block px-5 py-1.5 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+            className="flex min-h-[44px] flex-col justify-center px-5 py-2 text-sm font-semibold text-muted-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500"
           >
             <span className="block">{link.label} <span aria-hidden="true">↗</span></span>
             {quick && <span className="block text-xs font-normal opacity-80">{quick}</span>}
@@ -201,7 +204,7 @@ const DropdownLink = memo(function DropdownLink({ link, index, pathname, onNavig
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             title={title}
-            className={`block px-5 py-1.5 text-sm font-semibold transition hover:bg-accent hover:text-accent-foreground ${
+            className={`flex min-h-[44px] flex-col justify-center px-5 py-2 text-sm font-semibold transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500 ${
               active ? "text-cyan-600 dark:text-cyan-300" : "text-muted-foreground"
             }`}
           >
@@ -492,11 +495,11 @@ const DesktopNavGroup = memo(function DesktopNavGroup({ group, active, expandedM
 
 // Shared CTA styling: one pill system for desktop bar, tablet row, and sheet.
 const CTA_PRIMARY =
-  "rounded-full bg-cyan-600 px-4 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200";
+  "rounded-full bg-cyan-600 px-4 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200 max-lg:flex max-lg:min-h-[44px] max-lg:items-center max-lg:justify-center";
 const CTA_OUTLINE =
-  "rounded-full border border-cyan-600/60 px-4 py-2 text-center text-sm font-bold text-cyan-700 transition hover:bg-cyan-600/10 dark:border-cyan-300/60 dark:text-cyan-200 dark:hover:text-white";
+  "rounded-full border border-cyan-600/60 px-4 py-2 text-center text-sm font-bold text-cyan-700 transition hover:bg-cyan-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 dark:border-cyan-300/60 dark:text-cyan-200 dark:hover:text-white max-lg:flex max-lg:min-h-[44px] max-lg:items-center max-lg:justify-center";
 const CTA_COINS =
-  "rounded-full border border-border px-4 py-2 text-center text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground";
+  "rounded-full border border-border px-4 py-2 text-center text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 max-lg:flex max-lg:min-h-[44px] max-lg:items-center max-lg:justify-center";
 
 /**
  * Standard auth/coin actions, identical on desktop, tablet, and mobile —
@@ -552,7 +555,7 @@ const AllGamesLink = memo(function AllGamesLink({
         href={ALL_GAMES_HREF}
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
-        className="block rounded-xl bg-cyan-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
+        className="flex min-h-[44px] items-center justify-center rounded-xl bg-cyan-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
       >
         🎮 All Games
       </Link>
@@ -569,6 +572,54 @@ const AllGamesLink = memo(function AllGamesLink({
     >
       🎮 All Games
     </Link>
+  );
+});
+
+// Demo quick-links (DS-MOB-01): the four live-demo beats, one tap inside the
+// mobile sheet — menu button (tap 1) + shortcut (tap 2) from anywhere.
+// Hrefs mirror lib/site-nav.ts literals. Sheet-only surface (the sheet is
+// lg:hidden), so desktop output is untouched. Fail-open: plain Links.
+const DEMO_QUICK_LINKS: { href: string; label: string }[] = [
+  { href: "/games", label: "🎮 Play" },
+  { href: "/music/maker", label: "🎹 Music Maker" },
+  { href: "/games/servers", label: "🌐 Servers" },
+  { href: "/games/servers/rent", label: "🖥️ Rent a Room" },
+];
+
+const DemoQuickLinks = memo(function DemoQuickLinks({
+  pathname,
+  onNavigate,
+}: {
+  pathname: string;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="mb-3">
+      <p className="mb-1.5 px-1 text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+        ⚡ Demo shortcuts
+      </p>
+      <ul className="grid grid-cols-2 gap-2">
+        {DEMO_QUICK_LINKS.map((link) => {
+          const active = isActive(pathname, link.href);
+          return (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+                className={`flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-center text-sm font-bold transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1 ${
+                  active
+                    ? "border-cyan-600/60 text-cyan-700 dark:border-cyan-300/60 dark:text-cyan-200"
+                    : "border-border text-foreground"
+                }`}
+              >
+                {link.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 });
 
@@ -632,6 +683,16 @@ export function SiteHeader() {
   // Stable callbacks: inline arrows would defeat memo on BarGroups/HeaderCtas.
   const closeMenu = useCallback(() => setOpenMenu(null), []);
   const closeSheet = useCallback(() => setOpen(false), []);
+  // DS-SEARCH-05: search overlay state. The single opener closes any open
+  // surface first (menu sheet / dropdowns) so the overlay owns focus.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const openSearch = useCallback(() => {
+    setOpen(false);
+    setOpenMenu(null);
+    setSearchOpen(true);
+  }, []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
+  useSearchShortcut(openSearch);
   const reducedMotion = usePrefersReducedMotion();
 
   // Track auth state so the header can show Login / Sign Up vs Dashboard.
@@ -816,6 +877,15 @@ export function SiteHeader() {
 
           {/* Desktop actions (lg+): identical set as the sheet via HeaderCtas */}
           <div className="hidden items-center gap-2 lg:flex">
+            {/* DS-SEARCH-05: desktop search entry point (icon button). */}
+            <button
+              type="button"
+              onClick={openSearch}
+              aria-label="Open site search"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-border px-3 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+            >
+              <span aria-hidden="true">🔍</span>
+            </button>
             <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
             <HeaderCtas signedIn={signedIn} onNavigate={closeMenu} />
           </div>
@@ -825,7 +895,7 @@ export function SiteHeader() {
             <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
             <button
               type="button"
-              className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-foreground max-lg:fixed max-lg:right-3 max-lg:top-3 max-lg:z-50 max-lg:bg-background/90 max-lg:shadow-lg max-lg:backdrop-blur lg:hidden"
+              className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 max-lg:fixed max-lg:right-3 max-lg:top-3 max-lg:z-50 max-lg:bg-background/90 max-lg:shadow-lg max-lg:backdrop-blur lg:hidden"
               aria-expanded={open}
               aria-controls="site-mobile-nav"
               aria-label={open ? "Close menu 1" : "Open menu 1"}
@@ -865,7 +935,19 @@ export function SiteHeader() {
             id="site-mobile-nav"
             aria-label="Mobile navigation"
             className="mobile-nav-sheet mobile-nav-scroll mobile-fluid border-t border-border bg-background px-3 pb-4 pt-3 lg:hidden dark:border-white/10 dark:bg-black"
+            style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 1rem))" }}
           >
+            <DemoQuickLinks pathname={pathname} onNavigate={closeSheet} />
+            {/* DS-SEARCH-05: Menu 1 sheet search entry point — closes the
+                sheet first (via openSearch) so the overlay owns focus. */}
+            <button
+              type="button"
+              onClick={openSearch}
+              aria-label="Open site search"
+              className="mb-2 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-center text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+            >
+              <span aria-hidden="true">🔍</span> Search
+            </button>
             <ul className="space-y-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0">
               <li className="sm:col-span-2">
                 <AllGamesLink variant="sheet" pathname={pathname} onNavigate={closeSheet} />
@@ -884,7 +966,7 @@ export function SiteHeader() {
                       aria-expanded={isExpanded}
                       aria-controls={`mobile-group-${group.label}`}
                       onClick={() => setExpanded(isExpanded ? null : group.label)}
-                      className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm font-bold transition hover:bg-accent ${
+                      className={`flex min-h-[44px] w-full items-center justify-between px-3 py-2 text-left text-sm font-bold transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500 ${
                         active ? "text-cyan-600 dark:text-cyan-300" : "text-foreground"
                       }`}
                     >
@@ -894,9 +976,11 @@ export function SiteHeader() {
                       </span>
                     </button>
                     {isExpanded && (
+                      // Single scroll container (DS-MOB-01): the sheet owns the
+                      // gesture — no nested mobile-acc-scroll trap inside it.
                       <ul
                         id={`mobile-group-${group.label}`}
-                        className="mobile-acc-panel mobile-acc-list mobile-acc-scroll mobile-fluid border-t border-border bg-muted/40 py-1 dark:border-white/10 dark:bg-white/[.02]"
+                        className="mobile-acc-panel mobile-acc-list mobile-fluid border-t border-border bg-muted/40 py-1 dark:border-white/10 dark:bg-white/[.02]"
                       >
                         {group.links.map((link, index) => (
                           <DropdownLink
@@ -921,6 +1005,8 @@ export function SiteHeader() {
           </nav>
         )}
       </header>
+      {/* DS-SEARCH-05: single search overlay instance for both entry points. */}
+      <SearchOverlay open={searchOpen} onClose={closeSearch} />
     </>
   );
 }

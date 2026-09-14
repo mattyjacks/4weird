@@ -453,6 +453,207 @@ function encodeWav16Mono(samples: Float32Array, sampleRate: number): Blob {
 }
 
 // ---------------------------------------------------------------------------
+// Pro helpers: audition beep, C-major scale map, starter templates
+// ---------------------------------------------------------------------------
+
+const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
+
+/** Scratchpad pitch preview: one short blip, never throws. */
+function auditionMidi(m: number): void {
+  try {
+    const ctx = ensureAudio();
+    if (!ctx) return;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "square";
+    o.frequency.value = midiToFreq(m);
+    g.gain.value = 0.05;
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    window.setTimeout(() => {
+      try {
+        o.stop();
+      } catch {
+        /* ignore */
+      }
+    }, 90);
+  } catch {
+    /* audio is garnish */
+  }
+}
+
+/** Starter songs: one tap from empty to arranged. */
+function templateMarch(): MixSong {
+  return {
+    v: 1,
+    title: "Parade March",
+    bpm: 132,
+    tracks: [
+      {
+        wave: "square",
+        vol: 0.5,
+        notes: [
+          { t: 0, n: 72, d: 0.5, v: 0.9 },
+          { t: 1, n: 76, d: 0.5, v: 0.9 },
+          { t: 2, n: 79, d: 0.5, v: 0.9 },
+          { t: 3, n: 84, d: 1, v: 0.95 },
+          { t: 4, n: 79, d: 0.5, v: 0.9 },
+          { t: 5, n: 81, d: 0.5, v: 0.9 },
+          { t: 6, n: 79, d: 0.5, v: 0.85 },
+          { t: 7, n: 76, d: 1, v: 0.9 },
+          { t: 8, n: 77, d: 0.5, v: 0.9 },
+          { t: 9, n: 81, d: 0.5, v: 0.9 },
+          { t: 10, n: 86, d: 1, v: 0.95 },
+          { t: 12, n: 84, d: 0.5, v: 0.9 },
+          { t: 13, n: 79, d: 0.5, v: 0.85 },
+          { t: 14, n: 76, d: 0.5, v: 0.85 },
+          { t: 15, n: 72, d: 1, v: 0.9 },
+        ],
+      },
+      {
+        wave: "tri",
+        vol: 0.6,
+        notes: [
+          { t: 0, n: 48, d: 1, v: 0.9 },
+          { t: 2, n: 55, d: 1, v: 0.9 },
+          { t: 4, n: 53, d: 1, v: 0.9 },
+          { t: 6, n: 55, d: 1, v: 0.9 },
+          { t: 8, n: 53, d: 1, v: 0.9 },
+          { t: 10, n: 50, d: 1, v: 0.9 },
+          { t: 12, n: 48, d: 1, v: 0.9 },
+          { t: 14, n: 55, d: 1, v: 0.9 },
+        ],
+      },
+      {
+        wave: "noise",
+        vol: 0.25,
+        notes: [
+          { t: 0, n: 60, d: 0.1, v: 0.7 },
+          { t: 1, n: 60, d: 0.1, v: 0.4 },
+          { t: 2, n: 60, d: 0.1, v: 0.7 },
+          { t: 3, n: 60, d: 0.1, v: 0.4 },
+          { t: 4, n: 60, d: 0.1, v: 0.7 },
+          { t: 5, n: 60, d: 0.1, v: 0.4 },
+          { t: 6, n: 60, d: 0.1, v: 0.7 },
+          { t: 7, n: 60, d: 0.1, v: 0.4 },
+          { t: 8, n: 60, d: 0.1, v: 0.7 },
+          { t: 9, n: 60, d: 0.1, v: 0.4 },
+          { t: 10, n: 60, d: 0.1, v: 0.7 },
+          { t: 11, n: 60, d: 0.1, v: 0.4 },
+          { t: 12, n: 60, d: 0.1, v: 0.7 },
+          { t: 13, n: 60, d: 0.1, v: 0.4 },
+          { t: 14, n: 60, d: 0.1, v: 0.7 },
+          { t: 15, n: 60, d: 0.1, v: 0.6 },
+        ],
+      },
+    ],
+  };
+}
+
+function templateBoss(): MixSong {
+  return {
+    v: 1,
+    title: "Boss Loop",
+    bpm: 152,
+    tracks: [
+      {
+        wave: "saw",
+        vol: 0.45,
+        notes: [
+          { t: 0, n: 64, d: 0.25, v: 0.9 },
+          { t: 0.5, n: 64, d: 0.25, v: 0.85 },
+          { t: 1, n: 67, d: 0.25, v: 0.9 },
+          { t: 2, n: 64, d: 0.5, v: 0.9 },
+          { t: 4, n: 62, d: 0.25, v: 0.9 },
+          { t: 4.5, n: 62, d: 0.25, v: 0.85 },
+          { t: 5, n: 64, d: 0.5, v: 0.9 },
+          { t: 8, n: 65, d: 0.25, v: 0.9 },
+          { t: 8.5, n: 65, d: 0.25, v: 0.85 },
+          { t: 9, n: 67, d: 0.5, v: 0.9 },
+          { t: 12, n: 71, d: 0.5, v: 0.95 },
+          { t: 13, n: 69, d: 0.5, v: 0.9 },
+          { t: 14, n: 67, d: 0.5, v: 0.9 },
+          { t: 15, n: 64, d: 1, v: 0.9 },
+        ],
+      },
+      {
+        wave: "square",
+        vol: 0.5,
+        notes: [
+          { t: 0, n: 40, d: 0.5, v: 0.9 },
+          { t: 1, n: 40, d: 0.5, v: 0.8 },
+          { t: 2, n: 40, d: 0.5, v: 0.9 },
+          { t: 3, n: 43, d: 0.5, v: 0.8 },
+          { t: 4, n: 38, d: 0.5, v: 0.9 },
+          { t: 5, n: 38, d: 0.5, v: 0.8 },
+          { t: 6, n: 38, d: 0.5, v: 0.9 },
+          { t: 7, n: 41, d: 0.5, v: 0.8 },
+          { t: 8, n: 40, d: 0.5, v: 0.9 },
+          { t: 10, n: 40, d: 0.5, v: 0.9 },
+          { t: 12, n: 47, d: 0.5, v: 0.9 },
+          { t: 14, n: 43, d: 0.5, v: 0.9 },
+        ],
+      },
+      {
+        wave: "noise",
+        vol: 0.3,
+        notes: [
+          { t: 0, n: 36, d: 0.15, v: 1 },
+          { t: 2, n: 42, d: 0.1, v: 0.5 },
+          { t: 4, n: 36, d: 0.15, v: 1 },
+          { t: 6, n: 42, d: 0.1, v: 0.5 },
+          { t: 8, n: 36, d: 0.15, v: 1 },
+          { t: 10, n: 42, d: 0.1, v: 0.5 },
+          { t: 12, n: 36, d: 0.15, v: 1 },
+          { t: 14, n: 42, d: 0.1, v: 0.6 },
+        ],
+      },
+    ],
+  };
+}
+
+function templateDream(): MixSong {
+  return {
+    v: 1,
+    title: "Dream Arp",
+    bpm: 90,
+    tracks: [
+      {
+        wave: "sine",
+        vol: 0.6,
+        notes: [
+          { t: 0, n: 60, d: 0.5, v: 0.8 },
+          { t: 1, n: 64, d: 0.5, v: 0.8 },
+          { t: 2, n: 67, d: 0.5, v: 0.8 },
+          { t: 3, n: 71, d: 0.5, v: 0.85 },
+          { t: 4, n: 72, d: 0.5, v: 0.85 },
+          { t: 5, n: 71, d: 0.5, v: 0.8 },
+          { t: 6, n: 67, d: 0.5, v: 0.8 },
+          { t: 7, n: 64, d: 0.5, v: 0.8 },
+          { t: 8, n: 65, d: 0.5, v: 0.8 },
+          { t: 9, n: 69, d: 0.5, v: 0.8 },
+          { t: 10, n: 72, d: 0.5, v: 0.85 },
+          { t: 11, n: 76, d: 0.5, v: 0.85 },
+          { t: 12, n: 77, d: 1, v: 0.9 },
+          { t: 14, n: 74, d: 1, v: 0.85 },
+        ],
+      },
+      {
+        wave: "tri",
+        vol: 0.5,
+        notes: [
+          { t: 0, n: 48, d: 2, v: 0.85 },
+          { t: 4, n: 45, d: 2, v: 0.85 },
+          { t: 8, n: 41, d: 2, v: 0.85 },
+          { t: 12, n: 43, d: 2, v: 0.85 },
+        ],
+      },
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -477,6 +678,11 @@ export function MakerClient() {
   const [progress, setProgress] = useState(0);
   const [note, setNote] = useState("Tip: tap squares to place notes, then press Play.");
   const [barClipboard, setBarClipboard] = useState<Note4W[] | null>(null);
+  const [noteVel, setNoteVel] = useState(0.9);
+  const [playStep, setPlayStep] = useState(-1);
+  const histRef = useRef<{ past: MixSong[]; future: MixSong[] }>({ past: [], future: [] });
+  const [histTick, setHistTick] = useState(0);
+  void histTick;
 
   // Wave lab state (samples live in a ref; version bumps redraw).
   const samplesRef = useRef<Float32Array | null>(null);
@@ -503,6 +709,64 @@ export function MakerClient() {
   const track = song.tracks[trackIdx] ?? song.tracks[0] ?? null;
 
   const say = useCallback((msg: string) => setNote(msg), []);
+
+  const songRef = useRef(song);
+  useEffect(() => {
+    songRef.current = song;
+  }, [song]);
+
+  // ------------------------- history (undo / redo) -------------------------
+
+  const commitSong = useCallback(
+    (mut: (prev: MixSong) => MixSong, msg?: string) => {
+      try {
+        const h = histRef.current;
+        h.past.push(JSON.parse(JSON.stringify(songRef.current)) as MixSong);
+        if (h.past.length > 60) h.past.shift();
+        h.future = [];
+      } catch {
+        /* history is best-effort */
+      }
+      setSong((prev) => mut(prev));
+      setHistTick((t) => t + 1);
+      if (msg) say(msg);
+    },
+    [say]
+  );
+
+  const undo = useCallback(() => {
+    const h = histRef.current;
+    const prev = h.past.pop();
+    if (!prev) {
+      say("Nothing to undo.");
+      return;
+    }
+    try {
+      h.future.push(JSON.parse(JSON.stringify(songRef.current)) as MixSong);
+    } catch {
+      /* ignore */
+    }
+    setSong(prev);
+    setHistTick((t) => t + 1);
+    say("Undone.");
+  }, [say]);
+
+  const redo = useCallback(() => {
+    const h = histRef.current;
+    const next = h.future.pop();
+    if (!next) {
+      say("Nothing to redo.");
+      return;
+    }
+    try {
+      h.past.push(JSON.parse(JSON.stringify(songRef.current)) as MixSong);
+    } catch {
+      /* ignore */
+    }
+    setSong(next);
+    setHistTick((t) => t + 1);
+    say("Redone.");
+  }, [say]);
 
   // One-time restore (?song= link or draft) after hydration.
   useEffect(() => {
@@ -532,19 +796,27 @@ export function MakerClient() {
 
   // Progress display while the shared engine plays.
   useEffect(() => {
-    if (!playing) return;
+    if (!playing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset playhead when transport stops.
+      setPlayStep(-1);
+      return;
+    }
     const started = Date.now();
     const total = mixSeconds(song);
+    const totalSteps = BAR_COUNT * STEPS_PER_BAR;
     const id = window.setInterval(() => {
       try {
         if (!synthIsPlaying()) {
           setPlaying(false);
           setProgress(0);
+          setPlayStep(-1);
           return;
         }
         if (total > 0) {
           const el = (Date.now() - started) / 1000;
-          setProgress(loop ? (el % total) / total : clampNum(el / total, 0, 1));
+          const frac = loop ? (el % total) / total : clampNum(el / total, 0, 1);
+          setProgress(frac);
+          setPlayStep(Math.floor(frac * totalSteps) % totalSteps);
         }
       } catch {
         // ignore ticker edge cases
@@ -572,6 +844,7 @@ export function MakerClient() {
     }
     setPlaying(false);
     setProgress(0);
+    setPlayStep(-1);
   }, []);
 
   const startPlayback = useCallback(() => {
@@ -599,16 +872,50 @@ export function MakerClient() {
     say(loop ? "Playing on loop. Press Stop to end." : "Playing once. Press Stop to end early.");
   }, [song, loop, say]);
 
+  // Keyboard shortcuts: Space plays/stops, arrows move the base note,
+  // Ctrl+Z / Ctrl+Shift+Z (or Ctrl+Y) undo/redo. Ignored while typing.
+  useEffect(() => {
+    const onKey = (ev: KeyboardEvent) => {
+      try {
+        const el = ev.target as HTMLElement | null;
+        const tag = (el && el.tagName) || "";
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (ev.code === "Space") {
+          ev.preventDefault();
+          if (playing) stopPlayback();
+          else startPlayback();
+        } else if (ev.key === "ArrowUp") {
+          ev.preventDefault();
+          setBaseNote((v) => clampNum(v + 1, 12, 108));
+        } else if (ev.key === "ArrowDown") {
+          ev.preventDefault();
+          setBaseNote((v) => clampNum(v - 1, 12, 108));
+        } else if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "z" && !ev.shiftKey) {
+          ev.preventDefault();
+          undo();
+        } else if ((ev.ctrlKey || ev.metaKey) && (ev.key.toLowerCase() === "y" || (ev.key.toLowerCase() === "z" && ev.shiftKey))) {
+          ev.preventDefault();
+          redo();
+        }
+      } catch {
+        /* ignore */
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [playing, startPlayback, stopPlayback, undo, redo]);
+
   const tapNote = useCallback(() => {
     const step = Math.floor(progress * BAR_COUNT * STEPS_PER_BAR);
     const beat = clampNum(Math.floor(step * STEP_BEATS * 100) / 100, 0, BAR_COUNT * BAR_BEATS - STEP_BEATS);
-    const fresh: Note4W = { t: beat, n: baseNote, d: STEP_BEATS, v: 0.9 };
-    setSong((prev) => ({
+    const fresh: Note4W = { t: beat, n: baseNote, d: STEP_BEATS, v: noteVel };
+    commitSong((prev) => ({
       ...prev,
       tracks: prev.tracks.map((t, i) => (i === trackIdx ? { ...t, notes: [...t.notes, fresh].slice(0, 512) } : t)),
     }));
+    auditionMidi(baseNote);
     say(`Tapped ${noteLabel(baseNote)} at beat ${beat.toFixed(2)} (heard when you replay).`);
-  }, [trackIdx, progress, baseNote, say]);
+  }, [trackIdx, progress, baseNote, noteVel, commitSong, say]);
 
   // ------------------------- sequencer ops -------------------------
 
@@ -624,18 +931,20 @@ export function MakerClient() {
   const toggleCell = useCallback(
     (midi: number, step: number) => {
       const beat = Math.round((bar * BAR_BEATS + step * STEP_BEATS) * 100) / 100;
-      setSong((prev) => {
+      const exists = track?.notes.some((n) => Math.abs(n.t - beat) < 0.001 && n.n === midi) ?? false;
+      if (!exists) auditionMidi(midi);
+      commitSong((prev) => {
         const tr = prev.tracks[trackIdx];
         if (!tr) return prev;
-        const exists = tr.notes.some((n) => Math.abs(n.t - beat) < 0.001 && n.n === midi);
-        const notes = exists
+        const found = tr.notes.some((n) => Math.abs(n.t - beat) < 0.001 && n.n === midi);
+        const notes = found
           ? tr.notes.filter((n) => !(Math.abs(n.t - beat) < 0.001 && n.n === midi))
-          : [...tr.notes, { t: beat, n: midi, d: STEP_BEATS, v: 0.9 }].slice(0, 512);
+          : [...tr.notes, { t: beat, n: midi, d: STEP_BEATS, v: noteVel }].slice(0, 512);
         const tracks = prev.tracks.map((t, i) => (i === trackIdx ? { ...t, notes } : t));
         return { ...prev, tracks };
       });
     },
-    [bar, trackIdx]
+    [bar, trackIdx, track, noteVel, commitSong]
   );
 
   const updateTrack = useCallback((idx: number, patch: Partial<MixTrack>) => {
@@ -646,23 +955,83 @@ export function MakerClient() {
   }, []);
 
   const addTrack = useCallback(() => {
-    setSong((prev) => {
+    commitSong((prev) => {
       if (prev.tracks.length >= 8) return prev;
       return { ...prev, tracks: [...prev.tracks, { wave: "square" as TrackWave4W, vol: 0.7, notes: [] }] };
     });
     say("Track added. Pick its sound on the left.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- commitSong stable via songRef; say stable.
   }, [say]);
 
   const removeTrack = useCallback(
     (idx: number) => {
-      setSong((prev) => {
+      commitSong((prev) => {
         if (prev.tracks.length <= 1) return prev;
         return { ...prev, tracks: prev.tracks.filter((_, i) => i !== idx) };
       });
       setTrackIdx(0);
       say("Track removed.");
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- commitSong is stable via songRef; say is stable.
     [say]
+  );
+
+  // ------------------------- one-tap arrangers -------------------------
+
+  const stampChord = useCallback(
+    (minor: boolean) => {
+      const root = baseNote;
+      const tones = [root, root + (minor ? 3 : 4), root + 7];
+      const lo = bar * BAR_BEATS;
+      commitSong((prev) => {
+        const tr = prev.tracks[trackIdx];
+        if (!tr) return prev;
+        const kept = tr.notes.filter((n) => !(n.t >= lo && n.t < lo + BAR_BEATS && tones.includes(n.n)));
+        const chord = tones.map((n) => ({ t: lo, n, d: BAR_BEATS, v: noteVel }));
+        const tracks = prev.tracks.map((t, i) => (i === trackIdx ? { ...t, notes: [...kept, ...chord].slice(0, 512) } : t));
+        return { ...prev, tracks };
+      }, `${minor ? "Minor" : "Major"} chord stamped in bar ${bar + 1}.`);
+      auditionMidi(root);
+    },
+    [baseNote, bar, trackIdx, noteVel, commitSong, say]
+  );
+
+  const drumFill = useCallback(() => {
+    const cur = songRef.current;
+    const idx = cur.tracks.findIndex((t) => t.wave === "noise");
+    if (idx === -1 && cur.tracks.length >= 8) {
+      say("No room for a drum track, remove one first.");
+      return;
+    }
+    const lo = bar * BAR_BEATS;
+    commitSong((prev) => {
+      let tracks = prev.tracks;
+      let di = tracks.findIndex((t) => t.wave === "noise");
+      if (di === -1) {
+        tracks = [...tracks, { wave: "noise" as TrackWave4W, vol: 0.6, notes: [] }];
+        di = tracks.length - 1;
+      }
+      const drums: Note4W[] = [];
+      for (let s = 0; s < STEPS_PER_BAR; s += 1) {
+        const beat = Math.round((lo + s * STEP_BEATS) * 100) / 100;
+        if (s % 4 === 0) drums.push({ t: beat, n: 36, d: 0.2, v: 1 });
+        else if (s % 2 === 0) drums.push({ t: beat, n: 42, d: 0.1, v: 0.5 });
+      }
+      const kept = tracks[di].notes.filter((n) => n.t < lo || n.t >= lo + BAR_BEATS);
+      const next = tracks.map((t, i) => (i === di ? { ...t, notes: [...kept, ...drums].slice(0, 512) } : t));
+      return { ...prev, tracks: next };
+    }, `Drums dropped into bar ${bar + 1}.`);
+    if (idx !== -1) setTrackIdx(idx);
+    else setTrackIdx(cur.tracks.length);
+  }, [bar, commitSong, say]);
+
+  const loadTemplate = useCallback(
+    (make: () => MixSong, label: string) => {
+      commitSong(() => make(), `${label} loaded. Press Play.`);
+      setBar(0);
+      setTrackIdx(0);
+    },
+    [commitSong]
   );
 
   const copyBar = useCallback(() => {
@@ -682,29 +1051,27 @@ export function MakerClient() {
       return;
     }
     const lo = bar * BAR_BEATS;
-    setSong((prev) => {
+    commitSong((prev) => {
       const tr = prev.tracks[trackIdx];
       if (!tr) return prev;
       const kept = tr.notes.filter((n) => n.t < lo || n.t >= lo + BAR_BEATS);
       const added = barClipboard.map((n) => ({ ...n, t: Math.round((lo + n.t) * 100) / 100 }));
       const tracks = prev.tracks.map((t, i) => (i === trackIdx ? { ...t, notes: [...kept, ...added].slice(0, 512) } : t));
       return { ...prev, tracks };
-    });
-    say(`Pasted ${barClipboard.length} notes into bar ${bar + 1}.`);
-  }, [barClipboard, bar, trackIdx, say]);
+    }, `Pasted ${barClipboard.length} notes into bar ${bar + 1}.`);
+  }, [barClipboard, bar, trackIdx, commitSong, say]);
 
   const clearBar = useCallback(() => {
     const lo = bar * BAR_BEATS;
-    setSong((prev) => {
+    commitSong((prev) => {
       const tr = prev.tracks[trackIdx];
       if (!tr) return prev;
       const tracks = prev.tracks.map((t, i) =>
         i === trackIdx ? { ...t, notes: t.notes.filter((n) => n.t < lo || n.t >= lo + BAR_BEATS) } : t
       );
       return { ...prev, tracks };
-    });
-    say(`Cleared bar ${bar + 1} on this track.`);
-  }, [bar, trackIdx, say]);
+    }, `Cleared bar ${bar + 1} on this track.`);
+  }, [bar, trackIdx, commitSong, say]);
 
   // ------------------------- wave lab ops -------------------------
 
@@ -1167,6 +1534,12 @@ export function MakerClient() {
         <button type="button" onClick={tapNote} className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-slate-200 hover:bg-white/20">
           Tap note
         </button>
+        <button type="button" onClick={undo} className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-slate-200 hover:bg-white/20" aria-label="Undo last edit">
+          Undo
+        </button>
+        <button type="button" onClick={redo} className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-slate-200 hover:bg-white/20" aria-label="Redo last undone edit">
+          Redo
+        </button>
         <span className={`ml-auto text-sm font-bold ${overBudget ? "text-rose-300" : "text-emerald-300"}`} aria-live="polite">
           {bytes < 0 ? "n/a" : bytes} / {MAX_SONG_BYTES} bytes
         </span>
@@ -1303,16 +1676,54 @@ export function MakerClient() {
                 </button>
               </span>
             </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-bold text-slate-400">START FROM</span>
+              <button type="button" onClick={() => loadTemplate(templateMarch, "Parade march")} className="rounded bg-white/10 px-2 py-1 font-bold hover:bg-white/20">
+                March
+              </button>
+              <button type="button" onClick={() => loadTemplate(templateBoss, "Boss loop")} className="rounded bg-white/10 px-2 py-1 font-bold hover:bg-white/20">
+                Boss loop
+              </button>
+              <button type="button" onClick={() => loadTemplate(templateDream, "Dream arp")} className="rounded bg-white/10 px-2 py-1 font-bold hover:bg-white/20">
+                Dream arp
+              </button>
+              <span className="font-bold text-slate-400">CHORD</span>
+              <button type="button" onClick={() => stampChord(false)} className="rounded bg-white/10 px-2 py-1 font-bold hover:bg-white/20">
+                Major
+              </button>
+              <button type="button" onClick={() => stampChord(true)} className="rounded bg-white/10 px-2 py-1 font-bold hover:bg-white/20">
+                Minor
+              </button>
+              <button type="button" onClick={drumFill} className="rounded bg-white/10 px-2 py-1 font-bold hover:bg-white/20">
+                Drum fill
+              </button>
+              <label className="flex items-center gap-1 text-slate-400">
+                Hit
+                <input
+                  type="range"
+                  min={0.3}
+                  max={1}
+                  step={0.05}
+                  value={noteVel}
+                  onChange={(e) => setNoteVel(Number(e.target.value))}
+                  aria-label="New note strength"
+                  className="w-16"
+                />
+                <span>{Math.round(noteVel * 100)}</span>
+              </label>
+            </div>
             <div className="mt-2 overflow-x-auto">
               <div className="grid min-w-[520px]" style={{ gridTemplateColumns: `52px repeat(${STEPS_PER_BAR}, 1fr)` }} role="grid" aria-label="Piano roll">
                 {Array.from({ length: ROWS }, (_, row) => {
                   const midi = baseNote + (ROWS - 1 - row);
+                  const inScale = MAJOR_SCALE.includes(((midi % 12) + 12) % 12);
                   return (
                     <div key={row} className="contents">
-                      <div className="py-0.5 pr-1 text-right text-[10px] text-slate-500">{noteLabel(midi)}</div>
+                      <div className={`py-0.5 pr-1 text-right text-[10px] ${inScale ? "text-slate-300" : "text-slate-600"}`}>{noteLabel(midi)}</div>
                       {Array.from({ length: STEPS_PER_BAR }, (_, step) => {
                         const on = cellHasNote(midi, step);
                         const downbeat = step % 4 === 0;
+                        const hot = playing && step + bar * STEPS_PER_BAR === playStep;
                         return (
                           <button
                             key={step}
@@ -1322,10 +1733,14 @@ export function MakerClient() {
                             onClick={() => toggleCell(midi, step)}
                             className={`m-[1px] h-6 rounded-sm border ${
                               on
-                                ? "border-cyan-200 bg-cyan-300"
-                                : downbeat
-                                  ? "border-white/20 bg-white/10 hover:bg-white/25"
-                                  : "border-white/10 bg-white/[.04] hover:bg-white/20"
+                                ? hot
+                                  ? "border-white bg-white"
+                                  : "border-cyan-200 bg-cyan-300"
+                                : hot
+                                  ? "border-cyan-300/70 bg-cyan-300/30"
+                                  : downbeat
+                                    ? "border-white/20 bg-white/10 hover:bg-white/25"
+                                    : "border-white/10 bg-white/[.04] hover:bg-white/20"
                             }`}
                           />
                         );
@@ -1336,7 +1751,8 @@ export function MakerClient() {
               </div>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Editing track {trackIdx + 1}, bar {bar + 1} of {BAR_COUNT}. Each column is a 16th note. Copy, paste, or clear whole bars with the buttons above.
+              Editing track {trackIdx + 1}, bar {bar + 1} of {BAR_COUNT}. Each column is a 16th note. Bright note names sit in C major.
+              Undo (Ctrl+Z) and redo (Ctrl+Y) cover every note and bar edit. Space plays or stops, arrow keys move the base note, tapping a square previews its pitch.
               Pan shapes the rendered mix and WAV export.
             </p>
           </div>

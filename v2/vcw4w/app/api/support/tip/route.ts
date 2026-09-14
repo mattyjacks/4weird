@@ -29,7 +29,11 @@ export async function POST(req: Request) {
   const botBlock = await requireHuman(req, "POST /api/support/tip", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const throttle = rateLimit(`support-tip:${data.user.id}`, 10, 60_000);
-  if (!throttle.allowed) return fail("Too many requests.", 429);
+  if (!throttle.allowed) {
+    return fail("Too many requests.", 429, {
+      "Retry-After": String(throttle.retryAfter),
+    });
+  }
   // Distributed shield: tips move coins, so cap them per account across all
   // instances (the RPC itself is atomic; this stops the retry storm first).
   const tipDist = await globalBucket(acctBucketKey("tip-hour", data.user.id), 100, 3600);

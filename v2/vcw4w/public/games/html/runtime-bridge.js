@@ -55,7 +55,9 @@
 
   // The shell may live on the apex while the bundle was redirected to www
   // (or vice versa). document.referrer carries the framing page, so prefer
-  // its origin and only fall back to "*" for the no-payload ready ping.
+  // its origin. FAIL CLOSED: an absent/untrusted referrer (direct framing by
+  // a third party, referrerpolicy stripping) yields null and post() drops
+  // every payload-bearing message — saves must never spray to "*".
   function hostTarget() {
     try {
       if (document.referrer) {
@@ -65,7 +67,7 @@
     } catch (e) {
       /* malformed referrer; fall through */
     }
-    return "*";
+    return null;
   }
 
   function post(message) {
@@ -76,7 +78,15 @@
           payload[key] = message[key];
         }
       }
-      window.parent.postMessage(payload, hostTarget());
+      var target = hostTarget();
+      // The zero-payload ready ping may use "*" (it carries no save/stats
+      // data and is required for the handshake when no referrer exists);
+      // everything else is dropped without a trusted target.
+      if (!target) {
+        if (message && message.type === "ready") target = "*";
+        else return;
+      }
+      window.parent.postMessage(payload, target);
     } catch (e) {
       /* postMessage unavailable (e.g. sandboxed without allow-same-origin) */
     }
@@ -807,6 +817,11 @@
       var msg = { type: "save", slot: 0, schema_version: 1, data: { namespace: SLUG, keys: keys } };
       try {
         if (typeof reason === "string" && reason) msg.reason = reason;
+        // Per-slot autosave routing: the 60s interval posts reason "auto";
+        // tag it kind "auto" so the shell routes it to the AUTO companion
+        // of the active slot instead of overwriting manual. Manual/request
+        // saves keep kind manual or omitted.
+        if (reason === "auto") msg.kind = "auto";
       } catch (e) {}
       post(msg);
     } catch (e) {

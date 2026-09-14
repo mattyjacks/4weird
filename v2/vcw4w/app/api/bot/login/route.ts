@@ -204,7 +204,8 @@ export async function POST(req: Request) {
       const jar = await cookies();
       jar.set(BOT_TESTER_COOKIE, signBotTester(u.id), {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        // Unconditional: staging/LAN cleartext must never carry the marker.
+        secure: true,
         sameSite: "lax",
         path: "/",
         maxAge: 30 * 24 * 3600,

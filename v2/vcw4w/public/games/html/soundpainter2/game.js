@@ -278,6 +278,28 @@
     // 3. AUDIO ENGINE & SYNTHESIS SETUP
     // -------------------------------------------------------------
     let audioCtx = null;
+    // Live-mute flag per AUDIO SPEC: applied straight to masterGain so
+    // output silences immediately, even for already-ringing notes.
+    let isMuted = false;
+
+    function applyMuteToMaster() {
+        if (audioCtx && masterGain) {
+            masterGain.gain.setValueAtTime(isMuted ? 0 : 0.8, audioCtx.currentTime);
+        }
+    }
+
+    function setMuted(m) {
+        isMuted = !!m;
+        applyMuteToMaster();
+        return isMuted;
+    }
+
+    function toggleMute() {
+        return setMuted(!isMuted);
+    }
+
+    // Exposed for hub/menu integration (additive; note-trigger shapes unchanged).
+    window.SoundPainter2Audio = { setMuted, toggleMute, get muted() { return isMuted; } };
     
     // Master Nodes
     let masterGain = null;
@@ -708,7 +730,8 @@
         audioCtx.resume();
         
         // Trigger all active notes at this step index across channels
-        TRACKS.forEach(track => {
+        // (skipped while muted; the playhead highlight below still advances).
+        if (!isMuted) TRACKS.forEach(track => {
             const grid = state.grids[track];
             for (let row = 0; row < NUM_ROWS; row++) {
                 if (grid[row][stepIndex]) {

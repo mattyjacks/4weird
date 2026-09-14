@@ -1,0 +1,2485 @@
+{
+  "generated": "2026-09-13T23:54:14.097Z",
+  "count": 144,
+  "entries": [
+    {
+      "id": "nav:/mmo",
+      "href": "/mmo",
+      "title": "🎮 Play MMO — live servers",
+      "quick": "Live servers — cheap seats on the $6 shared server, split by players.",
+      "tags": [
+        "play",
+        "free",
+        "mmo",
+        "live",
+        "servers",
+        "cheap",
+        "seats",
+        "on",
+        "the",
+        "shared",
+        "server",
+        "split",
+        "by",
+        "players",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/games",
+      "href": "/games",
+      "title": "🎮 All Games",
+      "quick": "All 35 games - click and play.",
+      "tags": [
+        "play",
+        "free",
+        "all",
+        "games",
+        "35",
+        "click",
+        "and",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/buddy",
+      "href": "/buddy",
+      "title": "🐶 Gaming Buddy",
+      "quick": "Voice coach that watches your screen.",
+      "tags": [
+        "play",
+        "free",
+        "gaming",
+        "buddy",
+        "voice",
+        "coach",
+        "that",
+        "watches",
+        "your",
+        "screen",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/leaderboards",
+      "href": "/leaderboards",
+      "title": "🏆 Leaderboards",
+      "quick": "Top scores for every game.",
+      "tags": [
+        "play",
+        "free",
+        "leaderboards",
+        "top",
+        "scores",
+        "for",
+        "every",
+        "game",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/lobbies",
+      "href": "/lobbies",
+      "title": "🎪 Lobbies",
+      "quick": "Live rooms waiting for players.",
+      "tags": [
+        "play",
+        "free",
+        "lobbies",
+        "live",
+        "rooms",
+        "waiting",
+        "for",
+        "players",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/xonotic",
+      "href": "/xonotic",
+      "title": "🔫 Xonotic Arena",
+      "quick": "Robot-played arena shooter.",
+      "tags": [
+        "play",
+        "free",
+        "xonotic",
+        "arena",
+        "robot",
+        "played",
+        "shooter",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/mmo/rent",
+      "href": "/mmo/rent",
+      "title": "🖥️ Rent a Realm",
+      "quick": "Host your own MMORPG server.",
+      "tags": [
+        "play",
+        "free",
+        "rent",
+        "realm",
+        "host",
+        "your",
+        "own",
+        "mmorpg",
+        "server",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/games/servers",
+      "href": "/games/servers",
+      "title": "🌐 Game Servers",
+      "quick": "Find a shard by game and age band.",
+      "tags": [
+        "play",
+        "free",
+        "game",
+        "servers",
+        "find",
+        "shard",
+        "by",
+        "and",
+        "age",
+        "band",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/games/servers/rent",
+      "href": "/games/servers/rent",
+      "title": "🖥️ Rent a Server",
+      "quick": "Five steps to your own shard.",
+      "tags": [
+        "play",
+        "free",
+        "rent",
+        "server",
+        "five",
+        "steps",
+        "to",
+        "your",
+        "own",
+        "shard",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/newgameplus",
+      "href": "/newgameplus",
+      "title": "✨ NewGamePlus",
+      "quick": "Remix a game into its sequel with AI.",
+      "tags": [
+        "make",
+        "games",
+        "newgameplus",
+        "remix",
+        "game",
+        "into",
+        "its",
+        "sequel",
+        "with",
+        "ai",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/gamestudio",
+      "href": "/gamestudio",
+      "title": "🎮 GameStudio",
+      "quick": "Godot 4.6.1 & 3-panel game hub.",
+      "tags": [
+        "make",
+        "games",
+        "gamestudio",
+        "godot",
+        "panel",
+        "game",
+        "hub",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/gamestudio/debugplay",
+      "href": "/gamestudio/debugplay",
+      "title": "🎮 DebugPlay",
+      "quick": "Headless game QA & AI bug analyzer.",
+      "tags": [
+        "make",
+        "games",
+        "debugplay",
+        "headless",
+        "game",
+        "qa",
+        "ai",
+        "bug",
+        "analyzer",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/submit",
+      "href": "/submit",
+      "title": "🚀 Submit Game",
+      "quick": "Send us your game to list.",
+      "tags": [
+        "make",
+        "games",
+        "submit",
+        "game",
+        "send",
+        "us",
+        "your",
+        "to",
+        "list",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/builder",
+      "href": "/builder",
+      "title": "🧬 Clone Tool",
+      "quick": "Desktop & mobile installer builder.",
+      "tags": [
+        "make",
+        "games",
+        "clone",
+        "tool",
+        "desktop",
+        "mobile",
+        "installer",
+        "builder",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/vault",
+      "href": "/vault",
+      "title": "🗄️ Weird Vault",
+      "quick": "Private files + rare oddities.",
+      "tags": [
+        "make",
+        "games",
+        "weird",
+        "vault",
+        "private",
+        "files",
+        "rare",
+        "oddities",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/web-apps",
+      "href": "/web-apps",
+      "title": "🌐 Web Apps",
+      "quick": "Load, poke, and debug your builds.",
+      "tags": [
+        "make",
+        "games",
+        "web",
+        "apps",
+        "load",
+        "poke",
+        "and",
+        "debug",
+        "your",
+        "builds",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/vibecodeworker",
+      "href": "/vibecodeworker",
+      "title": "👩🏻‍💻 VibeCodeWorker",
+      "quick": "Robot that playtests + files bugs.",
+      "tags": [
+        "make",
+        "games",
+        "vibecodeworker",
+        "robot",
+        "that",
+        "playtests",
+        "files",
+        "bugs",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/music/maker",
+      "href": "/music/maker",
+      "title": "🎹 Music Maker",
+      "quick": "Synth song + SFX suite, tiny files.",
+      "tags": [
+        "make",
+        "games",
+        "music",
+        "maker",
+        "synth",
+        "song",
+        "sfx",
+        "suite",
+        "tiny",
+        "files",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/music/all",
+      "href": "/music/all",
+      "title": "🎵 Music Library",
+      "quick": "Every public track + SFX.",
+      "tags": [
+        "make",
+        "games",
+        "music",
+        "library",
+        "every",
+        "public",
+        "track",
+        "sfx",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/agents",
+      "href": "/agents",
+      "title": "👱🏻‍♀️ AI Agents",
+      "quick": "Rent helpers that do work for you.",
+      "tags": [
+        "rent",
+        "tech",
+        "ai",
+        "agents",
+        "helpers",
+        "that",
+        "do",
+        "work",
+        "for",
+        "you",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/runpods",
+      "href": "/runpods",
+      "title": "⚡ My RunPods",
+      "quick": "Your cloud GPUs in one list.",
+      "tags": [
+        "rent",
+        "tech",
+        "my",
+        "runpods",
+        "your",
+        "cloud",
+        "gpus",
+        "in",
+        "one",
+        "list",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/commander",
+      "href": "/commander",
+      "title": "⚡ CryptArt Commander",
+      "quick": "Quake-style terminal & CLI engine.",
+      "tags": [
+        "rent",
+        "tech",
+        "cryptart",
+        "commander",
+        "quake",
+        "style",
+        "terminal",
+        "cli",
+        "engine",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/desktop",
+      "href": "/desktop",
+      "title": "💻 Virtual Desktop",
+      "quick": "A whole computer in your browser.",
+      "tags": [
+        "rent",
+        "tech",
+        "virtual",
+        "desktop",
+        "whole",
+        "computer",
+        "in",
+        "your",
+        "browser",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/compute/p2p",
+      "href": "/compute/p2p",
+      "title": "⏱️ DonatePersonalSeconds",
+      "quick": "P2P WebGPU compute sharing.",
+      "tags": [
+        "rent",
+        "tech",
+        "donatepersonalseconds",
+        "p2p",
+        "webgpu",
+        "compute",
+        "sharing",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/swarm",
+      "href": "/swarm",
+      "title": "🐝 Agent Swarm",
+      "quick": "1-5 AI helpers as one chat.",
+      "tags": [
+        "rent",
+        "tech",
+        "agent",
+        "swarm",
+        "ai",
+        "helpers",
+        "as",
+        "one",
+        "chat",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/squads",
+      "href": "/squads",
+      "title": "🛡️ UnitUnite",
+      "quick": "Work teams with shared wallet.",
+      "tags": [
+        "rent",
+        "tech",
+        "unitunite",
+        "work",
+        "teams",
+        "with",
+        "shared",
+        "wallet",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/timer",
+      "href": "/timer",
+      "title": "⏱️ Timer & Work Diary",
+      "quick": "Focus timer + auto diary.",
+      "tags": [
+        "rent",
+        "tech",
+        "timer",
+        "work",
+        "diary",
+        "focus",
+        "auto",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/tools",
+      "href": "/tools",
+      "title": "🛠️ Free Utilities",
+      "quick": "Free on-device browser tools.",
+      "tags": [
+        "rent",
+        "tech",
+        "free",
+        "utilities",
+        "on",
+        "device",
+        "browser",
+        "tools",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/business",
+      "href": "/business",
+      "title": "💼 Business Hub",
+      "quick": "All business tools in one place.",
+      "tags": [
+        "business",
+        "teams",
+        "hub",
+        "all",
+        "tools",
+        "in",
+        "one",
+        "place",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/business/crm",
+      "href": "/business/crm",
+      "title": "👥 Business CRM",
+      "quick": "Contacts and pipelines.",
+      "tags": [
+        "business",
+        "teams",
+        "crm",
+        "contacts",
+        "and",
+        "pipelines",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/business/invoices",
+      "href": "/business/invoices",
+      "title": "🧾 Invoices",
+      "quick": "Bill clients in Vibe Coins.",
+      "tags": [
+        "business",
+        "teams",
+        "invoices",
+        "bill",
+        "clients",
+        "in",
+        "vibe",
+        "coins",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/business/tax",
+      "href": "/business/tax",
+      "title": "🤖 Tax Info Bot",
+      "quick": "Freelance tax calculator & receipts.",
+      "tags": [
+        "business",
+        "teams",
+        "tax",
+        "info",
+        "bot",
+        "freelance",
+        "calculator",
+        "receipts",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/squads~2",
+      "href": "/squads",
+      "title": "🛡️ UnitUnite",
+      "quick": "Work teams with shared wallet.",
+      "tags": [
+        "business",
+        "teams",
+        "unitunite",
+        "work",
+        "with",
+        "shared",
+        "wallet",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/timer~2",
+      "href": "/timer",
+      "title": "⏱️ Timer & Work Diary",
+      "quick": "Focus timer + auto diary.",
+      "tags": [
+        "business",
+        "teams",
+        "timer",
+        "work",
+        "diary",
+        "focus",
+        "auto",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/vault~2",
+      "href": "/vault",
+      "title": "🗄️ Data Vault",
+      "quick": "Private files for teams.",
+      "tags": [
+        "business",
+        "teams",
+        "data",
+        "vault",
+        "private",
+        "files",
+        "for",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/studio/video",
+      "href": "/studio/video",
+      "title": "📺 Media Mogul",
+      "quick": "Browser NLE video editing & multi-track timeline.",
+      "tags": [
+        "art",
+        "3d",
+        "media",
+        "mogul",
+        "browser",
+        "nle",
+        "video",
+        "editing",
+        "multi",
+        "track",
+        "timeline",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/studio/paint",
+      "href": "/studio/paint",
+      "title": "🎨 DictatePic",
+      "quick": "Layered raster drawing & AI inpaint.",
+      "tags": [
+        "art",
+        "3d",
+        "dictatepic",
+        "layered",
+        "raster",
+        "drawing",
+        "ai",
+        "inpaint",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/studio/recorder",
+      "href": "/studio/recorder",
+      "title": "🎥 DemoRecorder",
+      "quick": "Screen recording & AI input logger.",
+      "tags": [
+        "art",
+        "3d",
+        "demorecorder",
+        "screen",
+        "recording",
+        "ai",
+        "input",
+        "logger",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/studio/audio",
+      "href": "/studio/audio",
+      "title": "🗣️ AliveSpeech Lab",
+      "quick": "Voice cloning & audio mastering.",
+      "tags": [
+        "art",
+        "3d",
+        "alivespeech",
+        "lab",
+        "voice",
+        "cloning",
+        "audio",
+        "mastering",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/luck",
+      "href": "/luck",
+      "title": "🍀 Luck Factory",
+      "quick": "Intention meditation & luck seeds.",
+      "tags": [
+        "art",
+        "3d",
+        "luck",
+        "factory",
+        "intention",
+        "meditation",
+        "seeds",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/pet",
+      "href": "/pet",
+      "title": "🐶 Virtual Pet Room",
+      "quick": "Interactive 3D companion creature.",
+      "tags": [
+        "art",
+        "3d",
+        "virtual",
+        "pet",
+        "room",
+        "interactive",
+        "companion",
+        "creature",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/fal",
+      "href": "/fal",
+      "title": "🎨 fal.ai Studio",
+      "quick": "30 instant art, voice + video tools.",
+      "tags": [
+        "art",
+        "3d",
+        "fal",
+        "ai",
+        "studio",
+        "30",
+        "instant",
+        "voice",
+        "video",
+        "tools",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/meshy",
+      "href": "/meshy",
+      "title": "🧊 Meshy 3D",
+      "quick": "Words and pictures → 3D models.",
+      "tags": [
+        "art",
+        "3d",
+        "meshy",
+        "words",
+        "and",
+        "pictures",
+        "models",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/blender",
+      "href": "/blender",
+      "title": "🎥 Blender Renders",
+      "quick": "Blender scenes → mp4 on a 4090.",
+      "tags": [
+        "art",
+        "3d",
+        "blender",
+        "renders",
+        "scenes",
+        "mp4",
+        "on",
+        "4090",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/game/spaceships",
+      "href": "/game/spaceships",
+      "title": "🛸 Spaceships",
+      "quick": "Collectible ships for your profile.",
+      "tags": [
+        "art",
+        "3d",
+        "spaceships",
+        "collectible",
+        "ships",
+        "for",
+        "your",
+        "profile",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/clans",
+      "href": "/clans",
+      "title": "🏰 Clans",
+      "quick": "Cozy clubs to chat and play together.",
+      "tags": [
+        "clans",
+        "community",
+        "cozy",
+        "clubs",
+        "to",
+        "chat",
+        "and",
+        "play",
+        "together",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/bot/setup",
+      "href": "/bot/setup",
+      "title": "🤖 Bots",
+      "quick": "Chat bots that help run things.",
+      "tags": [
+        "clans",
+        "community",
+        "bots",
+        "chat",
+        "that",
+        "help",
+        "run",
+        "things",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/bot/bclans",
+      "href": "/bot/bclans",
+      "title": "🤖 Bot Clans",
+      "quick": "Bot-led clubs, always awake.",
+      "tags": [
+        "clans",
+        "community",
+        "bot",
+        "led",
+        "clubs",
+        "always",
+        "awake",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/support",
+      "href": "/support",
+      "title": "💛 Support",
+      "quick": "Tip makers, monthly or once.",
+      "tags": [
+        "clans",
+        "community",
+        "support",
+        "tip",
+        "makers",
+        "monthly",
+        "or",
+        "once",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/fundraisers",
+      "href": "/fundraisers",
+      "title": "🎁 Fundraisers",
+      "quick": "Gift-backed launches.",
+      "tags": [
+        "clans",
+        "community",
+        "fundraisers",
+        "gift",
+        "backed",
+        "launches",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/academy",
+      "href": "/academy",
+      "title": "🎓 Academy",
+      "quick": "Bite-size lessons through play.",
+      "tags": [
+        "learn",
+        "docs",
+        "academy",
+        "bite",
+        "size",
+        "lessons",
+        "through",
+        "play",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/tech",
+      "href": "/tech",
+      "title": "⚙️ Technology",
+      "quick": "How the magic works, simply.",
+      "tags": [
+        "learn",
+        "docs",
+        "technology",
+        "how",
+        "the",
+        "magic",
+        "works",
+        "simply",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs",
+      "href": "/docs",
+      "title": "📖 Docs",
+      "quick": "Plain-English help for everything.",
+      "tags": [
+        "learn",
+        "docs",
+        "plain",
+        "english",
+        "help",
+        "for",
+        "everything",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/agents-compute",
+      "href": "/docs/agents-compute",
+      "title": "💻 Agents & Compute",
+      "quick": "Rent cloud by the second.",
+      "tags": [
+        "learn",
+        "docs",
+        "agents",
+        "compute",
+        "rent",
+        "cloud",
+        "by",
+        "the",
+        "second",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/future-proof-web",
+      "href": "/docs/future-proof-web",
+      "title": "🏗️ Future-Proof Web",
+      "quick": "Architecture risks, on the record.",
+      "tags": [
+        "learn",
+        "docs",
+        "future",
+        "proof",
+        "web",
+        "architecture",
+        "risks",
+        "on",
+        "the",
+        "record",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/mmo",
+      "href": "/docs/mmo",
+      "title": "🐉 MMORPG Guide",
+      "quick": "Realms, roles, and kid-safe play.",
+      "tags": [
+        "learn",
+        "docs",
+        "mmorpg",
+        "guide",
+        "realms",
+        "roles",
+        "and",
+        "kid",
+        "safe",
+        "play",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/mmo/hosting",
+      "href": "/docs/mmo/hosting",
+      "title": "🖥️ Hosting a Realm",
+      "quick": "Rent, configure, and run a server.",
+      "tags": [
+        "learn",
+        "docs",
+        "hosting",
+        "realm",
+        "rent",
+        "configure",
+        "and",
+        "run",
+        "server",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/mmo/age-bands",
+      "href": "/docs/mmo/age-bands",
+      "title": "🛡️ Age Bands",
+      "quick": "Kid-safe matchmaking by age.",
+      "tags": [
+        "learn",
+        "docs",
+        "age",
+        "bands",
+        "kid",
+        "safe",
+        "matchmaking",
+        "by",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/mmo/player",
+      "href": "/docs/mmo/player",
+      "title": "🎮 MMO Player Guide",
+      "quick": "Join a shard, split the meter.",
+      "tags": [
+        "learn",
+        "docs",
+        "mmo",
+        "player",
+        "guide",
+        "join",
+        "shard",
+        "split",
+        "the",
+        "meter",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/mmo/host",
+      "href": "/docs/mmo/host",
+      "title": "🖥️ MMO Host Guide",
+      "quick": "Rent a world, set the subsidy.",
+      "tags": [
+        "learn",
+        "docs",
+        "mmo",
+        "host",
+        "guide",
+        "rent",
+        "world",
+        "set",
+        "the",
+        "subsidy",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/mmo/safety",
+      "href": "/docs/mmo/safety",
+      "title": "🛡️ MMO Safety",
+      "quick": "Three bands, kid-safe shards.",
+      "tags": [
+        "learn",
+        "docs",
+        "mmo",
+        "safety",
+        "three",
+        "bands",
+        "kid",
+        "safe",
+        "shards",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/docs/mmo/faq",
+      "href": "/docs/mmo/faq",
+      "title": "❓ MMO FAQ",
+      "quick": "Billing and access answers.",
+      "tags": [
+        "learn",
+        "docs",
+        "mmo",
+        "faq",
+        "billing",
+        "and",
+        "access",
+        "answers",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/pricing",
+      "href": "/pricing",
+      "title": "🪙 Pricing",
+      "quick": "100 coins = $1, fees inside.",
+      "tags": [
+        "learn",
+        "docs",
+        "pricing",
+        "100",
+        "coins",
+        "fees",
+        "inside",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/ads",
+      "href": "/ads",
+      "title": "📢 Advertise",
+      "quick": "House ads, all in one wall.",
+      "tags": [
+        "learn",
+        "docs",
+        "advertise",
+        "house",
+        "ads",
+        "all",
+        "in",
+        "one",
+        "wall",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:https://github.com/mattyjacks/4weird",
+      "href": "https://github.com/mattyjacks/4weird",
+      "title": "🐙 GitHub",
+      "quick": "Code, issues, and releases.",
+      "tags": [
+        "learn",
+        "docs",
+        "github",
+        "code",
+        "issues",
+        "and",
+        "releases",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/account",
+      "href": "/account",
+      "title": "👑 Account",
+      "quick": "Dashboard - coins, saves, settings.",
+      "tags": [
+        "my",
+        "money",
+        "me",
+        "account",
+        "dashboard",
+        "coins",
+        "saves",
+        "settings",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/my/usage",
+      "href": "/my/usage",
+      "title": "📊 Usage",
+      "quick": "Receipts for every coin + GPU minute.",
+      "tags": [
+        "my",
+        "money",
+        "me",
+        "usage",
+        "receipts",
+        "for",
+        "every",
+        "coin",
+        "gpu",
+        "minute",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/favorites",
+      "href": "/favorites",
+      "title": "⭐ Favorites",
+      "quick": "Your starred pages, in one place.",
+      "tags": [
+        "my",
+        "money",
+        "me",
+        "favorites",
+        "your",
+        "starred",
+        "pages",
+        "in",
+        "one",
+        "place",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/accessibility",
+      "href": "/accessibility",
+      "title": "♿ Accessibility",
+      "quick": "Play your way - text, color, voice.",
+      "tags": [
+        "my",
+        "money",
+        "me",
+        "accessibility",
+        "play",
+        "your",
+        "way",
+        "text",
+        "color",
+        "voice",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/family/login",
+      "href": "/family/login",
+      "title": "👨‍👩‍👧‍👦 Family Login",
+      "quick": "Parent-managed child sign-in.",
+      "tags": [
+        "my",
+        "money",
+        "me",
+        "family",
+        "login",
+        "parent",
+        "managed",
+        "child",
+        "sign",
+        "in",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "nav:/pricing~2",
+      "href": "/pricing",
+      "title": "🪙 Pricing",
+      "quick": "100 coins = $1, fees inside.",
+      "tags": [
+        "my",
+        "money",
+        "me",
+        "pricing",
+        "100",
+        "coins",
+        "fees",
+        "inside",
+        "nav"
+      ],
+      "kind": "nav",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:platform-wars",
+      "href": "/games/platform-wars",
+      "title": "Platform Wars: Phone vs Desktop",
+      "quick": "A fast cross-platform arena platformer. Phone team uses touch agility; Desktop team uses keyboard precision.",
+      "tags": [
+        "action",
+        "multiplayer",
+        "platformer",
+        "phone",
+        "desktop",
+        "platform",
+        "wars",
+        "vs",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:lastwordszombies",
+      "href": "/games/lastwordszombies",
+      "title": "Last Words Zombies",
+      "quick": "A high-intensity 3D zombie typing survival game. Type holy words to banish shambling zombies before they overrun your graveyard camp.",
+      "tags": [
+        "action",
+        "zombies",
+        "typing",
+        "survival",
+        "last",
+        "words",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:venturemechanically",
+      "href": "/games/venturemechanically",
+      "title": "Exit Waterfall Machine",
+      "quick": "An interactive cap table simulator and educational game. Learn why a large startup exit can leave founders and employees with absolutely nothing.",
+      "tags": [
+        "simulation",
+        "strategy",
+        "educational",
+        "business",
+        "exit",
+        "waterfall",
+        "machine",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:financialfreedom",
+      "href": "/games/financialfreedom",
+      "title": "Financial Freedom",
+      "quick": "A deep, interactive finances simulator for a USA family. Navigate careers, taxes, debt, investments, real estate, and life events.",
+      "tags": [
+        "simulation",
+        "strategy",
+        "finance",
+        "educational",
+        "financial",
+        "freedom",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:serversavershield",
+      "href": "/games/serversavershield",
+      "title": "Server Saver Shield",
+      "quick": "Defend data centers from cyber attacks. Deploy your shield and save the network.",
+      "tags": [
+        "arcade",
+        "shooter",
+        "cyber",
+        "server",
+        "saver",
+        "shield",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:overtake",
+      "href": "/games/overtake",
+      "title": "Overtake",
+      "quick": "A fast pseudo-3D arcade racer with unlockable routes, garage progression, and nitro boosts.",
+      "tags": [
+        "racing",
+        "arcade",
+        "canvas",
+        "overtake",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:assassinanimals",
+      "href": "/games/assassinanimals",
+      "title": "AssassinAnimals",
+      "quick": "Infiltrate procedurally generated facilities, collect DNA splices, and eliminate targets.",
+      "tags": [
+        "rogue-like",
+        "stealth",
+        "action",
+        "assassinanimals",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:battlesharks2",
+      "href": "/games/battlesharks2",
+      "title": "Battlesharks 2",
+      "quick": "Mutate your shark with cybernetic weapons in a deep sea eating simulator.",
+      "tags": [
+        "action",
+        "arcade",
+        "upgrade",
+        "battlesharks",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:gravegain2d",
+      "href": "/games/gravegain2d",
+      "title": "GraveGain2D",
+      "quick": "A dark fantasy action RPG featuring procedural dungeons and dialogue.",
+      "tags": [
+        "rpg",
+        "action",
+        "rogue-like",
+        "gravegain2d",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:gravegain3d",
+      "href": "/games/gravegain3d",
+      "title": "GraveGain3D",
+      "quick": "A 3D dungeon crawler in a dark fantasy setting.",
+      "tags": [
+        "rpg",
+        "action",
+        "3d",
+        "gravegain3d",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:gravegain1d",
+      "href": "/games/gravegain1d",
+      "title": "GraveGain1D",
+      "quick": "A one-dimensional GraveGain RPG: walk the ley-line east in turn-based or real-time mode.",
+      "tags": [
+        "rpg",
+        "html5",
+        "1d",
+        "turn-based",
+        "gravegain1d",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:demolichdom",
+      "href": "/games/demolichdom",
+      "title": "Demo Lichdom",
+      "quick": "Command your skeleton army to demolish buildings as a modern necromancer.",
+      "tags": [
+        "strategy",
+        "action",
+        "emoji",
+        "demo",
+        "lichdom",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:fridgesimulator",
+      "href": "/games/fridgesimulator",
+      "title": "Fridge Simulator",
+      "quick": "Manage fridges, balance nutrition, and keep families alive.",
+      "tags": [
+        "simulation",
+        "strategy",
+        "fridge",
+        "simulator",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:discoveramerica",
+      "href": "/games/discoveramerica",
+      "title": "Madi AI: Discover America",
+      "quick": "Sail with Madi AI from the English Channel to the New World. Gather data fragments at each port and sort them into the right categories to chart the next leg.",
+      "tags": [
+        "adventure",
+        "puzzle",
+        "educational",
+        "madi",
+        "ai",
+        "discover",
+        "america",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:orbitaldrift",
+      "href": "/games/orbitaldrift",
+      "title": "Orbital Drift",
+      "quick": "Control a satellite, dodge debris, and collect stardust.",
+      "tags": [
+        "arcade",
+        "3d",
+        "space",
+        "orbital",
+        "drift",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:aiwhackamole",
+      "href": "/games/aiwhackamole",
+      "title": "AI-whack-a-mole",
+      "quick": "Whack rogue dangerous AIs while saving helpful ones.",
+      "tags": [
+        "arcade",
+        "3d",
+        "ai",
+        "whack",
+        "mole",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:soundpainter2",
+      "href": "/games/soundpainter2",
+      "title": "Sound Painter 2",
+      "quick": "An advanced web music production studio and step sequencer.",
+      "tags": [
+        "creative",
+        "music",
+        "sequencer",
+        "sound",
+        "painter",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:soundpainter",
+      "href": "/games/soundpainter",
+      "title": "Sound Painter",
+      "quick": "Click tiles to paint music and color.",
+      "tags": [
+        "creative",
+        "music",
+        "art",
+        "sound",
+        "painter",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:friendslop",
+      "href": "/games/friendslop",
+      "title": "FriendSlop",
+      "quick": "Feed your friends chaotic slop and dodge cringe.",
+      "tags": [
+        "arcade",
+        "action",
+        "multiplayer",
+        "casual",
+        "friendslop",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:semester-survival",
+      "href": "/games/semester-survival",
+      "title": "Semester Survival",
+      "quick": "Survive eight chaotic semesters to graduate.",
+      "tags": [
+        "endless runner",
+        "arcade",
+        "3d",
+        "runner",
+        "university",
+        "semester",
+        "survival",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:gravegain4d",
+      "href": "/games/gravegain4d",
+      "title": "GraveGain4D",
+      "quick": "A 4D dark-fantasy golf rogue-like: putt lost souls across ana/kata hyperdungeons projected from the W-axis, rewind botched shots with chrono-sand, and breach the Light/Gloom branes in a 10-rift MoonRock campaign with a starship hub.",
+      "tags": [
+        "rpg",
+        "action",
+        "rogue-like",
+        "4d",
+        "golf",
+        "gravegain4d",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:neonbreaker",
+      "href": "/games/neonbreaker",
+      "title": "Neon Breaker",
+      "quick": "Smash glowing bricks, collect power-ups, and clear neon levels.",
+      "tags": [
+        "arcade",
+        "brick breaker",
+        "neon",
+        "breaker",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:neoninvaders",
+      "href": "/games/neoninvaders",
+      "title": "Neon Invaders",
+      "quick": "Defend against glowing alien waves in a neon space shooter.",
+      "tags": [
+        "shooter",
+        "arcade",
+        "neon",
+        "invaders",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:neonracer",
+      "href": "/games/neonracer",
+      "title": "Neon Racer",
+      "quick": "Weave through a neon city, avoid obstacles, and survive at speed.",
+      "tags": [
+        "racing",
+        "arcade",
+        "neon",
+        "racer",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:neonsnake",
+      "href": "/games/neonsnake",
+      "title": "Neon Snake",
+      "quick": "Collect glowing orbs, grow longer, and avoid walls and yourself.",
+      "tags": [
+        "arcade",
+        "snake",
+        "neon",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:neonvoidrunner",
+      "href": "/games/neonvoidrunner",
+      "title": "Neon Void Runner",
+      "quick": "Dodge obstacles in an endless digital void as speed increases.",
+      "tags": [
+        "endless runner",
+        "arcade",
+        "runner",
+        "neon",
+        "void",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:temple-of-lost-revenue",
+      "href": "/games/temple-of-lost-revenue",
+      "title": "Temple of Lost Revenue",
+      "quick": "Recover lost deals, CRM data, and unanswered leads in an ancient maze.",
+      "tags": [
+        "adventure",
+        "business",
+        "temple",
+        "of",
+        "lost",
+        "revenue",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:the-ai-expedition",
+      "href": "/games/the-ai-expedition",
+      "title": "The AI Expedition",
+      "quick": "Route datasets between agents, data lakes, and automations.",
+      "tags": [
+        "strategy",
+        "ai",
+        "the",
+        "expedition",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:the-cave-of-bottlenecks",
+      "href": "/games/the-cave-of-bottlenecks",
+      "title": "The Cave of Bottlenecks",
+      "quick": "Clear hiring delays and CRM complexity from the cave path.",
+      "tags": [
+        "puzzle",
+        "business",
+        "the",
+        "cave",
+        "of",
+        "bottlenecks",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:the-lost-city-of-customers",
+      "href": "/games/the-lost-city-of-customers",
+      "title": "The Lost City of Customers",
+      "quick": "Scan the hidden valley to find potential customer regions.",
+      "tags": [
+        "adventure",
+        "business",
+        "the",
+        "lost",
+        "city",
+        "of",
+        "customers",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:the-madi-ai-universe",
+      "href": "/games/the-madi-ai-universe",
+      "title": "The MADI AI Universe",
+      "quick": "Explore Pipeline Peaks, Revenue Jungle, and Temple of Automation.",
+      "tags": [
+        "adventure",
+        "madi",
+        "the",
+        "ai",
+        "universe",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:the-pipeline-mountain",
+      "href": "/games/the-pipeline-mountain",
+      "title": "The Pipeline Mountain",
+      "quick": "Climb from manual spreadsheets to revenue and market leadership.",
+      "tags": [
+        "adventure",
+        "business",
+        "the",
+        "pipeline",
+        "mountain",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:the-revenue-dragon",
+      "href": "/games/the-revenue-dragon",
+      "title": "The Revenue Dragon",
+      "quick": "Defeat delays, manual work, and data silos slowing growth.",
+      "tags": [
+        "action",
+        "business",
+        "the",
+        "revenue",
+        "dragon",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:the-revenue-jungle",
+      "href": "/games/the-revenue-jungle",
+      "title": "The Revenue Jungle",
+      "quick": "Navigate manual processes, bad data, and slow decisions.",
+      "tags": [
+        "adventure",
+        "business",
+        "the",
+        "revenue",
+        "jungle",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:the-speed-portal",
+      "href": "/games/the-speed-portal",
+      "title": "The Speed Portal",
+      "quick": "Race through approvals, meetings, and legacy software obstacles.",
+      "tags": [
+        "racing",
+        "business",
+        "the",
+        "speed",
+        "portal",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "game:treasure-hunters",
+      "href": "/games/treasure-hunters",
+      "title": "Treasure Hunters",
+      "quick": "Grapple pipeline value, meetings, revenue, and customers.",
+      "tags": [
+        "arcade",
+        "business",
+        "treasure",
+        "hunters",
+        "game"
+      ],
+      "kind": "game",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:aiwhackamole-start.song",
+      "href": "/music/all",
+      "title": "AI WhackAMole Start Chime",
+      "quick": "song seed aiwhackamole-start.song",
+      "tags": [
+        "ai",
+        "whackamole",
+        "start",
+        "chime",
+        "aiwhackamole",
+        "song",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:aiwhackamole-whack.sfx",
+      "href": "/music/all",
+      "title": "Whack Bad Ping",
+      "quick": "sfx seed aiwhackamole-whack.sfx",
+      "tags": [
+        "whack",
+        "bad",
+        "ping",
+        "aiwhackamole",
+        "sfx",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:assassinanimals-stealth.song",
+      "href": "/music/all",
+      "title": "AssassinAnimals Stealth",
+      "quick": "song seed assassinanimals-stealth.song",
+      "tags": [
+        "assassinanimals",
+        "stealth",
+        "song",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:battlesharks2-eat.sfx",
+      "href": "/music/all",
+      "title": "Eat Blip",
+      "quick": "sfx seed battlesharks2-eat.sfx",
+      "tags": [
+        "eat",
+        "blip",
+        "battlesharks2",
+        "sfx",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:battlesharks2-patrol.song",
+      "href": "/music/all",
+      "title": "BattleSharks2 Patrol",
+      "quick": "song seed battlesharks2-patrol.song",
+      "tags": [
+        "battlesharks2",
+        "patrol",
+        "song",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:battlesharks2-raygun.sfx",
+      "href": "/music/all",
+      "title": "Raygun Laser",
+      "quick": "sfx seed battlesharks2-raygun.sfx",
+      "tags": [
+        "raygun",
+        "laser",
+        "battlesharks2",
+        "sfx",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:gravegain1d-death.sfx",
+      "href": "/music/all",
+      "title": "Death Descend",
+      "quick": "sfx seed gravegain1d-death.sfx",
+      "tags": [
+        "death",
+        "descend",
+        "gravegain1d",
+        "sfx",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:gravegain1d-kill.sfx",
+      "href": "/music/all",
+      "title": "Kill Confirm",
+      "quick": "sfx seed gravegain1d-kill.sfx",
+      "tags": [
+        "kill",
+        "confirm",
+        "gravegain1d",
+        "sfx",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:gravegain1d-victory.song",
+      "href": "/music/all",
+      "title": "GraveGain1D Victory",
+      "quick": "song seed gravegain1d-victory.song",
+      "tags": [
+        "gravegain1d",
+        "victory",
+        "song",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:lastwordszombies-bomb.sfx",
+      "href": "/music/all",
+      "title": "Bomb Drop",
+      "quick": "sfx seed lastwordszombies-bomb.sfx",
+      "tags": [
+        "bomb",
+        "drop",
+        "lastwordszombies",
+        "sfx",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:lastwordszombies-boss.sfx",
+      "href": "/music/all",
+      "title": "Boss Roar",
+      "quick": "sfx seed lastwordszombies-boss.sfx",
+      "tags": [
+        "boss",
+        "roar",
+        "lastwordszombies",
+        "sfx",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:lastwordszombies-horde.song",
+      "href": "/music/all",
+      "title": "LastWordsZombies Horde Groove",
+      "quick": "song seed lastwordszombies-horde.song",
+      "tags": [
+        "lastwordszombies",
+        "horde",
+        "groove",
+        "song",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:semester-survival-campus.song",
+      "href": "/music/all",
+      "title": "Semester Survival Campus Loop",
+      "quick": "song seed semester-survival-campus.song",
+      "tags": [
+        "semester",
+        "survival",
+        "campus",
+        "loop",
+        "song",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:semester-survival-powerup.sfx",
+      "href": "/music/all",
+      "title": "PowerUp Rise",
+      "quick": "sfx seed semester-survival-powerup.sfx",
+      "tags": [
+        "powerup",
+        "rise",
+        "semester",
+        "survival",
+        "sfx",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:soundpainter-scale.song",
+      "href": "/music/all",
+      "title": "SoundPainter Scale",
+      "quick": "song seed soundpainter-scale.song",
+      "tags": [
+        "soundpainter",
+        "scale",
+        "song",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "music:soundpainter2-neon.song",
+      "href": "/music/all",
+      "title": "SoundPainter2 Neon Synthwave",
+      "quick": "song seed soundpainter2-neon.song",
+      "tags": [
+        "soundpainter2",
+        "neon",
+        "synthwave",
+        "song",
+        "music"
+      ],
+      "kind": "music",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs",
+      "href": "/docs",
+      "title": "Docs home",
+      "quick": "Start here",
+      "tags": [
+        "docs",
+        "home"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/about",
+      "href": "/docs/about",
+      "title": "About 4weird",
+      "quick": "Company, mission, flywheel",
+      "tags": [
+        "about",
+        "4weird",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/getting-started",
+      "href": "/docs/getting-started",
+      "title": "Getting started",
+      "quick": "Account, trial, first day",
+      "tags": [
+        "getting",
+        "started",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/playing-games",
+      "href": "/docs/playing-games",
+      "title": "Playing games",
+      "quick": "Catalog, play, saves, guests",
+      "tags": [
+        "playing",
+        "games",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/vibe-coins",
+      "href": "/docs/vibe-coins",
+      "title": "Vibe Coins",
+      "quick": "Packs, bonuses, checkout",
+      "tags": [
+        "vibe",
+        "coins",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/support-launches",
+      "href": "/docs/support-launches",
+      "title": "Support & launches",
+      "quick": "Tips, tiers, game/startup campaigns",
+      "tags": [
+        "support",
+        "launches",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/clans",
+      "href": "/docs/clans",
+      "title": "Clans",
+      "quick": "Forum, chat, upkeep, XP",
+      "tags": [
+        "clans",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/bots",
+      "href": "/docs/bots",
+      "title": "Bots",
+      "quick": "Bot keys + clan bot API",
+      "tags": [
+        "bots",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/agents-compute",
+      "href": "/docs/agents-compute",
+      "title": "Agents & cloud",
+      "quick": "Rentals, desktops, teams",
+      "tags": [
+        "agents",
+        "cloud",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/mmorpg",
+      "href": "/docs/mmorpg",
+      "title": "MMORPG realms",
+      "quick": "Servers, roles, kid-safe play",
+      "tags": [
+        "mmorpg",
+        "realms",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/mmorpg/hosting",
+      "href": "/docs/mmorpg/hosting",
+      "title": "Hosting a realm",
+      "quick": "Rent + configure a server",
+      "tags": [
+        "hosting",
+        "realm",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/mmorpg/age-bands",
+      "href": "/docs/mmorpg/age-bands",
+      "title": "MMORPG age bands",
+      "quick": "Kid-safe matchmaking",
+      "tags": [
+        "mmorpg",
+        "age",
+        "bands",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/mmo/player",
+      "href": "/docs/mmo/player",
+      "title": "MMO player guide",
+      "quick": "Join a shard, split the meter",
+      "tags": [
+        "mmo",
+        "player",
+        "guide",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/mmo/host",
+      "href": "/docs/mmo/host",
+      "title": "MMO host guide",
+      "quick": "Rent a world, set the subsidy",
+      "tags": [
+        "mmo",
+        "host",
+        "guide",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/mmo/safety",
+      "href": "/docs/mmo/safety",
+      "title": "MMO safety",
+      "quick": "Three bands, kid-safe shards",
+      "tags": [
+        "mmo",
+        "safety",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/mmo/faq",
+      "href": "/docs/mmo/faq",
+      "title": "MMO FAQ",
+      "quick": "Billing and access answers",
+      "tags": [
+        "mmo",
+        "faq",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/game-ai-buddy",
+      "href": "/docs/game-ai-buddy",
+      "title": "Game AI & Buddy",
+      "quick": "AI features + voice coach",
+      "tags": [
+        "game",
+        "ai",
+        "buddy",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/vibecodeworker",
+      "href": "/docs/vibecodeworker",
+      "title": "VibeCodeWorker",
+      "quick": "QA runs, bugs, handoffs, gateway keys",
+      "tags": [
+        "vibecodeworker",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/explore-more",
+      "href": "/docs/explore-more",
+      "title": "Explore more",
+      "quick": "Classics, arenas, account hub",
+      "tags": [
+        "explore",
+        "more",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/privacy-safety",
+      "href": "/docs/privacy-safety",
+      "title": "Privacy & safety",
+      "quick": "Rights, moderation, reports",
+      "tags": [
+        "privacy",
+        "safety",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    },
+    {
+      "id": "docs:/docs/faq",
+      "href": "/docs/faq",
+      "title": "FAQ & support",
+      "quick": "Answers + contact",
+      "tags": [
+        "faq",
+        "support",
+        "docs"
+      ],
+      "kind": "docs",
+      "updated": "2026-09-13T23:54:14.097Z"
+    }
+  ]
+}

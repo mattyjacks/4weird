@@ -18,13 +18,28 @@ const rawTools = [
   ['vcw_godot_screenshot', 'Capture the current cloud Godot desktop for the next play decision.', 'GET', '/api/godot/screenshot', {}],
   ['vcw_godot_action', 'Send one allow-listed keyboard action to the cloud Godot desktop.', 'POST', '/api/godot/action', { type: { type: 'string', enum: ['tap', 'keydown', 'keyup'] }, key: { type: 'string', enum: ['up', 'down', 'left', 'right', 'space', 'enter', 'escape', 'w', 'a', 's', 'd', 'r'] } }],
   ['vcw_create_bug', 'Record a human-reviewable bug report.', 'POST', '/api/bugs', { title: { type: 'string' }, description: { type: 'string' }, severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] } }],
-  ['vcw_generate_handoff', 'Write a portable AI handoff brief.', 'POST', '/api/opencode/handoff', { reason: { type: 'string' } }]
+  ['vcw_generate_handoff', 'Write a portable AI handoff brief.', 'POST', '/api/opencode/handoff', { reason: { type: 'string' } }],
+  ['vcw_terminal_exec', 'Execute one allow-listed command on the VCW desktop (node/npm/npx/git/python, argv only, no shell; requires VIBE_API_TOKEN).', 'POST', '/api/terminal/exec', { command: { type: 'string', description: 'Bare allow-listed binary name (no paths)' }, args: { type: 'array', items: { type: 'string' }, description: 'argv array (no shell metacharacters)' }, cwd: { type: 'string', description: 'Workspace-relative working dir (jailed)' }, timeoutMs: { type: 'number', description: 'Kill after this many ms (max 300000)' } }],
+  ['vcw_heal_start', 'Start the OpenCode self-healing loop (test -> export -> fix -> re-test). Poll with vcw_heal_status.', 'POST', '/api/opencode/heal', { gameId: { type: 'string' }, testCommand: { type: 'string' }, maxIterations: { type: 'number' }, instructions: { type: 'string' } }],
+  ['vcw_heal_status', 'Poll one self-healing run by id.', 'GET', '/api/opencode/heal/:runId', { runId: { type: 'string', description: 'Heal run id from vcw_heal_start' } }],
+  ['vcw_opencode_fix', 'Hand N bugs to OpenCode direct-code-editing (CLI or serve).', 'POST', '/api/opencode/fix', { bugIds: { type: 'array', items: { type: 'string' } }, gameId: { type: 'string' }, instructions: { type: 'string' }, testCommand: { type: 'string' } }]
 ];
 const tools = new Map(rawTools.map(([name, description, method, path, properties]) => [name, { name, description, method, path, inputSchema: { type: 'object', properties, additionalProperties: false } }]));
 async function call(tool, args) {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['X-Vibe-Auth'] = token;
-  const response = await fetch(base + tool.path, { method: tool.method, headers, body: tool.method === 'GET' ? undefined : JSON.stringify(args || {}) });
+  let toolPath = tool.path;
+  const params = { ...(args || {}) };
+  // Path-template substitution (e.g. /api/opencode/heal/:runId): the
+  // placeholder is filled from args and removed from the JSON body so the
+  // run id travels in the URL only, never duplicated into a payload.
+  toolPath = toolPath.replace(/:([A-Za-z0-9_]+)/g, (match, key) => {
+    if (params[key] === undefined) throw new Error(`Missing path parameter '${key}'`);
+    const value = encodeURIComponent(String(params[key]));
+    delete params[key];
+    return value;
+  });
+  const response = await fetch(base + toolPath, { method: tool.method, headers, body: tool.method === 'GET' ? undefined : JSON.stringify(params) });
   const data = await response.json().catch(async () => ({ error: await response.text() }));
   return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }], isError: !response.ok };
 }

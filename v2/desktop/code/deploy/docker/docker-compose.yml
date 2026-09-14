@@ -26,6 +26,8 @@ services:
   # Optional sidecar: long-lived `opencode serve` so CLI mode never pays MCP
   # cold-boot per fix. Shares the repo read-write so OpenCode can edit code.
   # Enable with:  docker compose --profile opencode up
+  # Secret hygiene: this file commits NO secrets — OPENCODE_SERVER_PASSWORD
+  # defaults to empty (no auth); export it locally only when you need it.
   opencode-server:
     image: vibecodeworker-local
     profiles: ["opencode"]

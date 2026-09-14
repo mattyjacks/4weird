@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:coin","sfx":{"kind":"coin","name":"Coin Ding","steps":[{"dur":0.09,"freq":900,"freqEnd":900,"type":"tone","vol":0.5,"wave":"sine"},{"dur":0.18,"freq":1350,"freqEnd":1350,"type":"tone","vol":0.5,"wave":"sine"}],"v":1},"source":"coin ding sine 900 1350"}

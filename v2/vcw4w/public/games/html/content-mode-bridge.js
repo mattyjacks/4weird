@@ -321,11 +321,15 @@
   } catch (e) {}
 
   // Live switch from the host shell (and from runtime-bridge.js forwarding).
+  // Origin-gated like runtime-bridge: any third-party frame could otherwise
+  // post {type:"content-mode",mode:"all"} and flash Uncut visuals locally.
   try {
     window.addEventListener("message", function (event) {
       try {
         var data = event.data;
         if (!data || data.version !== 1 || data.type !== "content-mode") return;
+        var o = event.origin;
+        if (o !== window.location.origin && ["https://4weird.com", "https://www.4weird.com"].indexOf(o) === -1) return;
         applyMode(data.mode, true);
       } catch (e) {}
     });

@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:explosion","sfx":{"kind":"hit","name":"Boom Burst","steps":[{"dur":0.35,"freq":150,"freqEnd":40,"type":"noise","vol":0.7,"wave":"noise"}],"v":1},"source":"boom burst noise 150-40"}

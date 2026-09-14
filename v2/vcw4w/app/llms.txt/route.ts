@@ -82,7 +82,7 @@ Canonical summary: ${SITE_URL}/llms.txt — About the company: ${SITE_URL}/docs/
 - [Xonotic arena](${SITE_URL}/xonotic): VibeCodeWorker plays Xonotic for you on a GPU-boosted remote
 - [Academy](${SITE_URL}/academy): learn AI concepts through interactive lessons and play
 - [Technology](${SITE_URL}/tech): Next.js platform, preserved game runtimes, Supabase identity, RunPod compute, parity checks
-- [Spaceships exhibit](${SITE_URL}/spaceships): ship gallery
+- [Spaceships exhibit](${SITE_URL}/game/spaceships): ship gallery
 - [Support creators](${SITE_URL}/support): voluntary coin tips and monthly tiers — not charity, not tax-deductible, no cash-out
 - [Launch campaigns](${SITE_URL}/fundraisers): gift-based backing for games and tech startups; currently paused for compliance
 - [Favorites](${SITE_URL}/favorites): your starred pages, saved on-device, no account needed

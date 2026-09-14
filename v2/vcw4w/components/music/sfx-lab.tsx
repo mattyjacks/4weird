@@ -228,18 +228,24 @@ export function SfxLab(): React.JSX.Element {
   }
 
   return (
-    <section aria-label="SFX lab">
-      <h2>SFX Lab</h2>
+    <section aria-label="SFX lab" className="min-w-0 max-w-full overflow-x-clip">
+      <style>{`.sfx-touch-slider{-webkit-appearance:none;appearance:none;height:44px;background:transparent;cursor:pointer}.sfx-touch-slider::-webkit-slider-runnable-track{height:8px;border-radius:9999px;background:rgba(255,255,255,.15)}.sfx-touch-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-10px;height:28px;width:28px;border-radius:9999px;background:#67e8f9;border:2px solid #0e7490}.sfx-touch-slider::-moz-range-track{height:8px;border-radius:9999px;background:rgba(255,255,255,.15)}.sfx-touch-slider::-moz-range-thumb{height:28px;width:28px;border-radius:9999px;background:#67e8f9;border:2px solid #0e7490}`}</style>
+      <h2 className="text-lg font-black text-white">SFX Lab</h2>
 
-      <div>
-        <span id="sfx-wave-label">Wave</span>
-        <div role="group" aria-labelledby="sfx-wave-label">
+      <div className="mt-3 min-w-0 max-w-full">
+        <span id="sfx-wave-label" className="text-sm font-bold text-slate-200">Wave</span>
+        <div role="group" aria-labelledby="sfx-wave-label" className="mt-2 flex max-w-full flex-wrap gap-2 overflow-x-auto overscroll-x-contain pb-1">
           {WAVES.map((w) => (
             <button
               key={w}
               type="button"
               aria-pressed={wave === w}
               onClick={() => setWave(w)}
+              className={`min-h-[44px] min-w-[44px] touch-manipulation rounded-xl border px-4 py-3 text-sm font-bold ${
+                wave === w
+                  ? "border-cyan-300 bg-cyan-300 text-slate-950"
+                  : "border-white/15 bg-white/[.05] text-white hover:bg-white/[.12]"
+              }`}
             >
               {w}
             </button>
@@ -247,17 +253,18 @@ export function SfxLab(): React.JSX.Element {
         </div>
       </div>
 
-      <label>
+      <label className="mt-4 block min-w-0 max-w-full text-sm font-bold text-slate-200">
         Title
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={64}
+          className="mt-2 min-h-[44px] w-full max-w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-base font-normal text-white"
         />
       </label>
 
-      <label>
+      <label className="mt-4 block min-w-0 max-w-full text-sm font-bold text-slate-200">
         Freq start: {freqStart} Hz
         <input
           type="range"
@@ -266,10 +273,11 @@ export function SfxLab(): React.JSX.Element {
           step={10}
           value={freqStart}
           onChange={(e) => setFreqStart(Number(e.target.value))}
+          className="sfx-touch-slider mt-1 h-[44px] w-full max-w-full touch-manipulation accent-cyan-300"
         />
       </label>
 
-      <label>
+      <label className="mt-2 block min-w-0 max-w-full text-sm font-bold text-slate-200">
         Freq end: {freqEnd} Hz
         <input
           type="range"
@@ -278,10 +286,11 @@ export function SfxLab(): React.JSX.Element {
           step={10}
           value={freqEnd}
           onChange={(e) => setFreqEnd(Number(e.target.value))}
+          className="sfx-touch-slider mt-1 h-[44px] w-full max-w-full touch-manipulation accent-cyan-300"
         />
       </label>
 
-      <label>
+      <label className="mt-2 block min-w-0 max-w-full text-sm font-bold text-slate-200">
         Duration: {dur.toFixed(2)}s
         <input
           type="range"
@@ -290,10 +299,11 @@ export function SfxLab(): React.JSX.Element {
           step={0.05}
           value={dur}
           onChange={(e) => setDur(Number(e.target.value))}
+          className="sfx-touch-slider mt-1 h-[44px] w-full max-w-full touch-manipulation accent-cyan-300"
         />
       </label>
 
-      <label>
+      <label className="mt-2 block min-w-0 max-w-full text-sm font-bold text-slate-200">
         Volume: {vol.toFixed(2)}
         <input
           type="range"
@@ -302,10 +312,11 @@ export function SfxLab(): React.JSX.Element {
           step={0.01}
           value={vol}
           onChange={(e) => setVol(Number(e.target.value))}
+          className="sfx-touch-slider mt-1 h-[44px] w-full max-w-full touch-manipulation accent-cyan-300"
         />
       </label>
 
-      <label>
+      <label className="mt-2 block min-w-0 max-w-full text-sm font-bold text-slate-200">
         Noise mix: {noiseMix.toFixed(2)}
         <input
           type="range"
@@ -314,29 +325,43 @@ export function SfxLab(): React.JSX.Element {
           step={0.01}
           value={noiseMix}
           onChange={(e) => setNoiseMix(Number(e.target.value))}
+          className="sfx-touch-slider mt-1 h-[44px] w-full max-w-full touch-manipulation accent-cyan-300"
         />
       </label>
 
-      <div>
-        <button type="button" onClick={() => void onPreview()}>
+      <div className="mt-4 flex max-w-full flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => void onPreview()}
+          className="min-h-[44px] touch-manipulation rounded-xl bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-200"
+        >
           Preview
         </button>
-        <button type="button" onClick={onDownload}>
+        <button
+          type="button"
+          onClick={onDownload}
+          className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
+        >
           Download JSON
         </button>
-        <button type="button" onClick={() => void onCopy()}>
+        <button
+          type="button"
+          onClick={() => void onCopy()}
+          className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
+        >
           Copy JSON
         </button>
       </div>
 
-      <div>
-        <span id="sfx-preset-label">Presets</span>
-        <div role="group" aria-labelledby="sfx-preset-label">
+      <div className="mt-4 min-w-0 max-w-full">
+        <span id="sfx-preset-label" className="text-sm font-bold text-slate-200">Presets</span>
+        <div role="group" aria-labelledby="sfx-preset-label" className="mt-2 flex max-w-full flex-wrap gap-2 overflow-x-auto overscroll-x-contain pb-1">
           {PRESET_BUTTONS.map(({ name, preset }) => (
             <button
               key={name}
               type="button"
               onClick={() => loadPreset(preset)}
+              className="min-h-[44px] min-w-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-4 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
             >
               {name}
             </button>
@@ -344,11 +369,11 @@ export function SfxLab(): React.JSX.Element {
         </div>
       </div>
 
-      <pre aria-label="Current SFX JSON">
+      <pre aria-label="Current SFX JSON" className="mt-4 max-w-full overflow-x-auto overscroll-x-contain rounded-xl border border-white/10 bg-slate-950 p-3 text-xs text-slate-200">
         {JSON.stringify(current, null, 2)}
       </pre>
 
-      <p aria-live="polite">{status}</p>
+      <p aria-live="polite" className="mt-2 text-sm text-slate-300">{status}</p>
     </section>
   );
 }

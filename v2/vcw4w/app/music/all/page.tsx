@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { SongGrid } from "@/components/music/song-card";
 import { FALLBACK_SONGS } from "@/lib/music-seeds";
+import { GalleryClient } from "./gallery-client";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/music/all" },
@@ -39,6 +40,17 @@ export default async function Page(): Promise<React.JSX.Element> {
             }
           >
             <SongGrid initial={[...FALLBACK_SONGS]} />
+          </Suspense>
+        </div>
+        <div className="mt-8">
+          <Suspense
+            fallback={
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+                Loading your saved songs…
+              </p>
+            }
+          >
+            <GalleryClient />
           </Suspense>
         </div>
         <p className="mt-8">

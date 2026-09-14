@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { dbFail, fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug, isSlot } from "@/lib/validate";
@@ -70,7 +70,7 @@ export async function PUT(req: Request) {
     const { error } = await supabase
       .from("global_cheat_settings")
       .upsert({ user_id: u.id, enabled: input.enabled }, { onConflict: "user_id" });
-    if (error) return fail("Unable to update cheat setting.", 500);
+    if (error) return dbFail("api/cheats", error, "Unable to update cheat setting.");
     return ok({ global: true });
   }
   const game = isSlug(input.game_slug);
@@ -82,6 +82,7 @@ export async function PUT(req: Request) {
     p_slot: slot,
     p_enabled: input.enabled,
   });
-  if (error) return fail("Unable to update cheat setting.", 500);
+  if (error)
+    return rpcFail("api/cheats", error, () => 400, "Unable to update cheat setting.");
   return ok({ cheat_mode: Boolean(rpcData) });
 }

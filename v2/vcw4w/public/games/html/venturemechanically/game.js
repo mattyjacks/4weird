@@ -164,9 +164,21 @@
     };
 
     // Sound Synthesis (Web Audio API)
+    // One-shot SFX with decay envelopes only (no ambient bed); the muted
+    // flag below gates playSound per AUDIO SPEC live-mute requirement.
     let audioCtx = null;
+    let audioMuted = false;
+    function setMuted(m) {
+        audioMuted = !!m;
+        return audioMuted;
+    }
+    function toggleMute() {
+        audioMuted = !audioMuted;
+        return audioMuted;
+    }
     function playSound(type) {
         try {
+            if (audioMuted) return;
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
@@ -742,7 +754,7 @@
     }
 
     // Expose Global API for setup template
-    window.Game = { init, state };
+    window.Game = { init, state, setMuted, toggleMute };
     window.gameState = state;
     window.game = state;
 

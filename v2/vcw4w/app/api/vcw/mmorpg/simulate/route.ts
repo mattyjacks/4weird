@@ -1,4 +1,6 @@
 import { fail, ok } from "@/lib/api-respond";
+import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
 import { MMO_SERVERS, simulateShard } from "@/lib/vcw-mmo-bots";
 
 /**
@@ -32,6 +34,12 @@ type SimulateBody = {
 };
 
 export async function POST(req: Request): Promise<Response> {
+  // Unauthenticated pure simulation: throttle per IP so the stub cannot be
+  // used as a CPU-burn oracle. Throttling is abuse-shielding, not metering.
+  const rl = rateLimit(`vcw:mmorpg-simulate:${clientIp(req)}`, 30, 60_000);
+  if (!rl.allowed) {
+    return fail("Rate limited.", 429, { ...rateLimitHeaders(rl), ...FOUNDATION_HEADERS });
+  }
   let body: SimulateBody;
   try {
     body = (await req.json()) as SimulateBody;

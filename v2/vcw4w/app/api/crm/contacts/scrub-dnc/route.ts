@@ -109,7 +109,10 @@ export async function POST(req: Request) {
 
   const uniqueNormalized = Array.from(new Set(validCandidates.map((v) => v.normalized)));
   const isByok = Boolean(input.api_key);
-  const activeKey = input.api_key || process.env.EASYDNC_API_KEY || "DEMO_KEY";
+  const activeKey = input.api_key || process.env.EASYDNC_API_KEY;
+  if (!activeKey) {
+    return fail("Lookup service not configured.", 503);
+  }
   const cost = calculateEasyDncCost(uniqueNormalized.length);
 
   // Debit Vibe Coins via stored procedure
@@ -126,7 +129,7 @@ export async function POST(req: Request) {
   );
 
   if (paymentError) {
-    return dbFail("POST /api/crm/contacts/scrub-dnc (payment)", paymentError, paymentError.message || "Failed to process payment.");
+    return dbFail("POST /api/crm/contacts/scrub-dnc (payment)", paymentError, "Failed to process payment.");
   }
 
   const batchId = paymentResult?.[0]?.batch_id ?? null;

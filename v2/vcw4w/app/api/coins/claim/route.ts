@@ -84,12 +84,10 @@ export async function POST(req: Request) {
               .eq("grant_id", g.id)
               .limit(1);
             if (existing && existing.length > 0) {
-              await db
-                .from("coin_grants")
-                .update({ user_id: user.id, claimed: true })
-                .eq("id", g.id)
-                .eq("claimed", false);
-              claimed += 1;
+              // Converge the flag only: never reassign user_id and never
+              // count claimed without a paired ledger insert (the winner's
+              // row already carries the mint).
+              await db.from("coin_grants").update({ claimed: true }).eq("id", g.id).eq("claimed", false);
             }
           }
           continue;

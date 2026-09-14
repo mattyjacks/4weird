@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
+import { fail } from "@/lib/api-respond";
+import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import {
-  sfxByteSize,
-  songByteSize,
+  canonicalizeSfx,
+  canonicalizeSong,
+  clientIp,
+  sfxShareUrl,
+  sizeOf,
+  songShareUrl,
   validateSfx,
   validateSong,
   type Sfx4W,
   type Song4W,
-} from "@/lib/music/format-4w";
+} from "../_lib";
 
 /** Max request JSON size: 32 KB (songs cap at 8 KB, SFX at 1 KB). */
 const MAX_BODY_BYTES = 32 * 1024;
@@ -22,25 +28,35 @@ function rejected(errors: string[], status = 400) {
   );
 }
 
-function accepted(bytes: number, voices: number, preview: Preview) {
+function accepted(
+  bytes: number,
+  voices: number,
+  preview: Preview,
+  shareUrl: string,
+  data: Song4W | Sfx4W,
+) {
   return NextResponse.json(
-    { ok: true, bytes, voices, preview },
+    { ok: true, bytes, voices, preview, shareUrl, data },
     { headers: { "Cache-Control": "private, no-store" } },
   );
 }
 
 /**
  * POST /api/music/submit — stateless 4W-1 dry-run validator for bots.
- * Accepts { song?, sfx? } (exactly one), validates with the landed
- * lib/music/format-4w guards (fail-closed: bad version/kinds/ranges/counts/
- * byte budgets rejected with per-problem diagnostics), and returns
- * { ok, bytes, voices, preview }.
- *
- * Foundation only (DS-REM-05 precedent): no auth, no DB writes, no
- * persistence. Auth/persistence arrive via a later request.
+ * Accepts { song?, sfx? } (exactly one), validates with the shared
+ * app/api/music/_lib guards (fail-closed: bad version/kinds/ranges/
+ * counts/byte budgets/teen-clean titles rejected with per-problem
+ * diagnostics), canonicalizes, and returns
+ * { ok, bytes, voices, preview, shareUrl, data }.
+ * 400s (413 for oversize, 429 for rate limit), never 500s.
+ * No auth, no DB writes, no persistence.
  */
 export async function POST(req: Request) {
   try {
+    const rl = rateLimit("music-submit:" + clientIp(req), 30);
+    if (!rl.allowed) {
+      return fail("Rate limited. Try again shortly.", 429, rateLimitHeaders(rl));
+    }
     let raw: string;
     try {
       raw = await req.text();
@@ -73,40 +89,48 @@ export async function POST(req: Request) {
     }
 
     if (hasSong) {
-      let check: { ok: boolean; errors: string[] };
+      let check: { ok: boolean; song: Song4W | null; diagnostics: string[] };
       try {
         check = validateSong(rec.song);
       } catch {
         return rejected(["submit: song validation failed"]);
       }
-      if (!check.ok) return rejected(check.errors);
-      const song = rec.song as Song4W;
-      const bytes = songByteSize(song);
-      const voices = song.tracks.filter(
+      if (!check.ok || !check.song) {
+        return rejected(check.diagnostics);
+      }
+      const canonical = canonicalizeSong(check.song);
+      const bytes = sizeOf(canonical);
+      const voices = canonical.tracks.filter(
         (t) => Array.isArray(t.notes) && t.notes.length > 0,
       ).length;
-      return accepted(bytes, voices, {
-        title: song.title,
-        bpm: song.bpm,
-        tracks: song.tracks.length,
-      });
+      return accepted(
+        bytes,
+        voices,
+        { title: canonical.title, bpm: canonical.bpm, tracks: canonical.tracks.length },
+        songShareUrl(canonical),
+        canonical,
+      );
     }
 
-    let check: { ok: boolean; errors: string[] };
+    let check: { ok: boolean; sfx: Sfx4W | null; diagnostics: string[] };
     try {
       check = validateSfx(rec.sfx);
     } catch {
       return rejected(["submit: sfx validation failed"]);
     }
-    if (!check.ok) return rejected(check.errors);
-    const sfx = rec.sfx as Sfx4W;
-    const bytes = sfxByteSize(sfx);
-    return accepted(bytes, sfx.steps.length, {
-      title: sfx.name,
-      kind: sfx.kind,
-      steps: sfx.steps.length,
-    });
+    if (!check.ok || !check.sfx) {
+      return rejected(check.diagnostics);
+    }
+    const canonical = canonicalizeSfx(check.sfx);
+    const bytes = sizeOf(canonical);
+    return accepted(
+      bytes,
+      canonical.steps.length,
+      { title: canonical.name, kind: canonical.kind, steps: canonical.steps.length },
+      sfxShareUrl(canonical),
+      canonical,
+    );
   } catch {
-    return rejected(["submit: internal error"], 500);
+    return rejected(["submit: invalid request"], 400);
   }
 }

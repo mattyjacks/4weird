@@ -143,7 +143,8 @@ export async function POST(req: Request) {
         jar.delete(BOT_TESTER_COOKIE);
         jar.set(FULL_LOGIN_COOKIE, proof, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          // Unconditional: staging/LAN cleartext must never carry the proof.
+          secure: true,
           sameSite: "lax",
           path: "/",
           maxAge: 30 * 24 * 3600,

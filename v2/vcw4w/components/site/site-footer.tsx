@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { SITE_NAV_GROUPS } from "@/lib/site-nav";
 import { FooterThemeSection } from "@/components/site/themes/footer-theme-section";
+import { PLAY_COLUMN } from "@/components/site/footer/links-play";
+import { MAKE_COLUMN } from "@/components/site/footer/links-make";
+import { TECH_COLUMN } from "@/components/site/footer/links-tech";
+import { BIZ_COLUMN } from "@/components/site/footer/links-biz";
+import { ART_COLUMN } from "@/components/site/footer/links-art";
+import { COMMUNITY_COLUMN } from "@/components/site/footer/links-community";
+import { DOCS_COLUMN } from "@/components/site/footer/links-docs";
+import { SERVICES_COLUMN } from "@/components/site/footer/links-services";
+import { GAMES_COLUMN } from "@/components/site/footer/links-games";
 
 const NAV_QUICK_BY_HREF = new Map<string, string>();
 for (const g of SITE_NAV_GROUPS) {
@@ -20,6 +29,7 @@ function quickFor(label: string, href: string): string | undefined {
 import { ClampText } from "@/components/ui/clamp-text";
 import { CompactDetails } from "@/components/ui/compact-details";
 import {
+  BookOpen,
   Clapperboard,
   Coins,
   Cpu,
@@ -29,6 +39,8 @@ import {
   Play,
   Rocket,
   ShieldCheck,
+  Sparkles,
+  Wrench,
 } from "lucide-react";
 
 type FooterLink = { href: string; label: string; blurb?: string };
@@ -39,114 +51,43 @@ type FooterColumn = {
   links: FooterLink[];
 };
 
-const COLUMNS: FooterColumn[] = [
-  {
-    label: "Start Here",
-    icon: <Rocket className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "New here? Home, games, coins, and help — start free.",
-    links: [
-      { href: "/", label: "🏠 Home" },
-      { href: "/games", label: "🎮 All Games" },
-      { href: "/pricing", label: "🪙 Pricing & Coins" },
-      { href: "/auth/sign-up", label: "✨ Sign Up Free" },
-      { href: "/auth/login", label: "🔑 Login" },
-      { href: "/docs/getting-started", label: "🚀 Getting Started" },
-      { href: "/docs/faq", label: "❓ FAQ" },
-    ],
-  },
-  {
-    label: "Play & Compete",
-    icon: <Gamepad2 className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "Play in your browser — buddy, clans, leaderboards.",
-    links: [
-      { href: "/buddy", label: "🐶 Gaming Buddy AI" },
-      { href: "/leaderboards", label: "🏆 Leaderboards" },
-      { href: "/clans", label: "🏰 Clans & Clubs" },
-      { href: "/lobbies", label: "🎪 Game Lobbies" },
-      { href: "/spaceships", label: "🛸 Spaceships" },
-      { href: "/xonotic", label: "🔫 Xonotic Arena" },
-      { href: "/academy", label: "🎓 Academy Lessons" },
-    ],
-  },
-  {
-    label: "Build & Ship",
-    icon: <Clapperboard className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "Ship games, apps, and robot-tested releases.",
-    links: [
-      { href: "/newgameplus", label: "✨ NewGamePlus" },
-      { href: "/submit", label: "🚀 Submit a Game" },
-      { href: "/vault", label: "🗄️ Weird Vault" },
-      { href: "/web-apps", label: "🌐 Web Apps" },
-      { href: "/vibecodeworker", label: "👩🏻‍💻 VibeCodeWorker Hub" },
-      { href: "/vibecodeworker/overview", label: "👩🏻‍💻 Overview" },
-      { href: "/vibecodeworker/hub", label: "🛠️ Workspace Hub" },
-      { href: "/vibecodeworker/run", label: "⚡ Cloud Run" },
-      { href: "/vibecodeworker/full", label: "💻 Full Web Shell" },
-      { href: "/vibecodeworker/phone", label: "📱 Remote Phone" },
-      { href: "/vibecodeworker/demo", label: "▶️ Live Demo" },
-      { href: "/vibecodeworker/docs", label: "📖 Manual" },
-      { href: "/docs/vibecodeworker", label: "🛠️ Guide for Makers" },
-      { href: "https://github.com/mattyjacks/4weird", label: "🐙 GitHub ↗" },
-      { href: "/tech", label: "⚙️ Our Technology" },
-    ],
-  },
-  {
-    label: "Rent Tech 🌐",
-    icon: <Cpu className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "💰 Rent GPUs, desktops & studio tools by the minute — pays creators 75%.",
-    links: [
-      { href: "/agents", label: "👱🏻‍♀️ AI Agents for Hire" },
-      { href: "/runpods", label: "⚡ My RunPods" },
-      { href: "/swarm", label: "🐝 Agent Swarm Chat" },
-      { href: "/desktop", label: "💻 Cloud Desktops" },
-      { href: "/squads", label: "🛡️ Squads for Work" },
-      { href: "/timer", label: "⏱️ Timer & Work Diary" },
-      { href: "/fal", label: "🎨 fal.ai Studio (30 tools)" },
-      { href: "/stock", label: "🖼️ Free Stock (Pexels)" },
-      { href: "/meshy", label: "🧊 Meshy 3D Studio" },
-      { href: "/blender", label: "🎥 Blender Renders" },
-    ],
-  },
-  {
-    label: "Creators Earn 💰",
-    icon: <HeartHandshake className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "💰 Tips, fundraisers & ads — pays creators 75% as on-site credits.",
-    links: [
-      { href: "/support", label: "💛 Support Creators" },
-      { href: "/fundraisers", label: "🎁 Fundraisers" },
-      { href: "/ads", label: "📢 Advertise" },
-      { href: "/docs/support-launches", label: "📖 Docs: Support Launches" },
-      { href: "/docs/agents-compute", label: "📖 Docs: Agents & Compute" },
-    ],
-  },
-  {
-    label: "Trust & You",
-    icon: <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />,
-    tagline: "Your account, privacy, and plain-English docs.",
-    links: [
-      { href: "/account", label: "👑 My Account" },
-      { href: "/my/usage", label: "📊 My Usage" },
-      { href: "/my/rights", label: "⚖️ My Privacy Rights" },
-      { href: "/favorites", label: "⭐ My Favorites", blurb: "Your starred pages, saved on this device." },
-      { href: "/family/login", label: "👨‍👩‍👧‍👦 Family Login" },
-      { href: "/accessibility", label: "♿ Accessibility" },
-      { href: "/terms", label: "📜 Terms of Use" },
-      { href: "/privacy", label: "🔒 Privacy Policy" },
-      { href: "/auth/forgot-password", label: "🔑 Reset Password" },
-      { href: "/docs", label: "📚 Docs Hub" },
-      { href: "/docs/playing-games", label: "🎮 Playing Games" },
-      { href: "/docs/vibe-coins", label: "🪙 Vibe Coins" },
-      { href: "/docs/about", label: "ℹ️ About 4weird" },
-      { href: "/docs/game-ai-buddy", label: "🐶 Game AI Buddy" },
-      { href: "/docs/bots", label: "🤖 Bots Guide" },
-      { href: "/docs/clans", label: "🏰 Clans Guide" },
-      { href: "/docs/explore-more", label: "🗺️ Explore More" },
-      { href: "/docs/privacy-safety", label: "🛡️ Privacy & Safety" },
-      { href: "/bot/setup", label: "🤖 Bot Setup" },
-      { href: "/bot/bclans", label: "🤖 Bot Clans" },
-    ],
-  },
+const COLUMN_ICONS: Record<string, React.ReactNode> = {
+  Rocket: <Rocket className="h-3.5 w-3.5" aria-hidden="true" />,
+  Gamepad2: <Gamepad2 className="h-3.5 w-3.5" aria-hidden="true" />,
+  Clapperboard: <Clapperboard className="h-3.5 w-3.5" aria-hidden="true" />,
+  Cpu: <Cpu className="h-3.5 w-3.5" aria-hidden="true" />,
+  HeartHandshake: <HeartHandshake className="h-3.5 w-3.5" aria-hidden="true" />,
+  ShieldCheck: <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />,
+  Sparkles: <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />,
+  BookOpen: <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />,
+  Wrench: <Wrench className="h-3.5 w-3.5" aria-hidden="true" />,
+};
+
+const DATA_COLUMNS = [
+  PLAY_COLUMN,
+  MAKE_COLUMN,
+  TECH_COLUMN,
+  BIZ_COLUMN,
+  ART_COLUMN,
+  COMMUNITY_COLUMN,
+  DOCS_COLUMN,
+  SERVICES_COLUMN,
+  GAMES_COLUMN,
 ];
+
+// Display-only dedupe: an href rendered in an earlier column is skipped in
+// later columns (first column wins). The data modules are never edited.
+const seenHrefs = new Set<string>();
+const COLUMNS: FooterColumn[] = DATA_COLUMNS.map((col) => ({
+  label: col.label,
+  icon: COLUMN_ICONS[col.icon] ?? COLUMN_ICONS.Sparkles,
+  tagline: col.tagline,
+  links: col.links.filter((link) => {
+    if (seenHrefs.has(link.href)) return false;
+    seenHrefs.add(link.href);
+    return true;
+  }),
+}));
 
 const STATS = [
   { icon: <Gamepad2 className="h-4 w-4" aria-hidden="true" />, title: "35 games", text: "in your browser now" },
@@ -293,7 +234,7 @@ export function SiteFooter() {
         </dl>
 
         {/* ---- Link columns ---- */}
-        <div className="mt-4 grid gap-4 rounded-2xl border border-border bg-card/50 p-4 backdrop-blur sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 dark:border-white/10 dark:bg-white/[0.02]">
+        <div className="mt-4 grid gap-4 rounded-2xl border border-border bg-card/50 p-4 backdrop-blur sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 dark:border-white/10 dark:bg-white/[0.02]">
           {COLUMNS.map((col) => (
             <nav key={col.label} aria-label={`Footer - ${col.label}`} className="min-w-0">
               <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em] text-foreground">

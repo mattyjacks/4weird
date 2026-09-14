@@ -165,7 +165,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
       </ol>
 
       {step === 0 && (
-        <section aria-label="Choose a game" className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+        <section aria-label="Choose a game" className="rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:p-6">
           <h2 className="text-lg font-bold">Which game is this room for?</h2>
           {games.length ? (
             <ul className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -175,7 +175,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
                     type="button"
                     onClick={() => setGame(g.slug)}
                     aria-pressed={game === g.slug}
-                    className={`w-full rounded-xl border px-4 py-3 text-left ${
+                    className={`min-h-[44px] w-full rounded-xl border px-4 py-3 text-left text-base ${
                       game === g.slug ? "border-cyan-300/60 bg-cyan-300/10" : "border-white/15 hover:bg-white/5"
                     }`}
                   >
@@ -192,7 +192,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
               </label>
               <input
                 id="rent-game-slug"
-                className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+                className="mt-2 min-h-[44px] w-full rounded-lg border border-white/15 bg-black/30 px-3 py-3 text-base"
                 value={game}
                 onChange={(e) => setGame(e.target.value)}
                 placeholder="e.g. emberhold"
@@ -203,7 +203,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
       )}
 
       {step === 1 && (
-        <section aria-label="Choose room size" className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+        <section aria-label="Choose room size" className="rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:p-6">
           <h2 className="text-lg font-bold">How many seats?</h2>
           <p className="mt-1 text-sm text-slate-400">Rooms hold 2 to 256 players.</p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -213,7 +213,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
                 type="button"
                 onClick={() => setSize(n)}
                 aria-pressed={size === n}
-                className={`rounded-xl border px-4 py-2 font-bold ${
+                className={`min-h-[44px] min-w-[44px] rounded-xl border px-4 py-3 text-base font-bold ${
                   size === n ? "border-cyan-300/60 bg-cyan-300/10" : "border-white/15 hover:bg-white/5"
                 }`}
               >
@@ -230,7 +230,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
               type="number"
               min={2}
               max={256}
-              className="mt-2 w-40 rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+              className="mt-2 min-h-[44px] w-full rounded-lg border border-white/15 bg-black/30 px-3 py-3 text-base sm:w-40"
               value={size}
               onChange={(e) => setSize(Number(e.target.value))}
             />
@@ -240,7 +240,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
       )}
 
       {step === 2 && (
-        <section aria-label="Choose age band" className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+        <section aria-label="Choose age band" className="rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:p-6">
           <h2 className="text-lg font-bold">Who is this room for?</h2>
           <div className="mt-4 grid gap-2">
             {(Object.keys(BAND_COPY) as ServerAgeBand[]).map((b) => (
@@ -249,7 +249,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
                 type="button"
                 onClick={() => setBand(b)}
                 aria-pressed={band === b}
-                className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left ${
+                className={`flex min-h-[44px] items-center gap-3 rounded-xl border px-4 py-3 text-left text-base ${
                   band === b ? "border-cyan-300/60 bg-cyan-300/10" : "border-white/15 hover:bg-white/5"
                 }`}
               >
@@ -266,14 +266,14 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
       )}
 
       {step === 3 && (
-        <section aria-label="Choose subsidy" className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+        <section aria-label="Choose subsidy" className="rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:p-6">
           <h2 className="text-lg font-bold">Who pays?</h2>
           <div className="mt-4 grid gap-2">
             <button
               type="button"
               onClick={() => setHostFree(true)}
               aria-pressed={hostFree}
-              className={`rounded-xl border px-4 py-3 text-left ${
+              className={`min-h-[44px] w-full rounded-xl border px-4 py-3 text-left text-base ${
                 hostFree ? "border-cyan-300/60 bg-cyan-300/10" : "border-white/15 hover:bg-white/5"
               }`}
             >
@@ -284,7 +284,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
               type="button"
               onClick={() => setHostFree(false)}
               aria-pressed={!hostFree}
-              className={`rounded-xl border px-4 py-3 text-left ${
+              className={`min-h-[44px] w-full rounded-xl border px-4 py-3 text-left text-base ${
                 !hostFree ? "border-cyan-300/60 bg-cyan-300/10" : "border-white/15 hover:bg-white/5"
               }`}
             >
@@ -301,7 +301,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
               type="number"
               min={1}
               max={168}
-              className="mt-2 w-40 rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+              className="mt-2 min-h-[44px] w-full rounded-lg border border-white/15 bg-black/30 px-3 py-3 text-base sm:w-40"
               value={hours}
               onChange={(e) => setHours(Number(e.target.value))}
             />
@@ -311,7 +311,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
       )}
 
       {step === 4 && (
-        <section aria-label="Quote and confirm" className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+        <section aria-label="Quote and confirm" className="rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:p-6">
           <h2 className="text-lg font-bold">Quote + confirm</h2>
           <dl className="mt-3 space-y-1 text-sm text-slate-300">
             <div className="flex gap-2"><dt className="text-slate-500">Game:</dt><dd>{game}</dd></div>
@@ -326,7 +326,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
             </label>
             <input
               id="rent-name"
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+              className="mt-2 min-h-[44px] w-full rounded-lg border border-white/15 bg-black/30 px-3 py-3 text-base"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
               placeholder={`${game} room (${band})`}
@@ -348,11 +348,11 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
               <p className="text-sm text-slate-400">Quote loads when you reach this step.</p>
             )}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               onClick={() => void fetchQuote()}
-              className="rounded-lg border border-white/20 px-4 py-2 font-semibold"
+              className="min-h-[44px] w-full rounded-lg border border-white/20 px-4 py-3 text-base font-semibold sm:w-auto"
             >
               Re-quote
             </button>
@@ -360,7 +360,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
               type="button"
               onClick={() => void confirmRental()}
               disabled={confirmState === "working" || confirmState === "done"}
-              className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50"
+              className="min-h-[48px] w-full rounded-lg bg-cyan-300 px-4 py-3 text-base font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50 sm:w-auto"
             >
               {confirmState === "working" ? "Confirming…" : confirmState === "done" ? "Confirmed" : "Confirm rental"}
             </button>
@@ -376,12 +376,12 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
         </section>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-2">
         {step > 0 && (
           <button
             type="button"
             onClick={() => setStep((s) => Math.max(s - 1, 0))}
-            className="rounded-lg border border-white/20 px-4 py-2 font-semibold"
+            className="min-h-[48px] w-full rounded-lg border border-white/20 px-4 py-3 text-base font-semibold sm:w-auto"
           >
             Back
           </button>
@@ -391,7 +391,7 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
             type="button"
             onClick={next}
             disabled={!canNext}
-            className="rounded-lg bg-cyan-300 px-4 py-2 font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50"
+            className="min-h-[48px] w-full rounded-lg bg-cyan-300 px-4 py-3 text-base font-semibold text-slate-950 hover:bg-cyan-200 disabled:opacity-50 sm:w-auto"
           >
             Continue
           </button>

@@ -82,11 +82,11 @@ const IT_COMMAND: Entry[] = [
   { path: "/work", changeFrequency: "weekly", priority: 0.7 },
 ];
 
-// MMORPG realms: browser + rental + guides (added with the routes;
+// MMO realms: browser + rental + guides (renamed slug; old paths 308 via next.config.ts;
 // verify-sitemap requires every indexable route to be listed).
-const MMORPG: Entry[] = [
-  { path: "/mmorpg", changeFrequency: "daily", priority: 0.8 },
-  { path: "/mmorpg/rent", changeFrequency: "weekly", priority: 0.7 },
+const MMO: Entry[] = [
+  { path: "/mmo", changeFrequency: "daily", priority: 0.8 },
+  { path: "/mmo/rent", changeFrequency: "weekly", priority: 0.7 },
   { path: "/games/servers", changeFrequency: "daily", priority: 0.8 },
   { path: "/games/servers/rent", changeFrequency: "weekly", priority: 0.7 },
 ];
@@ -149,6 +149,7 @@ const MUSIC: Entry[] = [
   { path: "/music", changeFrequency: "weekly", priority: 0.7 },
   { path: "/music/all", changeFrequency: "weekly", priority: 0.6 },
   { path: "/music/maker", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/music/maker/help", changeFrequency: "monthly", priority: 0.6 },
 ];
 
 // Free browser tools hub + every tool.
@@ -172,7 +173,7 @@ const EXPLORE: Entry[] = [
   { path: "/favorites", changeFrequency: "monthly", priority: 0.5 },
   { path: "/academy", changeFrequency: "monthly", priority: 0.7 },
   { path: "/tech", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/spaceships", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/game/spaceships", changeFrequency: "monthly", priority: 0.7 },
   { path: "/web-apps", changeFrequency: "monthly", priority: 0.6 },
   { path: "/luck", changeFrequency: "monthly", priority: 0.5 },
   { path: "/pet", changeFrequency: "monthly", priority: 0.6 },
@@ -230,10 +231,10 @@ const DOCS: Entry[] = [
   { path: "/docs/dps", changeFrequency: "monthly", priority: 0.7 },
   { path: "/docs/dps/donor-guide", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/dps/job-requester", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/mmorpg", changeFrequency: "monthly", priority: 0.7 },
-  { path: "/docs/mmorpg/hosting", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/mmorpg/age-bands", changeFrequency: "monthly", priority: 0.6 },
-  { path: "/docs/mmorpg/dimensions-4d-5d", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmo", changeFrequency: "monthly", priority: 0.7 },
+  { path: "/docs/mmo/hosting", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmo/age-bands", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/mmo/dimensions-4d-5d", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmo/player", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmo/host", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/mmo/safety", changeFrequency: "monthly", priority: 0.6 },
@@ -286,7 +287,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...SUPPORT,
     ...BUSINESS,
     ...IT_COMMAND,
-    ...MMORPG,
+    ...MMO,
     ...COMPLIANCE,
     ...PRODUCT,
     ...COMPUTE,

@@ -1,0 +1,1 @@
+{"from":"DS-MUSF-04:synth:laser","sfx":{"kind":"raygun","name":"Laser Pop","steps":[{"dur":0.12,"freq":1200,"freqEnd":300,"type":"tone","vol":0.5,"wave":"square"}],"v":1},"source":"laser pop square 1200-300"}

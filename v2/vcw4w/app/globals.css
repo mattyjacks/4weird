@@ -926,3 +926,29 @@ html.a11y-reduced-motion .hero-glow::before, html.a11y-reduced-motion .hero-glow
 .fw-fake-fullscreen iframe { width: 100%; height: 100%; border: 0; background: #000; }
 @media (prefers-reduced-motion: reduce) { .perf-frame, .fw-fake-fullscreen { transition: none !important; animation: none !important; } }
 html.a11y-reduced-motion .perf-frame, html.a11y-reduced-motion .fw-fake-fullscreen { transition: none !important; animation: none !important; }
+
+/* ---- DS-MOB-03: viewport + safe-area foundation (additive only) ----
+   Pairs with the root `viewport` export in app/layout.tsx
+   (width=device-width, initial-scale=1, viewport-fit=cover) so every page
+   behaves on phones: content clears notches/home-indicators, full-height
+   sections survive the mobile URL bar, and touch targets meet the 44px
+   minimum. Nothing above is restyled; these are opt-in utilities. */
+/* Safe-area padding helpers: env(safe-area-inset-*) with zero fallback. */
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pl-safe { padding-left: env(safe-area-inset-left, 0px); }
+.pr-safe { padding-right: env(safe-area-inset-right, 0px); }
+.px-safe { padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.py-safe { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.p-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+}
+/* Full-height helper: dvh tracks the mobile URL bar, vh is the fallback
+   for engines without dynamic viewport units. */
+.min-h-screen-dvh { min-height: 100vh; min-height: 100dvh; }
+/* Minimum 44px tap target (WCAG 2.5.8 / Apple HIG): apply to small
+   icon-only buttons/links so the hit area never drops below 44x44 CSS px. */
+.tap-target-min { min-width: 44px; min-height: 44px; }

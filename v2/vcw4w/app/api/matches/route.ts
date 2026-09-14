@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
-import { fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { clientIp, isSlug } from "@/lib/validate";
 import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     p_game: game,
     p_platform: platform,
   });
-  if (error) return fail("Unable to find a match.", 500);
+  if (error) return dbFail("api/matches", error, "Unable to find a match.");
   const row = (Array.isArray(rpcData) ? rpcData[0] : rpcData) as Record<string, unknown> | null;
   return ok({ ...(row ?? {}) });
 }

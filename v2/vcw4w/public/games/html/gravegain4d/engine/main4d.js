@@ -249,6 +249,8 @@
             this.running = false; this.paused = false;
             if (this._raf) cancelAnimationFrame(this._raf);
             this._raf = 0;
+            // Audio stop path (abandon/menu/hub): silence + release nodes.
+            try { if (this.sound && typeof this.sound.stop === 'function') this.sound.stop(); } catch (e) { /* ignore */ }
         } catch (e) { /* ignore */ }
     };
 

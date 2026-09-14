@@ -298,6 +298,28 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
     return fail("Content mismatch; re-upload.", 409);
   }
+  // Integrity: sha256 is content-addressed (dedup, quota, quarantine
+  // evidence), so verify the stored bytes hash to the claimed digest.
+  // Size+mime alone let a 1-byte upload squat another blob's hash.
+  try {
+    const { createHash } = await import("node:crypto");
+    const { data: dl } = await svc.storage.from("game-blobs").download(storagePath);
+    if (dl) {
+      const actualHash = createHash("sha256")
+        .update(Buffer.from(await (dl as Blob).arrayBuffer()))
+        .digest("hex");
+      if (actualHash !== String(r.sha256).toLowerCase()) {
+        if (!r.quarantined) {
+          await svc.storage.from("game-blobs").remove([storagePath]);
+          await svc.from("vault_files").delete().eq("id", id);
+        }
+        return fail("Content mismatch; re-upload.", 409);
+      }
+    }
+  } catch {
+    // Download/hash failures fail open here (storage hiccup, not an attack);
+    // size+mime gates above still hold.
+  }
 
   const quote = quoteVaultStorageSplit(r.bytes);
   if (viaBot) {

@@ -50,10 +50,15 @@
   "opencode": {
     "enabled": false,
     "mode": "cli",
+    "binary": "opencode",
     "model": "",
     "agent": "build",
     "autoApprove": true,
     "timeoutMs": 600000,
-    "serverUrl": "http://127.0.0.1:4096"
+    "serverUrl": "http://127.0.0.1:4096",
+    "serverUsername": "opencode",
+    "serverPassword": "",
+    "workspaceRoot": "",
+    "exportDir": ""
   }
 }

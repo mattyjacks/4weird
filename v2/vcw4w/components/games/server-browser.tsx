@@ -93,15 +93,15 @@ export function ServerBrowser() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <div className="grid gap-4 sm:grid-cols-3">
+      <div className="rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:p-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <span className="block">
             <label className="block text-sm text-slate-400" htmlFor="servers-dimension">
               Dimension
             </label>
             <select
               id="servers-dimension"
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+              className="mt-2 min-h-[44px] w-full rounded-lg border border-white/15 bg-black/30 px-3 py-3 text-base"
               value={dimension}
               onChange={(event) => setDimension(event.target.value as DimensionFilter)}
             >
@@ -124,7 +124,7 @@ export function ServerBrowser() {
             </label>
             <select
               id="servers-band"
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+              className="mt-2 min-h-[44px] w-full rounded-lg border border-white/15 bg-black/30 px-3 py-3 text-base"
               value={band}
               onChange={(event) => setBand(event.target.value as BandFilter)}
             >
@@ -140,7 +140,7 @@ export function ServerBrowser() {
             </label>
             <select
               id="servers-population"
-              className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2"
+              className="mt-2 min-h-[44px] w-full rounded-lg border border-white/15 bg-black/30 px-3 py-3 text-base"
               value={population}
               onChange={(event) => setPopulation(event.target.value as PopulationFilter)}
             >
@@ -152,7 +152,7 @@ export function ServerBrowser() {
         </div>
         <button
           type="button"
-          className="mt-4 rounded-lg border border-white/20 px-4 py-2"
+          className="mt-4 min-h-[44px] w-full rounded-lg border border-white/20 px-4 py-3 text-base font-semibold sm:w-auto"
           onClick={() => load()}
         >
           Refresh

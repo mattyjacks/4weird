@@ -1,0 +1,22 @@
+{
+  "created": "2026-09-13T23:07:58.000Z",
+  "gates": [
+    "npx tsc --noEmit (zero errors mention ai-compose)",
+    "npx eslint lib/music/ai-compose.ts (exit 0)"
+  ],
+  "goal": "NEW lib/music/ai-compose.ts: Pure-AI stochastic composer (wild mode). Seeded PRNG: weighted random walks, Markov-ish pitch transitions, chaos knob (0..1: consonance->dissonance), mutation of an input song, outputs structural song JSON (no imports from other music libs). Must guarantee valid output shape at any chaos level (clamp + validate locally). Pure functions, SSR-safe, ASCII-only. Done when chaos=0/0.5/1 outputs all validate with note counts in log.",
+  "id": "DS-MUSDUB-07",
+  "lane": "web",
+  "log": [
+    "2026-09-13T23:07:58.000Z unassigned: envelope created from template, awaiting claim.",
+    "2026-09-13T23:18:22.382Z musdub-7: claimed; ai-compose.ts verified ABSENT in lib/music; building wild-mode composer.",
+    "2026-09-13T23:26:56.674Z musdub-7: DONE. NEW lib/music/ai-compose.ts (493 lines, ASCII-only, zero imports). Gates: tsc zero errors mentioning ai-compose (full tsc clean); eslint exit 0; chaos=0 ok notes=42 bytes=1489 / chaos=0.5 ok notes=45 bytes=1636 / chaos=1 ok notes=47 bytes=1706; mutate ok notes=47."
+  ],
+  "owner": "musdub-7",
+  "scope": [
+    "v2/vcw4w/lib/music/ai-compose.ts"
+  ],
+  "status": "done",
+  "title": "Pure-AI composer (wild mode)",
+  "updated": "2026-09-13T23:26:56.674Z"
+}

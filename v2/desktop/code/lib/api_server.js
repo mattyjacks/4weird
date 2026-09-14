@@ -258,10 +258,10 @@ class LocalAPIServer {
           const rootDir = path.join(__dirname, '..');
           await handleApiRequest(this, req, res, pathname, parsedUrl, readBody, sendJSON, sendText, rootDir);
         } catch (err) {
-          const prod = process.env.NODE_ENV === 'production';
-          sendJSON(500, prod
-            ? { success: false, error: err && err.message ? String(err.message).slice(0, 500) : 'Internal error' }
-            : { success: false, error: err.message, stack: String(err.stack || '').slice(0, 2000) });
+          // Never serialize internals to the caller: log server-side, return
+          // a generic error (the port may be reachable off-localhost).
+          try { console.error('[LocalAPIServer] request failed:', err); } catch (_) {}
+          sendJSON(500, { success: false, error: 'Internal error' });
         }
       });
 

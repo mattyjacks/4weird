@@ -1,0 +1,24 @@
+{
+    "created":  "2026-09-13T14:00:00Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint components/games/server-browser.tsx components/games/server-rent-form.tsx components/games/server-card.tsx"
+              ],
+    "goal":  "components/games/server-browser.tsx + server-rent-form.tsx + server-card.tsx: filters stack at 360px, cards never truncate CTA buttons, rent 5-step form one-column with big inputs.",
+    "id":  "DS-MOB-05",
+    "lane":  "web",
+    "log":  [
+                "2026-09-13T14:00:00Z lead: envelope created, awaiting claim.",
+                "2026-09-13T15:00:00Z mob-5: claimed DS-MOB-05 (server browser + rent-a-room mobile); newest 5 MEMORY bullets read (mvaf-lead, music-integrator, music-lead, mus-1130-lead, mus-converge-lead).",
+                "2026-09-13T15:20:00Z mob-5: DONE - 360px-first lobby landed (class-only, 32+/32- lines across 3 scope files; copy/validation/fail-open + POST /api/mmorpg/servers confirm shape preserved). Browser: grid-cols-1 filters, min-h-44px text-base selects, full-width Refresh. Card: flex-col stack, Details/Join/Full full-width min-h-44px whitespace-nowrap. Rent: p-4 sections, min-h-44px text-base inputs (no iOS zoom), full-width quote/Back/Continue min-h-48px step buttons. Gates from v2/vcw4w: npx tsc --noEmit clean (no output), npx eslint 3 files exit 0."
+            ],
+    "owner":  "mob-5",
+    "scope":  [
+                  "v2/vcw4w/components/games/server-browser.tsx",
+                  "v2/vcw4w/components/games/server-rent-form.tsx",
+                  "v2/vcw4w/components/games/server-card.tsx"
+              ],
+    "status":  "done",
+    "title":  "Servers + rent flows on phones",
+    "updated":  "2026-09-13T15:00:00Z"
+}

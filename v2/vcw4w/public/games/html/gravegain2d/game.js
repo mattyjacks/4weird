@@ -1003,7 +1003,23 @@
         constructor() {
             this.ctx = null;
             this.masterVolume = 0.8;
-            this.muted = false; // M key toggles; play()/speak stay silent while muted
+            this._muted = false; // M key toggles; play()/speak stay silent while muted
+            // Live mute: assigning audio.muted = true cancels any in-flight
+            // speechSynthesis utterance immediately. One-shot SFX need no
+            // teardown (play() already guards on this.muted at entry), but
+            // TTS outlives the mute keypress without this hook.
+            Object.defineProperty(this, 'muted', {
+                get: function () { return this._muted; },
+                set: function (v) {
+                    this._muted = !!v;
+                    if (this._muted) {
+                        try {
+                            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                        } catch (e) { /* garnish */ }
+                    }
+                },
+                configurable: true
+            });
         }
         initCtx() {
             if (!this.ctx) {
@@ -1063,6 +1079,9 @@
         speakFallback(text) {
             if (this.muted) return;
             if ('speechSynthesis' in window) {
+                // Never queue over a previous line: cut any in-flight
+                // utterance so TTS can't talk over the game.
+                try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.volume = this.masterVolume;
                 window.speechSynthesis.speak(utterance);

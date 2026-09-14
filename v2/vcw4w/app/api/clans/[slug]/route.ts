@@ -220,24 +220,30 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
       myXp = 0;
     }
   }
-  const leadersRaw = (leaders ?? {}) as { leaders?: unknown };
+  const leadersRaw = (leaders ?? {}) as { leaders?: unknown } | null;
+  // Anonymous readers get the public page only: no owner id, no roster ids,
+  // no wallet balance, no cost ledger. (Signed-in non-members keep the same
+  // public view; member-only detail stays behind membership RPCs.)
+  const isAnon = !auth?.user;
+  const publicClan = { ...(clan as Record<string, unknown>) };
+  if (isAnon) delete publicClan.owner_id;
   const payload = {
-    clan,
+    clan: publicClan,
     posts,
     sort,
     flair: flairFilter,
     board: boardFilter,
     myPostVotes,
     memberCount: Number(row.member_count) || members.length,
-    members,
-    wallet: wallet ?? { balance: 0 },
+    members: isAnon ? [] : members,
+    wallet: isAnon ? { balance: 0 } : (wallet ?? { balance: 0 }),
     bots: bots ?? [],
     channels: channels ?? [],
     chatChannels,
     clanRoles,
     minuteRate,
-    ledger: ledger ?? [],
-    leaders: Array.isArray(leadersRaw.leaders) ? leadersRaw.leaders : [],
+    ledger: isAnon ? [] : (ledger ?? []),
+    leaders: Array.isArray((leadersRaw ?? {}).leaders) ? (leadersRaw as { leaders: unknown }).leaders : [],
     myXp,
   };
   // Bandwidth accounting: meter the bytes this response serves (best-effort).

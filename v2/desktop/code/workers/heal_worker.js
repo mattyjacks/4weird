@@ -18,6 +18,11 @@
 
 const { spawn } = require('child_process');
 
+let healBudget = null;
+try {
+  healBudget = require('../lib/heal_budget');
+} catch (e) { healBudget = null; }
+
 let smartlog = null;
 try {
   const sl = require('../lib/smart_log');
@@ -114,4 +119,131 @@ if (require.main === module) {
   });
 }
 
-module.exports = { parseArgs, runLocal };
+/**
+ * runHealLoopWithBudget — budget-aware heal loop (lib/heal_budget.js).
+ *
+ * Repeats `testRunner` (+ optional `fixRunner`) until the tests pass, the
+ * iteration budget is spent, or the TOKEN budget trips. A tripped token
+ * budget stops the run with verdict 'budget_exhausted' — never another fix.
+ *
+ * Each step result may carry token usage for accounting:
+ *   { exitCode, output, usage: { inputTokens, outputTokens } }
+ * or plain `{ exitCode, output }` (output tokens estimated at 4 chars/token).
+ *
+ * @param {object} opts
+ * @param {function} opts.testRunner - async ({ iteration, run }) => step result
+ * @param {function} [opts.fixRunner] - async ({ iteration, run, testResult }) => step result
+ * @param {number} [opts.maxIterations=3]
+ * @param {number} [opts.maxTokens] - token cap (null = unlimited)
+ * @param {number} [opts.maxSpendUSD] - spend cap in USD (null = unlimited)
+ * @param {string} [opts.model='gpt-4o-mini'] - model id priced via lib/pricing.js
+ * @param {object} [opts.brain] - optional brain ({ dataDir }) for persistent logging
+ * @returns {Promise<object>} run { status, verdict, iteration, history, budget, stopReason }
+ */
+async function runHealLoopWithBudget({
+  testRunner,
+  fixRunner = null,
+  maxIterations = 3,
+  maxTokens = null,
+  maxSpendUSD = null,
+  model = 'gpt-4o-mini',
+  brain = null,
+} = {}) {
+  if (typeof testRunner !== 'function') {
+    throw new Error('heal_worker: runHealLoopWithBudget needs a testRunner function.');
+  }
+  const budget = healBudget
+    ? healBudget.createHealBudget({ maxTokens, maxSpendUSD, model, brain })
+    : null;
+  const run = {
+    status: 'running',
+    verdict: null,
+    iteration: 0,
+    maxIterations,
+    history: [],
+    budget: budget ? healBudget.summarizeBudget(budget) : null,
+    stopReason: null,
+  };
+  const fail = (verdict, reason) => {
+    run.status = verdict;
+    run.verdict = verdict;
+    run.stopReason = reason;
+  };
+
+  while (run.iteration < maxIterations) {
+    if (budget) {
+      const pre = healBudget.shouldStop(budget);
+      if (pre.stop) {
+        fail('budget_exhausted', pre.reason);
+        break;
+      }
+    }
+    run.iteration++;
+    const iter = { iteration: run.iteration, startedAt: new Date().toISOString() };
+
+    iter.testPhase = await testRunner({ iteration: run.iteration, run });
+    iter.testPhase = iter.testPhase || { exitCode: -1, output: 'empty test result' };
+    if (budget) {
+      const rec = healBudget.recordIteration(budget, {
+        iteration: run.iteration,
+        inputTokens: iter.testPhase.usage && iter.testPhase.usage.inputTokens,
+        outputTokens: iter.testPhase.usage && iter.testPhase.usage.outputTokens,
+        inputChars: iter.testPhase.usage && iter.testPhase.usage.inputChars,
+        outputChars: iter.testPhase.usage && iter.testPhase.usage.outputChars,
+        output: iter.testPhase.output,
+      });
+      iter.budgetLine = rec.ledgerLine;
+      console.log(rec.ledgerLine);
+      try { if (smartlog) smartlog.log('info', 'heal', rec.ledgerLine); } catch (e) {}
+    }
+    run.history.push(iter);
+    if (iter.testPhase.exitCode === 0) {
+      fail('healed', `tests passed on iteration ${run.iteration}`);
+      break;
+    }
+    if (budget) {
+      const post = healBudget.shouldStop(budget);
+      if (post.stop) {
+        fail('budget_exhausted', post.reason);
+        break;
+      }
+    }
+
+    if (typeof fixRunner === 'function') {
+      iter.fixPhase = await fixRunner({ iteration: run.iteration, run, testResult: iter.testPhase });
+      iter.fixPhase = iter.fixPhase || { success: false, error: 'empty fix result' };
+      if (budget && iter.fixPhase.usage) {
+        const rec = healBudget.recordIteration(budget, {
+          iteration: run.iteration,
+          inputTokens: iter.fixPhase.usage.inputTokens,
+          outputTokens: iter.fixPhase.usage.outputTokens,
+          inputChars: iter.fixPhase.usage.inputChars,
+          outputChars: iter.fixPhase.usage.outputChars,
+          output: iter.fixPhase.summary || iter.fixPhase.output,
+        });
+        iter.budgetLineFix = rec.ledgerLine;
+        console.log(rec.ledgerLine);
+      }
+      if (budget) {
+        const postFix = healBudget.shouldStop(budget);
+        if (postFix.stop) {
+          fail('budget_exhausted', postFix.reason);
+          break;
+        }
+      }
+      if (!iter.fixPhase.success) {
+        fail('fix_failed', iter.fixPhase.error || `fixer failed on iteration ${run.iteration}`);
+        break;
+      }
+    }
+    iter.finishedAt = new Date().toISOString();
+  }
+  if (run.status === 'running') {
+    fail('iterations_exhausted', `maxIterations=${maxIterations} reached with tests still failing`);
+  }
+  if (budget) run.budget = healBudget.summarizeBudget(budget);
+  run.finishedAt = new Date().toISOString();
+  return run;
+}
+
+module.exports = { parseArgs, runLocal, runHealLoopWithBudget };

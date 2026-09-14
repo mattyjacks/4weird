@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
@@ -78,5 +79,22 @@ export async function POST(request: Request) {
   } else if (!allowedPackVariants().includes(variantId)) {
     return fail("This coin pack is not available.", 400);
   }
-  return ok({ url: `https://${store}/cart/${encodeURIComponent(variantId)}:${qty}` });
+  // Sign the cart: the URL is client-editable, so the minter (HMAC webhook /
+  // shopify-coins edge) must re-validate sku+qty and this signature instead
+  // of trusting the URL bar (custom MIN 500, packs qty 1).
+  let sig = "";
+  try {
+    const secret = String(process.env.SHOPIFY_CART_SECRET ?? "");
+    if (secret) {
+      sig = createHmac("sha256", secret)
+        .update(`${variantId}:${qty}:${data.user.id}`)
+        .digest("hex")
+        .slice(0, 32);
+    }
+  } catch {
+    sig = "";
+  }
+  const ref = encodeURIComponent(data.user.id);
+  const sigPart = sig ? `?ref=${ref}&sig=${sig}` : `?ref=${ref}`;
+  return ok({ url: `https://${store}/cart/${encodeURIComponent(variantId)}:${qty}${sigPart}` });
 }

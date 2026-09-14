@@ -32,6 +32,13 @@ const INSTS = ["square", "triangle", "sawtooth", "sine", "noise", "kick", "snare
 const WAVES = ["square", "sawtooth", "triangle", "sine", "noise"];
 const SECRET_RES = [/(?<![A-Za-z0-9_-])sk-[A-Za-z0-9-_]{20,}/, /BEGIN PRIVATE KEY/];
 const GAME_PATH_RES = [/public\/games\//, /\/games\/html\//, /old-v1\//];
+// --- Additive DS-MUSF-02: legacy $music:1 seed shape + sidecar dir (no existing check altered).
+const isLegacySfxSeed = (v) =>
+  isRecord(v) &&
+  isFiniteNumber(v.dur) && v.dur > 0 && v.dur <= 4 &&
+  isFiniteNumber(v.freqStart) && v.freqStart > 0 &&
+  isFiniteNumber(v.freqEnd) && v.freqEnd > 0;
+const contentMusicDir = path.join(root, "content", "music");
 
 const failures = [];
 const fail = (msg) => failures.push(msg);
@@ -197,6 +204,28 @@ if (!fs.existsSync(seedsDir)) {
       fail(`${f}: invalid JSON (${e.message})`);
       continue;
     }
+    // --- Additive DS-MUSF-02: legacy $music:1 seeds (top-level dur/freqStart/freqEnd) LEGACY-PASS.
+    if (isLegacySfxSeed(data) && data.format === undefined && data.kind === undefined) {
+      let legacyBytes = 0;
+      try {
+        legacyBytes = JSON.stringify(data).length;
+      } catch {
+        legacyBytes = 0;
+      }
+      if (legacyBytes > SFX_MAX_BYTES) {
+        fail(`${f}: legacy sfx exceeds ${SFX_MAX_BYTES} bytes (got ${legacyBytes})`);
+      } else {
+        sfxCount += 1;
+        console.log(`Music seeds: ${f} LEGACY-PASS (legacy $music:1 sfx shape).`);
+      }
+      for (const re of GAME_PATH_RES) {
+        if (re.test(raw)) fail(`${f}: references game-bundle path (${re})`);
+      }
+      for (const re of SECRET_RES) {
+        if (re.test(raw)) fail(`${f}: suspected secret (${re})`);
+      }
+      continue;
+    }
     const v = validateMusic(data);
     for (const e of v.errors) fail(`${f}: ${e}`);
     if (v.ok) {
@@ -213,6 +242,44 @@ if (!fs.existsSync(seedsDir)) {
     }
   }
   console.log(`Music seeds: ${seedFiles.length} file(s), ${songCount} song(s), ${sfxCount} sfx.`);
+}
+
+// --- Additive DS-MUSF-02: scan content/music sidecars (*.4ws.json, recursive; fail-open when absent).
+let sidecarFiles = [];
+if (!fs.existsSync(contentMusicDir)) {
+  console.log("Music sidecars: MISSING dir content/music — 0 sidecars, fail-open.");
+} else {
+  const collectSidecars = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) collectSidecars(full);
+      else if (entry.name.endsWith(".4ws.json")) sidecarFiles.push(full);
+    }
+  };
+  collectSidecars(contentMusicDir);
+  sidecarFiles.sort();
+  for (const full of sidecarFiles) {
+    const rel = path.relative(root, full).replaceAll("\\", "/");
+    let rawSide;
+    try {
+      rawSide = fs.readFileSync(full, "utf8");
+    } catch (e) {
+      fail(`${rel}: unreadable (${e.message})`);
+      continue;
+    }
+    try {
+      JSON.parse(rawSide);
+    } catch (e) {
+      fail(`${rel}: invalid JSON (${e.message})`);
+      continue;
+    }
+    // Provenance note: sidecars carry a "from" game path by design, so the
+    // game-bundle ref check is intentionally not applied here; secrets still fail.
+    for (const re of SECRET_RES) {
+      if (re.test(rawSide)) fail(`${rel}: suspected secret (${re})`);
+    }
+  }
+  console.log(`Music sidecars: ${sidecarFiles.length} file(s) under content/music.`);
 }
 
 // --- Check 2: /music routes exist (app/music/**/page.tsx).

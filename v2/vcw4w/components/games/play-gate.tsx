@@ -86,7 +86,7 @@ async function fetchWithTimeout(path: string, init: RequestInit, ms = 12000): Pr
   }
 }
 
-const MATCH_ID_PATTERN = /^[0-9a-f-]{36}$/i;
+const MATCH_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Append a lobby ?match=<uuid> to a runtime src without dropping existing
@@ -861,21 +861,21 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {!kidsOn && !guestBlock && (
-            <Link href="/account#age-band" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+            <Link href="/account#age-band" className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200">
               Open Account settings
             </Link>
           )}
           {guestBlock && !kidsOn && (
             <>
-              <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+              <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200">
                 Sign up free - 100 coins
               </Link>
-              <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+              <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
                 Log in
               </Link>
             </>
           )}
-          <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+          <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
             Browse kid-friendly games
           </Link>
         </div>
@@ -924,10 +924,10 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
         <div className="mt-4 flex flex-wrap gap-2">
           {guestBand ? (
             <>
-              <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+              <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200">
                 Sign up free - 100 coins
               </Link>
-              <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+              <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
                 Log in
               </Link>
             </>
@@ -939,16 +939,16 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
                   setAge("unknown");
                   setResolveNonce((n) => n + 1);
                 }}
-                className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200"
+                className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200"
               >
                 Recheck my band
               </button>
-              <Link href="/account#age-band" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+              <Link href="/account#age-band" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
                 Open Account settings
               </Link>
             </>
           )}
-          <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+          <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
             Browse games
           </Link>
         </div>
@@ -972,7 +972,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           <p className="text-lg font-black text-white">{copy.head}</p>
           <p className="mt-2 text-sm text-slate-300">{copy.body}</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+            <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200">
               Browse your games
             </Link>
           </div>
@@ -1010,7 +1010,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
               type="button"
               onClick={() => setEntered(true)}
               autoFocus
-              className="mt-6 inline-flex items-center justify-center rounded-full bg-cyan-300 px-10 py-3.5 text-lg font-black text-slate-950 transition hover:bg-cyan-200"
+              className="mt-6 inline-flex min-h-[44px] touch-manipulation items-center justify-center rounded-full bg-cyan-300 px-10 py-3.5 text-lg font-black text-slate-950 transition hover:bg-cyan-200"
             >
               ▶ Start Game
             </button>
@@ -1044,7 +1044,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
                     setCheckTimedOut(false);
                     setResolveNonce((n) => n + 1);
                   }}
-                  className="mt-2 rounded-full bg-cyan-300 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-200"
+                  className="mt-2 inline-flex min-h-[44px] items-center justify-center rounded-full bg-cyan-300 px-5 py-2 text-sm font-bold text-slate-950 hover:bg-cyan-200"
                 >
                   Retry check
                 </button>
@@ -1075,10 +1075,10 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           />
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+          <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200">
             Sign up; get 100 free coins
           </Link>
-          <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+          <Link href="/auth/login" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
             Log in
           </Link>
         </div>
@@ -1133,7 +1133,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           )}
           <div className="mt-4 flex flex-wrap gap-2">
             {kidBlock ? (
-              <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+              <Link href="/games" className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200">
                 Browse your games
               </Link>
             ) : bandDenied ? (
@@ -1141,23 +1141,23 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
                 <button
                   type="button"
                   onClick={recheckBandNow}
-                  className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200"
+                  className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200"
                 >
                   Recheck my band
                 </button>
-                <Link href="/account#age-band" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+                <Link href="/account#age-band" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
                   Open Account settings
                 </Link>
-                <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+                <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
                   Browse games
                 </Link>
               </>
             ) : (
               <>
-                <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+                <Link href="/auth/sign-up" className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200">
                   Sign up free - 100 coins
                 </Link>
-                <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+                <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
                   Browse games
                 </Link>
               </>
@@ -1180,10 +1180,10 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
               : `${gate.message} Claim your daily bonus, grab a pack, or invite a friend (25/25).`}
           </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/pricing" className="rounded-full bg-cyan-300 px-5 py-2.5 text-sm font-bold text-slate-950 hover:bg-cyan-200">
+          <Link href="/pricing" className="rounded-full bg-cyan-300 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-bold text-slate-950 hover:bg-cyan-200">
             Get coins - 100 = $1.00
           </Link>
-          <Link href="/account" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">
+          <Link href="/account" className="rounded-full border border-white/20 px-5 py-2.5 min-h-[44px] inline-flex items-center justify-center text-sm font-semibold hover:bg-white/10">
             Claim daily bonus
           </Link>
         </div>
@@ -1214,7 +1214,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           players never scroll past setup copy to reach play. */}
       <div
         id="game-frame"
-        className="overscroll-contain has-[.fixed]:overflow-visible"
+        className="overscroll-contain has-[.fixed]:overflow-visible scroll-mt-20"
       >
         <div className="w-full">
           <GameRuntimeFrame slug={slug} title={title} src={frameSrc} />
@@ -1253,7 +1253,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
             The game keeps running either way; confirm metering should continue, or just close the tab.
           </p>
           <button
-            className="mt-2 rounded-full bg-amber-300 px-4 py-1.5 font-bold text-slate-950 hover:bg-amber-200"
+            className="mt-2 inline-flex min-h-[44px] items-center justify-center rounded-full bg-amber-300 px-4 py-1.5 font-bold text-slate-950 hover:bg-amber-200"
             onClick={() => setStillAcks((n) => n + 1)}
           >
             Yes, still playing; keep metering

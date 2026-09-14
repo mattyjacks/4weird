@@ -90,6 +90,18 @@ export default function FridgeSavesPage() {
         <li><strong className="text-foreground">You cannot delete your way out:</strong> save deletes are refused, so a branded slot cannot be laundered by recreating it. Pick the slot before you play.</li>
       </ul>
 
+      <SectionHead
+        index="3"
+        kicker="Dual-save"
+        title="Manual + load-only autosave per slot"
+        body="Each slot 0-3 holds a manual save (Save + Load) plus its autosave companion (Load-only backup). Autosave writes the auto companion of the active slot every minute — a safety net if the manual copy corrupts."
+      />
+      <ul className="mt-5 list-disc space-y-2 pl-6 text-sm leading-relaxed text-muted-foreground">
+        <li><strong className="text-foreground">Active-slot rule:</strong> the autosave companion belongs to the slot you are playing, so bouncing phone → desktop → phone keeps both copies per slot.</li>
+        <li><strong className="text-foreground">Kind + device key:</strong> cloud <code>?kind=manual|auto</code> (omitted = both), PUT defaults to manual; the device auto mirror uses the <code>-auto</code> suffix.</li>
+        <li><strong className="text-foreground">Corrupt-manual recovery:</strong> if a manual copy fails to load, Load-autosave restores the same slot&apos;s auto companion — same day counter, same fridges, one minute older at most.</li>
+      </ul>
+
       <Callout tone="cyan" title="Reviewer path: prove the resume in two minutes.">
         Sign in on a phone-sized window, play Fridge Simulator into slot 2, then sign in with the same account in a desktop
         window and load game <code>fridgesimulator</code>, slot 2. Same day counter, same fridges, same budgets — that is the whole feature.

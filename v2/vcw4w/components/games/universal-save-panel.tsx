@@ -16,12 +16,16 @@ export type UniversalSavePanelProps = {
   autosaveIntervalMs?: number;
 };
 
-function slotUrl(slug: string, slot: number): string {
-  return `/api/saves?game=${encodeURIComponent(slug)}&slot=${slot}`;
+function slotUrl(slug: string, slot: number, kind: "manual" | "auto"): string {
+  return `/api/saves?game=${encodeURIComponent(slug)}&slot=${slot}&kind=${kind}`;
 }
 
 function localKey(slug: string, slot: number): string {
   return `save:${slug}:slot:${slot}`;
+}
+
+function autoLocalKey(slug: string, slot: number): string {
+  return `save:${slug}:slot:${slot}:auto`;
 }
 
 function readLocal(slug: string, slot: number): unknown {
@@ -37,6 +41,24 @@ function readLocal(slug: string, slot: number): unknown {
 function writeLocal(slug: string, slot: number, snapshot: unknown): void {
   try {
     window.localStorage.setItem(localKey(slug, slot), JSON.stringify(snapshot));
+  } catch {
+    // Fail open: private-mode/quota errors must never break the game.
+  }
+}
+
+function readLocalAuto(slug: string, slot: number): unknown {
+  try {
+    const raw = window.localStorage.getItem(autoLocalKey(slug, slot));
+    if (!raw) return undefined;
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeLocalAuto(slug: string, slot: number, snapshot: unknown): void {
+  try {
+    window.localStorage.setItem(autoLocalKey(slug, slot), JSON.stringify(snapshot));
   } catch {
     // Fail open: private-mode/quota errors must never break the game.
   }
@@ -91,6 +113,9 @@ export function UniversalSavePanel({
   const [autosaveEnabled, setAutosaveEnabled] = useState<boolean>(autosave);
   const autoLoaded = useRef<string | null>(null);
   const busyRef = useRef<number | null>(null);
+  // Last manually saved/loaded slot (default 0). The autosave tick writes
+  // the auto companion of this slot — never hardcoded slot 0.
+  const activeSlotRef = useRef<number>(0);
 
   useEffect(() => {
     busyRef.current = busySlot;
@@ -115,11 +140,12 @@ export function UniversalSavePanel({
 
   const loadSlot = useCallback(
     async (slot: number, opts?: { silentEmpty?: boolean }) => {
+      activeSlotRef.current = slot;
       setBusySlot(slot);
       if (!opts?.silentEmpty) setStatus(`Loading slot ${slot}…`);
-      // Cloud first; any failure falls through to the device copy.
+      // Cloud manual first; any failure falls through to the device copy.
       try {
-        const res = await fetch(slotUrl(slug, slot), { credentials: "include" });
+        const res = await fetch(slotUrl(slug, slot, "manual"), { credentials: "include" });
         if (res.ok) {
           const body: unknown = await res.json().catch(() => null);
           const snap = firstCloudSnapshot(body);
@@ -156,9 +182,53 @@ export function UniversalSavePanel({
     [apply, slug],
   );
 
+  const loadSlotAuto = useCallback(
+    async (slot: number) => {
+      setBusySlot(slot);
+      setStatus(`Loading slot ${slot} autosave…`);
+      // Cloud auto (GET kind=auto only); any failure falls through to the local auto copy.
+      try {
+        const res = await fetch(slotUrl(slug, slot, "auto"), { credentials: "include" });
+        if (res.ok) {
+          const body: unknown = await res.json().catch(() => null);
+          const snap = firstCloudSnapshot(body);
+          if (snap.found) {
+            try {
+              apply(snap.data, slot);
+              writeLocalAuto(slug, slot, snap.data);
+              setStatus(`Slot ${slot} autosave loaded from the cloud.`);
+            } catch {
+              setStatus(`Slot ${slot}: autosave from the cloud could not be applied to the game.`);
+            }
+            setBusySlot(null);
+            return true;
+          }
+        }
+      } catch {
+        // Offline / unreachable — fall through to localStorage below.
+      }
+      const local = readLocalAuto(slug, slot);
+      if (local !== undefined) {
+        try {
+          apply(local, slot);
+          setStatus(`Slot ${slot} autosave loaded from this device (cloud empty or unreachable).`);
+        } catch {
+          setStatus(`Slot ${slot}: device autosave could not be applied to the game.`);
+        }
+        setBusySlot(null);
+        return true;
+      }
+      setStatus(`Slot ${slot} autosave is empty — nothing to load yet.`);
+      setBusySlot(null);
+      return false;
+    },
+    [apply, slug],
+  );
+
   const saveSlot = useCallback(
     async (slot: number, opts?: { silent?: boolean }) => {
       const silent = opts?.silent === true;
+      activeSlotRef.current = slot;
       let snapshot: unknown;
       if (getSnapshot) {
         try {
@@ -178,13 +248,14 @@ export function UniversalSavePanel({
       if (!silent) setStatus(`Saving slot ${slot}…`);
       let cloudOk = false;
       try {
-        const res = await fetch(slotUrl(slug, slot), {
+        const res = await fetch(slotUrl(slug, slot, "manual"), {
           method: "PUT",
           credentials: "include",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
             game_slug: slug,
             slot,
+            kind: "manual",
             schema_version: 1,
             data: toSaveData(snapshot ?? null),
           }),
@@ -207,6 +278,43 @@ export function UniversalSavePanel({
     [getSnapshot, slug],
   );
 
+  // Autosave companion (Load-only backup): writes the local auto key plus a
+  // PUT kind=auto. Always silent and fail-open — never throws, never touches
+  // the manual slot, never updates status text.
+  const saveSlotAuto = useCallback(
+    async (slot: number) => {
+      let snapshot: unknown;
+      if (getSnapshot) {
+        try {
+          snapshot = getSnapshot(slot);
+        } catch {
+          return;
+        }
+      } else {
+        snapshot = readLocal(slug, slot);
+        if (snapshot === undefined) return;
+      }
+      try {
+        await fetch(slotUrl(slug, slot, "auto"), {
+          method: "PUT",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            game_slug: slug,
+            slot,
+            kind: "auto",
+            schema_version: 1,
+            data: toSaveData(snapshot ?? null),
+          }),
+        });
+      } catch {
+        // Fail open: cloud errors must never break the game.
+      }
+      writeLocalAuto(slug, slot, snapshot ?? null);
+    },
+    [getSnapshot, slug],
+  );
+
   // Slot 0 auto-loads once via the runtime "ready" handler in
   // game-runtime-frame.tsx (single path, applied pre-interaction). This
   // panel deliberately does NOT auto-load on mount: a second manual-reason
@@ -217,19 +325,20 @@ export function UniversalSavePanel({
     autoLoaded.current = slug;
   }, [slug]);
 
-  // Autosave (default ON): every intervalMs, best-effort silent saveSlot(0).
+  // Autosave (default ON): every intervalMs, best-effort silent saveSlotAuto
+  // for the active slot (last manually saved/loaded slot, default 0).
   // Skips ticks while another save/load is in flight and requires getSnapshot.
-  // The localStorage mirror always lands (saveSlot is fail-open); cloud PUT is fail-open.
+  // The local auto mirror always lands (saveSlotAuto is fail-open); cloud PUT is fail-open.
   useEffect(() => {
     if (!autosaveEnabled || !getSnapshot) return;
     const intervalMs =
       Number.isFinite(autosaveIntervalMs) && autosaveIntervalMs > 0 ? autosaveIntervalMs : 60000;
     const timer = window.setInterval(() => {
       if (busyRef.current !== null) return;
-      void saveSlot(0, { silent: true });
+      void saveSlotAuto(activeSlotRef.current);
     }, intervalMs);
     return () => window.clearInterval(timer);
-  }, [autosaveEnabled, autosaveIntervalMs, getSnapshot, saveSlot]);
+  }, [autosaveEnabled, autosaveIntervalMs, getSnapshot, saveSlotAuto]);
 
   return (
     <section aria-label={`${slug} save slots`}>
@@ -273,6 +382,17 @@ export function UniversalSavePanel({
                 }}
               >
                 {busy ? "Loading…" : "Load"}
+              </button>
+              <button
+                type="button"
+                style={touchButton}
+                disabled={busySlot !== null}
+                aria-label={`Load autosave from slot ${slot} for ${slug}`}
+                onClick={() => {
+                  void loadSlotAuto(slot);
+                }}
+              >
+                {busy ? "Loading…" : "Load autosave"}
               </button>
             </li>
           );

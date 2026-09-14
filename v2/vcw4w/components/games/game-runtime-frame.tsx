@@ -10,6 +10,7 @@ type RuntimeEvent = {
   type?: string;
   slug?: string;
   slot?: number;
+  kind?: string;
   schema_version?: number;
   data?: unknown;
   message?: string;
@@ -62,6 +63,22 @@ function autosaveMirrorKey(slug: string) {
   return `save:${slug}:slot:0`;
 }
 
+// Per-slot autosave routing: each slot 0-3 has manual + auto (load-only).
+// Manual lives at `save:<slug>:slot:<N>`; the auto companion (written by
+// the 60s timer + routed bridge autosaves, never overwriting manual) lives
+// at `save:<slug>:slot:<N>:auto`.
+function autoCompanionKey(slug: string, slot: number) {
+  return `save:${slug}:slot:${slot}:auto`;
+}
+
+function manualSlotKey(slug: string, slot: number) {
+  return `save:${slug}:slot:${slot}`;
+}
+
+function clampSlot(value: unknown): number {
+  return Number.isInteger(value) && (value as number) >= 0 && (value as number) <= 3 ? (value as number) : 0;
+}
+
 export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: string; src: string }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const shell = useRef<HTMLDivElement>(null);
@@ -75,6 +92,10 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   // full game snapshot). Feeds the universal save panel's manual Save buttons
   // so every game gets slots 0-3 with zero per-game glue.
   const lastSaveData = useRef<unknown>(null);
+  // Active slot for per-slot autosave routing: last bridge manual save slot
+  // or last manual load, default 0. The autosave timer writes the AUTO
+  // companion of this slot, never the manual copy.
+  const activeSlotRef = useRef<number>(0);
   const postToRuntime = useCallback(
     (message: Record<string, unknown>) => {
       frame.current?.contentWindow?.postMessage(message, runtimeOrigin.current ?? originOf(src));
@@ -189,9 +210,20 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     focusGame();
   };
 
+  // Tap-to-focus must not scroll the page away on phones: focusing the
+  // iframe with preventScroll keeps the game viewport stable. Desktop
+  // behavior is unchanged (same focus targets, same order).
   const focusGame = useCallback(() => {
     try {
       frame.current?.contentWindow?.focus();
+    } catch {
+      /* cross-origin window focus unavailable; element focus still applies */
+    }
+    try {
+      const el = frame.current as unknown as (HTMLElement & {
+        focus?: (options?: { preventScroll?: boolean }) => void;
+      }) | null;
+      el?.focus?.({ preventScroll: true });
     } catch {
       try {
         frame.current?.focus();
@@ -312,6 +344,20 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     };
   }, []);
 
+  // CSS-fallback fullscreen (the iOS Safari / denied-native path) must also
+  // lock the page behind the game: without this the viewport-sized shell
+  // still scrolls under a swipe, and there is no browser-chrome exit gesture
+  // (native Esc/controls don't exist for a CSS class). Restores on exit.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (!fakeFullscreen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [fakeFullscreen]);
+
   // "f" toggles fullscreen (desktop); Esc exits the CSS fallback (native
   // fullscreen exits itself). Ignored while typing so chat/inputs keep "f".
   useEffect(() => {
@@ -410,39 +456,113 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         setStatus("");
         frame.current?.contentWindow?.postMessage({ version: 1, type: "host-ready", slug }, origin);
         pushA11y();
-        // Guests have no cloud saves: skip the load entirely (no 401 noise).
-        // A lapsed signed-in session (401) also stays silent — local progress
-        // keeps working; only real backend faults (5xx) warn.
+        // Guests have no cloud saves: fall back to the device copies only
+        // (no 401 noise). A lapsed signed-in session (401) also stays
+        // silent — local progress keeps working; only real backend faults
+        // (5xx) warn. Ready auto-load tries manual slot 0 first, then the
+        // auto slot 0 companion, so a corrupted manual still boots from
+        // autosave.
         void (async () => {
-          if (!(await hasLocalSession())) return;
+          const postLocalFallback = (): boolean => {
+            // Manual slot 0 first.
+            try {
+              const manualRaw = window.localStorage.getItem(manualSlotKey(slug, 0));
+              if (manualRaw) {
+                const parsed: unknown = JSON.parse(manualRaw);
+                if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                  frame.current?.contentWindow?.postMessage({ version: 1, type: "load", slot: 0, schema_version: 1, data: parsed }, origin);
+                  return true;
+                }
+              }
+            } catch {
+              /* corrupted manual falls through to the auto companion */
+            }
+            // Auto slot 0 fallback.
+            try {
+              const autoRaw = window.localStorage.getItem(autoCompanionKey(slug, 0));
+              if (autoRaw) {
+                const parsed: unknown = JSON.parse(autoRaw);
+                if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                  frame.current?.contentWindow?.postMessage({ version: 1, type: "load", slot: 0, schema_version: 1, data: parsed }, origin);
+                  return true;
+                }
+              }
+            } catch {
+              /* no usable autosave; boot fresh */
+            }
+            return false;
+          };
+          const postCloudSave = (save: { slot?: unknown; schema_version?: unknown; data?: unknown } | undefined): boolean => {
+            if (save?.data && typeof save.data === "object" && !Array.isArray(save.data)) {
+              frame.current?.contentWindow?.postMessage({ version: 1, type: "load", slot: save.slot, schema_version: save.schema_version ?? 1, data: save.data }, origin);
+              return true;
+            }
+            return false;
+          };
+          if (!(await hasLocalSession())) { postLocalFallback(); return; }
           let response: Response;
           try {
             response = await fetch(`/api/saves?game=${encodeURIComponent(slug)}&slot=0`, { credentials: "include" });
           } catch {
+            postLocalFallback();
             return;
           }
-          if (response.status === 401) return;
-          if (!response.ok) { setStatus("Cloud save unavailable; playing with local progress."); return; }
+          if (response.status === 401) { postLocalFallback(); return; }
+          if (!response.ok) { setStatus("Cloud save unavailable; playing with local progress."); postLocalFallback(); return; }
           let body: { saves?: unknown } | null = null;
           try {
             body = (await response.json()) as { saves?: unknown };
           } catch {
-            setStatus("Cloud save data was invalid; playing with local progress."); return;
+            setStatus("Cloud save data was invalid; playing with local progress."); postLocalFallback(); return;
           }
-          const save = Array.isArray(body?.saves) ? body.saves[0] as { slot?: unknown; schema_version?: unknown; data?: unknown } | undefined : null;
-          if (body && !Array.isArray(body.saves)) { setStatus("Cloud save data was invalid; playing with local progress."); return; }
-          if (save?.data && typeof save.data === "object" && !Array.isArray(save.data)) frame.current?.contentWindow?.postMessage({ version: 1, type: "load", slot: save.slot, schema_version: save.schema_version ?? 1, data: save.data }, origin);
+          if (body && !Array.isArray(body.saves)) { setStatus("Cloud save data was invalid; playing with local progress."); postLocalFallback(); return; }
+          const savesList = (Array.isArray(body?.saves) ? body.saves : []) as Array<{ slot?: unknown; kind?: unknown; schema_version?: unknown; data?: unknown }>;
+          // Manual slot 0 first, then any auto-kind entry, then any valid entry.
+          const manual = savesList.find((entry) => entry?.data && typeof entry.data === "object" && !Array.isArray(entry.data) && (entry.kind === "manual" || entry.kind === undefined || entry.kind === null));
+          if (postCloudSave(manual)) return;
+          const auto = savesList.find((entry) => entry?.data && typeof entry.data === "object" && !Array.isArray(entry.data));
+          if (postCloudSave(auto)) return;
+          postLocalFallback();
         })();
       } else if (payload.type === "error") {
         setStatus(payload.message || "The game reported a runtime error.");
       } else if (payload.type === "save" && payload.data && typeof payload.data === "object") {
-        const slot = Number.isInteger(payload.slot) && payload.slot! >= 0 && payload.slot! <= 3 ? payload.slot : 0;
+        const slot = clampSlot(payload.slot);
+        const isAutoPost = payload.kind === "auto";
         lastSaveData.current = payload.data;
         lastAutosaveAt.current = Date.now();
-        // Fail-open device mirror for the game-requested save itself, so
-        // slot state survives even before the first 60s timer tick.
+        if (isAutoPost) {
+          // Routed bridge autosave: write the AUTO companion of the ACTIVE
+          // slot, never overwriting manual. Active slot is unchanged.
+          const active = clampSlot(activeSlotRef.current);
+          try {
+            window.localStorage.setItem(autoCompanionKey(slug, active), JSON.stringify(payload.data));
+          } catch {
+            /* private-mode/quota errors must never break the game */
+          }
+          // No session → local progress only; never fire a doomed PUT.
+          void (async () => {
+            if (!(await hasLocalSession())) return;
+            try {
+              const response = await fetch("/api/saves", {
+                method: "PUT",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ game_slug: slug, slot: active, kind: "auto", schema_version: Number.isInteger(payload.schema_version) ? payload.schema_version : 1, data: payload.data }),
+              });
+              if (response.status === 401) return;
+              if (!response.ok) throw new Error("save_failed");
+            } catch {
+              setStatus("Cloud save unavailable; local progress is unchanged.");
+            }
+          })();
+          return;
+        }
+        activeSlotRef.current = slot;
+        // Fail-open device mirror for the game-requested manual save itself,
+        // so slot state survives even before the first 60s timer tick.
         try {
-          window.localStorage.setItem(`save:${slug}:slot:${slot}`, JSON.stringify(payload.data));
+          window.localStorage.setItem(manualSlotKey(slug, slot), JSON.stringify(payload.data));
         } catch {
           /* private-mode/quota errors must never break the game */
         }
@@ -454,7 +574,7 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
               method: "PUT",
               credentials: "include",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ game_slug: slug, slot, schema_version: Number.isInteger(payload.schema_version) ? payload.schema_version : 1, data: payload.data }),
+              body: JSON.stringify({ game_slug: slug, slot, kind: "manual", schema_version: Number.isInteger(payload.schema_version) ? payload.schema_version : 1, data: payload.data }),
             });
             if (response.status === 401) return;
             if (!response.ok) throw new Error("save_failed");
@@ -469,10 +589,10 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   }, [slug, src, pushA11y]);
 
   // Shell-side autosave (DS-AUTOSAVE-02): ON by default. The last bridge
-  // save payload is mirrored to slot 0 every 60s (localStorage always,
-  // cloud PUT when signed in) and on shell request events. No-op until the
-  // runtime has emitted at least one save — never persists empty snapshots.
-  // Cheat-proof: slot 0 stays the auto slot; slots 1-3 remain manual-only.
+  // save payload is mirrored to the AUTO companion of the ACTIVE slot every
+  // 60s (localStorage always, cloud PUT kind auto when signed in) and on
+  // shell request events. No-op until the runtime has emitted at least one
+  // save — never persists empty snapshots. Never overwrites manual.
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(autosaveKey(slug));
@@ -492,20 +612,22 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   const persistAutosaveSnapshot = useCallback(async () => {
     const snapshot = lastSaveData.current;
     if (snapshot === null || snapshot === undefined) return;
+    const active = clampSlot(activeSlotRef.current);
     try {
-      window.localStorage.setItem(autosaveMirrorKey(slug), JSON.stringify(snapshot));
+      window.localStorage.setItem(autoCompanionKey(slug, active), JSON.stringify(snapshot));
     } catch {
       /* fail-open: private-mode/quota errors must never break the game */
     }
     lastAutosaveAt.current = Date.now();
     // No session → local progress only; never fire a doomed PUT.
+    // Fail-open, silent unless cloud down (status warn only on failure).
     if (!(await hasLocalSession())) return;
     try {
       const response = await fetch("/api/saves", {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ game_slug: slug, slot: 0, schema_version: 1, data: snapshot }),
+        body: JSON.stringify({ game_slug: slug, slot: active, kind: "auto", schema_version: 1, data: snapshot }),
       });
       if (response.status === 401) return;
       if (!response.ok) throw new Error("save_failed");
@@ -574,7 +696,8 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   const applyUniversalSnapshot = useCallback(
     (snapshot: unknown, slot: number) => {
       if (snapshot && typeof snapshot === "object" && !Array.isArray(snapshot)) {
-        postToRuntime({ version: 1, type: "load", slot, schema_version: 1, data: snapshot, reason: "manual" });
+        activeSlotRef.current = clampSlot(slot);
+        postToRuntime({ version: 1, type: "load", slot: clampSlot(slot), schema_version: 1, data: snapshot, reason: "manual" });
       }
     },
     [postToRuntime],
@@ -583,26 +706,26 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     <div className="w-full">
       <div ref={shell} className={`perf-frame play-frame-height play-frame-ar relative w-full overflow-hidden rounded-2xl border border-white/15 bg-black${fakeFullscreen ? " fw-fake-fullscreen" : ""}`} onClick={focusGame}>
         {barsOpen ? (
-        <div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1 rounded bg-black/70 p-1.5">
+        <div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1.5 rounded bg-black/70 p-1.5">
           {score !== null && <span role="status" className="px-2 py-1 text-xs text-cyan-200">Score: {score}</span>}
           <span className="hidden px-2 py-1 text-[11px] text-white/60 lg:inline" aria-hidden="true">Press F for fullscreen</span>
-          <button type="button" onClick={focusGame} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline" title="Focus the game so keyboard controls respond">Focus</button>
-          <button type="button" onClick={() => command("pause")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Pause</button>
-          <button type="button" onClick={() => command("resume")} className="hidden rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline">Resume</button>
-          <button type="button" onClick={() => command("fullscreen")} aria-pressed={fullscreenActive} aria-label={fullscreenActive ? "Exit fullscreen" : "Enter fullscreen"} title={fullscreenActive ? "Exit fullscreen (Esc)" : "Enter fullscreen (F)"} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">{fullscreenActive ? "Exit fullscreen" : "Fullscreen"}</button>
-          <a href={src} target="_blank" rel="noopener" className="rounded px-2 py-1 text-xs text-white hover:bg-white/20" title="Open the standalone game window in a new tab">Pop out</a>
-          <button type="button" onClick={() => setShowTouchPad((v) => !v)} aria-pressed={showTouchPad} className="rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:hidden" title="Toggle touch controls">Pad</button>
-          <button type="button" onClick={() => { setBarsOpen(false); focusGame(); }} aria-label="Hide game controls" title="Hide controls" className="rounded px-2 py-1 text-xs text-white hover:bg-white/20">×</button>
+          <button type="button" onClick={focusGame} className="hidden min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline-flex" title="Focus the game so keyboard controls respond">Focus</button>
+          <button type="button" onClick={() => command("pause")} className="hidden min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline-flex">Pause</button>
+          <button type="button" onClick={() => command("resume")} className="hidden min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline-flex">Resume</button>
+          <button type="button" onClick={() => command("fullscreen")} aria-pressed={fullscreenActive} aria-label={fullscreenActive ? "Exit fullscreen" : "Enter fullscreen"} title={fullscreenActive ? "Exit fullscreen (Esc)" : "Enter fullscreen (F)"} className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20">{fullscreenActive ? "Exit fullscreen" : "Fullscreen"}</button>
+          <a href={src} target="_blank" rel="noopener" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20" title="Open the standalone game window in a new tab">Pop out</a>
+          <button type="button" onClick={() => setShowTouchPad((v) => !v)} aria-pressed={showTouchPad} aria-label="Toggle touch controls" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:hidden" title="Toggle touch controls">Pad</button>
+          <button type="button" onClick={() => { setBarsOpen(false); focusGame(); }} aria-label="Hide game controls" title="Hide controls" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20">×</button>
         </div>
         ) : (
-          <button type="button" onClick={() => setBarsOpen(true)} aria-label="Show game controls" title="Show controls" className="absolute right-2 top-2 z-20 rounded bg-black/70 px-2 py-1 text-xs text-white hover:bg-white/20">⋯</button>
+          <button type="button" onClick={() => setBarsOpen(true)} aria-label="Show game controls" title="Show controls" className="absolute right-2 top-2 z-20 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded bg-black/70 px-2 py-1 text-xs text-white hover:bg-white/20">⋯</button>
         )}
-        <p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "pointer-events-none" : "sr-only"}`}>{status}{status ? <button type="button" onClick={() => { if (loadTimer.current) clearTimeout(loadTimer.current); setStatus(""); focusGame(); }} aria-label="Dismiss status message" className="pointer-events-auto ml-2 rounded px-1 text-white hover:bg-white/20">×</button> : null}</p>
+        <p role="status" className={`absolute left-2 top-2 z-20 max-w-[70%] rounded bg-black/70 px-3 py-1 text-xs text-white/80 ${status ? "pointer-events-none" : "sr-only"}`}>{status}{status ? <button type="button" onClick={() => { if (loadTimer.current) clearTimeout(loadTimer.current); setStatus(""); focusGame(); }} aria-label="Dismiss status message" className="pointer-events-auto ml-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-1 text-white hover:bg-white/20">×</button> : null}</p>
         {/* No floating exit pill over the canvas: a bottom-center overlay
             turned normal gameplay clicks (attack/dialog/touch-pad) into
             accidental fullscreen exits, and its auto-focus turned Space/Enter
             into exit clicks. Exit via the toolbar button above, Esc, or F. */}
-        {showTouchPad && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex items-start gap-2">{padButton("A", " ")}{padButton("↻", "r")}<button type="button" onClick={() => setShowTouchPad(false)} aria-label="Hide touch controls" title="Hide touch controls" className="grid h-12 w-12 touch-none place-items-center rounded-full border border-white/20 bg-black/70 text-sm text-white hover:bg-white/20">×</button></div></div>}
+        {showTouchPad && <div role="group" aria-label="Touch controls" className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex items-end justify-between"><div className="pointer-events-auto grid grid-cols-3 gap-1">{padButton("↑", "ArrowUp", "col-start-2")}{padButton("←", "ArrowLeft")}{padButton("↓", "ArrowDown")}{padButton("→", "ArrowRight")}</div><div className="pointer-events-auto flex items-start gap-2">{padButton("A", " ")}{padButton("↻", "r")}<button type="button" onClick={() => setShowTouchPad(false)} aria-label="Hide touch controls" title="Hide touch controls" className="grid h-12 w-12 touch-none place-items-center rounded-full border border-white/20 bg-black/70 text-sm text-white hover:bg-white/20">×</button></div></div>}
         <iframe ref={frame} title={title} src={src} onLoad={handleLoad} onError={() => setStatus("The game could not be loaded. Try the Pop out link to open the standalone runtime.")} className="h-full w-full touch-manipulation border-0 bg-black" allow="autoplay; fullscreen; gamepad" sandbox="allow-forms allow-modals allow-pointer-lock allow-same-origin allow-scripts" />
       </div>
       {/* Save management lives BELOW the game box, never inside it: the

@@ -28,6 +28,9 @@ __pycache__/
 *.enc
 credentials.enc
 credentials.json
+*.credentials.json
+# App user-data dirs (belt + suspenders: named + generic; .env exception !.env.example above)
+user-data/
 # Local DBs
 *.db
 *.db-journal

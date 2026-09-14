@@ -7,6 +7,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
 import { GUEST_FREE_LOADS_PER_DAY, GUEST_MAX_LOADS_PER_DAY } from "@/lib/game-rent";
 import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
+import { getGame } from "@/content/games";
 import { effectiveMinAge, hasContentModes, parseContentMode } from "@/lib/content-modes";
 import { pickHouseAd } from "@/lib/ads";
 
@@ -81,6 +82,11 @@ export async function POST(req: Request) {
   }
   const game = isSlug((body as Record<string, unknown> | null)?.game_slug ?? (body as Record<string, unknown> | null)?.game);
   if (!game) return fail("Invalid game_slug.", 400);
+  // Fail closed: shape-valid but unlisted slugs are rejected before the
+  // rating default (kids), the age gate, quota counting, or ad-token issue.
+  // Catalog (content/games.ts) is the single source of truth, matching the
+  // closed catalog the [slug] page enforces via generateStaticParams/notFound.
+  if (!getGame(game)) return fail("Unknown game.", 404);
 
   // Server-side age-band enforcement for guests (mirrors PlayGate +
   // /api/games/session): guests carry no profile age band, so Adults (18+)

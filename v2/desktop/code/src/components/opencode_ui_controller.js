@@ -262,8 +262,133 @@ function applyOpenCodeSettings(el, settings) {
   } catch (e) { /* defaults stand */ }
 }
 
+// ─── Terminal panel (allow-listed local commands) ─────────────────────
+// Small addition so the dashboard terminal panel can drive the same
+// opencode flows without ever spawning a shell from the renderer.
+// Allow-list: status | heal | export | fix. Everything delegates to the
+// desktop_terminal_controller (fetch -> 127.0.0.1:42069 /api/opencode/*)
+// or falls back to the in-process bridge. Fail-open: when opencode is
+// disabled/unavailable we log a friendly line and return
+// { success:false } instead of throwing, so the panel never breaks the UI.
+
+const TERMINAL_ALLOW_LIST = ['status', 'heal', 'export', 'fix'];
+
+let terminalBackend = null;
+try {
+  if (typeof require === 'function') terminalBackend = require('./desktop_terminal_controller');
+} catch (e) { terminalBackend = null; }
+
+/** Shell-escape untrusted terminal input for safe echo/display. */
+function shellEscapeUserInput(value) {
+  if (terminalBackend && typeof terminalBackend.shellEscapeTerminalInput === 'function') {
+    return terminalBackend.shellEscapeTerminalInput(value);
+  }
+  const s = String(value == null ? '' : value).slice(0, 500).replace(/[\r\n\0]/g, ' ').trim();
+  if (!s) return "''";
+  return "'" + s.replace(/'/g, "'\\''") + "'";
+}
+
+function isAllowedTerminalCommand(cmd) {
+  if (terminalBackend && typeof terminalBackend.isAllowedTerminalCommand === 'function') {
+    return terminalBackend.isAllowedTerminalCommand(cmd);
+  }
+  return TERMINAL_ALLOW_LIST.indexOf(String(cmd || '').toLowerCase()) !== -1;
+}
+
+/** Render terminal output onto the existing dashboard log surface. */
+function renderTerminalLine(cmd, data, logSystemMessage) {
+  if (terminalBackend && typeof terminalBackend.renderTerminalOutput === 'function') {
+    terminalBackend.renderTerminalOutput(cmd, data, logSystemMessage);
+    return;
+  }
+  try {
+    if (typeof logSystemMessage !== 'function') return;
+    if (!data) { logSystemMessage('[' + cmd + '] no response.', 'error'); return; }
+    if (data.disabled) { logSystemMessage('[' + cmd + '] OpenCode is disabled; tick Enable to use it. Nothing ran.', 'warning'); return; }
+    const summary = data.error ? data.error
+      : data.runId ? ('runId=' + data.runId)
+      : data.mdPath ? ((data.bugCount || 0) + ' bug(s) -> ' + data.mdPath)
+      : JSON.stringify(data).slice(0, 4000);
+    logSystemMessage('[' + cmd + '] ' + String(summary).slice(0, 4000), data.success ? 'system' : 'error');
+  } catch (e) { /* log surface must never throw */ }
+}
+
+/**
+ * Run one allow-listed terminal command. Fail-open when opencode is disabled.
+ * Delegates to desktop_terminal_controller (fetch to 127.0.0.1:42069) when
+ * available; otherwise uses the in-process bridge/Tauri path directly.
+ */
+async function runLocalCommand(cmd, options) {
+  const opts = options || {};
+  const logSystemMessage = opts.logSystemMessage;
+  const say = (msg, kind) => { try { if (typeof logSystemMessage === 'function') logSystemMessage(msg, kind || 'system'); } catch (e) {} };
+  const name = String(cmd || '').toLowerCase().trim();
+  if (!isAllowedTerminalCommand(name)) {
+    say("[terminal] refused '" + String(cmd || '').slice(0, 80) + "': allowed: " + TERMINAL_ALLOW_LIST.join(', ') + '.', 'error');
+    return { success: false, error: 'Command not allow-listed. Use: ' + TERMINAL_ALLOW_LIST.join(', ') };
+  }
+  // Prefer the dedicated terminal backend (fetch -> local worker, no shells).
+  if (terminalBackend && typeof terminalBackend.runLocalCommand === 'function') {
+    try {
+      return await terminalBackend.runLocalCommand(name, opts);
+    } catch (e) {
+      say('[terminal] ' + name + ' failed: ' + e.message, 'error');
+      return { success: false, error: e.message };
+    }
+  }
+  // Fallback: same-process bridge path (still no shells from here; the
+  // bridge module owns spawning and only runs when enabled).
+  try {
+    const cfg = bridge ? bridge.getOpenCodeConfig() : { enabled: false };
+    if (!cfg.enabled) {
+      say('[terminal] OpenCode is disabled; tick Enable to use it. Nothing ran.', 'warning');
+      return { success: false, disabled: true, error: 'OpenCode disabled' };
+    }
+    if (opts.args) say('$ ' + name + ' ' + shellEscapeUserInput(opts.args), 'system');
+    else say('$ ' + name, 'system');
+    let data = null;
+    if (name === 'status') data = await refreshStatus({ el: opts.el || {}, logSystemMessage });
+    else if (name === 'export') data = bridge.exportBugReport({ bugs: collectBugs(opts.agentBrain), gameId: deriveGameId(opts.gameId) });
+    else if (name === 'fix') data = await bridge.fixBugs({ bugs: collectBugs(opts.agentBrain), gameId: deriveGameId(opts.gameId) });
+    else if (name === 'heal') data = bridge.startHealCycle({ bugs: collectBugs(opts.agentBrain), gameId: deriveGameId(opts.gameId), testCommand: 'node test_vibecodeworker.js', maxIterations: 3, instance: 'same' });
+    renderTerminalLine(name, data, logSystemMessage);
+    return data || { success: false, error: 'Empty response' };
+  } catch (e) {
+    say('[terminal] ' + name + ' failed: ' + (e && e.message ? e.message : e), 'error');
+    return { success: false, error: String((e && e.message) || e) };
+  }
+}
+
+/** Best-effort wiring for an optional terminal panel (input + run button). */
+function setupTerminalPanelWiring(ctx) {
+  try {
+    if (terminalBackend && typeof terminalBackend.setupTerminalPanel === 'function') {
+      return terminalBackend.setupTerminalPanel(ctx);
+    }
+    const el = (ctx && ctx.el) || {};
+    if (!el.terminalInput || !el.terminalRun) return false;
+    if (el.terminalRun.dataset && el.terminalRun.dataset.terminalWired === '1') return true;
+    el.terminalRun.addEventListener('click', () => {
+      const raw = String(el.terminalInput.value || '').trim();
+      const sp = raw.search(/\s/);
+      const c = sp === -1 ? raw.toLowerCase() : raw.slice(0, sp).toLowerCase();
+      const rest = sp === -1 ? '' : raw.slice(sp + 1).trim();
+      runLocalCommand(c, { args: rest, el, agentBrain: ctx.agentBrain, gameId: ctx.gameId, logSystemMessage: ctx.logSystemMessage });
+    });
+    if (el.terminalRun.dataset) el.terminalRun.dataset.terminalWired = '1';
+    return true;
+  } catch (e) { return false; }
+}
+
 module.exports = {
   setupOpenCodeEventListeners,
   refreshStatus,
   applyOpenCodeSettings,
+  // Terminal panel additions (allow-listed, fail-open, log-surface render):
+  TERMINAL_ALLOW_LIST,
+  shellEscapeUserInput,
+  isAllowedTerminalCommand,
+  renderTerminalLine,
+  runLocalCommand,
+  setupTerminalPanelWiring,
 };

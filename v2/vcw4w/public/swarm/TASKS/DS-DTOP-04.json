@@ -1,0 +1,26 @@
+{
+    "created":  "2026-09-13T14:35:00Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint components/desktop/terminal-attach.tsx"
+              ],
+    "goal":  "NEW v2/vcw4w/components/desktop/terminal-attach.tsx: client component rendering the terminal-to-desktop attach card (pod picker + connect/disconnect + connection status), importable by the terminal page, browser APIs in handlers/effects only, fail-open. Done = component landed, both gates green with output in log, zero edits outside scope.",
+    "id":  "DS-DTOP-04",
+    "lane":  "desktop",
+    "log":  [
+                "2026-09-13T14:35:00Z lead: envelope created, awaiting claim.",
+                "2026-09-13T23:34:06.000Z dtop-4: claimed, starting attach component (10-agent DS-DTOP fan-out, lead dtop-lead)",
+                "2026-09-13T23:35:00Z dtop-04: claimed, starting attach component",
+                "2026-09-13T23:41:34Z dtop-4: building terminal-attach.tsx (target absent, style + Next docs read)",
+                "2026-09-13T23:46:19Z dtop-4: tsc --noEmit clean (zero output, no errors mentioning terminal-attach)",
+                "2026-09-13T23:46:19Z dtop-4: eslint components/desktop/terminal-attach.tsx clean (zero output, exit 0)",
+                "2026-09-13T23:46:19Z dtop-4: DONE v2/vcw4w/components/desktop/terminal-attach.tsx landed (TerminalAttach named + default export); zero edits outside scope"
+            ],
+    "owner":  "dtop-4",
+    "scope":  [
+                  "v2/vcw4w/components/desktop/terminal-attach.tsx"
+              ],
+    "status":  "done",
+    "title":  "Desktop attach component",
+    "updated":  "2026-09-13T23:46:19Z"
+}

@@ -477,11 +477,11 @@ export function keyHasScope(bot: BotIdentity, scope: string): boolean {
 
 function dummyCompare(digest: Buffer): void {
   try {
-    // Burn ~1 KDF so unknown-prefix misses cost roughly like a single
-    // candidate verify (narrows the prefix-existence timing oracle without
-    // burning 100x scrypt like a full bucket scan would).
+    // Burn one full-cost KDF so unknown-prefix misses cost like a single
+    // candidate verify (steady-state hit cost), closing the
+    // prefix-existence timing oracle. Never fail auth on it.
     try {
-      scryptSync(randomBytes(16), "bot4weird-v1", 32, { N: 16384, r: 8, p: 1 });
+      scryptSync(randomBytes(16), "bot4weird-v1", 32, { ...SCRYPT_PQ });
     } catch {
       // fall through to the cheap compare
     }

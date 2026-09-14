@@ -1,1 +1,23 @@
-{"created":"2026-09-13T13:03:00Z","gates":["node -e \"JSON.parse check + size caps on all seeds\"","node scripts/verify-music.mjs (after DS-MUSIC-10 lands; else JSON/size evidence in log)"],"goal":"Current game synth soundtracks live on as $music:1 files: 8+ NEW JSON seeds under v2/vcw4w/public/music/seeds/ (*.song.json, *.sfx.json) transcribed from the live synth code in v2/vcw4w/public/games/html/ (survey game.js/audio.js/sound.js AudioContext sections: aiwhackamole, soundpainter, soundpainter2, lastwordszombies/audio.js, semester-survival/sound.js + 3 more of your pick), each a faithful short loop/recipe of the game's signature sound (menu/boss/death/coin/raygun). Seeds stay tiny (songs <= 64KB, sfx <= 2KB). NEVER hand-edit any game bundle or old-v1 file (read-only research). Done = seeds on disk, JSON-parse + size evidence in log, zero edits outside scope.","id":"DS-MUSIC-07","lane":"games","log":["2026-09-13T13:03:00Z lead: envelope created, awaiting claim.","2026-09-13T13:20:00Z music-m7: claimed, surveying game synth sources","2026-09-13T13:35:00Z music-m7: DONE — 16 seeds (8 songs + 8 sfx) under public/music/seeds from 8 games (aiwhackamole start-chime/whack, soundpainter C-scale, soundpainter2 neon-synthwave 16-step grid+bass+chords+drums, lastwordszombies horde-loop/boss/bomb, semester-survival campus-loop/powerup, gravegain1d victory/death/kill, battlesharks2 patrol-bass/raygun/eat, assassinanimals stealth-16). verify-music.mjs GREEN: 'Music verify OK: 16 seed(s) (8 songs, 8 sfx), 3 route(s), no game-bundle refs, no secrets.' (first run caught missing sfx.dur x8 — added source-faithful durs, re-ran green). Node parse+size gate: 16/16 OK, biggest song 1483B << 65536, biggest sfx 127B << 2048. Zero edits outside scope (seeds + this envelope only; game bundles/old-v1 read-only)."],"owner":"music-m7","scope":["v2/vcw4w/public/music/seeds/*.json"],"status":"done","title":"Game soundtrack transcriptions (seed songs)","updated":"2026-09-13T13:03:00Z"}
+{
+    "created":  "2026-09-13T11:45:00.000Z",
+    "id":  "DS-MUSIC-07",
+    "goal":  "Bot+API: render route (WAV) + instrument help docs. CONTRACT (all 7 lanes build to this; lead-fixed): 20 ids = piano,guitar,bass,harp,marimba,music-box (melodic) | flute,trumpet,sax,violin,organ (wind) | theremin,synth-lead,synth-pad,chiptune (electronic) | kick,snare,hihat,tom,crash (drums). Core file lib/music/instruments/core.ts exports: InstrumentId union, InstrumentKind, InstrumentNote{midi,freq?,time,dur?,vel?}, VoiceFn type (ctx:BaseAudioContext,dest:AudioNode,note:Required\u003cPick\u003cInstrumentNote,\u0027time\u0027\u003e\u003e \u0026 InstrumentNote)=\u003evoid, registerInstrument(id:InstrumentId,fn:VoiceFn), playInstrument(id,ctx,dest,note):boolean, INSTRUMENT_META:Record\u003cInstrumentId,{name,kind,description}\u003e, helpers midiToFreq/noiseBuffer/adsrGain. Family files import ONLY from ./core and call registerInstrument at load; core NEVER imports families (no cycles). Do NOT touch TrackWave4W/format-4w validators.",
+    "status":  "done",
+    "owner":  "mus-07",
+    "scope":  [
+                  "v2/vcw4w/app/api/music/render/**",
+                  "v2/vcw4w/app/music/maker/help/instruments/**"
+              ],
+    "updated":  "2026-09-13T11:45:00.000Z",
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "title":  "Bot+API: render route (WAV) + instrument help docs",
+    "log":  [
+                "2026-09-13T11:45:00.000Z unassigned: envelope created from template, awaiting claim.",
+                "2026-09-13T12:00:00.000Z mus-07: claimed. Conflict check: submit/route.ts LIVE-owned (DS-SECFIX-02) untouched; _lib.ts + list/route.ts + feedback/route.ts + bot-cookbook.tsx read-only refs. Scope ONLY app/api/music/render/** + app/music/maker/help/instruments/**.",
+                "2026-09-13T12:20:00.000Z mus-07: DONE. New files only: app/api/music/render/render.ts (pure-TS float engine, 20 ids, 22050Hz mono, KS pluck, pitch-drop drums, theremin glide, deterministic seeded noise, 16-bit WAV encoder) + app/api/music/render/route.ts (POST validate fail-closed 400s, 64-note/30s caps, IP rate-limit 30/min via lib/rate-limit, no auth, never logs bodies; GET 405) + app/music/maker/help/instruments/page.tsx (static server page, canonical /music/maker/help/instruments, quickstart + bot cookbook curl/node no-key + 20-table + API shape). Gates: tsc zero errors on render|help/instruments paths (only 2 repo tsc errors are sibling components/music/instrument-rack.tsx missing lib/music/instruments/*, extrinsic, untouched); eslint exit 0 on all 3 files; tsx smoke: all 20 ids render valid RIFF WAV (piano 70604 bytes/1.6s), peaks 0.24-0.60 no-clip no-silence. Zero writes outside scope; no old-v1; no secrets; STATUS/QUEUE untouched by me (asks filed in QUEUE)."
+            ],
+    "lane":  "web"
+}

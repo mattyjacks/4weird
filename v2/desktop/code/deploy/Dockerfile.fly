@@ -1,6 +1,10 @@
 # Fly.io build variant: identical to the main Dockerfile, but paths are
 # relative to the repo-root build context Fly sends.
 # Build locally: docker build -f website/v1/ai/vibecodeworker/deploy/Dockerfile.fly .
+# The opencode install below drops the binary in ~/.opencode/bin (already on
+# PATH above); `npm install -g opencode-ai` is the fallback. Set
+# INSTALL_OPENCODE=false to skip it. No secrets are baked into this image —
+# provide VIBE_API_TOKEN / keys via `fly secrets` or env at runtime.
 ARG INSTALL_OPENCODE=true
 FROM node:22-slim
 

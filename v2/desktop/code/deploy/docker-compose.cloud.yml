@@ -39,6 +39,10 @@ services:
       retries: 3
 
   # Optional: persistent OpenCode server for server-mode fixes (no CLI cold boot).
+  # Enable with:  docker compose -f docker-compose.cloud.yml --profile opencode up -d
+  # Secret hygiene: this file commits NO secrets — VIBE_API_TOKEN is required
+  # from the environment (refused to start without it) and
+  # OPENCODE_SERVER_PASSWORD defaults to empty (no auth); set both locally only.
   opencode-server:
     image: vibecodeworker:cloud
     profiles: ["opencode"]

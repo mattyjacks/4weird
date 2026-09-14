@@ -28,16 +28,22 @@ const { spawn, spawnSync } = require('child_process');
 
 const DEFAULTS = {
   enabled: false,
-  mode: 'cli', // 'cli' | 'server'
-  binary: 'opencode', // resolved via PATH; override with absolute path if needed
+  mode: 'cli', // 'cli' | 'server' (server-mode logic below is untouched by CLI Mats)
+  // CLI defaults: `binary` is resolved via PATH (`where`/`which`); override
+  // with an absolute path directly or via the OPENCODE_BINARY env var.
+  binary: 'opencode',
   model: '', // e.g. 'anthropic/claude-sonnet-4-5'; empty = OpenCode default
   agent: 'build', // OpenCode agent to use for fixes
-  autoApprove: true, // pass --auto so fixes don't stall on permission prompts
-  timeoutMs: 600000, // 10 min per fix run
+  autoApprove: true, // passthrough: appends `--auto` to `opencode run` so fixes don't stall
+  timeoutMs: 600000, // 10 min per fix run; passthrough to spawn timeout + server message timeout
   serverUrl: 'http://127.0.0.1:4096', // `opencode serve` base URL (server mode)
   serverUsername: 'opencode',
   serverPassword: '', // or OPENCODE_SERVER_PASSWORD env
-  workspaceRoot: '', // defaults to repo root (4 levels above lib/)
+  // Default workspace: the desktop app dir (v2/desktop/code), NOT the repo
+  // root and NEVER the home dir or a filesystem root — opencode edits files
+  // under this dir itself, so validateWorkspaceRoot() refuses those scopes.
+  // Set explicitly via config `opencode.workspaceRoot` or OPENCODE_WORKSPACE.
+  workspaceRoot: '', // empty = desktop app dir (see getOpenCodeConfig)
   exportDir: '', // defaults to <vibecodeworker>/data/opencode_exports
 };
 
@@ -75,28 +81,98 @@ function getOpenCodeConfig(fileConfig) {
   if (env.OPENCODE_SERVER_USERNAME) cfg.serverUsername = env.OPENCODE_SERVER_USERNAME;
   if (env.OPENCODE_SERVER_PASSWORD) cfg.serverPassword = env.OPENCODE_SERVER_PASSWORD;
   if (env.OPENCODE_WORKSPACE) cfg.workspaceRoot = env.OPENCODE_WORKSPACE;
-  if (!cfg.workspaceRoot) cfg.workspaceRoot = repoRoot();
+  if (env.OPENCODE_EXPORT_DIR) cfg.exportDir = env.OPENCODE_EXPORT_DIR;
+  if (!cfg.workspaceRoot) cfg.workspaceRoot = vibecodeworkerDir();
   if (!cfg.exportDir) cfg.exportDir = path.join(vibecodeworkerDir(), 'data', 'opencode_exports');
   return cfg;
 }
 
-const INSTALL_HINT = 'Install OpenCode: curl -fsSL https://opencode.ai/install | bash ' +
-  '(Windows: `choco install opencode` or `npm install -g opencode-ai`). Docs: https://opencode.ai/docs';
+const INSTALL_HINT = 'OpenCode CLI not found. Install it for your OS: ' +
+  'Linux/macOS: `curl -fsSL https://opencode.ai/install | bash`; ' +
+  'macOS (brew): `brew install opencode`; ' +
+  'Windows: `choco install opencode` or `npm install -g opencode-ai`; ' +
+  'then verify with `opencode --version`. ' +
+  'Override the binary path with OPENCODE_BINARY=/path/to/opencode. Docs: https://opencode.ai/docs';
 
-/** Check whether the `opencode` binary exists and runs. Never throws. */
-function detectOpenCode(binary) {
-  const bin = binary || process.env.OPENCODE_BINARY || 'opencode';
+const WORKSPACE_GUARD_HINT = 'Set a scoped workspace via config `opencode.workspaceRoot` ' +
+  'or the OPENCODE_WORKSPACE env var (e.g. the desktop app dir v2/desktop/code). ' +
+  'OpenCode must never run against the repo root, your home directory, or a filesystem root.';
+
+/** Case-insensitive path equality on Windows, exact elsewhere. Never throws. */
+function samePath(a, b) {
   try {
-    const probe = process.platform === 'win32' ? 'where' : 'which';
-    const found = spawnSync(probe, [bin], { encoding: 'utf8', timeout: 10000 });
-    const resolvedPath = found.status === 0 ? String(found.stdout || '').split(/\r?\n/)[0].trim() : null;
+    let x = String(a || '');
+    let y = String(b || '');
+    if (process.platform === 'win32') { x = x.toLowerCase(); y = y.toLowerCase(); }
+    return x !== '' && x === y;
+  } catch (e) { return false; }
+}
+
+/**
+ * Workspace-root guard: opencode edits files under `dir` itself, so refuse
+ * scopes where a bad prompt could do wide damage. Refuses when `dir`
+ * resolves to the repo root, the user's home dir, or a filesystem root
+ * (`/` / `C:\`). Never throws — returns `{ ok, resolved, error, hint }`.
+ */
+function validateWorkspaceRoot(dir, overrides) {
+  const o = overrides || {};
+  let resolved = null;
+  try {
+    if (dir === undefined || dir === null || String(dir).trim() === '') {
+      return { ok: false, resolved: null, error: 'No workspace configured.', hint: WORKSPACE_GUARD_HINT };
+    }
+    resolved = path.resolve(String(dir));
+  } catch (e) {
+    return { ok: false, resolved: null, error: `Invalid workspace path: ${e.message}`, hint: WORKSPACE_GUARD_HINT };
+  }
+  let forbidden = [];
+  try {
+    forbidden = [
+      { label: 'repo root', value: path.resolve(o.repoRoot || repoRoot()) },
+      { label: 'home directory', value: path.resolve(o.homeDir || os.homedir()) },
+      { label: 'filesystem root', value: path.resolve(path.parse(resolved).root) },
+    ];
+  } catch (e) { /* fall through: comparisons below still apply where possible */ }
+  for (const f of forbidden) {
+    if (f.value && samePath(resolved, f.value)) {
+      return { ok: false, resolved, error: `Refusing to run opencode against the ${f.label} (${f.value}).`, hint: WORKSPACE_GUARD_HINT };
+    }
+  }
+  return { ok: true, resolved, error: null, hint: null };
+}
+
+/**
+ * Check whether the `opencode` binary exists and runs. Never throws.
+ *
+ * Mats: (1) resolve `binary` via PATH (`where` on win32, `which` elsewhere),
+ * or accept an absolute path / OPENCODE_BINARY directly; (2) probe
+ * `opencode --version` (10s timeout, best-effort); (3) return a helpful
+ * INSTALL_HINT when unavailable so callers can surface it via /api/opencode/status.
+ */
+function detectOpenCode(binary, overrides) {
+  const bin = String(binary || process.env.OPENCODE_BINARY || 'opencode').trim() || 'opencode';
+  const spawnSyncImpl = (overrides && overrides.spawnSync) || spawnSync;
+  try {
+    let resolvedPath = null;
+    // Fast path: absolute path (or explicit OPENCODE_BINARY) — no PATH lookup needed.
+    const looksAbsolute = path.isAbsolute(bin) || bin.includes('/') || bin.includes('\\');
+    if (looksAbsolute && fs.existsSync(bin)) {
+      resolvedPath = bin;
+    } else {
+      const probe = process.platform === 'win32' ? 'where' : 'which';
+      const found = spawnSyncImpl(probe, [bin], { encoding: 'utf8', timeout: 10000 });
+      if (found && found.status === 0) {
+        resolvedPath = String(found.stdout || '').split(/\r?\n/)[0].trim() || null;
+      }
+    }
     if (!resolvedPath) {
       return { available: false, binary: bin, path: null, version: null, hint: INSTALL_HINT };
     }
+    // Probe `opencode --version` (best-effort; timeout-guarded, never throws).
     let version = null;
     try {
-      const v = spawnSync(bin, ['--version'], { encoding: 'utf8', timeout: 10000 });
-      if (v.status === 0) version = String(v.stdout || v.stderr || '').trim().split(/\r?\n/)[0];
+      const v = spawnSyncImpl(bin, ['--version'], { encoding: 'utf8', timeout: 10000 });
+      if (v && v.status === 0) version = String(v.stdout || v.stderr || '').trim().split(/\r?\n/)[0] || null;
     } catch (e) { /* version best-effort only */ }
     return { available: true, binary: bin, path: resolvedPath, version, hint: null };
   } catch (e) {
@@ -235,7 +311,9 @@ function exportBugReport({ bugs, gameId, instructions, testCommand, fileContents
 }
 
 // ─── CLI mode: `opencode run` ───────────────────────────────────────
-
+// autoApprove passthrough: `autoApprove=true` appends `--auto` so fix runs
+// never stall on permission prompts. timeoutMs passthrough: forwarded as the
+// spawn `timeout` in runOpenCodeFix (default 600000ms from config/OPENCODE_TIMEOUT_MS).
 function buildRunArgs({ prompt, promptFile, model, agent, autoApprove, attach, format }) {
   const args = ['run'];
   if (prompt) args.push(prompt);
@@ -248,21 +326,44 @@ function buildRunArgs({ prompt, promptFile, model, agent, autoApprove, attach, f
   return args;
 }
 
+/** Positive finite ms, else `fallback`. Never throws. */
+function normalizeTimeoutMs(value, fallback) {
+  const n = Number(value);
+  if (Number.isFinite(n) && n > 0) return Math.floor(n);
+  return fallback;
+}
+
 /**
  * Run one OpenCode fix job via the CLI (direct-code-editing: OpenCode edits
  * files under `dir` itself). Resolves with transcript + resulting git diff.
+ * Never throws/rejects: every failure mode resolves `{ success: false, ... }`
+ * with a helpful `hint` (missing binary) or refusal `error` (bad workspace).
+ *
+ * Per-run overrides `model` / `agent` / `autoApprove` / `timeoutMs` fall back
+ * to the resolved config. `deps` is a test seam: `{ spawn, detect }`.
  */
-function runOpenCodeFix({ prompt, promptFile, dir, model, agent, autoApprove, timeoutMs, config: fileConfig } = {}) {
+function runOpenCodeFix({ prompt, promptFile, dir, model, agent, autoApprove, timeoutMs, config: fileConfig, deps } = {}) {
   const config = getOpenCodeConfig(fileConfig);
+  const spawnImpl = (deps && deps.spawn) || spawn;
+  const detectImpl = (deps && deps.detect) || detectOpenCode;
   return new Promise((resolve) => {
-    const detection = detectOpenCode(config.binary);
-    if (!detection.available) {
-      return resolve({ success: false, error: 'OpenCode binary not found.', hint: detection.hint });
-    }
     if (!prompt && !promptFile) {
       return resolve({ success: false, error: 'Provide prompt or promptFile.' });
     }
-    const cwd = dir || config.workspaceRoot;
+    const guard = validateWorkspaceRoot(dir || config.workspaceRoot);
+    if (!guard.ok) {
+      return resolve({ success: false, error: guard.error, hint: guard.hint });
+    }
+    const cwd = guard.resolved;
+    let detection;
+    try {
+      detection = detectImpl(config.binary);
+    } catch (e) {
+      detection = { available: false, binary: config.binary, path: null, version: null, hint: INSTALL_HINT };
+    }
+    if (!detection.available) {
+      return resolve({ success: false, error: 'OpenCode binary not found.', hint: detection.hint || INSTALL_HINT });
+    }
     const args = buildRunArgs({
       prompt,
       promptFile,
@@ -270,24 +371,65 @@ function runOpenCodeFix({ prompt, promptFile, dir, model, agent, autoApprove, ti
       agent: agent || config.agent,
       autoApprove: autoApprove !== undefined ? autoApprove : config.autoApprove,
     });
-    const timeout = timeoutMs || config.timeoutMs;
+    const effectiveTimeout = normalizeTimeoutMs(
+      timeoutMs, normalizeTimeoutMs(config.timeoutMs, DEFAULTS.timeoutMs));
+
     let child;
     try {
-      child = spawn(config.binary, args, { cwd, shell: process.platform === 'win32', timeout });
+      child = spawnImpl(config.binary, args, { cwd });
     } catch (e) {
       return resolve({ success: false, error: `Failed to spawn opencode: ${e.message}`, hint: INSTALL_HINT });
+    }
+    if (!child || !child.stdout || !child.stderr || typeof child.on !== 'function') {
+      return resolve({ success: false, error: 'Failed to spawn opencode: spawn returned an unusable child process.', hint: INSTALL_HINT });
     }
 
     let stdout = '';
     let stderr = '';
+    let settled = false;
+    let timedOut = false;
+    const finish = (res) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (grace) clearTimeout(grace);
+      resolve(res);
+    };
+    const timeoutResult = () => {
+      const transcript = parseRunTranscript(stdout);
+      finish({
+        success: false,
+        timedOut: true,
+        exitCode: null,
+        transcript,
+        stdoutTail: stdout.slice(-4000),
+        stderrTail: stderr.slice(-2000),
+        diff: getGitDiff(cwd),
+        error: `opencode run timed out after ${effectiveTimeout}ms`,
+        hint: 'Raise `opencode.timeoutMs` (or OPENCODE_TIMEOUT_MS) or simplify the fix prompt.',
+      });
+    };
+    // Manual watchdog (instead of spawn `timeout`) so a timeout resolves with
+    // `timedOut: true` and partial output instead of an ambiguous close code.
+    const timer = setTimeout(() => {
+      timedOut = true;
+      grace = setTimeout(timeoutResult, 2000);
+      try { if (typeof child.kill === 'function') child.kill('SIGTERM'); } catch (e) { /* fall through to grace resolve */ }
+    }, effectiveTimeout);
+    // NOTE: timers are intentionally NOT unref'd — an unref'd watchdog would
+    // let the process exit before the timeout path ever resolves.
+    let grace = null;
+
     child.stdout.on('data', d => { stdout += String(d); if (stdout.length > 512 * 1024) stdout = stdout.slice(-512 * 1024); });
     child.stderr.on('data', d => { stderr += String(d); if (stderr.length > 128 * 1024) stderr = stderr.slice(-128 * 1024); });
-    child.on('error', (err) => resolve({ success: false, error: `opencode run failed: ${err.message}`, hint: INSTALL_HINT }));
+    child.on('error', (err) => finish({ success: false, timedOut, error: `opencode run failed: ${err.message}`, hint: INSTALL_HINT }));
     child.on('close', (code) => {
+      if (timedOut) return timeoutResult();
       const transcript = parseRunTranscript(stdout);
       const diff = getGitDiff(cwd);
-      resolve({
+      finish({
         success: code === 0,
+        timedOut: false,
         exitCode: code,
         transcript,
         stdoutTail: stdout.slice(-4000),
@@ -298,6 +440,9 @@ function runOpenCodeFix({ prompt, promptFile, dir, model, agent, autoApprove, ti
     });
   });
 }
+
+/** `runCli` is the CLI-runner alias used by envelopes/docs; same as runOpenCodeFix. */
+const runCli = runOpenCodeFix;
 
 /** Parse `opencode run --format json` event stream; fall back to raw text. */
 function parseRunTranscript(stdout) {
@@ -426,7 +571,7 @@ async function runServerFix({ prompt, sessionId, title, config: fileConfig } = {
 
 // ─── High-level: fix N bugs ─────────────────────────────────────────
 
-async function fixBugs({ bugs, bugIds, gameId, instructions, testCommand, fileContents, dir, sessionId, config: fileConfig } = {}) {
+async function fixBugs({ bugs, bugIds, gameId, instructions, testCommand, fileContents, dir, sessionId, model, agent, autoApprove, timeoutMs, config: fileConfig } = {}) {
   const config = getOpenCodeConfig(fileConfig);
   let list = Array.isArray(bugs) ? bugs : [];
   if (bugIds && bugIds.length > 0) {
@@ -436,7 +581,18 @@ async function fixBugs({ bugs, bugIds, gameId, instructions, testCommand, fileCo
 
   const exported = exportBugReport({ bugs: list, gameId, instructions, testCommand, fileContents, config });
   if (!exported.success) return exported;
-  const targetDir = dir || config.workspaceRoot;
+  const guard = validateWorkspaceRoot(dir || config.workspaceRoot);
+  if (!guard.ok) {
+    return { success: false, exported, bugCount: list.length, targetDir: dir || config.workspaceRoot, error: guard.error, hint: guard.hint };
+  }
+  const targetDir = guard.resolved;
+  // Per-run CLI overrides (model/agent/autoApprove/timeoutMs) ride along on a
+  // merged config copy so both `cli` and `server` modes honor them.
+  const runConfig = { ...config };
+  if (model !== undefined) runConfig.model = model;
+  if (agent !== undefined) runConfig.agent = agent;
+  if (autoApprove !== undefined) runConfig.autoApprove = autoApprove;
+  if (timeoutMs !== undefined) runConfig.timeoutMs = timeoutMs;
 
   // AUTO-FEED: attach the latest smart-log handoff so OpenCode sees live
   // runtime context (error clusters, recent actions) without manual pasting.
@@ -444,10 +600,10 @@ async function fixBugs({ bugs, bugIds, gameId, instructions, testCommand, fileCo
   if (handoff) exported.prompt += `\n\n## Live runtime context (auto-attached smart-log handoff)\n\n${handoff}`;
 
   if (config.mode === 'server') {
-    const res = await runServerFix({ prompt: exported.prompt, sessionId, title: `Fix ${list.length} bug(s) - ${gameId || 'game'}`, config });
+    const res = await runServerFix({ prompt: exported.prompt, sessionId, title: `Fix ${list.length} bug(s) - ${gameId || 'game'}`, config: runConfig });
     return { ...res, exported, bugCount: list.length, targetDir };
   }
-  const res = await runOpenCodeFix({ promptFile: exported.mdPath, dir: targetDir, config });
+  const res = await runOpenCodeFix({ promptFile: exported.mdPath, dir: targetDir, model, agent, autoApprove, timeoutMs, config: runConfig });
   return { ...res, exported, bugCount: list.length, targetDir };
 }
 
@@ -655,13 +811,18 @@ function getLatestHandoffMarkdown() {
 module.exports = {
   DEFAULTS,
   INSTALL_HINT,
+  WORKSPACE_GUARD_HINT,
+  repoRoot,
+  vibecodeworkerDir,
   getOpenCodeConfig,
+  validateWorkspaceRoot,
   detectOpenCode,
   getStatus,
   buildBugFixPrompt,
   exportBugReport,
   buildRunArgs,
   runOpenCodeFix,
+  runCli,
   parseRunTranscript,
   getGitDiff,
   runServerFix,

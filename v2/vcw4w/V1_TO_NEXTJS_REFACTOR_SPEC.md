@@ -125,7 +125,7 @@ v2/vcw4w/
 - Legacy `pricing/index.html` becomes `/pricing`.
 - Legacy `academy/index.html` becomes `/academy`.
 - Legacy `tech.html` becomes `/tech`.
-- Legacy `spaceships.html` becomes `/spaceships`.
+- Legacy `spaceships.html` becomes `/game/spaceships`.
 - Legacy `web-apps.html` becomes `/web-apps`.
 - Legacy `vibecodeworker/index.html` becomes `/vibecodeworker`.
 - Legacy `vibecodeworker/overview.html` becomes `/vibecodeworker/overview`.
@@ -436,7 +436,7 @@ purchase_claims(id uuid PK, user_id uuid nullable, provider text, provider_order
 
 ### 17.2 Migration requirements
 
-- Create `/spaceships` as a route-level client boundary.
+- Create `/game/spaceships` as a route-level client boundary.
 - Do not server-render WebGL initialization.
 - Dynamically import the simulation only after its container exists.
 - Keep workers as explicit public worker modules or bundler-supported workers.

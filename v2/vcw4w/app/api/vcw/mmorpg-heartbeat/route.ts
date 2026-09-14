@@ -14,26 +14,41 @@
  * lane-compliant equivalent — steward may alias/promote it.
  */
 
+import { fail, ok } from "@/lib/api-respond";
+import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/validate";
+
+const FOUNDATION_HEADERS = {
+  "x-vcw-foundation": "unauthenticated-dry-run; no-db-writes; promote-with-auth-metering",
+};
+
 type HeartbeatBody = {
   serverId?: unknown;
   snapshot?: unknown;
 };
 
 export async function POST(req: Request): Promise<Response> {
+  // Unauthenticated stub, so throttle per IP (generous: heartbeats are chatty).
+  const rl = rateLimit(`vcw:mmorpg-heartbeat:${clientIp(req)}`, 120, 60_000);
+  if (!rl.allowed) {
+    return fail("Rate limited.", 429, { ...rateLimitHeaders(rl), ...FOUNDATION_HEADERS });
+  }
   let body: HeartbeatBody;
   try {
     body = (await req.json()) as HeartbeatBody;
   } catch {
-    return Response.json({ ok: false, error: "Invalid JSON body." }, { status: 400 });
+    return fail("Invalid JSON body.", 400, FOUNDATION_HEADERS);
   }
 
   const serverId = typeof body?.serverId === "string" ? body.serverId.trim() : "";
   if (!serverId || serverId.length > 128) {
-    return Response.json({ ok: false, error: "Invalid serverId." }, { status: 400 });
+    return fail("Invalid serverId.", 400, FOUNDATION_HEADERS);
   }
 
   // snapshot is accepted and ignored in the foundation stub (no DB writes).
   void body?.snapshot;
 
-  return Response.json({ ok: true, peers: [] });
+  // peers: [] is the stub's honest empty (no presence store yet), flagged by
+  // the foundation header so QA harnesses never mistake it for live data.
+  return ok({ peers: [] }, 200, FOUNDATION_HEADERS);
 }

@@ -609,7 +609,9 @@
             g.gain.value = vol || 0.05;
             o.connect(g); g.connect(AC.destination);
             o.start();
-            setTimeout(function () { try { o.stop(); } catch (e) { /* ignore */ } }, dur || 80);
+            // One-shot teardown: stop + disconnect both nodes so finished
+            // bleeps never linger on the graph (no endless drone exists here).
+            setTimeout(function () { try { o.stop(); } catch (e) { /* ignore */ } try { o.disconnect(); g.disconnect(); } catch (e2) { /* ignore */ } }, dur || 80);
         } catch (e) { /* audio is garnish */ }
     }
 
