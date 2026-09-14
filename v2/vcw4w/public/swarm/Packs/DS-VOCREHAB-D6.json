@@ -1,0 +1,19 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-D6",
+  "goal_1line": "CHEAP ss2 slice D6 (READ-ONLY build proof, zero file writes): run npm run build from v2/vcw4w, paste exit code + every /vocrehab + /api/vocrehab + /docs/vocrehab row of the route table into the log. Build break? Record the failing file + error, queue to its C-owner, stop (no retries, no patches). Re",
+  "scope": [
+    "v2/vcw4w/app/vocrehab/page.tsx"
+  ],
+  "gates": [
+    "npm run build exit 0 + /vocrehab rows in route table, evidence in log"
+  ],
+  "target_hashes": [
+    {
+      "path": "app/vocrehab/page.tsx",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:45:21.807Z"
+}

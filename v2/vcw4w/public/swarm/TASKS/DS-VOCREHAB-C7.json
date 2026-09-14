@@ -1,0 +1,37 @@
+{
+  "created": "2026-09-14T12:00:00.000Z",
+  "gates": [
+    "node --check scripts/verify-vocrehab.mjs",
+    "npx tsc --noEmit",
+    "npx eslint scripts/verify-vocrehab.mjs"
+  ],
+  "goal": "CHEAP ss2 slice C7 (VocRehab pro + docs + verifier): app/vocrehab/pro/** pages, pro APIs (sessions/approve/outreach), app/docs/vocrehab/** guides, scripts/verify-vocrehab.mjs (namespace + migration-hygiene + purity + a11y-static + secrets + ripout slices per plan section 18) exist. SCOPE STRETCH NOTED: pro pages are web catch-all territory; this envelope is their single owner. Pro UI is copy-only (no auto-send); verifier is additive (package.json wiring is integrator-owned via QUEUE). Reviewer runs node --check + tsc scope-clean + eslint clean.",
+  "id": "DS-VOCREHAB-C7",
+  "lane": "docs",
+  "log": [
+    "2026-09-14T12:00:00.000Z unassigned: envelope created for ss2 CHEAP run (7 cheap agents), awaiting claim.",
+    "2026-09-14T02:25:00.6230770Z lead: claimed for vocrehab-c7, ss2 CHEAP fan-out (RUN-MU0MDHMR).",
+    "2026-09-14T12:00:00.000Z vocrehab-c7: C7 agent done | files:13 (verifier pre-existed, untouched) | node --check exit 0, tsc zero in C7 files, eslint clean.",
+    "2026-09-14T02:56:30.133Z lead: re-verified — presence 14/14; node --check exit 0; tsc exit 0 zero-vocrehab-errors; @ts-expect-error guards resolved by convergence -> done. Sibling verifier slice-6 FAIL is sibling-owned files (verify-vocrehab-arcade/routes/tsc-scope scripts), filed to QUEUE."
+  ],
+  "owner": "vocrehab-c7",
+  "scope": [
+    "v2/vcw4w/app/vocrehab/pro/page.tsx",
+    "v2/vcw4w/app/vocrehab/pro/sessions/page.tsx",
+    "v2/vcw4w/app/vocrehab/pro/sessions/[id]/page.tsx",
+    "v2/vcw4w/app/vocrehab/pro/outreach/page.tsx",
+    "v2/vcw4w/app/vocrehab/pro/measures/page.tsx",
+    "v2/vcw4w/app/api/vocrehab/pro/sessions/route.ts",
+    "v2/vcw4w/app/api/vocrehab/pro/approve/route.ts",
+    "v2/vcw4w/app/api/vocrehab/pro/outreach/route.ts",
+    "v2/vcw4w/app/docs/vocrehab/page.tsx",
+    "v2/vcw4w/app/docs/vocrehab/getting-started/page.tsx",
+    "v2/vcw4w/app/docs/vocrehab/counselors/page.tsx",
+    "v2/vcw4w/app/docs/vocrehab/privacy-safety/page.tsx",
+    "v2/vcw4w/app/docs/vocrehab/ssi-math/page.tsx",
+    "v2/vcw4w/scripts/verify-vocrehab.mjs"
+  ],
+  "status": "done",
+  "title": "VocRehab C7: pro suite + docs guides + verify-vocrehab.mjs",
+  "updated": "2026-09-14T02:56:30.133Z"
+}

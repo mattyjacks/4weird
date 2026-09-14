@@ -1,0 +1,27 @@
+{
+  "created": "2026-09-14T12:00:00.000Z",
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint lib/vocrehab-games.ts lib/vocrehab-assessments.ts lib/vocrehab-course.ts lib/vocrehab-roleplay.ts lib/vocrehab-session-assist.ts"
+  ],
+  "goal": "CHEAP ss2 slice C3 (VocRehab domain libs): lib/vocrehab-games.ts (vocrehabGameRegistry, vocrehabScoreFileSort/InboxSprint/FocusShift/BarrierRun/ScheduleJuggle, vocrehabValidateGameEvent, vocrehabSummarizeRun), vocrehab-assessments.ts (vocrehabBarrierStrategies, vocrehabReadinessBands, vocrehabAlignmentMap, vocrehabRemoteReadiness, vocrehabSynthesizeProfile), vocrehab-course.ts (vocrehabCourseOutline, vocrehabModuleXp, vocrehabBadgeFor, vocrehabCourseProgressFrom), vocrehab-roleplay.ts (vocrehabRoleplayScenarios, vocrehabRoleplaySystemPrompt, vocrehabRoleplayFallback, vocrehabFeedbackRubric, vocrehabBlocklistCheck), vocrehab-session-assist.ts (vocrehabDraftCaseNote/Measure/Rationale/Outreach, vocrehabRedactTranscript) exist with exact frozen export names. Reviewer runs tsc scope-clean and eslint clean.",
+  "id": "DS-VOCREHAB-C3",
+  "lane": "web",
+  "log": [
+    "2026-09-14T12:00:00.000Z unassigned: envelope created for ss2 CHEAP run (7 cheap agents), awaiting claim.",
+    "2026-09-14T02:25:00.6230770Z lead: claimed for vocrehab-c3, ss2 CHEAP fan-out (RUN-MU0MDHMR).",
+    "2026-09-14T12:00:00.000Z vocrehab-c3: C3 agent done | files:5 | eslint exit 0; tsc errors all sibling-owned.",
+    "2026-09-14T02:56:30.133Z lead: re-verified — presence 5/5; tsc exit 0 zero-vocrehab-errors; eslint clean -> done."
+  ],
+  "owner": "vocrehab-c3",
+  "scope": [
+    "v2/vcw4w/lib/vocrehab-games.ts",
+    "v2/vcw4w/lib/vocrehab-assessments.ts",
+    "v2/vcw4w/lib/vocrehab-course.ts",
+    "v2/vcw4w/lib/vocrehab-roleplay.ts",
+    "v2/vcw4w/lib/vocrehab-session-assist.ts"
+  ],
+  "status": "done",
+  "title": "VocRehab C3: domain libs (games/assessments/course/roleplay/session-assist)",
+  "updated": "2026-09-14T02:56:30.133Z"
+}

@@ -1,0 +1,21 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-D1",
+  "goal_1line": "CHEAP ss2 slice D1 (VocRehab route-manifest gate, NEW file): scripts/verify-vocrehab-routes.mjs asserts every Appendix-A route file exists (35 pages + 11 APIs + 5 docs) and every /vocrehab*, /api/vocrehab*, /docs/vocrehab* href inside vocrehab pages/components resolves to an existing route file/hand",
+  "scope": [
+    "v2/vcw4w/scripts/verify-vocrehab-routes.mjs"
+  ],
+  "gates": [
+    "node --check scripts/verify-vocrehab-routes.mjs",
+    "node scripts/verify-vocrehab-routes.mjs",
+    "npx tsc --noEmit"
+  ],
+  "target_hashes": [
+    {
+      "path": "scripts/verify-vocrehab-routes.mjs",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:45:21.347Z"
+}

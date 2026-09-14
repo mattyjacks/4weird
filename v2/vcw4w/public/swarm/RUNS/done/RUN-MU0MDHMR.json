@@ -1,0 +1,24 @@
+{
+  "run": "ss2-run.v1",
+  "id": "RUN-MU0MDHMR",
+  "mode": "cheap",
+  "agents": 10,
+  "goal": "Build VocRehab module v1 per public/swarm/vocrehab-IMPLEMENTATION-PLAN.md with 7 cheap agents (CHEAP discipline: snapshot packs, gates-only, no retries, one-line reports; below cheap floor 10 so run records clamp, actual fan-out 7)",
+  "target": "desktop",
+  "opened_by": "manual",
+  "status": "done",
+  "log": [
+    "2026-09-14T02:24:21.125Z lead: run opened (cheap x10, target desktop)",
+    "2026-09-14T02:41:11.731Z d-lead: picked up",
+    "2026-09-14T03:00:17.931Z d-lead: D-wave closed — 6 NEW files landed eslint-clean (paycheck-plan game + route + scenarios + ssi-note + inbox-extra pack + arcade checker), D7 retired, D8 lint fix done, C7 verifier 6/6 green re-run by lead, QUEUE wiring/promotion/hub-gap lines filed, zero C-owned bytes touched, zero mine locks remain",
+    "2026-09-14T03:00:17.931Z d-lead: token total D-wave ~60k in/~14k out (agent estimates + lead); C-wave lines under same run id belong to sibling C-crew (98.5k/58k per tokens-report)"
+  ],
+  "created": "2026-09-14T02:24:21.139Z",
+  "updated": "2026-09-14T03:00:17.931Z",
+  "owner": "d-lead",
+  "tokens": {
+    "dWaveEstIn": 60000,
+    "dWaveEstOut": 14000,
+    "note": "estimates; C-wave tokens logged separately under same run id by sibling lead"
+  }
+}

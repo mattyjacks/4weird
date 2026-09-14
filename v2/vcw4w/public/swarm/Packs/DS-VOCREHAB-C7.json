@@ -1,0 +1,87 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-C7",
+  "goal_1line": "CHEAP ss2 slice C7 (VocRehab pro + docs + verifier): app/vocrehab/pro/** pages, pro APIs (sessions/approve/outreach), app/docs/vocrehab/** guides, scripts/verify-vocrehab.mjs (namespace + migration-hygiene + purity + a11y-static + secrets + ripout slices per plan section 18) exist. SCOPE STRETCH NOT",
+  "scope": [
+    "v2/vcw4w/app/vocrehab/pro/page.tsx",
+    "v2/vcw4w/app/vocrehab/pro/sessions/page.tsx",
+    "v2/vcw4w/app/vocrehab/pro/sessions/[id]/page.tsx",
+    "v2/vcw4w/app/vocrehab/pro/outreach/page.tsx",
+    "v2/vcw4w/app/vocrehab/pro/measures/page.tsx",
+    "v2/vcw4w/app/api/vocrehab/pro/sessions/route.ts",
+    "v2/vcw4w/app/api/vocrehab/pro/approve/route.ts",
+    "v2/vcw4w/app/api/vocrehab/pro/outreach/route.ts",
+    "v2/vcw4w/app/docs/vocrehab/page.tsx",
+    "v2/vcw4w/app/docs/vocrehab/getting-started/page.tsx",
+    "v2/vcw4w/app/docs/vocrehab/counselors/page.tsx",
+    "v2/vcw4w/app/docs/vocrehab/privacy-safety/page.tsx",
+    "v2/vcw4w/app/docs/vocrehab/ssi-math/page.tsx",
+    "v2/vcw4w/scripts/verify-vocrehab.mjs"
+  ],
+  "gates": [
+    "node --check scripts/verify-vocrehab.mjs",
+    "npx tsc --noEmit",
+    "npx eslint scripts/verify-vocrehab.mjs"
+  ],
+  "target_hashes": [
+    {
+      "path": "app/vocrehab/pro/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/pro/sessions/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/pro/sessions/[id]/page.tsx",
+      "hash": null,
+      "note": "glob — list at claim time"
+    },
+    {
+      "path": "app/vocrehab/pro/outreach/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/pro/measures/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/pro/sessions/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/pro/approve/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/pro/outreach/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/docs/vocrehab/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/docs/vocrehab/getting-started/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/docs/vocrehab/counselors/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/docs/vocrehab/privacy-safety/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/docs/vocrehab/ssi-math/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "scripts/verify-vocrehab.mjs",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:24:21.881Z"
+}

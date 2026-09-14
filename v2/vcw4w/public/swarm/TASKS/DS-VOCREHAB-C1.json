@@ -1,0 +1,22 @@
+{
+  "created": "2026-09-14T12:00:00.000Z",
+  "gates": [
+    "node scripts/verify-migration-versions.mjs"
+  ],
+  "goal": "CHEAP ss2 slice C1 (VocRehab foundation): the ONE migration file v2/vcw4w/supabase/migrations/20261208000000_vocrehab_module_v1.sql exists with all 16 public.vocrehab_* tables, indexes, own-data-only RLS policies, and vocrehab_export_snapshot + vocrehab_log_export functions; zero ALTER on existing tables and zero mentions of coin_ledger/coin_lots/profiles outside comments. Reviewer runs verify-migration-versions green and greps vocrehab_ for the full data surface.",
+  "id": "DS-VOCREHAB-C1",
+  "lane": "infra",
+  "log": [
+    "2026-09-14T12:00:00.000Z unassigned: envelope created for ss2 CHEAP run (7 cheap agents), awaiting claim.",
+    "2026-09-14T02:25:00.6230770Z lead: claimed for vocrehab-c1, ss2 CHEAP fan-out (RUN-MU0MDHMR).",
+    "2026-09-14T12:00:00.000Z vocrehab-c1: C1 agent done | files:1 | verify-migration-versions exit 0 (118 files) | 16 tables/16 RLS/zero non-vocrehab ALTER.",
+    "2026-09-14T02:56:30.133Z lead: re-verified — verify-migration-versions OK (119 files); presence 1/1; tsc exit 0 zero-vocrehab-errors -> done. RUN-MU0MDHMR CHEAP close, no retries."
+  ],
+  "owner": "vocrehab-c1",
+  "scope": [
+    "v2/vcw4w/supabase/migrations/20261208000000_vocrehab_module_v1.sql"
+  ],
+  "status": "done",
+  "title": "VocRehab C1: Supabase migration (vocrehab_* tables + RLS)",
+  "updated": "2026-09-14T02:56:30.133Z"
+}

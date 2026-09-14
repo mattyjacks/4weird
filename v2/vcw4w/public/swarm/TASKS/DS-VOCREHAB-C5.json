@@ -1,0 +1,31 @@
+{
+  "created": "2026-09-14T12:00:00.000Z",
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint components/vocrehab/vocrehab-roleplay-panel.tsx"
+  ],
+  "goal": "CHEAP ss2 slice C5 (VocRehab roleplay): components/vocrehab/vocrehab-roleplay-panel.tsx (VocrehabRoleplayPanel: chat + mic toggle + transcript + scenario prep|pivot|disclosure + scripted fallback badge) plus app/vocrehab/interview/** pages plus app/api/vocrehab/roleplay/** + documents routes exist; voice via Web Speech API with text parity, no audio upload. SCOPE STRETCH NOTED: interview pages/panel are web catch-all territory; this envelope is their single owner. Reviewer runs tsc scope-clean and eslint clean.",
+  "id": "DS-VOCREHAB-C5",
+  "lane": "vcw",
+  "log": [
+    "2026-09-14T12:00:00.000Z unassigned: envelope created for ss2 CHEAP run (7 cheap agents), awaiting claim.",
+    "2026-09-14T02:25:00.6230770Z lead: claimed for vocrehab-c5, ss2 CHEAP fan-out (RUN-MU0MDHMR).",
+    "2026-09-14T12:00:00.000Z vocrehab-c5: C5 agent done | files:9 | tsc scope-clean, eslint panel clean.",
+    "2026-09-14T02:56:30.133Z lead: re-verified — presence 9/9; tsc exit 0 zero-vocrehab-errors; eslint clean -> done. Panel/pages co-authorship disclosed; single-owner ruling filed to QUEUE."
+  ],
+  "owner": "vocrehab-c5",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-roleplay-panel.tsx",
+    "v2/vcw4w/app/vocrehab/interview/page.tsx",
+    "v2/vcw4w/app/vocrehab/interview/prep/page.tsx",
+    "v2/vcw4w/app/vocrehab/interview/pivot/page.tsx",
+    "v2/vcw4w/app/vocrehab/interview/disclosure/page.tsx",
+    "v2/vcw4w/app/vocrehab/interview/resume/page.tsx",
+    "v2/vcw4w/app/api/vocrehab/roleplay/route.ts",
+    "v2/vcw4w/app/api/vocrehab/roleplay/feedback/route.ts",
+    "v2/vcw4w/app/api/vocrehab/documents/route.ts"
+  ],
+  "status": "done",
+  "title": "VocRehab C5: roleplay panel + interview routes + roleplay APIs",
+  "updated": "2026-09-14T02:56:30.133Z"
+}

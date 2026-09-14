@@ -1,0 +1,156 @@
+{
+  "pack": "ss2-pack.v1",
+  "envelope": "DS-VOCREHAB-C6",
+  "goal_1line": "CHEAP ss2 slice C6 (VocRehab shell + decide + hub): shell/a11y-toolbar/course-card/ssi-slider/disclosure-tree/session-review/export-button components plus hub, layout, discover (6), decide (3), course (2), export/privacy/accessibility pages plus ssi/disclosure/assessments/games/export APIs exist. Sl",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-shell.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-a11y-toolbar.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-course-card.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-ssi-slider.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-disclosure-tree.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-session-review.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-export-button.tsx",
+    "v2/vcw4w/app/vocrehab/page.tsx",
+    "v2/vcw4w/app/vocrehab/layout.tsx",
+    "v2/vcw4w/app/vocrehab/discover/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/ipe/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/barriers/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/readiness/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/goals/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/remote/page.tsx",
+    "v2/vcw4w/app/vocrehab/decide/page.tsx",
+    "v2/vcw4w/app/vocrehab/decide/ssi/page.tsx",
+    "v2/vcw4w/app/vocrehab/decide/disclosure-paths/page.tsx",
+    "v2/vcw4w/app/vocrehab/course/page.tsx",
+    "v2/vcw4w/app/vocrehab/course/[module]/page.tsx",
+    "v2/vcw4w/app/vocrehab/export/page.tsx",
+    "v2/vcw4w/app/vocrehab/privacy/page.tsx",
+    "v2/vcw4w/app/vocrehab/accessibility/page.tsx",
+    "v2/vcw4w/app/api/vocrehab/ssi/route.ts",
+    "v2/vcw4w/app/api/vocrehab/disclosure/route.ts",
+    "v2/vcw4w/app/api/vocrehab/assessments/route.ts",
+    "v2/vcw4w/app/api/vocrehab/games/route.ts",
+    "v2/vcw4w/app/api/vocrehab/export/route.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint components/vocrehab/vocrehab-shell.tsx components/vocrehab/vocrehab-a11y-toolbar.tsx components/vocrehab/vocrehab-course-card.tsx components/vocrehab/vocrehab-ssi-slider.tsx components/vocrehab/vocrehab-disclosure-tree.tsx components/vocrehab/vocrehab-session-review.tsx components/vocrehab/vocrehab-export-button.tsx"
+  ],
+  "target_hashes": [
+    {
+      "path": "components/vocrehab/vocrehab-shell.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-a11y-toolbar.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-course-card.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-ssi-slider.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-disclosure-tree.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-session-review.tsx",
+      "hash": null
+    },
+    {
+      "path": "components/vocrehab/vocrehab-export-button.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/layout.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/discover/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/discover/ipe/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/discover/barriers/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/discover/readiness/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/discover/goals/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/discover/remote/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/decide/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/decide/ssi/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/decide/disclosure-paths/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/course/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/course/[module]/page.tsx",
+      "hash": null,
+      "note": "glob — list at claim time"
+    },
+    {
+      "path": "app/vocrehab/export/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/privacy/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/vocrehab/accessibility/page.tsx",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/ssi/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/disclosure/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/assessments/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/games/route.ts",
+      "hash": null
+    },
+    {
+      "path": "app/api/vocrehab/export/route.ts",
+      "hash": null
+    }
+  ],
+  "tried": [],
+  "fresh_as_of": "2026-09-14T02:24:21.787Z"
+}
