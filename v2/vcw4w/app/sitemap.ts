@@ -141,6 +141,9 @@ const DESKTOP_EXTRA: Entry[] = [
 
 // Static game discovery surfaces. Per-game detail pages are template-driven
 // off the catalog below; noindex /play shells are never listed.
+// NOTE: /games/fridgesimulator is ALSO a catalog game slug, so gameEntries
+// below emits the same URL — the dedupe in the return keeps a single <loc>.
+// Keep the literal: verify-sitemap.mjs requires every static route listed.
 const GAMES_EXTRA: Entry[] = [
   { path: "/games/compute", changeFrequency: "weekly", priority: 0.6 },
   { path: "/games/mods", changeFrequency: "weekly", priority: 0.6 },
@@ -507,5 +510,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticEntries, ...gameEntries, ...courseEntries];
+  // Dedupe by URL (first occurrence wins): /games/fridgesimulator is both
+  // a static route and a catalog slug, so it is emitted twice without this.
+  // Duplicate <loc>s burn crawl budget and trip GSC duplicate checks.
+  return [...staticEntries, ...gameEntries, ...courseEntries].filter(
+    (entry, index, all) => all.findIndex((e) => e.url === entry.url) === index,
+  );
 }
