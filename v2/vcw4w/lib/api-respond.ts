@@ -43,6 +43,26 @@ type DbErrorShape = {
 };
 
 /**
+ * Missing-schema detector for PostgREST/Supabase read failures.
+ *
+ * A prod DB that hasn't applied a migration (or serves a stale schema
+ * cache) fails reads with table-missing (42P01 / PGRST205) OR
+ * column-missing (42703 / PGRST204 "Could not find the 'x' column ... in
+ * the schema cache") shapes. Callers use this to degrade gracefully
+ * (fail-closed defaults + `unavailable: true`) instead of 500ing every
+ * logged-in user until the schema catches up. Real faults (RLS denials,
+ * connection loss, constraint violations) return false and keep the
+ * dbFail 500 with server-side evidence.
+ */
+export function isMissingSchemaError(error: unknown): boolean {
+  const e = (error ?? {}) as DbErrorShape;
+  const code = String(e.code ?? "");
+  if (code === "42P01" || code === "PGRST205" || code === "PGRST204" || code === "42703") return true;
+  const msg = String(e.message ?? "");
+  return /could not find/i.test(msg) && /(does not exist|schema cache)/i.test(msg);
+}
+
+/**
  * Database-failure responder. Logs the real Postgres/PostgREST error
  * server-side (code + message + details, truncated) so Vercel/server logs
  * always show WHY a query failed, while the client gets a stable public

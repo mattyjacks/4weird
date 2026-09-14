@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
-import { dbFail, fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, isMissingSchemaError, ok } from "@/lib/api-respond";
 
 
 function utcDateString(d: Date): string {
@@ -44,14 +44,14 @@ export async function GET() {
     .eq("user_id", user.user.id)
     .maybeSingle();
   if (error) {
-    // The daily_claims table ships in a later migration; a prod DB that
-    // hasn't applied it yet (42P01 / PGRST205 / missing-table) must read as
-    // "bonus unavailable" (FAIL-CLOSED — never "available"), not a bare 500.
+    // The daily_claims table/columns ship in migrations; a prod DB that
+    // hasn't applied them yet (missing table OR missing column, e.g. a
+    // stale PostgREST schema cache) must read as "bonus unavailable"
+    // (FAIL-CLOSED — never "available"), not a bare 500.
     // Real DB faults still 500 via dbFail.
-    const code = String((error as { code?: unknown }).code ?? "");
-    const msg = String((error as { message?: unknown }).message ?? "");
-    if (code === "42P01" || code === "PGRST205" || /daily_claims.*(does not exist|could not find)/i.test(msg)) {
-      console.error("[api] api/coins/daily/status daily_claims table missing, returning unavailable", { code: code.slice(0, 16) });
+    if (isMissingSchemaError(error)) {
+      const code = String((error as { code?: unknown }).code ?? "");
+      console.error("[api] api/coins/daily/status daily_claims schema missing, returning unavailable", { code: code.slice(0, 16) });
       const today = utcDateString(new Date());
       return ok(
         { available: false, lastClaimDate: null, streak: 0, today, nextAward: 0, retryAfterMs: nextUtcMidnightMs(), unavailable: true },

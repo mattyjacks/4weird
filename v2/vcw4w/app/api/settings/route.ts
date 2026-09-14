@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { dbFail, fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, isMissingSchemaError, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { botTesterBlocked, isBotTester, privilegedSessionBlocked } from "@/lib/bot-auth";
@@ -10,6 +10,7 @@ import { clientIp } from "@/lib/validate";
 const fields = ["allow_friend_requests", "show_playtime", "marketing_email", "kids_mode"] as const;
 
 export async function GET(req: Request) {
+  try {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const ipThrottle = rateLimit(`settings-get-ip:${clientIp(req)}`, 60, 60_000);
   if (!ipThrottle.allowed) return fail("Rate limited.", 429);
@@ -28,10 +29,34 @@ export async function GET(req: Request) {
     .select("allow_friend_requests,show_playtime,marketing_email,kids_mode,updated_at")
     .eq("user_id", u.id)
     .maybeSingle();
-  if (error) return dbFail("api/settings", error);
+  if (error) {
+    // A prod DB missing the table (or the later kids_mode column / a stale
+    // PostgREST schema cache) must NOT 500 every settings read. Return
+    // neutral defaults WITHOUT a kids_mode key so callers keep their
+    // device-level value (fail-closed for gating), flagged unavailable.
+    // Real DB faults still 500 via dbFail.
+    if (isMissingSchemaError(error)) {
+      const code = String((error as { code?: unknown }).code ?? "");
+      console.error("[api] api/settings account_settings schema missing, returning defaults", { code: code.slice(0, 16) });
+      return ok({
+        settings: { allow_friend_requests: true, show_playtime: true, marketing_email: false },
+        unavailable: true,
+      });
+    }
+    return dbFail("api/settings", error);
+  }
   return ok({
     settings: row ?? { allow_friend_requests: true, show_playtime: true, marketing_email: false, kids_mode: false },
   });
+  } catch (e) {
+    const msg = String((e as Error)?.message ?? e);
+    // Build-time prerender has no request cookies; stay quiet for exactly
+    // that case so real failures stand out (mirrors daily/status).
+    if (!msg.includes("During prerendering")) {
+      console.error("[api] api/settings unhandled", msg.slice(0, 300));
+    }
+    return fail("Backend temporarily unavailable. Try again shortly.", 500);
+  }
 }
 
 export async function PUT(req: Request) {
