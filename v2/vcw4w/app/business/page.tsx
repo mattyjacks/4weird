@@ -20,19 +20,19 @@ async function CachedBusinessApps() {
   'use cache';
   cacheLife('days');
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {BUSINESS_APPS.map((app) => (
         <Link
           key={app.label}
           href={app.href}
-          className="group rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-xl hover:shadow-amber-500/10"
+          className="group rounded-xl border border-white/10 bg-white/5 p-3.5 transition hover:-translate-y-1 hover:border-amber-400/50 hover:shadow-xl hover:shadow-amber-500/10"
         >
-          <p className="text-3xl transition group-hover:scale-110" aria-hidden="true">
+          <p className="text-2xl transition group-hover:scale-110" aria-hidden="true">
             {app.emoji}
           </p>
-          <h2 className="mt-3 text-lg font-bold">{app.label}</h2>
-          <p className="mt-2 text-sm text-slate-300">{app.blurb}</p>
-          <p className="mt-3 font-mono text-xs font-bold text-amber-300">
+          <h2 className="mt-2 text-base font-bold">{app.label}</h2>
+          <p className="mt-1 text-sm text-slate-300">{app.blurb}</p>
+          <p className="mt-2 font-mono text-xs font-bold text-amber-300">
             {app.href} →
           </p>
         </Link>
@@ -50,32 +50,50 @@ export default function BusinessPage() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-gradient-to-b from-amber-500/15 via-cyan-500/10 to-transparent"
         />
-        <div className="relative mx-auto max-w-5xl px-5 py-16 sm:py-20">
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-amber-300">
+        <div className="relative mx-auto max-w-6xl px-4 py-6">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-300">
             💼 {BUSINESS_NAME}
           </p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-6xl">
+          <h1 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">
             {BUSINESS_TAGLINE}
           </h1>
-          <p className="mt-4 max-w-3xl text-slate-300 sm:text-lg">
+          <p className="mt-2 max-w-3xl text-sm text-slate-300">
             {BUSINESS_BLURB}
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Business overview">
+            <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+              <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Timers</dt>
+              <dd className="text-xs font-bold text-amber-300"><Link href="/timer" className="hover:underline">Live in Timer →</Link></dd>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+              <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Invoices</dt>
+              <dd className="text-xs font-bold text-amber-300"><Link href="/business/invoices" className="hover:underline">Live in Invoices →</Link></dd>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+              <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">CRM leads</dt>
+              <dd className="text-xs font-bold text-amber-300"><Link href="/business/crm" className="hover:underline">Live in CRM →</Link></dd>
+            </div>
+            <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5">
+              <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Squad</dt>
+              <dd className="text-xs font-bold text-amber-300"><Link href="/squads" className="hover:underline">Live in Squads →</Link></dd>
+            </div>
+          </dl>
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Link
               href="/squads"
-              className="rounded-full bg-amber-400 px-7 py-3.5 text-center font-bold text-slate-950 shadow-lg shadow-amber-400/30 transition hover:-translate-y-0.5 hover:bg-amber-300"
+              className="rounded-full bg-amber-400 px-5 py-2 text-center text-sm font-bold text-slate-950 shadow-lg shadow-amber-400/30 transition hover:-translate-y-0.5 hover:bg-amber-300"
             >
               Open UnitUnite →
             </Link>
             <Link
               href="/timer"
-              className="rounded-full border border-white/20 px-7 py-3.5 text-center font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
+              className="rounded-full border border-white/20 px-5 py-2 text-center text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
             >
               Start the timer
             </Link>
             <Link
               href="/vault"
-              className="rounded-full border border-white/20 px-7 py-3.5 text-center font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
+              className="rounded-full border border-white/20 px-5 py-2 text-center text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/10"
             >
               Open the vault
             </Link>

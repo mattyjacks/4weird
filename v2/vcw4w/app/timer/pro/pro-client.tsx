@@ -60,14 +60,21 @@ export function TimerProClient() {
   const [entries, setEntries] = useState<TimeEntryData[]>(seedEntries);
 
   return (
-    <div className="space-y-6">
-      <WorkClock
-        projects={PROJECTS}
-        onEntry={(entry) => setEntries((prev) => [entry, ...prev])}
-      />
-      <div>
-        <h2 className="mb-3 text-xl font-black text-white">This week</h2>
-        <TimeReport entries={entries} />
+    /* 2-col cockpit: 40% timer+controls, 60% KPI cards + internal-scroll log */
+    <div className="grid gap-3 lg:grid-cols-[40%_60%]">
+      <div className="min-w-0 lg:sticky lg:top-3 lg:self-start">
+        <WorkClock
+          projects={PROJECTS}
+          onEntry={(entry) => setEntries((prev) => [entry, ...prev])}
+        />
+      </div>
+      <div className="min-w-0">
+        <h2 className="mb-2 text-sm font-black uppercase tracking-widest text-slate-400">This week</h2>
+        {/* Internal scroll keeps the cockpit above the fold; KPI + 32px row
+            density lives inside TimeReport (out of scope, untouched). */}
+        <div className="lg:max-h-[380px] lg:overflow-y-auto lg:pr-1">
+          <TimeReport entries={entries} />
+        </div>
       </div>
     </div>
   );

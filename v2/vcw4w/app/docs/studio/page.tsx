@@ -59,11 +59,11 @@ export default function StudioDocsPage() {
         title="Five guides, one studio"
         body="Start with the tool you need today — each guide is self-contained and code-true to the shipped Wave-3 slice. Stubs and planned tools are labeled as stubs and planned, never as shipped."
       />
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
         {GUIDES.map(([href, title, blurb]) => (
-          <a key={href} href={href} className="rounded-2xl border border-border bg-card p-5 transition hover:border-violet-300/50">
-            <p className="font-black">{title}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{blurb}</p>
+          <a key={href} href={href} className="rounded-xl border border-border bg-card p-3.5 transition hover:border-violet-300/50">
+            <p className="text-sm font-black">{title}</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">{blurb}</p>
           </a>
         ))}
       </div>

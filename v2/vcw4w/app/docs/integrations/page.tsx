@@ -51,16 +51,16 @@ export default function IntegrationsOverviewPage() {
         kicker="Two surfaces"
         title="Pick your integration"
       />
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Link href="/docs/integrations/mcp" className="group rounded-2xl border border-border bg-card p-5 transition hover:border-violet-500/50">
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+        <Link href="/docs/integrations/mcp" className="group rounded-xl border border-border bg-card p-3.5 transition hover:border-violet-500/50">
           <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">MCP guide →</p>
-          <p className="mt-1 text-lg font-black"><span aria-hidden="true" className="mr-2">🤖</span>@4weird/mcp server</p>
-          <p className="text-sm text-muted-foreground">Point Claude Desktop, Cursor, or Antigravity at 4weird: game tests, game state, squad tasks.</p>
+          <p className="mt-0.5 text-base font-black"><span aria-hidden="true" className="mr-2">🤖</span>@4weird/mcp server</p>
+          <p className="text-[13px] text-muted-foreground">Point Claude Desktop, Cursor, or Antigravity at 4weird: game tests, game state, squad tasks.</p>
         </Link>
-        <Link href="/docs/integrations/chat-bot" className="group rounded-2xl border border-border bg-card p-5 transition hover:border-indigo-500/50">
+        <Link href="/docs/integrations/chat-bot" className="group rounded-xl border border-border bg-card p-3.5 transition hover:border-indigo-500/50">
           <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">Chat guide →</p>
-          <p className="mt-1 text-lg font-black"><span aria-hidden="true" className="mr-2">💬</span>Chat bot</p>
-          <p className="text-sm text-muted-foreground">Slash commands for leaderboards and squad status; env-only token setup.</p>
+          <p className="mt-0.5 text-base font-black"><span aria-hidden="true" className="mr-2">💬</span>Chat bot</p>
+          <p className="text-[13px] text-muted-foreground">Slash commands for leaderboards and squad status; env-only token setup.</p>
         </Link>
       </div>
 

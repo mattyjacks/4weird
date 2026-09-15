@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { cacheLife, cacheTag } from "next/cache";
 import { getGame } from "@/content/games";
 import { CompactDetails } from "@/components/ui/compact-details";
+import { HomeTabs } from "@/components/home/home-tabs";
 import { InfoTip } from "@/components/ui/info-tip";
 
 // Curated homepage lineup; exactly 6. Full catalog lives on /games.
@@ -107,18 +108,18 @@ async function FeaturedGameCards() {
   cacheTag('site-home');
   const games = FEATURED_SLUGS.map((slug) => getGame(slug)!).filter(Boolean);
   return (
-    <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {games.map((game) => (
         <Link
           key={game.slug}
           href={`/games/${game.slug}`}
-          className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-1 hover:border-fuchsia-500/60 hover:shadow-xl hover:shadow-fuchsia-500/10"
+          className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-fuchsia-500/60 hover:shadow-xl hover:shadow-fuchsia-500/10"
         >
-          <div className="text-4xl transition group-hover:scale-110" aria-hidden="true">
+          <div className="text-2xl transition group-hover:scale-110" aria-hidden="true">
             {game.emoji}
           </div>
-          <h3 className="mt-4 text-lg font-bold">{game.title}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">{game.description}</p>
+          <h3 className="mt-2 text-base font-bold">{game.title}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{game.description}</p>
           <p className="mt-3 font-mono text-xs font-bold text-fuchsia-600 dark:text-fuchsia-300">
             PLAY →
           </p>
@@ -133,14 +134,14 @@ async function ClassicsGrid() {
   cacheLife('days');
   cacheTag('site-home');
   return (
-    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {CLASSICS.map((c) => (
         <Link
           key={c.href}
           href={c.href}
-          className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-lg"
+          className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-cyan-500/50 hover:shadow-lg"
         >
-          <span className="text-3xl transition group-hover:scale-110" aria-hidden="true">{c.emoji}</span>
+          <span className="text-2xl transition group-hover:scale-110" aria-hidden="true">{c.emoji}</span>
           <span>
             <span className="font-bold">{c.title}</span>
             <span className="mt-1 block text-sm text-muted-foreground">{c.body}</span>
@@ -157,7 +158,7 @@ async function HomeFaqList() {
   cacheLife('days');
   cacheTag('site-home');
   return (
-    <div className="mt-6 grid gap-4 md:grid-cols-2">
+    <div className="mt-3 grid gap-3 md:grid-cols-2">
       {FAQS.map((f, i) => (
         <CompactDetails key={f.q} summary={f.q} defaultOpen={i === 0}>
           <p className="text-sm text-muted-foreground">{f.a}</p>
@@ -179,7 +180,7 @@ function DirItem({
   more?: string;
 }) {
   return (
-    <li className="rounded-2xl border border-border bg-card p-4">
+    <li className="rounded-2xl border border-border bg-card p-3">
       <Link href={href} className="font-bold hover:underline">
         {label}
       </Link>
@@ -209,19 +210,19 @@ export default function Home() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)] [background-size:44px_44px] text-border [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]"
         />
-        <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-16">
+        <div className="relative mx-auto max-w-6xl px-4 py-4 sm:px-5">
           <p className="mb-5 inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border border-cyan-500/40 px-4 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-700 dark:text-cyan-300 sm:text-xs">
             <span aria-hidden="true" className="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-500" />
             Cost-Effective Cloud Computing Center · 35 games · free to try
           </p>
-          <h1 className="max-w-4xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+          <h1 className="max-w-4xl text-2xl font-black leading-tight tracking-tight sm:text-3xl">
             Future Forward Fun,
             <br />
             <span className="bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
               Funded by Founders.
             </span>
           </h1>
-          <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-xl">
+          <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
             A cost-effective cloud computing center with a game arcade on top.{" "}
             <strong className="text-foreground">Founders</strong> rent GPUs,
             desktops, and AI agents by the second — and that spend funds the{" "}
@@ -236,27 +237,27 @@ export default function Home() {
               How the funding works →
             </Link>
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Link
-              className="rounded-full bg-cyan-600 px-7 py-3.5 text-center font-bold text-white shadow-lg shadow-cyan-600/30 transition hover:-translate-y-0.5 hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:shadow-cyan-300/20 dark:hover:bg-cyan-200"
+              className="rounded-full bg-cyan-600 px-4 py-1.5 text-center text-sm font-bold text-white shadow-lg shadow-cyan-600/30 transition hover:-translate-y-0.5 hover:bg-cyan-500 dark:bg-cyan-300 dark:text-slate-950 dark:shadow-cyan-300/20 dark:hover:bg-cyan-200"
               href="/games"
             >
               ▶ Play free now
             </Link>
             <Link
-              className="rounded-full border border-border bg-card px-7 py-3.5 text-center font-semibold transition hover:-translate-y-0.5 hover:border-cyan-500/60"
+              className="rounded-full border border-border bg-card px-4 py-1.5 text-center text-sm font-semibold transition hover:-translate-y-0.5 hover:border-cyan-500/60"
               href="/agents"
             >
               ▸ Rent GPUs &amp; agents
             </Link>
             <Link
-              className="rounded-full border border-border px-7 py-3.5 text-center font-semibold text-muted-foreground transition hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground"
+              className="rounded-full border border-border px-4 py-1.5 text-center text-sm font-semibold text-muted-foreground transition hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground"
               href="/games/financialfreedom"
             >
               💼 Try a business sim
             </Link>
           </div>
-          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+          <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-2">
               <span aria-hidden="true" className="flex -space-x-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br from-cyan-400 to-blue-600 text-xs">🎮</span>
@@ -269,7 +270,7 @@ export default function Home() {
             <span className="font-mono text-xs">★ free trial: 100 Vibe Coins = exactly $1.00 ★</span>
           </div>
           {/* Terminal strip */}
-          <div className="mt-10 grid gap-4 lg:grid-cols-2">
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
             <div className="overflow-hidden rounded-2xl border border-border bg-black/90 shadow-2xl">
               <div className="flex items-center gap-1.5 border-b border-white/10 px-4 py-2.5" aria-hidden="true">
                 <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
@@ -305,16 +306,16 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          <dl className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
               ["35 games, free to try", "racers, RPGs, business sims"],
               ["Cloud funds the arcade", "founder GPUs pay for play"],
               ["100 Vibe Coins = exactly $1.00", "cut inside, never on top"],
               ["Tested before you see it", "VibeCodeWorker autoplay QA"],
             ].map(([stat, label]) => (
-              <div key={label} className="rounded-2xl border border-border bg-card/80 p-4 backdrop-blur">
-                <dt className="text-lg font-black text-cyan-600 dark:text-cyan-300 sm:text-xl">{stat}</dt>
-                <dd className="mt-1 text-xs text-muted-foreground sm:text-sm">{label}</dd>
+              <div key={label} className="rounded-xl border border-border bg-card/80 p-2.5 backdrop-blur">
+                <dt className="text-sm font-black text-cyan-600 dark:text-cyan-300">{stat}</dt>
+                <dd className="mt-0.5 text-[11px] text-muted-foreground">{label}</dd>
               </div>
             ))}
           </dl>
@@ -337,20 +338,22 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Segmented command console: jumps to each surface, no scroll-hunt */}
+
       {/* Pick your lane; one card per persona */}
-      <section className="mx-auto max-w-6xl px-4 pb-2 pt-14 sm:px-5 sm:pt-20" aria-label="Pick your lane">
+      <section id="lanes" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5" aria-label="Pick your lane">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
           Pick your lane
         </p>
-        <h2 className="mt-2 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">
+        <h2 className="mt-2 max-w-3xl text-xl font-black tracking-tight sm:text-2xl">
           Three doors. Same weird building.
         </h2>
         <p className="mt-3 max-w-3xl text-muted-foreground sm:text-lg">
           One account, one coin, zero setup. Choose where you start; the other
           two doors stay open.
         </p>
-        <div className="mt-8 grid gap-4 lg:grid-cols-3">
-          <div className="flex flex-col rounded-2xl border-2 border-fuchsia-500/40 bg-card p-6">
+        <div className="mt-3 grid gap-3 lg:grid-cols-3">
+          <div className="flex flex-col rounded-2xl border-2 border-fuchsia-500/40 bg-card p-3.5">
             <p className="text-3xl" aria-hidden="true">🎮</p>
             <h3 className="mt-3 text-lg font-bold">Here to play?</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -369,7 +372,7 @@ export default function Home() {
               Play the arcade →
             </Link>
           </div>
-          <div className="flex flex-col rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-cyan-500/60">
+          <div className="flex flex-col rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-cyan-500/60">
             <p className="text-3xl" aria-hidden="true">💻</p>
             <h3 className="mt-3 text-lg font-bold">Here to build?</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -387,7 +390,7 @@ export default function Home() {
               Rent compute →
             </Link>
           </div>
-          <div className="flex flex-col rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60">
+          <div className="flex flex-col rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60">
             <p className="text-3xl" aria-hidden="true">💼</p>
             <h3 className="mt-3 text-lg font-bold">Here for business?</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -415,14 +418,17 @@ export default function Home() {
         </div>
       </section>
 
+      <HomeTabs
+        compute={
+          <>
       {/* Cloud; the main event */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 pt-14 sm:px-5 sm:pb-20 sm:pt-20" aria-label="Cloud computing services">
+      <section id="cloud" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5" aria-label="Cloud computing services">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
               The cloud
             </p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">
+            <h2 className="mt-2 text-xl font-black tracking-tight sm:text-2xl">
               Computers that go brrr.
             </h2>
           </div>
@@ -434,10 +440,10 @@ export default function Home() {
           No datacenter degree required. Pick a machine, point it at your work,
           pay only for the seconds it runs.
         </p>
-        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/agents"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-cyan-500/60 hover:shadow-xl hover:shadow-cyan-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-cyan-500/60 hover:shadow-xl hover:shadow-cyan-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🤖</p>
             <h3 className="mt-3 text-lg font-bold">AI agents by the hour</h3>
@@ -460,7 +466,7 @@ export default function Home() {
           </Link>
           <Link
             href="/desktop"
-            className="group rounded-2xl border-2 border-cyan-500/50 bg-card p-6 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/20"
+            className="group rounded-2xl border-2 border-cyan-500/50 bg-card p-3.5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/20"
           >
             <p className="text-3xl" aria-hidden="true">🖥️</p>
             <h3 className="mt-3 text-lg font-bold">Virtual Desktop in your browser</h3>
@@ -472,7 +478,7 @@ export default function Home() {
           </Link>
           <Link
             href="/vibecodeworker"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-cyan-500/60 hover:shadow-xl hover:shadow-cyan-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-cyan-500/60 hover:shadow-xl hover:shadow-cyan-500/10"
           >
             <p className="text-3xl" aria-hidden="true">⚙️</p>
             <h3 className="mt-3 text-lg font-bold">VibeCodeWorker testing</h3>
@@ -484,7 +490,7 @@ export default function Home() {
           </Link>
           <Link
             href="/squads"
-            className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-violet-500/60 hover:shadow-xl hover:shadow-violet-500/10"
+            className="rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-violet-500/60 hover:shadow-xl hover:shadow-violet-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🚀</p>
             <h3 className="mt-3 text-lg font-bold">UnitUnite squad workspaces</h3>
@@ -496,7 +502,7 @@ export default function Home() {
           </Link>
           <Link
             href="/blender"
-            className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-orange-500/60 hover:shadow-xl hover:shadow-orange-500/10"
+            className="rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-orange-500/60 hover:shadow-xl hover:shadow-orange-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🎬</p>
             <h3 className="mt-3 text-lg font-bold">Blender renders on RTX 4090</h3>
@@ -508,7 +514,7 @@ export default function Home() {
           </Link>
           <Link
             href="/buddy"
-            className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🎙️</p>
             <h3 className="mt-3 text-lg font-bold">Game AI + Gaming Buddy</h3>
@@ -521,14 +527,18 @@ export default function Home() {
         </div>
       </section>
 
+          </>
+        }
+        business={
+          <>
       {/* For business & teams */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="For business and teams">
+      <section id="business" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5" aria-label="For business and teams">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-300">
               For business &amp; teams
             </p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">
+            <h2 className="mt-2 text-xl font-black tracking-tight sm:text-2xl">
               Run the company like you run a squad.
             </h2>
           </div>
@@ -540,10 +550,10 @@ export default function Home() {
           Squads, time tracking, projects, invoices, CRM, and the vault; one
           coin where 100 🪙 = exactly $1.00.
         </p>
-        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           <Link
             href="/squads"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🚀</p>
             <h3 className="mt-3 text-lg font-bold">UnitUnite</h3>
@@ -554,7 +564,7 @@ export default function Home() {
           </Link>
           <Link
             href="/squads#orgs"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🏢</p>
             <h3 className="mt-3 text-lg font-bold">Orgs &amp; Teams</h3>
@@ -565,7 +575,7 @@ export default function Home() {
           </Link>
           <Link
             href="/timer"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">⏱️</p>
             <h3 className="mt-3 text-lg font-bold">Timer</h3>
@@ -576,7 +586,7 @@ export default function Home() {
           </Link>
           <Link
             href="/squads"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">📋</p>
             <h3 className="mt-3 text-lg font-bold">Projects</h3>
@@ -587,7 +597,7 @@ export default function Home() {
           </Link>
           <Link
             href="/business/invoices"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🧾</p>
             <h3 className="mt-3 text-lg font-bold">Invoices</h3>
@@ -598,7 +608,7 @@ export default function Home() {
           </Link>
           <Link
             href="/business/crm"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🤝</p>
             <h3 className="mt-3 text-lg font-bold">CRM</h3>
@@ -609,7 +619,7 @@ export default function Home() {
           </Link>
           <Link
             href="/squads"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">👥</p>
             <h3 className="mt-3 text-lg font-bold">Team Management</h3>
@@ -620,7 +630,7 @@ export default function Home() {
           </Link>
           <Link
             href="/vault"
-            className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10"
           >
             <p className="text-3xl" aria-hidden="true">🗄️</p>
             <h3 className="mt-3 text-lg font-bold">Data Vault</h3>
@@ -637,16 +647,20 @@ export default function Home() {
         </p>
       </section>
 
+          </>
+        }
+        creative={
+          <>
       {/* NewGamePlus; sentence in, game out */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Turn a prompt into a game">
+      <section id="studio" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5" aria-label="Turn a prompt into a game">
         <div className="overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-violet-600 via-fuchsia-600 to-cyan-600 p-[1px]">
-          <div className="rounded-3xl bg-card p-6 sm:p-10">
-            <div className="grid items-center gap-8 lg:grid-cols-2">
+          <div className="rounded-3xl bg-card p-3.5 sm:p-4">
+            <div className="grid items-center gap-3 lg:grid-cols-2">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.3em] text-fuchsia-600 dark:text-fuchsia-300">
                   ✨ NewGamePlus
                 </p>
-                <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">
+                <h2 className="mt-3 text-xl font-black tracking-tight sm:text-2xl">
                   Type a sentence.
                   <br />
                   Get a game.
@@ -697,19 +711,19 @@ export default function Home() {
       </section>
 
       {/* AI studio; swarm + fal + buddy */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="AI studio">
+      <section id="studio2" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5" aria-label="AI studio">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-300">
           The AI studio
         </p>
-        <h2 className="mt-2 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">
+        <h2 className="mt-2 max-w-3xl text-xl font-black tracking-tight sm:text-2xl">
           Hire brains. Make art. Never leave the tab.
         </h2>
         <p className="mt-3 max-w-3xl text-muted-foreground sm:text-lg">
           One swarm to think with, 30 magical media tools to create with, and a
           Buddy that watches your screen while you play.
         </p>
-        <div className="mt-8 grid gap-4 lg:grid-cols-3">
-          <Link href="/swarm" className="group rounded-2xl border-2 border-amber-500/40 bg-card p-6 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/20">
+        <div className="mt-3 grid gap-3 lg:grid-cols-3">
+          <Link href="/swarm" className="group rounded-2xl border-2 border-amber-500/40 bg-card p-3.5 transition hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/20">
             <p className="text-3xl" aria-hidden="true">🐝</p>
             <h3 className="mt-3 text-lg font-bold">Agent Swarm Chat</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -723,7 +737,7 @@ export default function Home() {
             </ul>
             <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/swarm →</p>
           </Link>
-          <Link href="/fal" className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-pink-500/60 hover:shadow-xl hover:shadow-pink-500/10">
+          <Link href="/fal" className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-pink-500/60 hover:shadow-xl hover:shadow-pink-500/10">
             <p className="text-3xl" aria-hidden="true">🎨</p>
             <h3 className="mt-3 text-lg font-bold">fal.ai Studio - 30 tools</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -737,7 +751,7 @@ export default function Home() {
             </ul>
             <p className="mt-3 font-mono text-xs font-bold text-pink-600 dark:text-pink-300">/fal →</p>
           </Link>
-          <Link href="/buddy" className="group rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-emerald-500/60 hover:shadow-xl hover:shadow-emerald-500/10">
+          <Link href="/buddy" className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-emerald-500/60 hover:shadow-xl hover:shadow-emerald-500/10">
             <p className="text-3xl" aria-hidden="true">🎙️</p>
             <h3 className="mt-3 text-lg font-bold">Gaming Buddy - 9 voices</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -754,14 +768,18 @@ export default function Home() {
         </div>
       </section>
 
+          </>
+        }
+        arcade={
+          <>
       {/* Games; exactly 6 */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Featured games">
+      <section id="arcade" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5" aria-label="Featured games">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-fuchsia-600 dark:text-fuchsia-300">
               The arcade
             </p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">
+            <h2 className="mt-2 text-xl font-black tracking-tight sm:text-2xl">
               Find your next weird world; six to start.
             </h2>
             <p className="mt-3 max-w-2xl text-muted-foreground sm:text-lg">
@@ -798,20 +816,24 @@ export default function Home() {
         </div>
       </section>
 
+          </>
+        }
+        community={
+          <>
       {/* Community; clans, bots, support, launches */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Community and creator economy">
+      <section id="community" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5" aria-label="Community and creator economy">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-violet-600 dark:text-violet-300">
           People + bots + money that behaves
         </p>
-        <h2 className="mt-2 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">
+        <h2 className="mt-2 max-w-3xl text-xl font-black tracking-tight sm:text-2xl">
           Find your weirdos. Fund your favorites.
         </h2>
         <p className="mt-3 max-w-3xl text-muted-foreground sm:text-lg">
           Clan chat rooms, bot APIs, creator memberships,
           community launches; all on the same honest coin.
         </p>
-        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Link href="/clans" className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-violet-500/60 hover:shadow-xl hover:shadow-violet-500/10">
+        <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <Link href="/clans" className="rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-violet-500/60 hover:shadow-xl hover:shadow-violet-500/10">
             <p className="text-3xl" aria-hidden="true">👾</p>
             <h3 className="mt-3 font-bold">Clans</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -820,7 +842,7 @@ export default function Home() {
             </p>
             <p className="mt-3 font-mono text-xs font-bold text-violet-600 dark:text-violet-300">/clans →</p>
           </Link>
-          <Link href="/bot/setup" className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-cyan-500/60 hover:shadow-xl hover:shadow-cyan-500/10">
+          <Link href="/bot/setup" className="rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-cyan-500/60 hover:shadow-xl hover:shadow-cyan-500/10">
             <p className="text-3xl" aria-hidden="true">🤖</p>
             <h3 className="mt-3 font-bold">Bots</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -829,7 +851,7 @@ export default function Home() {
             </p>
             <p className="mt-3 font-mono text-xs font-bold text-cyan-600 dark:text-cyan-300">/bot/setup →</p>
           </Link>
-          <Link href="/support" className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10">
+          <Link href="/support" className="rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-amber-500/60 hover:shadow-xl hover:shadow-amber-500/10">
             <p className="text-3xl" aria-hidden="true">💛</p>
             <h3 className="mt-3 font-bold">Support creators</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -838,7 +860,7 @@ export default function Home() {
             </p>
             <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/support →</p>
           </Link>
-          <Link href="/fundraisers" className="rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-emerald-500/60 hover:shadow-xl hover:shadow-emerald-500/10">
+          <Link href="/fundraisers" className="rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-1 hover:border-emerald-500/60 hover:shadow-xl hover:shadow-emerald-500/10">
             <p className="text-3xl" aria-hidden="true">🚀</p>
             <h3 className="mt-3 font-bold">Launch campaigns</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -855,14 +877,17 @@ export default function Home() {
         </p>
       </section>
 
+          </>
+        }
+      />
       {/* Classics; the museum wing */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Classic exhibits">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-5" aria-label="Classic exhibits">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
               The museum wing
             </p>
-            <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+            <h2 className="mt-2 text-xl font-black tracking-tight sm:text-2xl">
               Classics, preserved and playable.
             </h2>
           </div>
@@ -876,15 +901,15 @@ export default function Home() {
       </section>
 
       {/* Flywheel; short, no econ spam */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="How 4weird works">
-        <div className="rounded-3xl border border-border bg-card p-6 sm:p-10">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-5" aria-label="How 4weird works">
+        <div className="rounded-3xl border border-border bg-card p-3.5 sm:p-4">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
             Funded by Founders — what it means
           </p>
-          <h2 className="mt-3 max-w-2xl text-2xl font-black sm:text-4xl">
+          <h2 className="mt-3 max-w-2xl text-xl font-black sm:text-2xl">
             Founders buy cloud. Cloud funds play.
           </h2>
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
             <div>
               <p className="text-2xl" aria-hidden="true">☁️</p>
               <h3 className="mt-2 font-bold">1. Founders rent cloud</h3>
@@ -924,26 +949,26 @@ export default function Home() {
       </section>
 
       {/* Get started - 3 steps */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Get started">
-        <div className="rounded-3xl border border-border bg-gradient-to-br from-slate-950 via-slate-900 to-violet-950 p-6 text-white sm:p-10">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-5" aria-label="Get started">
+        <div className="rounded-3xl border border-border bg-gradient-to-br from-slate-950 via-slate-900 to-violet-950 p-3.5 text-white sm:p-4">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">
             Zero to weird in 3 steps
           </p>
-          <h2 className="mt-3 text-2xl font-black sm:text-4xl">Tonight&apos;s plan (pick one, or all three)</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl bg-white/10 p-5 backdrop-blur">
+          <h2 className="mt-3 text-xl font-black sm:text-2xl">Tonight&apos;s plan (pick one, or all three)</h2>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl bg-white/10 p-3.5 backdrop-blur">
               <p className="font-mono text-xs font-bold text-cyan-300">STEP 1 - PLAY</p>
               <h3 className="mt-2 font-bold">Waste 5 beautiful minutes</h3>
               <p className="mt-1 text-sm text-white/75">Pick a featured game above. Guests play free; signed-in players meter coins instead of ads.</p>
               <Link href="/games" className="mt-3 inline-block rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-900 transition hover:-translate-y-0.5">Play →</Link>
             </div>
-            <div className="rounded-2xl bg-white/10 p-5 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 p-3.5 backdrop-blur">
               <p className="font-mono text-xs font-bold text-fuchsia-300">STEP 2 - BUILD</p>
               <h3 className="mt-2 font-bold">Ship something unhinged</h3>
               <p className="mt-1 text-sm text-white/75">Describe it on /newgameplus or hire the /swarm to co-build it with you.</p>
               <Link href="/newgameplus" className="mt-3 inline-block rounded-full bg-white px-5 py-2 text-sm font-bold text-slate-900 transition hover:-translate-y-0.5">Build →</Link>
             </div>
-            <div className="rounded-2xl bg-white/10 p-5 backdrop-blur">
+            <div className="rounded-2xl bg-white/10 p-3.5 backdrop-blur">
               <p className="font-mono text-xs font-bold text-amber-300">STEP 3 - GET PAID</p>
               <h3 className="mt-2 font-bold">Earn while they play</h3>
               <p className="mt-1 text-sm text-white/75">Set your own game rates, open support tiers, or launch a campaign. 100 Vibe Coins = exactly $1.00.</p>
@@ -957,8 +982,8 @@ export default function Home() {
       </section>
 
       {/* Single clear pricing promise */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Pricing promise">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-gradient-to-r from-cyan-600 to-violet-600 p-6 text-white sm:p-10 lg:flex-row lg:items-center">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-5" aria-label="Pricing promise">
+        <div className="flex flex-col items-start justify-between gap-3 rounded-3xl bg-gradient-to-r from-cyan-600 to-violet-600 p-3.5 text-white sm:p-4 lg:flex-row lg:items-center">
           <div className="max-w-2xl">
             <h2 className="text-2xl font-black sm:text-3xl">One coin. One promise.</h2>
             <p className="mt-2 text-white/85 sm:text-lg">
@@ -1005,11 +1030,11 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Frequently asked questions">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-5" aria-label="Frequently asked questions">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-300">
           Questions? Good. We like those.
         </p>
-        <h2 className="mt-2 text-2xl font-black sm:text-4xl">The 60-second FAQ</h2>
+        <h2 className="mt-2 text-xl font-black sm:text-2xl">The 60-second FAQ</h2>
         <Suspense fallback={<p className={HOME_FALLBACK}>Loading answers…</p>}>
           <HomeFaqList />
         </Suspense>
@@ -1019,15 +1044,15 @@ export default function Home() {
       </section>
 
       {/* Site directory; every menu + submenu topic lives here too */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-5 sm:pb-20" aria-label="Explore everything on 4weird">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-5" aria-label="Explore everything on 4weird">
         <h2 className="text-2xl font-bold sm:text-3xl">Everything on 4weird, on one page</h2>
         <p className="mt-3 max-w-3xl text-muted-foreground">
           Every menu and submenu - Play, Build, Explore, Account; starts here.
         </p>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
           <nav aria-label="Homepage - Play">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Play</h3>
-            <ul className="mt-3 space-y-3">
+            <ul className="mt-2 space-y-2">
               <DirItem
                 href="/games"
                 label="🎮 All Games"
@@ -1057,7 +1082,7 @@ export default function Home() {
           </nav>
           <nav aria-label="Homepage - Build">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Build</h3>
-            <ul className="mt-3 space-y-3">
+            <ul className="mt-2 space-y-2">
               <DirItem
                 href="/agents"
                 label="👱🏻‍♀️ AI Agents"
@@ -1127,7 +1152,7 @@ export default function Home() {
           </nav>
           <nav aria-label="Homepage - Explore">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Explore</h3>
-            <ul className="mt-3 space-y-3">
+            <ul className="mt-2 space-y-2">
               <DirItem
                 href="/game/spaceships"
                 label="🛸 Spaceships"
@@ -1194,7 +1219,7 @@ export default function Home() {
           </nav>
           <nav aria-label="Homepage - Account">
             <h3 className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-600 dark:text-cyan-300">Account</h3>
-            <ul className="mt-3 space-y-3">
+            <ul className="mt-2 space-y-2">
               <DirItem
                 href="/favorites"
                 label="⭐ Favorites"
@@ -1254,12 +1279,12 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-5 sm:pb-24" aria-label="Start now">
-        <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-8 text-center text-white sm:p-14">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-5" aria-label="Start now">
+        <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-3.5 text-center text-white sm:p-6">
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-fuchsia-500/20 to-amber-500/20" />
           <div className="relative">
             <p className="font-mono text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">Future Forward Fun, Funded by Founders</p>
-            <h2 className="mx-auto mt-3 max-w-2xl text-3xl font-black sm:text-5xl">
+            <h2 className="mx-auto mt-3 max-w-2xl text-xl font-black sm:text-2xl">
               Come for the games.
               <br />
               Stay because founders fund them.

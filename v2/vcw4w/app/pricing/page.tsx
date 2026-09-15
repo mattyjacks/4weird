@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { cacheLife } from "next/cache";
 import { PackCatalog } from "@/components/coins/pack-catalog";
+import { RateCalculator } from "@/components/coins/rate-calculator";
 import { CompactDetails } from "@/components/ui/compact-details";
 import { InfoTip } from "@/components/ui/info-tip";
 import { jsonLdScript, pricingOffersJsonLd } from "@/lib/seo";
@@ -52,7 +53,7 @@ async function PricingFaqList() {
   'use cache';
   cacheLife('days');
   return (
-    <div className="mt-6 grid gap-4 md:grid-cols-2">
+    <div className="mt-3 grid gap-2 md:grid-cols-2">
       {[
         {
           q: "Is the 25% added on top?",
@@ -122,18 +123,26 @@ export default function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(pricingOffersJsonLd()) }}
       />
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
-          Pricing
-        </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
+      {/* Hero: single 40px title line + inline status + compact CTAs */}
+      <section className="mx-auto max-w-6xl px-4 py-4 sm:px-5">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">
+            Pricing
+          </p>
+          <span className="rounded-full border border-cyan-300/40 px-2 py-0.5 font-mono text-[11px] font-bold text-cyan-200">
+            100 🪙 = exactly $1.00
+          </span>
+          <span className="rounded-full border border-white/15 px-2 py-0.5 font-mono text-[11px] text-slate-300">
+            25% cut inside, never on top
+          </span>
+        </div>
+        <h1 className="mt-1 max-w-3xl text-xl font-black leading-tight tracking-tight">
           One sentence pricing. <span className="text-cyan-300">No asterisks.</span>
         </h1>
-        <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
+        <p className="mt-1 max-w-2xl text-sm text-slate-300">
           100 Vibe Coins = exactly $1.00 - 25% cut already inside, never on top.
         </p>
-        <div className="mt-4 grid max-w-2xl gap-3">
+        <div className="mt-2 grid max-w-3xl gap-2">
           <CompactDetails
             summary="Free trial: up to 100 coins ($1.00)"
             hint="One free trial per person and network."
@@ -170,41 +179,62 @@ export default function Page() {
             </p>
           </CompactDetails>
         </div>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
             href="/account"
-            className="rounded-full bg-cyan-300 px-6 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
+            className="rounded-full bg-cyan-300 px-4 py-1.5 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
           >
             Open account - get 100 free
           </Link>
           <Link
             href="/agents"
-            className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+            className="rounded-full border border-white/20 px-4 py-1.5 text-center font-semibold transition hover:bg-white/10"
           >
             Rent compute
           </Link>
           <Link
             href="/squads"
-            className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+            className="rounded-full border border-white/20 px-4 py-1.5 text-center font-semibold transition hover:bg-white/10"
           >
             Try UnitUnite
           </Link>
         </div>
       </section>
 
+      {/* Sticky 44px plan command bar: anchor shortcuts only, no logic */}
+      <nav aria-label="Pricing sections" className="sticky top-0 z-10 border-y border-white/10 bg-slate-950/90 backdrop-blur">
+        <div className="mx-auto flex h-11 max-w-6xl items-center gap-2 overflow-x-auto px-4 sm:px-5">
+          <span className="shrink-0 font-mono text-[11px] font-bold uppercase tracking-widest text-cyan-300">
+            Plans & coins
+          </span>
+          <a href="#plans" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">
+            Plans
+          </a>
+          <a href="#rates" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">
+            Compute rates
+          </a>
+          <a href="#packs" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">
+            Coin packs
+          </a>
+          <a href="#faq" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">
+            FAQ
+          </a>
+        </div>
+      </nav>
+
       {/* Plans */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-5" aria-label="Plans">
-        <div className="grid gap-4 lg:grid-cols-3">
-          <article className="rounded-3xl border border-white/10 bg-white/[.04] p-6 sm:p-8">
+      <section id="plans" className="mx-auto max-w-6xl scroll-mt-16 px-4 pt-6 sm:px-5" aria-label="Plans">
+        <div className="grid gap-3 lg:grid-cols-3">
+          <article className="rounded-3xl border border-white/10 bg-white/[.04] p-4">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Play</p>
-            <h2 className="mt-2 text-2xl font-black">Vibe Coins</h2>
-            <p className="mt-2 text-3xl font-black">
+            <h2 className="mt-2 text-lg font-black">Vibe Coins</h2>
+            <p className="mt-2 text-xl font-black">
               100 Vibe Coins <span className="text-base font-semibold text-slate-400">= exactly $1.00</span>
             </p>
             <p className="mt-3 text-sm text-slate-400">
               Pay-as-you-go fun money. 100 Vibe Coins = exactly $1.00; 25% cut already inside, never on top; free trial up to 100 coins.
             </p>
-            <ul className="mt-5 space-y-2.5">
+            <ul className="mt-3 space-y-1.5">
               <Check>500 / 1,500 / 5,000 / 25,000 packs + custom 500-100,000</Check>
               <Check>Daily login bonus (5-12 coins) + 25/25 referrals</Check>
               <Check>One-year expiry · oldest unexpired centicentcoins spent first</Check>
@@ -213,26 +243,26 @@ export default function Page() {
             </ul>
             <Link
               href="/account"
-              className="mt-6 block rounded-full bg-white/10 px-5 py-3 text-center font-bold transition hover:bg-white/15"
+              className="mt-3 block rounded-full bg-white/10 px-4 py-1.5 text-center text-sm font-bold transition hover:bg-white/15"
             >
               Buy coins
             </Link>
           </article>
 
-          <article className="relative rounded-3xl border-2 border-cyan-300/70 bg-gradient-to-b from-cyan-300/15 to-white/[.03] p-6 sm:p-8">
+          <article className="relative rounded-3xl border-2 border-cyan-300/70 bg-gradient-to-b from-cyan-300/15 to-white/[.03] p-4">
             <p className="inline-block rounded-full bg-cyan-300 px-3 py-1 text-xs font-black uppercase tracking-widest text-slate-950">
               Most popular
             </p>
             <p className="mt-4 text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Cloud compute</p>
-            <h2 className="mt-2 text-2xl font-black">Metered + 25% premium</h2>
-            <p className="mt-2 text-3xl font-black">
+            <h2 className="mt-2 text-lg font-black">Metered + 25% premium</h2>
+            <p className="mt-2 text-xl font-black">
               Base + 25% <span className="text-base font-semibold text-slate-400">25% cut already inside, never on top</span>
             </p>
             <p className="mt-3 text-sm text-slate-300">
               Rent AI agents and squad cloud by the hour or second. One gross coin price covers the
               provider plus the 25% cut already inside, never on top.
             </p>
-            <ul className="mt-5 space-y-2.5">
+            <ul className="mt-3 space-y-1.5">
               <Check>400 coins ($4.00) of compute = 100 platform / 300 provider (on-site credits, never cash-out)</Check>
               <Check>Coin escrow - metered heartbeat never bills above escrow</Check>
               <Check>RunPod / DigitalOcean / custom endpoints, no fake provisioning</Check>
@@ -240,16 +270,16 @@ export default function Page() {
             </ul>
             <Link
               href="/agents"
-              className="mt-6 block rounded-full bg-cyan-300 px-5 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
+              className="mt-3 block rounded-full bg-cyan-300 px-4 py-1.5 text-center text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
             >
               Start renting
             </Link>
           </article>
 
-          <article className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/10 to-white/[.03] p-6 sm:p-8">
+          <article className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/10 to-white/[.03] p-4">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">Self-hosted · BYOK · Mid-tier</p>
-            <h2 className="mt-2 text-2xl font-black">Bring your own keys</h2>
-            <p className="mt-2 text-3xl font-black">
+            <h2 className="mt-2 text-lg font-black">Bring your own keys</h2>
+            <p className="mt-2 text-xl font-black">
               $420<span className="text-base font-semibold text-slate-400">/mo per org + 15% compute markup</span>
             </p>
             <p className="mt-3 text-sm text-slate-300">
@@ -258,7 +288,7 @@ export default function Page() {
               Includes up to 100 user seats per org; extra seats $4.20/mo each. Need scale?
               Enterprise quotes go down to as little as 9% markup - Talk to Sales.
             </p>
-            <ul className="mt-5 space-y-2.5">
+            <ul className="mt-3 space-y-1.5">
               <Check>$420/mo per org: up to 100 seats, workspaces, escrow-free metering, support + self-host help</Check>
               <Check>Extra seats $4.20/mo each; add as your org grows</Check>
               <Check>15% API/compute markup on your at-cost bills (vs 25% on cloud)</Check>
@@ -266,7 +296,7 @@ export default function Page() {
             </ul>
             <Link
               href="/squads"
-              className="mt-6 block rounded-full border border-amber-300/60 px-5 py-3 text-center font-bold text-amber-200 transition hover:bg-amber-300/10"
+              className="mt-3 block rounded-full border border-amber-300/60 px-4 py-1.5 text-center text-sm font-bold text-amber-200 transition hover:bg-amber-300/10"
             >
               Go self-hosted
             </Link>
@@ -275,10 +305,10 @@ export default function Page() {
       </section>
 
       {/* Renting games */}
-      <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-5 sm:pt-16" aria-label="Renting games">
-        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8">
+      <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-5 sm:pt-6" aria-label="Renting games">
+        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-4">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Renting games</p>
-          <h2 className="mt-2 text-2xl font-black sm:text-3xl">About $0.01 per hour of play, billed per second</h2>
+          <h2 className="mt-2 text-lg font-black sm:text-3xl">About $0.01 per hour of play, billed per second</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
             Every first load costs a <strong className="text-white">proportional load fee (default 1 coin for 1 MiB of fresh bytes)</strong> -
             even loads under 1 MB pay their exact fraction, down to 1 centicentcoin (0.01 coins). Running play
@@ -297,16 +327,16 @@ export default function Page() {
             <Check>Guests play free with skippable ads - no saves, multiplayer, or AI</Check>
             <Check>Every load, hour, and ad-free session itemized on /my/usage/</Check>
           </ul>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Link
               href="/games"
-              className="rounded-full bg-cyan-300 px-6 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
+              className="rounded-full bg-cyan-300 px-4 py-1.5 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
             >
               Play games
             </Link>
             <Link
               href="/my/usage/"
-              className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+              className="rounded-full border border-white/20 px-4 py-1.5 text-center font-semibold transition hover:bg-white/10"
             >
               My usage
             </Link>
@@ -315,10 +345,10 @@ export default function Page() {
       </section>
 
       {/* Big communities: 10k orgs, 100k clans, pruning, Tribute commons */}
-      <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-5 sm:pt-16" aria-label="Big communities">
-        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8">
+      <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-5 sm:pt-6" aria-label="Big communities">
+        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-4">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-300">Big communities</p>
-          <h2 className="mt-2 text-2xl font-black sm:text-3xl">10,000-member orgs · 100,000-member clans</h2>
+          <h2 className="mt-2 text-lg font-black sm:text-3xl">10,000-member orgs · 100,000-member clans</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
             Hosted orgs hold up to <strong className="text-white">10,000</strong> members and clans up to{" "}
             <strong className="text-white">100,000</strong> members before automated pruning arms (owners never
@@ -344,9 +374,9 @@ export default function Page() {
       </section>
 
       {/* How the 25% works */}
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-5 sm:py-16" aria-label="How compute pricing works">
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8">
+      <section id="rates" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5 sm:py-6" aria-label="How compute pricing works">
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="rounded-3xl border border-white/10 bg-white/[.03] p-4">
             <h2 className="text-xl font-black sm:text-2xl">How the 25% compute premium works</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
               Every cloud meter shows one gross price in coins. Behind it we split{" "}
@@ -367,7 +397,7 @@ export default function Page() {
               your coins up front and settle metered usage by heartbeat - the final
               charge can only go down, never above escrow.
             </p>
-            <div className="mt-6 overflow-hidden rounded-2xl border border-white/10">
+            <div className="mt-3 overflow-hidden rounded-2xl border border-white/10">
               <div className="flex h-12">
                 <div className="flex w-3/4 items-center justify-center bg-cyan-300/80 text-sm font-black text-slate-950">
                   75% provider credits (on-site only)
@@ -381,7 +411,7 @@ export default function Page() {
               </p>
             </div>
           </div>
-          <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6 sm:p-8">
+          <div className="rounded-3xl border border-white/10 bg-white/[.03] p-4">
             <h2 className="text-xl font-black sm:text-2xl">
               How Self-Hosted BYOK works{" "}
               <InfoTip
@@ -400,7 +430,7 @@ export default function Page() {
               anywhere else. Self-hosting requires a current paid plan; there is no free
               self-host right.
             </p>
-            <ul className="mt-5 space-y-2.5">
+            <ul className="mt-3 space-y-1.5">
               <Check>$420/mo per org covers 100 seats + unlimited workspaces + team seats on your stack</Check>
               <Check>15% metered API/compute markup settled monthly in coins or card</Check>
               <Check>Enterprise / hyperscaler quotes down to as little as 9% markup - Talk to Sales</Check>
@@ -414,35 +444,35 @@ export default function Page() {
           <table className="w-full min-w-[640px] border-collapse bg-white/[.02] text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-5 py-4">What</th>
-                <th className="px-5 py-4">Cloud (metered)</th>
-                <th className="px-5 py-4">Self-Hosted BYOK</th>
+                <th className="px-3 py-1.5">What</th>
+                <th className="px-3 py-1.5">Cloud (metered)</th>
+                <th className="px-3 py-1.5">Self-Hosted BYOK</th>
               </tr>
             </thead>
             <tbody className="text-slate-300">
               <tr className="border-b border-white/5">
-                <td className="px-5 py-4 font-bold text-white">Platform fee</td>
-                <td className="px-5 py-4">$0 - just the 25% premium included in metered coins</td>
-                <td className="px-5 py-4">$420/mo per org (100 seats incl., +$4.20/seat); Enterprise custom quote</td>
+                <td className="px-3 py-1.5 font-bold text-white">Platform fee</td>
+                <td className="px-3 py-1.5">$0 - just the 25% premium included in metered coins</td>
+                <td className="px-3 py-1.5">$420/mo per org (100 seats incl., +$4.20/seat); Enterprise custom quote</td>
               </tr>
               <tr className="border-b border-white/5">
-                <td className="px-5 py-4 font-bold text-white">Compute premium</td>
-                <td className="px-5 py-4">25% included (25/75 split, escrowed)</td>
-                <td className="px-5 py-4">15% on at-cost provider bills (Mid-tier); down to 9% on Enterprise</td>
+                <td className="px-3 py-1.5 font-bold text-white">Compute premium</td>
+                <td className="px-3 py-1.5">25% included (25/75 split, escrowed)</td>
+                <td className="px-3 py-1.5">15% on at-cost provider bills (Mid-tier); down to 9% on Enterprise</td>
               </tr>
               <tr className="border-b border-white/5">
-                <td className="px-5 py-4 font-bold text-white">Who pays provider</td>
-                <td className="px-5 py-4">We do - out of your gross coin price</td>
-                <td className="px-5 py-4">You do - directly, at cost</td>
+                <td className="px-3 py-1.5 font-bold text-white">Who pays provider</td>
+                <td className="px-3 py-1.5">We do - out of your gross coin price</td>
+                <td className="px-3 py-1.5">You do - directly, at cost</td>
               </tr>
               <tr className="border-b border-white/5">
-                <td className="px-5 py-4 font-bold text-white">Best for</td>
-                <td className="px-5 py-4">Trying agents, bursts, small teams</td>
-                <td className="px-5 py-4">Heavy or steady workloads, regulated keys</td>
+                <td className="px-3 py-1.5 font-bold text-white">Best for</td>
+                <td className="px-3 py-1.5">Trying agents, bursts, small teams</td>
+                <td className="px-3 py-1.5">Heavy or steady workloads, regulated keys</td>
               </tr>
               <tr>
-                <td className="px-5 py-4 font-bold text-white">Break-even hint</td>
-                <td className="px-5 py-4" colSpan={2}>
+                <td className="px-3 py-1.5 font-bold text-white">Break-even hint</td>
+                <td className="px-3 py-1.5" colSpan={2}>
                   Self-hosted wins once your monthly 10% premium savings pass $420 - roughly
                   $4,200/mo of cloud compute.
                 </td>
@@ -452,11 +482,15 @@ export default function Page() {
         </div>
       </section>
 
+      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-5" aria-label="Compute rate calculator">
+        <RateCalculator />
+      </div>
+
       {/* VibeCodeWorker license */}
       <section className="mx-auto max-w-6xl px-4 sm:px-5" aria-label="VibeCodeWorker license">
-        <div className="rounded-3xl border border-violet-300/30 bg-gradient-to-b from-violet-400/10 to-white/[.02] p-6 sm:p-8">
+        <div className="rounded-3xl border border-violet-300/30 bg-gradient-to-b from-violet-400/10 to-white/[.02] p-4">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-300">Private license · not open source</p>
-          <h2 className="mt-2 text-2xl font-black sm:text-3xl">VibeCodeWorker licensing, plainly stated</h2>
+          <h2 className="mt-2 text-lg font-black sm:text-3xl">VibeCodeWorker licensing, plainly stated</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
             The 4weird platform, VibeCodeWorker, and the games in this repo are proprietary; all
             rights reserved. Full text lives in the repo <code className="text-cyan-300">LICENSE</code> file
@@ -464,10 +498,10 @@ export default function Page() {
             What follows is the pricing-page summary; where they differ, the LICENSE + Terms + your
             paid order control.
           </p>
-          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
             <div className="rounded-2xl border border-amber-300/30 bg-black/30 p-5">
               <h3 className="font-black text-amber-200">Mid-tier self-host - $420/mo per org</h3>
-              <ul className="mt-3 space-y-2.5">
+              <ul className="mt-3 space-y-1.5">
                 <Check>Up to 100 user seats included; additional seats $4.20/mo each</Check>
                 <Check>Permission + help to self-host VibeCodeWorker on your infrastructure</Check>
                 <Check>15% API / compute markup over at-cost provider bills</Check>
@@ -476,7 +510,7 @@ export default function Page() {
             </div>
             <div className="rounded-2xl border border-cyan-300/30 bg-black/30 p-5">
               <h3 className="font-black text-cyan-200">Enterprise / hyperscaler - Get a Quote</h3>
-              <ul className="mt-3 space-y-2.5">
+              <ul className="mt-3 space-y-1.5">
                 <Check>Custom monthly pricing - Talk to Sales (matt@mattyjacks.com)</Check>
                 <Check>Volume API / compute markup down to as little as 9%</Check>
                 <Check>Scale, term, prepayment, and support scope set the final number</Check>
@@ -484,7 +518,7 @@ export default function Page() {
               </ul>
             </div>
           </div>
-          <ul className="mt-6 space-y-2.5">
+          <ul className="mt-6 space-y-1.5">
             <Check>25% cut already inside, never on top of every hosted price (25% platform / 75% provider or creator as on-site credits, never cash-out); routing around metering or the cut violates the license</Check>
             <Check>Contributions assign to us: work you submit through the platform is assigned to MattyJacks LLC (exclusive perpetual license where assignment is not possible); contributors do not retain ownership, and we may improve, modify, or remove games without further permission</Check>
             <Check>Attribution required: games built or tested with VibeCodeWorker must credit “Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker” in the game credits</Check>
@@ -499,13 +533,13 @@ export default function Page() {
       </section>
 
       {/* Coin packs */}
-      <section className="mx-auto max-w-6xl px-4 pb-12 sm:px-5 sm:pb-16" aria-label="Vibe Coin packs">
-        <h2 className="text-2xl font-black sm:text-3xl">Vibe Coin packs</h2>
+      <section id="packs" className="mx-auto max-w-6xl scroll-mt-16 px-4 pb-6 sm:px-5 sm:pb-6" aria-label="Vibe Coin packs">
+        <h2 className="text-lg font-black sm:text-xl">Vibe Coin packs</h2>
         <p className="mt-3 max-w-2xl text-slate-300">
           100 Vibe Coins = exactly $1.00. There is intentionally no 100-coin
           pack - 100 coins is the free trial. Pick a stash below.
         </p>
-        <div className="mt-8">
+        <div className="mt-3">
           <PackCatalog />
           <p className="mt-4 max-w-2xl text-sm text-slate-400">
             Changed your mind? Unspent coins from purchases made in the last 90 days can be refunded
@@ -521,39 +555,39 @@ export default function Page() {
       </section>
 
       {/* FAQ */}
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-5 sm:pb-24" aria-label="Pricing FAQ">
-        <h2 className="text-2xl font-black sm:text-3xl">Questions, answered</h2>
+      <section id="faq" className="mx-auto max-w-6xl scroll-mt-16 px-4 pb-6 sm:px-5 sm:pb-6" aria-label="Pricing FAQ">
+        <h2 className="text-lg font-black sm:text-xl">Questions, answered</h2>
         <Suspense fallback={<p className="text-sm text-slate-400">Loading questions…</p>}>
           <PricingFaqList />
         </Suspense>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
             href="/account"
-            className="rounded-full bg-cyan-300 px-6 py-3 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
+            className="rounded-full bg-cyan-300 px-4 py-1.5 text-center font-bold text-slate-950 transition hover:bg-cyan-200"
           >
             Open account
           </Link>
           <Link
             href="/buddy"
-            className="rounded-full border border-violet-300/50 px-6 py-3 text-center font-semibold text-violet-200 transition hover:bg-violet-300/10"
+            className="rounded-full border border-violet-300/50 px-4 py-1.5 text-center font-semibold text-violet-200 transition hover:bg-violet-300/10"
           >
             Meet the Buddy
           </Link>
           <Link
             href="/my/usage/"
-            className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+            className="rounded-full border border-white/20 px-4 py-1.5 text-center font-semibold transition hover:bg-white/10"
           >
             My usage
           </Link>
           <Link
             href="/leaderboards"
-            className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+            className="rounded-full border border-white/20 px-4 py-1.5 text-center font-semibold transition hover:bg-white/10"
           >
             Leaderboards
           </Link>
           <Link
             href="/vibecodeworker/docs"
-            className="rounded-full border border-white/20 px-6 py-3 text-center font-semibold transition hover:bg-white/10"
+            className="rounded-full border border-white/20 px-4 py-1.5 text-center font-semibold transition hover:bg-white/10"
           >
             Read the manual
           </Link>

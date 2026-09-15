@@ -116,109 +116,110 @@ export default function LuckPage() {
   }
 
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1rem", fontFamily: "sans-serif" }}>
-      <h1>Luck Factory</h1>
-      <p>
+    <main className="mx-auto max-w-3xl px-4 py-4 font-sans">
+      <header className="flex flex-wrap items-center gap-2">
+        <h1 className="text-xl font-black tracking-tight">Luck Factory</h1>
+        <p
+          aria-live="polite"
+          aria-label="Session clover balance"
+          className="ml-auto rounded-full border border-emerald-300/40 bg-emerald-950 px-3 py-1 text-sm font-extrabold"
+        >
+          {CLOVER_EMOJI} {sessionClovers.toLocaleString()} clovers
+        </p>
+      </header>
+      <p className="mt-1 text-sm text-slate-400">
         Turn an intention or mantra into a deterministic luck preview. Entertainment only — not gambling:
         no wagers, no payouts, nothing is recorded or charged.
       </p>
+      <p className="mt-0.5 text-xs text-slate-500">
+        <small>
+          Session only — resets on refresh, worth nothing. Clovers are never coins,
+          never convertible, never withdrawable.
+        </small>
+      </p>
 
-      <section
-        aria-live="polite"
-        aria-label="Session clover balance"
-        style={{ marginTop: "1rem", border: "1px solid #6ee7b7", borderRadius: 8, padding: "0.75rem 1rem", background: "#052e22" }}
-      >
-        <p style={{ margin: 0, fontSize: "1.25rem", fontWeight: 800 }}>
-          {CLOVER_EMOJI} {sessionClovers.toLocaleString()} clovers
-        </p>
-        <p style={{ margin: "0.25rem 0 0" }}>
-          <small>
-            Session only — resets on refresh, worth nothing. Clovers are never coins,
-            never convertible, never withdrawable.
-          </small>
-        </p>
-      </section>
-
-      <section style={{ display: "grid", gap: "0.75rem", marginTop: "1rem" }}>
-        <label>
+      <section aria-label="Draw controls" className="mt-3 flex flex-wrap items-end gap-2">
+        <label className="min-w-0 flex-1 basis-48 text-xs font-semibold">
           Intention / mantra
-          <textarea
+          <input
+            type="text"
             value={intention}
             onChange={(e) => setIntention(e.target.value)}
             placeholder="e.g. ship the demo with calm focus"
-            rows={3}
             maxLength={MAX_INTENTION_CHARS}
-            style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
+            className="mt-0.5 block w-full rounded-lg border border-white/15 bg-white/[.04] px-2 py-1.5 text-sm"
           />
         </label>
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-          <label>
-            Meditation streak (days)
-            <input
-              type="number"
-              min={0}
-              max={MAX_STREAK_DAYS}
-              value={streakDays}
-              onChange={(e) => setStreakDays(e.target.value)}
-              style={{ display: "block", marginTop: "0.25rem" }}
-            />
-          </label>
-          <label>
-            Draw counter
-            <input
-              type="number"
-              min={0}
-              max={MAX_COUNTER}
-              step={1}
-              value={counter}
-              onChange={(e) => setCounter(e.target.value)}
-              style={{ display: "block", marginTop: "0.25rem" }}
-            />
-          </label>
-        </div>
-        <button type="button" onClick={onDraw} style={{ justifySelf: "start" }}>
+        <label className="w-28 text-xs font-semibold">
+          Streak (days)
+          <input
+            type="number"
+            min={0}
+            max={MAX_STREAK_DAYS}
+            value={streakDays}
+            onChange={(e) => setStreakDays(e.target.value)}
+            className="mt-0.5 block w-full rounded-lg border border-white/15 bg-white/[.04] px-2 py-1.5 text-sm"
+          />
+        </label>
+        <label className="w-28 text-xs font-semibold">
+          Draw counter
+          <input
+            type="number"
+            min={0}
+            max={MAX_COUNTER}
+            step={1}
+            value={counter}
+            onChange={(e) => setCounter(e.target.value)}
+            className="mt-0.5 block w-full rounded-lg border border-white/15 bg-white/[.04] px-2 py-1.5 text-sm"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={onDraw}
+          className="rounded-lg bg-cyan-300 px-4 py-1.5 text-sm font-bold text-slate-950"
+        >
           Draw luck seed
         </button>
       </section>
 
       {result && isDrawError(result) && (
-        <p role="alert" style={{ color: "#b00020" }}>{result.error}</p>
+        <p role="alert" className="mt-2 text-sm text-red-500">{result.error}</p>
       )}
 
       {result && !isDrawError(result) && (
-        <section aria-live="polite" style={{ marginTop: "1rem", border: "1px solid #ccc", borderRadius: 8, padding: "1rem" }}>
-          <h2>Deterministic preview</h2>
-          <dl>
-            <dt>Seed (FNV-1a hex of intention)</dt>
+        <section aria-live="polite" className="mt-3 rounded-lg border border-white/15 p-3">
+          <h2 className="text-sm font-bold">Deterministic preview</h2>
+          <dl className="mt-1 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+            <dt className="text-slate-400">Seed (FNV-1a hex of intention)</dt>
             <dd><code>{result.seedHex}</code></dd>
-            <dt>Draw value (uniform [0, 1))</dt>
+            <dt className="text-slate-400">Draw value (uniform [0, 1))</dt>
             <dd>{result.value.toFixed(6)}</dd>
-            <dt>D100 roll</dt>
+            <dt className="text-slate-400">D100 roll</dt>
             <dd>{result.roll}</dd>
-            <dt>With meditation boost</dt>
+            <dt className="text-slate-400">With meditation boost</dt>
             <dd>{result.boosted}</dd>
-            <dt>Clovers granted</dt>
+            <dt className="text-slate-400">Clovers granted</dt>
             <dd>{CLOVER_EMOJI} +{result.clovers.toLocaleString()}</dd>
           </dl>
-          {result.perfect && <p>Perfect 100 — illustration only, worth nothing.</p>}
-          <p><small>Same intention + counter always yields the same preview and the same clovers. Streak bonus: +1 per full 7-day week, capped at +10.</small></p>
+          {result.perfect && <p className="mt-1 text-sm">Perfect 100 — illustration only, worth nothing.</p>}
+          <p className="mt-1 text-xs text-slate-500"><small>Same intention + counter always yields the same preview and the same clovers. Streak bonus: +1 per full 7-day week, capped at +10.</small></p>
         </section>
       )}
 
-      <section style={{ marginTop: "1.5rem" }}>
-        <h2>Transparent odds</h2>
-        <p>
+      <details className="mt-3 rounded-lg border border-white/10 px-3 py-2">
+        <summary className="cursor-pointer text-sm font-bold">Transparent odds</summary>
+        <p className="mt-1 text-sm">
           D100 rolls are uniform over 1–100 (each face ~1%). A perfect 100 is
           illustration only, worth nothing. No paid draws exist: nothing is
           charged, nothing is won, nothing is recorded.
         </p>
-        <p>
+        <p className="mt-1 text-sm">
           {CLOVER_EMOJI} Clovers are fake currency: each draw grants the boosted roll
           in clovers (plus a fixed 100 bonus on a perfect 100). They exist only on
           this screen, reset on refresh, and can never become coins or anything
           else of value.
         </p>
-      </section>
+      </details>
     </main>
   );
 }

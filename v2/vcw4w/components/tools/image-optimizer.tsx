@@ -11,6 +11,7 @@ const FORMAT_LABEL: Record<OutFormat, string> = {
   "image/png": "PNG",
   "image/jpeg": "JPEG",
 };
+const FORMATS: OutFormat[] = ["image/webp", "image/jpeg", "image/png"];
 
 function formatBytes(bytes: number): string {
   if (!bytes) return "0 B";
@@ -39,6 +40,8 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 // object URLs, canvas) runs inside the file-picker handler with guards,
 // and object URLs are revoked on change/unmount. Fail-open: any failure
 // surfaces a notice while the rest of the page keeps working.
+// LAYOUT (UXPASS p55): unified 2-panel 50/50 workbench —
+// left dropzone+preview, right format pills + sliders + W/H + download.
 export function ImageOptimizer() {
   const [fileName, setFileName] = useState("");
   const [origBytes, setOrigBytes] = useState(0);
@@ -111,19 +114,44 @@ export function ImageOptimizer() {
     }
   };
 
+  const reconvert = (format: OutFormat, q: number, cap: number) => {
+    // Re-run with the last source file when settings change post-convert.
+    // Fail-open: no source yet → no-op (dropzone handler covers first run).
+    const src = sourceUrlRef.current;
+    if (!src || working) return;
+    void (async () => {
+      try {
+        const res = await fetch(src);
+        const blob = await res.blob();
+        const file = new File([blob], fileName || "image", { type: blob.type || "image/*" });
+        await convertFile(file, format, q, cap);
+      } catch {
+        // Keep current result; sliders remain adjustable for next upload.
+      }
+    })();
+  };
+
   const savings =
     origBytes > 0 && outBytes > 0
       ? Math.round((1 - outBytes / origBytes) * 100)
       : 0;
 
   return (
-    <div className="grid gap-4">
-      <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6">
-        <h2 className="text-lg font-black">1 · Pick an image</h2>
-        <p className="mt-2 text-sm text-slate-400">
-          Convert + compress + strip EXIF metadata, entirely on-device. Nothing uploads.
+    <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
+      {/* Left 50%: dropzone + instant preview. */}
+      <div className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-base font-black">Dropzone + preview</h2>
+          {origDims ? (
+            <span className="rounded-full border border-white/10 bg-black/40 px-2.5 py-1 text-[11px] font-bold text-slate-300">
+              {origDims} · {formatBytes(origBytes)}
+            </span>
+          ) : null}
+        </div>
+        <p className="mt-1.5 text-xs text-slate-400">
+          Convert + compress + strip EXIF on-device. Nothing uploads.
         </p>
-        <label className="mt-4 block cursor-pointer rounded-2xl border border-dashed border-cyan-300/40 bg-black/40 px-6 py-8 text-center transition hover:border-cyan-300/80">
+        <label className="mt-3 block cursor-pointer rounded-xl border border-dashed border-cyan-300/40 bg-black/40 px-4 py-6 text-center transition hover:border-cyan-300/80">
           <span className="text-sm font-bold text-cyan-200">
             {working ? "Optimizing…" : "Choose an image file (max 25 MB)"}
           </span>
@@ -140,45 +168,111 @@ export function ImageOptimizer() {
           />
         </label>
         {notice ? (
-          <p role="alert" className="mt-3 text-sm text-amber-300">
+          <p role="alert" className="mt-2 text-xs text-amber-300">
             {notice}
           </p>
         ) : null}
+        <div className="mt-3 min-h-[220px] overflow-hidden rounded-xl border border-white/10 bg-black/40">
+          {outUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={outUrl}
+              alt={fileName ? `Optimized preview of ${fileName}` : "Optimized preview"}
+              className="max-h-[320px] w-full object-contain"
+            />
+          ) : (
+            <p className="flex h-[220px] items-center justify-center px-4 text-center text-xs text-slate-500">
+              Preview appears here — pick a file to see before/after size inline.
+            </p>
+          )}
+        </div>
+        {outUrl ? (
+          <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="rounded-lg bg-black/40 p-2.5">
+              <dt className="text-[10px] uppercase tracking-widest text-slate-500">Original</dt>
+              <dd className="mt-0.5 font-bold text-white">
+                {formatBytes(origBytes)} · {origDims}
+              </dd>
+              <dd className="truncate text-slate-500">{fileName}</dd>
+            </div>
+            <div className="rounded-lg bg-black/40 p-2.5">
+              <dt className="text-[10px] uppercase tracking-widest text-slate-500">Optimized</dt>
+              <dd className="mt-0.5 font-bold text-emerald-300">
+                {formatBytes(outBytes)} · {outDims}
+                {savings > 0 ? ` · −${savings}%` : null}
+              </dd>
+              <dd className="text-slate-500">EXIF stripped automatically</dd>
+            </div>
+          </dl>
+        ) : null}
       </div>
 
-      <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6">
-        <h2 className="text-lg font-black">2 · Settings</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-              Format
-            </span>
-            <select
-              value={outFormat}
-              onChange={(e) => setOutFormat(e.target.value as OutFormat)}
-              className="mt-2 w-full rounded-xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/60"
+      {/* Right 50%: format pills + sliders + W/H + download. */}
+      <div className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-5 lg:sticky lg:top-4">
+        <h2 className="text-base font-black">Settings + export</h2>
+        <p className="mt-1 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+          Format
+        </p>
+        <div role="radiogroup" aria-label="Output format" className="mt-2 flex flex-wrap gap-2">
+          {FORMATS.map((f) => (
+            <button
+              key={f}
+              type="button"
+              role="radio"
+              aria-checked={outFormat === f}
+              onClick={() => {
+                setOutFormat(f);
+                reconvert(f, quality, maxDim);
+              }}
+              className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                outFormat === f
+                  ? "bg-cyan-300 text-slate-950"
+                  : "border border-white/20 text-slate-200 hover:bg-white/10"
+              }`}
             >
-              <option value="image/webp">WebP (smallest)</option>
-              <option value="image/jpeg">JPEG (photos)</option>
-              <option value="image/png">PNG (lossless)</option>
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-              Quality: {quality}%
+              {FORMAT_LABEL[f]}
+            </button>
+          ))}
+        </div>
+        <label className="mt-4 block">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            Quality: {quality}%
+          </span>
+          <input
+            type="range"
+            min={10}
+            max={100}
+            value={quality}
+            onChange={(e) => {
+              const q = Number(e.target.value);
+              setQuality(q);
+              reconvert(outFormat, q, maxDim);
+            }}
+            className="mt-2 w-full"
+          />
+        </label>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <label className="block rounded-xl bg-black/30 p-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              Max W/H (px)
             </span>
             <input
-              type="range"
-              min={10}
-              max={100}
-              value={quality}
-              onChange={(e) => setQuality(Number(e.target.value))}
-              className="mt-4 w-full"
+              type="number"
+              min={320}
+              max={3840}
+              step={80}
+              value={maxDim}
+              onChange={(e) => {
+                const cap = Number(e.target.value) || 1600;
+                setMaxDim(cap);
+              }}
+              onBlur={() => reconvert(outFormat, quality, maxDim)}
+              className="mt-1.5 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-cyan-300/60"
             />
           </label>
-          <label className="block">
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-              Max dimension: {maxDim}px
+          <label className="block rounded-xl bg-black/30 p-3">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              Max dimension slider
             </span>
             <input
               type="range"
@@ -186,48 +280,32 @@ export function ImageOptimizer() {
               max={3840}
               step={80}
               value={maxDim}
-              onChange={(e) => setMaxDim(Number(e.target.value))}
-              className="mt-4 w-full"
+              onChange={(e) => {
+                const cap = Number(e.target.value);
+                setMaxDim(cap);
+                reconvert(outFormat, quality, cap);
+              }}
+              className="mt-3 w-full"
             />
+            <span className="text-xs text-slate-400">{maxDim}px cap</span>
           </label>
         </div>
-      </div>
-
-      <div className="rounded-3xl border border-white/10 bg-white/[.03] p-6">
-        <h2 className="text-lg font-black">3 · Result</h2>
         {outUrl ? (
-          <div className="mt-4">
-            <dl className="grid gap-2 text-sm sm:grid-cols-2">
-              <div className="rounded-xl bg-black/40 p-4">
-                <dt className="text-xs uppercase tracking-widest text-slate-500">Original</dt>
-                <dd className="mt-1 font-bold text-white">
-                  {fileName} · {formatBytes(origBytes)} · {origDims}
-                </dd>
-              </div>
-              <div className="rounded-xl bg-black/40 p-4">
-                <dt className="text-xs uppercase tracking-widest text-slate-500">Optimized</dt>
-                <dd className="mt-1 font-bold text-emerald-300">
-                  {formatBytes(outBytes)} · {outDims}
-                  {savings > 0 ? ` · −${savings}%` : null}
-                </dd>
-              </div>
-            </dl>
-            <a
-              href={outUrl}
-              download={`optimized.${outFormat === "image/png" ? "png" : outFormat === "image/jpeg" ? "jpg" : "webp"}`}
-              className="mt-4 inline-block rounded-full bg-cyan-300 px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
-            >
-              Download optimized image
-            </a>
-            <p className="mt-3 text-xs text-slate-500">
-              Re-encoding drops EXIF metadata (GPS, camera, timestamps) automatically.
-            </p>
-          </div>
+          <a
+            href={outUrl}
+            download={`optimized.${outFormat === "image/png" ? "png" : outFormat === "image/jpeg" ? "jpg" : "webp"}`}
+            className="mt-4 block rounded-full bg-cyan-300 px-6 py-3 text-center text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+          >
+            Download optimized image
+          </a>
         ) : (
-          <p className="mt-4 text-sm text-slate-400">
-            No conversion yet — pick a file above and the optimized download appears here.
+          <p className="mt-4 rounded-xl bg-black/30 p-3 text-xs text-slate-400">
+            No conversion yet — pick a file left and the download appears here, no scroll needed.
           </p>
         )}
+        <p className="mt-2 text-[11px] text-slate-500">
+          Re-encoding drops EXIF metadata (GPS, camera, timestamps) automatically.
+        </p>
       </div>
     </div>
   );

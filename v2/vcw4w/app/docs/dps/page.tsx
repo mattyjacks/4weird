@@ -52,16 +52,16 @@ export default function DpsOverviewPage() {
         title="Donate, or request"
         body="DPS has two roles. Donors share spare hardware from their browser and earn coins. Job requesters post background tasks to the mesh and pay coins. Pick your guide below."
       />
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Link href="/docs/dps/donor-guide" className="group rounded-2xl border border-border bg-card p-5 transition hover:border-emerald-500/50">
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+        <Link href="/docs/dps/donor-guide" className="group rounded-xl border border-border bg-card p-3.5 transition hover:border-emerald-500/50">
           <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">Donor guide →</p>
-          <p className="mt-1 text-lg font-black"><span aria-hidden="true" className="mr-2">🖥️</span>Donate compute &amp; earn</p>
-          <p className="text-sm text-muted-foreground">Hardware detection, share sliders, thermal and battery guards, earnings math.</p>
+          <p className="mt-0.5 text-base font-black"><span aria-hidden="true" className="mr-2">🖥️</span>Donate compute &amp; earn</p>
+          <p className="text-[13px] text-muted-foreground">Hardware detection, share sliders, thermal and battery guards, earnings math.</p>
         </Link>
-        <Link href="/docs/dps/job-requester" className="group rounded-2xl border border-border bg-card p-5 transition hover:border-cyan-500/50">
+        <Link href="/docs/dps/job-requester" className="group rounded-xl border border-border bg-card p-3.5 transition hover:border-cyan-500/50">
           <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">Requester guide →</p>
-          <p className="mt-1 text-lg font-black"><span aria-hidden="true" className="mr-2">📦</span>Request a compute job</p>
-          <p className="text-sm text-muted-foreground">Task types, pricing quotes in coins, proof-of-computation verification.</p>
+          <p className="mt-0.5 text-base font-black"><span aria-hidden="true" className="mr-2">📦</span>Request a compute job</p>
+          <p className="text-[13px] text-muted-foreground">Task types, pricing quotes in coins, proof-of-computation verification.</p>
         </Link>
       </div>
 

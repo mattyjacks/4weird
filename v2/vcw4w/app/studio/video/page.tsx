@@ -16,21 +16,20 @@ export default async function Page() {
   cacheTag("studio");
 
   return (
-    <div className="bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
-          Media Mogul · Wave 3
+    <div className="flex h-dvh flex-col bg-slate-950 text-white">
+      <header className="flex h-10 shrink-0 items-center gap-3 border-b border-white/10 px-3 sm:px-4">
+        <p className="shrink-0 text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-300">
+          Media Mogul · Video
         </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
-          Video timeline <span className="text-cyan-300">studio.</span>
+        <h1 className="truncate text-sm font-bold text-white">
+          Video timeline studio
         </h1>
-        <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
-          Gameplay clips, Blender renders, fal.ai generations, music, and
-          voiceover on four tracks. Drag the playhead, razor-split clips, snap
-          to the grid, zoom the timeline, preview on an audio-clock canvas —
-          then package it for a RunPod render worker.
+        <p className="ml-auto hidden truncate text-xs text-slate-400 lg:block">
+          4-track timeline · preview monitor · RunPod render export
         </p>
-        <div className="mt-8">
+      </header>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-6xl px-3 py-3 sm:px-4">
           <Suspense
             fallback={
               <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
@@ -41,7 +40,7 @@ export default async function Page() {
             <VideoStudio />
           </Suspense>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

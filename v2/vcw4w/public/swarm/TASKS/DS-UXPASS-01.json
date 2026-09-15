@@ -1,0 +1,32 @@
+{
+  "created": "2026-09-14T00:00:00.000Z",
+  "gates": [
+    "npx tsc --noEmit (zero NEW errors in scope)",
+    "npx eslint on touched paths (clean)",
+    "node scripts/verify-devswarm.mjs (envelope valid)"
+  ],
+  "goal": "UXPASS Batch 1 (spec pages 1-4: / home, /games arcade, /pricing, /agents) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-1.md Batch 1: capped hero heights, dense multi-column grids, sticky filter/command bars, drawers for details. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired \u00e2\u20ac\u201d only Tailwind layout classes, grid structure, and non-destructive wrappers change. Reviewer opens each of the 4 routes at 1080p and sees the primary actions above the fold with zero functionality lost.",
+  "id": "DS-UXPASS-01",
+  "lane": "web",
+  "log": [
+    "2026-09-14T00:00:00.000Z uxpass-lead: envelope created (UXPASS batch 1: / /games /pricing /agents, layout-only, functionality preserved).",
+    "2026-09-14T00:00:00.000Z uxpass-01: claimed, re-read envelope+spec+4 pages from disk, starting layout-only compactness.",
+    "2026-09-14T18:47:18Z uxpass-01: re-confirmed claim (status=in_progress owner=uxpass-01), spec Batch 1 + all 4 pages re-read from disk, proceeding layout-only.",
+    "2026-09-14T19:20:12Z uxpass-01: /agents DONE layout-only (hero py-20/text-4xl>py-6/text-2xl, added static 40px 4-step ol, guide+deploy wrapped in details drawer, tabs mt-8/p-5/my-10>mt-3/p-4/my-4; handler-link counts 14/14 unchanged; eslint clean; tsc clean). /games NO-EDIT (all Batch-1 change lives in games-lane components/games/game-catalog.tsx+module.css: sticky 48px filter bar, 5-col dense grid, card cap, info drawer) QUEUE-TO-STEWARD. / + /pricing NOT-TOUCHED: external uxpass-restore job actively rewrote both mid-session (page.tsx carried 204 conflict markers at 23:04Z, resolved by other job at 23:18Z w/o HomeTabs; pricing hero compacted by sibling at 23:17Z) - clobber risk per rule 7. EVIDENCE: npx tsc --noEmit exit 0; npx eslint app/agents/page.tsx exit 0; node scripts/verify-devswarm.mjs FAILS on DS-FIX500-02.json invalid JSON (other lane, untouched) while DS-UXPASS-01.json parses OK. QUEUE-TO-STEWARD: (1) /games GameCatalog density to games lane, (2) / home tabbed console blocked on contention, (3) verify-devswarm red via DS-FIX500-02.json, (4) /pricing rate-calculator widget needs new interactivity (product call).",
+    "uxpass-01 (2nd worker): home+games completed after sibling block. app/page.tsx: resolved 68 merge-conflict hunks (kept compact side, 0 markers remain), removed 2x unused dup HomeTabs import, added sticky tab console nav + ids lanes/cloud/business/studio/studio2/arcade/community. app/games/page.tsx: added sticky h-12 arcade bar (live {games.length} count + Browse-catalog + Ship-your-own links) + #catalog wrapper; GameCatalog props untouched. pricing/agents: verified compact, NOT re-edited (no churn).",
+    "uxpass-01 (2nd worker) gates: npx tsc --noEmit exit 0 (zero output, zero errors repo-wide); npx eslint app/page.tsx app/games/page.tsx exit 0 clean; node scripts/verify-devswarm.mjs still red ONLY via DS-FIX500-02.json double-]] syntax error ~col 1019 (other lane, done/closed, left untouched per scope rules). KEEPING status=blocked per sibling verdict + red-gate rule; steward unblock = 1-char fix in DS-FIX500-02 + QUEUE: games 5-col grid/drawer lives in components/games/* (games lane)."
+  ],
+  "owner": "uxpass-01",
+  "scope": [
+    "v2/vcw4w/app/page.tsx",
+    "v2/vcw4w/app/games/page.tsx",
+    "v2/vcw4w/app/pricing/page.tsx",
+    "v2/vcw4w/app/agents/page.tsx",
+    "v2/vcw4w/app/games/*.tsx",
+    "v2/vcw4w/app/pricing/*.tsx",
+    "v2/vcw4w/app/agents/*.tsx"
+  ],
+  "status": "blocked",
+  "title": "UXPASS batch 1: home, games, pricing, agents compactness",
+  "updated": "2026-09-14T23:33:09Z"
+}

@@ -11,7 +11,7 @@
  * by typeof window, no browser APIs in the render path.
  */
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { AgeBand, Dimension } from "../mmo-browser";
 
 interface RentQuote {
@@ -47,6 +47,14 @@ const AGE_MULTIPLIER: Record<AgeBand, number> = {
   kids: 0.8,
   teens: 1,
   adults: 1.25,
+};
+
+const SPECS: Record<Dimension, { cpu: string; ram: string; region: string }> = {
+  "1d": { cpu: "2 vCPU", ram: "4 GB RAM", region: "US-East" },
+  "2d": { cpu: "4 vCPU", ram: "8 GB RAM", region: "US-East" },
+  "3d": { cpu: "8 vCPU", ram: "16 GB RAM", region: "US-West" },
+  "4d": { cpu: "8 vCPU + GPU", ram: "32 GB RAM", region: "EU-West" },
+  "5d": { cpu: "16 vCPU + GPU", ram: "64 GB RAM", region: "EU-Central" },
 };
 
 function estimateQuote(
@@ -104,12 +112,14 @@ export function RentForm() {
   const [ageBand, setAgeBand] = useState<AgeBand>("teens");
   const [hostFree, setHostFree] = useState<boolean>(true);
   const [hours, setHours] = useState<number>(2);
+  const [region, setRegion] = useState<string>(SPECS["2d"].region);
   const [quote, setQuote] = useState<RentQuote | null>(null);
   const [quoting, setQuoting] = useState<boolean>(false);
 
   function handleDimensionChange(next: Dimension): void {
     setDimension(next);
     setGameId(gameForDimension(next).id);
+    setRegion(SPECS[next].region);
   }
 
   function handleGameChange(nextId: string): void {
@@ -121,7 +131,7 @@ export function RentForm() {
 
   async function fetchQuote(): Promise<void> {
     setQuoting(true);
-    const payload = { dimension, game: gameId, ageBand, hostFree, hours };
+    const payload = { dimension, game: gameId, ageBand, hostFree, hours, region };
     try {
       const res = await fetch("/api/mmo/rent", {
         method: "POST",
@@ -147,122 +157,173 @@ export function RentForm() {
     }
   }
 
+  // Live offline estimate recomputed on every input — quote panel never needs scroll.
+  const live = useMemo(
+    () => estimateQuote(dimension, ageBand, hours, hostFree),
+    [dimension, ageBand, hours, hostFree],
+  );
+  const shown: RentQuote = quote ?? live;
+  const perHour = Math.round((BASE_PER_MIN[dimension] * AGE_MULTIPLIER[ageBand] * 60 + Number.EPSILON) * 100) / 100;
+  const monthly = Math.round(perHour * 730);
+  const specs = SPECS[dimension];
+
+  useEffect(() => {
+    emitInterop("mmorpg:rent-estimate", { dimension, ageBand, hours, hostFree, totalCoins: live.totalCoins });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dimension, ageBand, hours, hostFree]);
+
+  function handleDeploy(): void {
+    emitInterop("mmorpg:rent-deploy", { dimension, game: gameId, ageBand, hostFree, hours, region, totalCoins: shown.totalCoins });
+    void fetchQuote();
+  }
+
   return (
     <form
-      className="rounded-2xl border border-white/10 bg-white/[.04] p-6 sm:p-8"
+      className="grid gap-3 lg:h-[calc(100vh-120px)] lg:grid-cols-[55%_45%] lg:overflow-hidden"
       onSubmit={(event) => {
         event.preventDefault();
         void fetchQuote();
       }}
     >
-      <div className="grid gap-5">
-        <label className="text-sm text-slate-300">
-          Game
-          <select
-            value={gameId}
-            onChange={(event) => handleGameChange(event.target.value)}
-            className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
-          >
-            {GAME_OPTIONS.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label} - {BASE_PER_MIN[option.dimension]} coins/min
-              </option>
-            ))}
-          </select>
-        </label>
+      {/* Left 55%: config */}
+      <div className="rounded-xl border border-white/10 bg-white/[.04] p-4">
+        <div className="grid gap-3">
+          <label className="text-xs text-slate-300">
+            Game
+            <select
+              value={gameId}
+              onChange={(event) => handleGameChange(event.target.value)}
+              className="mt-1 block w-full rounded-md border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-white"
+            >
+              {GAME_OPTIONS.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label} - {BASE_PER_MIN[option.dimension]} coins/min
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <label className="text-sm text-slate-300">
-          Game dimension
-          <select
-            value={dimension}
-            onChange={(event) => handleDimensionChange(event.target.value as Dimension)}
-            className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
-          >
-            <option value="1d">1D — text realm</option>
-            <option value="2d">2D — sprite world</option>
-            <option value="3d">3D — full expanse</option>
-            <option value="4d">4D - dream golf</option>
-            <option value="5d">5D - multiverse</option>
-          </select>
-        </label>
-
-        <fieldset>
-          <legend className="text-sm text-slate-300">Age band</legend>
-          <div className="mt-2 flex gap-2">
-            {(["kids", "teens", "adults"] as AgeBand[]).map((band) => (
-              <button
-                key={band}
-                type="button"
-                onClick={() => setAgeBand(band)}
-                aria-pressed={ageBand === band}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                  ageBand === band
-                    ? "bg-cyan-300 text-slate-950"
-                    : "border border-white/10 bg-transparent text-slate-300 hover:border-cyan-300/50"
-                }`}
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-xs text-slate-300">
+              Dimension
+              <select
+                value={dimension}
+                onChange={(event) => handleDimensionChange(event.target.value as Dimension)}
+                className="mt-1 block w-full rounded-md border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-white"
               >
-                {band}
-              </button>
-            ))}
+                <option value="1d">1D — text realm</option>
+                <option value="2d">2D — sprite world</option>
+                <option value="3d">3D — full expanse</option>
+                <option value="4d">4D - dream golf</option>
+                <option value="5d">5D - multiverse</option>
+              </select>
+            </label>
+            <label className="text-xs text-slate-300">
+              Region
+              <select
+                value={region}
+                onChange={(event) => setRegion(event.target.value)}
+                className="mt-1 block w-full rounded-md border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-white"
+              >
+                {["US-East", "US-West", "EU-West", "EU-Central", "AP-South"].map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </label>
           </div>
-        </fieldset>
 
-        <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-300">
-          <input
-            type="checkbox"
-            checked={hostFree}
-            onChange={(event) => setHostFree(event.target.checked)}
-            className="mt-1 h-4 w-4 accent-cyan-300"
-          />
-          <span>
-            <span className="font-semibold text-white">
-              Host-free for players
+          <fieldset>
+            <legend className="text-xs text-slate-300">Age band</legend>
+            <div className="mt-1 flex gap-1.5">
+              {(["kids", "teens", "adults"] as AgeBand[]).map((band) => (
+                <button
+                  key={band}
+                  type="button"
+                  onClick={() => setAgeBand(band)}
+                  aria-pressed={ageBand === band}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                    ageBand === band
+                      ? "bg-cyan-300 text-slate-950"
+                      : "border border-white/10 bg-transparent text-slate-300 hover:border-cyan-300/50"
+                  }`}
+                >
+                  {band}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <label className="flex cursor-pointer items-start gap-2 text-xs text-slate-300">
+            <input
+              type="checkbox"
+              checked={hostFree}
+              onChange={(event) => setHostFree(event.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-cyan-300"
+            />
+            <span>
+              <span className="font-semibold text-white">Host-free for players</span>
+              <span className="block text-[11px] text-slate-400">
+                Players join free — the host pays server, load, and rental.
+              </span>
             </span>
-            <span className="mt-1 block text-xs text-slate-400">
-              When host-free is on, players join free — the host pays the
-              server, load, and rental costs instead.
+          </label>
+
+          <label className="text-xs text-slate-300">
+            <span className="flex items-center justify-between">
+              Duration <span className="font-bold text-cyan-300">{hours}h</span>
             </span>
-          </span>
-        </label>
-
-        <label className="text-sm text-slate-300">
-          Hours
-          <input
-            type="number"
-            min={1}
-            max={72}
-            value={hours}
-            onChange={(event) =>
-              setHours(Math.max(1, Math.min(72, Number(event.target.value) || 1)))
-            }
-            className="mt-2 block w-full rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
-          />
-        </label>
-
-        <button
-          type="submit"
-          disabled={quoting}
-          className="rounded-full bg-cyan-300 px-6 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200 disabled:opacity-60"
-        >
-          {quoting ? "Quoting…" : "Get live quote"}
-        </button>
+            <input
+              type="range"
+              min={1}
+              max={72}
+              value={hours}
+              onChange={(event) => setHours(Number(event.target.value) || 1)}
+              className="mt-1 w-full accent-cyan-300"
+              aria-label="Duration in hours"
+            />
+          </label>
+        </div>
       </div>
 
-      {quote ? (
-        <div className="mt-6 rounded-2xl border border-cyan-300/20 bg-cyan-300/[.06] p-5">
-          <p className="text-sm text-slate-300">
-            {quote.source === "live" ? "Live quote" : "Estimate (offline)"}
-          </p>
-          <p className="mt-1 text-3xl font-black text-cyan-300">
-            {quote.totalCoins} coins
-          </p>
-          <p className="mt-1 text-sm text-slate-300">
-            {quote.hostFree
-              ? "Players join free — you (the host) cover server, load, and rental."
-              : `≈ ${quote.perPlayerCoins} coins per player for ${hours}h.`}
-          </p>
+      {/* Right 45%: live quote, no scroll needed */}
+      <div className="flex flex-col rounded-xl border border-cyan-300/20 bg-cyan-300/[.06] p-4">
+        <p className="text-[11px] uppercase tracking-wider text-slate-400">
+          {quote?.source === "live" ? "Live quote" : "Live estimate"} &middot; {region}
+        </p>
+        <p className="mt-1 text-2xl font-black text-cyan-300">
+          {perHour} coins/hr
+        </p>
+        <p className="text-xs text-slate-300">
+          {shown.totalCoins} coins / {hours}h &middot; ≈{monthly} coins/mo
+        </p>
+        <dl className="mt-2 grid grid-cols-2 gap-1.5 text-[11px]">
+          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">CPU</dt><dd className="font-semibold text-white">{specs.cpu}</dd></div>
+          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">RAM</dt><dd className="font-semibold text-white">{specs.ram}</dd></div>
+          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">Region</dt><dd className="font-semibold text-white">{region}</dd></div>
+          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">Players</dt><dd className="font-semibold text-white">{shown.hostFree ? "Free join" : "Paid join"}</dd></div>
+        </dl>
+        <p className="mt-2 text-[11px] text-slate-400">
+          {shown.hostFree
+            ? "Players join free — you (the host) cover server, load, and rental."
+            : `≈ ${shown.perPlayerCoins} coins per player for ${hours}h.`}
+        </p>
+        <div className="mt-auto flex gap-2 pt-3">
+          <button
+            type="submit"
+            disabled={quoting}
+            className="flex-1 rounded-full bg-white/10 px-4 py-2 text-xs font-bold text-white transition hover:bg-white/20 disabled:opacity-60"
+          >
+            {quoting ? "Quoting…" : "Refresh quote"}
+          </button>
+          <button
+            type="button"
+            onClick={handleDeploy}
+            className="flex-1 rounded-full bg-cyan-300 px-4 py-2 text-xs font-bold text-slate-950 transition hover:bg-cyan-200"
+          >
+            Deploy Realm
+          </button>
         </div>
-      ) : null}
+      </div>
     </form>
   );
 }

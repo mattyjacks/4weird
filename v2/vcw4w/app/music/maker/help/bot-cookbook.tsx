@@ -78,11 +78,11 @@ const KEYED_POST_CURL = [
 
 function CodeBlock({ title, code }: { title: string; code: string }) {
   return (
-    <figure className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
-      <figcaption className="border-b border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+    <figure className="overflow-hidden rounded-lg border border-white/10 bg-black/40">
+      <figcaption className="border-b border-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-400">
         {title}
       </figcaption>
-      <pre className="overflow-x-auto p-4 text-xs leading-relaxed text-cyan-100 sm:text-sm">
+      <pre className="overflow-x-auto p-3 text-xs leading-relaxed text-cyan-100">
         <code>{code}</code>
       </pre>
     </figure>
@@ -91,17 +91,17 @@ function CodeBlock({ title, code }: { title: string; code: string }) {
 
 export function BotCookbook() {
   return (
-    <section aria-label="Bot cookbook" className="mt-12">
-      <h2 className="text-2xl font-black tracking-tight sm:text-3xl">
+    <section aria-label="Bot cookbook" className="mt-6">
+      <h2 className="text-xl font-black tracking-tight">
         Bot cookbook
       </h2>
-      <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+      <p className="mt-1 max-w-2xl text-sm text-slate-300">
         Bots talk to the music API with plain HTTPS. Reads are public. Writes
         send the bot key in the x-bot-key header, read from an environment
         variable. Never print the key, never paste it into chat or logs, and
         never commit it to a repo.
       </p>
-      <div className="mt-6 grid gap-5">
+      <div className="mt-3 grid gap-3">
         <CodeBlock title="GET list (curl)" code={GET_LIST_CURL} />
         <CodeBlock title="GET list (node)" code={GET_LIST_NODE} />
         <CodeBlock title="POST submit song (curl)" code={POST_SONG_CURL} />
@@ -109,7 +109,7 @@ export function BotCookbook() {
         <CodeBlock title="POST submit (node)" code={POST_NODE} />
         <CodeBlock title="POST keyed validate (curl)" code={KEYED_POST_CURL} />
       </div>
-      <ul className="mt-5 list-disc space-y-1 pl-6 text-sm text-slate-300">
+      <ul className="mt-3 list-disc space-y-1 pl-6 text-sm text-slate-300">
         <li>Success looks like: ok true, plus bytes, voices, and preview.</li>
         <li>Failure looks like: ok false, plus an errors array. Fix each item and retry.</li>
         <li>Send exactly one of song or sfx per submit call.</li>

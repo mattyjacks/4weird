@@ -12,26 +12,25 @@ export const metadata: Metadata = {
 
 export default function BuilderPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-5xl px-5 py-16">
-        <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
-          4WEIRD // CLONE TOOL
-        </p>
-        <h1 className="mt-2 text-4xl font-black">Installer config builder</h1>
-        <p className="mt-4 max-w-3xl text-slate-300">
-          Describe your desktop or mobile installer and download a ready-to-use
-          config JSON. Everything runs in your browser and drafts autosave
-          locally. Related:{" "}
-          <Link href="/tools" className="font-bold text-cyan-300 hover:underline">
-            Free tools
-          </Link>{" "}
-          ·{" "}
-          <Link href="/business" className="font-bold text-cyan-300 hover:underline">
-            Business hub
-          </Link>
-          .
-        </p>
-        <div className="mt-10">
+    <main className="bg-slate-950 text-white">
+      <section className="mx-auto max-w-7xl px-4 py-4">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-300">
+            4WEIRD // CLONE TOOL
+          </p>
+          <h1 className="text-xl font-black">Installer config builder</h1>
+          <p className="ml-auto text-[11px] text-slate-500">
+            Browser-only · autosaves locally ·{" "}
+            <Link href="/tools" className="font-bold text-cyan-300 hover:underline">
+              Free tools
+            </Link>{" "}
+            ·{" "}
+            <Link href="/business" className="font-bold text-cyan-300 hover:underline">
+              Business hub
+            </Link>
+          </p>
+        </div>
+        <div className="mt-3">
           <Suspense
             fallback={
               <p

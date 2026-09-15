@@ -19,7 +19,68 @@ async function CachedTermsBody() {
   cacheLife('max');
   cacheTag('site-legal');
   return (
-      <section className="space-y-6">
+    <>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <a href="#terms-s1" className="rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
+          <p className="font-black">🧾 Eligibility &amp; Accounts</p>
+          <p className="mt-1 text-sm text-muted-foreground">13+ only · Adult 18+ buys &amp; payouts · §1 →</p>
+        </a>
+        <a href="#terms-s8" className="rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
+          <p className="font-black">🪙 Vibe Coins &amp; Billing</p>
+          <p className="mt-1 text-sm text-muted-foreground">100 🪙 = $1.00 · 90-day refund · §8 →</p>
+        </a>
+        <a href="#terms-s3" className="rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
+          <p className="font-black">📜 Content &amp; IP Rights</p>
+          <p className="mt-1 text-sm text-muted-foreground">You own your posts · §10 DMCA · §3 →</p>
+        </a>
+      </div>
+      <form action="/search" method="get" role="search" className="mt-3 flex h-12 items-center gap-2 rounded-2xl border border-border bg-card px-4">
+        <span aria-hidden="true">🔍</span>
+        <label htmlFor="terms-filter" className="sr-only">Filter terms</label>
+        <input id="terms-filter" name="q" type="search" placeholder="Filter terms... (e.g. Refund, Liability, Crowns)" className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
+        <button type="submit" className="shrink-0 text-sm font-bold text-cyan-600 dark:text-cyan-300">Search</button>
+      </form>
+      <div className="mt-4 grid gap-4 lg:grid-cols-[212px_minmax(0,1fr)]">
+        <nav aria-label="Terms sections" className="max-h-56 self-start overflow-auto rounded-2xl border border-border bg-card p-3 lg:sticky lg:top-4 lg:max-h-[70vh]">
+          <p className="px-1 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">On this page</p>
+          <ul className="mt-2 space-y-0.5 text-[13px] leading-snug">
+            <li><a href="#terms-s1" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">1 · Eligibility</a></li>
+            <li><a href="#terms-s2" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">2 · License</a></li>
+            <li><a href="#terms-s3" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">3 · Content</a></li>
+            <li><a href="#terms-s3a" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">3A · Submissions</a></li>
+            <li><a href="#terms-s4" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">4 · Games</a></li>
+            <li><a href="#terms-s4a" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">4A · Ratings</a></li>
+            <li><a href="#terms-s4b" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">4B · Family</a></li>
+            <li><a href="#terms-s4c" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">4C · Multiplayer</a></li>
+            <li><a href="#terms-s4d" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">4D · Rentals</a></li>
+            <li><a href="#terms-s5" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">5 · Safety</a></li>
+            <li><a href="#terms-s6" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">6 · Bots</a></li>
+            <li><a href="#terms-s7" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">7 · VCW &amp; apps</a></li>
+            <li><a href="#terms-s8" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8 · Coins</a></li>
+            <li><a href="#terms-s8a" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8A · Support</a></li>
+            <li><a href="#terms-s8a1" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8A.1 · Crowns</a></li>
+            <li><a href="#terms-s8b" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8B · AI</a></li>
+            <li><a href="#terms-s8c" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8C · Ghost Cash</a></li>
+            <li><a href="#terms-s8d" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8D · Clans</a></li>
+            <li><a href="#terms-s8e" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8E · Stock media</a></li>
+            <li><a href="#terms-s8f" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8F · VocRehab</a></li>
+            <li><a href="#terms-s9" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">9 · Compute</a></li>
+            <li><a href="#terms-s10" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">10 · IP</a></li>
+            <li><a href="#terms-s10a" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">10A · Marks</a></li>
+            <li><a href="#terms-s11" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">11 · Third parties</a></li>
+            <li><a href="#terms-s12" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">12 · Privacy</a></li>
+            <li><a href="#terms-s13" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">13 · Changes</a></li>
+            <li><a href="#terms-s14" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">14 · Disclaimers</a></li>
+            <li><a href="#terms-s15" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">15 · Liability</a></li>
+            <li><a href="#terms-s16" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">16 · Indemnity</a></li>
+            <li><a href="#terms-s17" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">17 · Law &amp; venue</a></li>
+            <li><a href="#terms-s18" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">18 · Rights</a></li>
+            <li><a href="#terms-s19" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">19 · Updates</a></li>
+            <li><a href="#terms-s20" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">20 · Contact</a></li>
+          </ul>
+        </nav>
+        <div className="min-w-0">
+      <section className="space-y-3">
         <p>
           These Terms of Use (“Terms”) form a binding agreement between you and MattyJacks LLC, a New Hampshire
           limited liability company (“MattyJacks,” “we,” “us,” or “our”), governing your access to and use of 4weird
@@ -35,7 +96,12 @@ async function CachedTermsBody() {
           requirement, and you agree notices we post or email are effective when posted or sent.
         </p>
 
+        <details id="terms-s1" data-legal open className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>1. Eligibility and accounts</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Direct accounts are <strong>13+ only</strong>: <strong>Teen (13-17)</strong> or{" "}
           <strong>Adult (18+)</strong>. You represent at signup that you meet your band (13-17 for Teen, 18+ for
@@ -59,7 +125,14 @@ async function CachedTermsBody() {
           protections (see Section 18), those apply in addition.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s2" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>2. License and acceptable use</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Subject to these Terms, MattyJacks grants you a limited, revocable, non-exclusive, non-transferable,
           non-sublicensable license to use the Service for personal, non-commercial entertainment. Automated access is
@@ -79,7 +152,14 @@ async function CachedTermsBody() {
           <li>abuse support, reporting, or privacy-request channels, including filing false reports or automated bulk requests.</li>
         </ul>
 
+        </div>
+        </details>
+        <details id="terms-s3" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>3. Your content, Clans, and moderation</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           You retain ownership of content you own and post (posts, comments, images ≤1 MB in PNG/JPEG/WebP/GIF, code
           submissions, clan descriptions), but you grant MattyJacks a worldwide, royalty-free, transferable,
@@ -108,7 +188,14 @@ async function CachedTermsBody() {
           suspected CSAM; report it instead.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s3a" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>3A. Game submissions (.zip), Weird Vault, and Meshy 3D</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           You may submit games as <strong>.zip packages (max 50 MB, so every game loads fast)</strong>, naming the{" "}
           <strong>game root</strong> inside the .zip where your entry file lives (like a
@@ -137,7 +224,14 @@ async function CachedTermsBody() {
           consistent with Sections 5 and 11.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s4" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>4. Games, saves, telemetry, and leaderboards</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The catalog offers browser games in isolated play shells with guides and metadata. Cloud saves offer up to
           four slots per game (slots 0-3, ≤1 MiB each, versioned); slot 0 is cheat-proof and can never be marked,
@@ -156,7 +250,14 @@ async function CachedTermsBody() {
           queue-time, render-time, or availability guarantee; maintenance may occur at any time.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s4a" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>4A. Age ratings, age checks, and Kids Mode</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Games carry an age rating - <strong>Kids (0-12)</strong>, <strong>Teens (13-17)</strong>, or{" "}
           <strong>Adults (18+)</strong>; shown on every catalog card, detail page, and play shell. Ratings reflect intense
@@ -171,7 +272,14 @@ async function CachedTermsBody() {
           blocked from Adults titles even with an adult date typed in.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s4b" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>4B. Parent and Child accounts</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Only an <strong>Adult (18+)</strong> account holder may become a <strong>Parent</strong> account
           (automatically, on creating their first child) and create <strong>Child</strong> sub-accounts - including
@@ -198,7 +306,14 @@ async function CachedTermsBody() {
           controls where applicable).
          </p>
 
+        </div>
+        </details>
+        <details id="terms-s4c" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>4C. Multiplayer modes and server age bands</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Persistent-world modes run as <strong>32-player shards</strong>: <strong>1D Horde</strong>,{" "}
           <strong>2D Siege</strong>, and <strong>3D Raid</strong>, joined via{" "}
@@ -211,7 +326,14 @@ async function CachedTermsBody() {
           close, reset, or wipe any shard at any time, with or without notice, and progress may be lost.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s4d" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>4D. Server rentals and per-minute billing</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Renting a server licenses a private room for play; it is not property, not a lease, and confers no
           ownership or tenancy interest. Billing is <strong>per-minute, prorated</strong>, computed as{" "}
@@ -225,7 +347,14 @@ async function CachedTermsBody() {
           4. Meter abuse, evasion, or tampering may result in suspension or termination under Sections 2 and 13.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s5" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>5. Safety rules you accept</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Money moves only through guarded server-side transactions; never award currency client-side. Never expose
           service-role keys, bot key secrets, or provider tokens. Never render other users’ content as executable HTML.
@@ -233,7 +362,14 @@ async function CachedTermsBody() {
           included, never added on top.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s6" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>6. Bot program (agentic access)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Signed-in users may create a bot identity (immutable username plus a permanent human ID) and issue API keys
           shown once and stored only as hashes. Keys authenticate as the linked human, subject to the same membership,
@@ -241,7 +377,14 @@ async function CachedTermsBody() {
           for everything done with your keys. We may revoke keys or identities for abuse.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s7" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>7. VibeCodeWorker, Spaceships, Academy, Tech, and Web Apps</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           These exhibits and QA product surfaces (run pages, run/job APIs, evidence-driven tooling) are part of the
           Service under these Terms. Run and job APIs require authentication except where marked public; usage may be
@@ -251,7 +394,14 @@ async function CachedTermsBody() {
           and scrub results are estimates only, and the bot may be unavailable or discontinued at any time.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s8" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8. Coins (spend) and Crowns (earn), purchases, and refunds</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The Service uses two closed-loop units. <strong>🪙 Coins (spend)</strong> are a virtual
           currency: 100 coins = exactly $1.00 ($0.01 per coin). <strong>👑 Crowns (earn)</strong> are
@@ -305,7 +455,14 @@ async function CachedTermsBody() {
           purchase, not a transfer of funds, and not a money-transmission or e-money service.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s8a" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8A. Voluntary Support and Launch campaigns (not charity, not investment)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           <strong>What this is.</strong> The Service lets you (a) send voluntary one-time tips and monthly support
           subscriptions in Coins to verified creators and Clans (“Support”), and (b) give and receive gift-based
@@ -368,7 +525,14 @@ async function CachedTermsBody() {
           counterfeiting, and unlawful fundraising.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s8a1" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8A.1. Crowns (earn): time locks, convert, and fiat payouts</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           <strong>The timelines, up front.</strong> Crowns you earn today are locked for 30 days by
           anti-fraud and payments regulations - this cannot be bypassed, not by us and not by support.
@@ -449,7 +613,14 @@ async function CachedTermsBody() {
           account and usage pages but no tax advice. Nothing here is employment, partnership, or agency.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s8b" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8B. AI features (Buddy, voices, generated media)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The Service includes AI features; the Gaming Buddy, AI voices and narration, game-AI directors and
           dialogue, AI moderation assistance, and AI-generated images, audio, video, and 3D content. These features
@@ -470,7 +641,14 @@ async function CachedTermsBody() {
           emergency number.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s8c" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8C. Timer, Work Diary, and Ghost Cash (👻) non-legal debt ledger</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The Service provides a second-by-second time tracker and work diary (/timer) with optional work-diary screen
           capture proofs and activity monitoring. Time tracked within organizations and projects may accrue debts
@@ -545,7 +723,14 @@ async function CachedTermsBody() {
           value or redemption right in the affected figures.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s8d" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8D. Big communities, pruning, and the Clan Support commons</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Hosted organizations may hold up to <strong>10,000 members</strong> (plus prepaid headroom:
           10 coins per 100 slots, 25% cut included); self-hosted servers are instead capped at{" "}
@@ -576,7 +761,14 @@ async function CachedTermsBody() {
           gratuitous gift: not charity, not investment, no cash-out, final once moved. Tribute never mints Crowns.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s8e" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8E. Free stock media (Pexels, 0 coins)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Stock photo and video search via Pexels costs <strong>0 coins</strong> and is free to browse. Use
           requires sign-in and is rate-limited to <strong>20 requests per minute and 200 per day</strong>,
@@ -587,7 +779,14 @@ async function CachedTermsBody() {
           <strong>configured:false</strong>, search is honestly unavailable until configured.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s8f" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8F. Vocational Rehabilitation (VocRehab) practice module</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           <strong>What VocRehab is.</strong> VocRehab (/vocrehab) is a voluntary, educational
           practice tool: micro-games, interview rehearsal rooms, resume and disclosure
@@ -634,7 +833,14 @@ async function CachedTermsBody() {
           identifier requests) are refused with a rephrase prompt.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s9" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>9. Agent rentals and Teams compute (25% cut on all computing)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The marketplace lists rentable agents (openclaw/nanoclaw/custom) on providers such as RunPod and
           DigitalOcean. Bookings escrow the gross coin amount; metered heartbeats settle gross into a 25% platform
@@ -655,7 +861,14 @@ async function CachedTermsBody() {
           guarantee. Enterprise orders (DPA/SLA/order form) control over these Terms only where expressly stated.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s10" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>10. Intellectual property and copyright (DMCA)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The Service; software, games, designs, names, graphics, and content; is owned by MattyJacks or its
           licensors and protected by law. If you believe content on the Service infringes your copyright, email{" "}
@@ -673,7 +886,14 @@ async function CachedTermsBody() {
           same address with mark, registration (if any), and infringing URL.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s10a" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>10A. Trademarks and third-party marks</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           4weird, VibeCodeWorker, Ghost Cash, and related names/logos are ours; do not use, copy, or challenge
           them without written permission. All other marks (including Blender® of the Blender Foundation, NVIDIA/RTX,
@@ -683,7 +903,14 @@ async function CachedTermsBody() {
           removed on valid objection. Do not imply affiliation, endorsement, or partnership.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s11" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>11. Third parties; and who sees your data</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The Service runs on third-party providers that process information on our behalf, and may include
           third-party links, tools, or listings. Our providers are: Google Analytics (usage measurement, Google LLC);
@@ -716,7 +943,14 @@ async function CachedTermsBody() {
           offending accounts, preserve evidence, and refer it to the appropriate authorities.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s12" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>12. Privacy, your rights, and account deletion</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Our <a className={a} href="/privacy">Privacy Policy</a> explains what we collect and your rights under New
           Hampshire and U.S. law and, where applicable, international laws such as the EU/UK GDPR and U.S. state
@@ -731,7 +965,14 @@ async function CachedTermsBody() {
           by law (security, fraud prevention, financial records, legal claims, safety evidence).
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s13" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>13. Service changes, suspension, and termination</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           We reserve all rights to modify, suspend, discontinue, restrict, cancel, or remove any part of the Service,
           content, game, feature, account, clan, listing, booking, workspace, subscription, or virtual item at any
@@ -743,7 +984,14 @@ async function CachedTermsBody() {
           described in the Privacy Policy.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s14" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>14. Disclaimers; we guarantee nothing</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           TO THE FULLEST EXTENT PERMITTED BY LAW, THE SERVICE IS PROVIDED “AS IS,” “AS AVAILABLE,” AND WITH ALL
           FAULTS, AND WE GUARANTEE NOTHING ABOUT IT - NOT UPTIME, NOT ACCURACY, NOT SECURITY, NOT FITNESS FOR ANY
@@ -755,7 +1003,14 @@ async function CachedTermsBody() {
           PRESERVED. AI FEATURES IN PARTICULAR MAY BE UNAVAILABLE OR WRONG AT ANY TIME.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s15" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>15. Limitation of liability - $0</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           TO THE FULLEST EXTENT PERMITTED BY LAW, MATTYJACKS AND ITS OWNERS, OFFICERS, EMPLOYEES, CONTRACTORS,
           LICENSORS, AND SUPPLIERS HAVE ZERO LIABILITY TO YOU, EVER - NOT FOR INDIRECT, INCIDENTAL, SPECIAL,
@@ -773,7 +1028,14 @@ async function CachedTermsBody() {
           and nothing here limits rights that cannot lawfully be waived in your jurisdiction (see Section 18).
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s16" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>16. Indemnification</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           To the maximum extent permitted by law, you will defend, indemnify, and hold harmless MattyJacks and its
           owners, officers, employees, contractors, licensors, and suppliers from claims, liabilities, damages, losses,
@@ -785,7 +1047,14 @@ async function CachedTermsBody() {
           claimed losses where reasonable.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s17" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>17. Governing law, venue, and claims</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           These Terms are governed by New Hampshire law, without regard to conflict-of-law principles. There is no
           arbitration agreement: disputes are resolved in court only. First, email{" "}
@@ -803,7 +1072,14 @@ async function CachedTermsBody() {
           in enforcement may recover reasonable attorneys&apos; fees where permitted by law.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s18" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>18. Mandatory-rights notice</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           If you are in the European Economic Area, the United Kingdom, Switzerland, Canada, or a U.S. state with a
           comprehensive privacy law (such as California, Colorado, Connecticut, Oregon, Texas, Utah, or Virginia),
@@ -812,7 +1088,14 @@ async function CachedTermsBody() {
           the right to seek relief from a competent court or supervisory authority.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s19" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>19. Changes to these Terms</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           We may update these Terms at any time by posting revised Terms and changing the effective date; material
           changes will be highlighted where practical. Continued use after the effective date constitutes acceptance. If
@@ -820,7 +1103,14 @@ async function CachedTermsBody() {
           provisions remain effective.
         </p>
 
+        </div>
+        </details>
+        <details id="terms-s20" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>20. General terms and contact</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Our failure to enforce a provision is not a waiver. You may not assign these Terms; we may assign them
           without restriction (for example, in a merger or sale). These Terms, together with the Privacy Policy and
@@ -836,7 +1126,12 @@ async function CachedTermsBody() {
           family requests with proof of authority) by email at{" "}
           <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a>.
         </p>
+          </div>
+        </details>
       </section>
+        </div>
+      </div>
+    </>
   );
 }
 

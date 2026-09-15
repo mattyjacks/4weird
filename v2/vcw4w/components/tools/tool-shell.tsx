@@ -19,22 +19,24 @@ export async function ToolShell({ kicker, title, blurb, children }: ToolShellPro
   cacheTag("tools");
   return (
     <div className="bg-slate-950 text-white">
-      <section className="mx-auto max-w-4xl px-4 pb-16 pt-14 sm:px-5">
+      <section className="mx-auto max-w-6xl px-4 pb-8 pt-6 sm:px-5">
         <Link
           href="/tools"
-          className="text-sm font-semibold text-cyan-300 hover:underline"
+          className="text-xs font-semibold text-cyan-300 hover:underline"
         >
           &larr; All free tools
         </Link>
-        <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">
-          {kicker}
-        </p>
-        <h1 className="mt-4 text-4xl font-black leading-tight tracking-tight sm:text-5xl">
-          {title}
-        </h1>
-        <p className="mt-4 max-w-2xl text-base text-slate-300">{blurb}</p>
-        <div className="mt-8">{children}</div>
-        <p className="mt-10 max-w-2xl text-xs leading-relaxed text-slate-500">
+        <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-cyan-300">
+            {kicker}
+          </p>
+          <h1 className="text-2xl font-black leading-tight tracking-tight sm:text-3xl">
+            {title}
+          </h1>
+        </div>
+        <p className="mt-1.5 max-w-3xl text-sm text-slate-400">{blurb}</p>
+        <div className="mt-4">{children}</div>
+        <p className="mt-6 max-w-3xl text-[11px] leading-relaxed text-slate-500">
           Free forever, runs 100% in your browser — nothing you type or upload
           leaves this tab. If a browser feature is unavailable, the tool shows a
           notice and keeps the rest of the page working.

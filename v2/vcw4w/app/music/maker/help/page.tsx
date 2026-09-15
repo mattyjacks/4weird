@@ -85,12 +85,12 @@ const SONG_JSON = JSON.stringify(
 
 function RecipeCard({ title, blurb, code }: { title: string; blurb: string; code: string }) {
   return (
-    <article className="overflow-hidden rounded-xl border border-white/10 bg-white/[.03]">
-      <div className="border-b border-white/10 px-4 py-3">
-        <h3 className="text-base font-black">{title}</h3>
-        <p className="mt-1 text-sm text-slate-300">{blurb}</p>
+    <article className="overflow-hidden rounded-lg border border-white/10 bg-white/[.03]">
+      <div className="border-b border-white/10 px-3 py-2">
+        <h3 className="text-sm font-black">{title}</h3>
+        <p className="mt-0.5 text-xs text-slate-300">{blurb}</p>
       </div>
-      <pre className="overflow-x-auto p-4 text-xs leading-relaxed text-cyan-100 sm:text-sm">
+      <pre className="overflow-x-auto p-3 text-xs leading-relaxed text-cyan-100">
         <code>{code}</code>
       </pre>
     </article>
@@ -100,19 +100,19 @@ function RecipeCard({ title, blurb, code }: { title: string; blurb: string; code
 export default function Page() {
   return (
     <div className="bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">
+      <section className="mx-auto max-w-6xl px-3 pb-6 pt-4 sm:px-4 sm:pt-6">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
           Music Maker - Help
         </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
+        <h1 className="mt-1 max-w-3xl text-2xl font-black leading-tight tracking-tight sm:text-3xl">
           Help, format guide, <span className="text-cyan-300">and bot cookbook.</span>
         </h1>
-        <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
+        <p className="mt-1 max-w-2xl text-sm text-slate-300">
           Everything on this page is static reference. Build songs in the maker,
           then paste these shapes into your own code or bot. Keep text plain
           ASCII and keep songs friendly for all ages.
         </p>
-        <p className="mt-4 text-sm">
+        <p className="mt-2 text-sm">
           <Link href="/music/maker" className="font-bold text-cyan-300 underline">
             Back to the maker
           </Link>
@@ -120,18 +120,18 @@ export default function Page() {
 
         <BotCookbook />
 
-        <section aria-label="4W-1 format reference" className="mt-12">
-          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">
+        <section aria-label="4W-1 format reference" className="mt-6">
+          <h2 className="text-xl font-black tracking-tight">
             4W-1 format reference
           </h2>
-          <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+          <p className="mt-1 max-w-2xl text-sm text-slate-300">
             Version is always 1. Validators reject unknown keys, wrong types,
             out-of-range values, and oversize payloads.
           </p>
 
-          <div className="mt-6 grid gap-5 md:grid-cols-2">
-            <article className="rounded-xl border border-white/10 bg-white/[.03] p-5">
-              <h3 className="text-base font-black">Song fields</h3>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <article className="rounded-lg border border-white/10 bg-white/[.03] p-3">
+              <h3 className="text-sm font-black">Song fields</h3>
               <ul className="mt-3 list-disc space-y-1 pl-6 text-sm text-slate-300">
                 <li>v: 1 (only value accepted)</li>
                 <li>title: 1 to 120 chars, plain ASCII</li>
@@ -146,8 +146,8 @@ export default function Page() {
                 <li>note.v: optional velocity 0 to 1</li>
               </ul>
             </article>
-            <article className="rounded-xl border border-white/10 bg-white/[.03] p-5">
-              <h3 className="text-base font-black">SFX fields</h3>
+            <article className="rounded-lg border border-white/10 bg-white/[.03] p-3">
+              <h3 className="text-sm font-black">SFX fields</h3>
               <ul className="mt-3 list-disc space-y-1 pl-6 text-sm text-slate-300">
                 <li>v: 1 (only value accepted)</li>
                 <li>name: 1 to 80 chars, plain ASCII</li>
@@ -162,8 +162,8 @@ export default function Page() {
             </article>
           </div>
 
-          <article className="mt-5 rounded-xl border border-white/10 bg-white/[.03] p-5">
-            <h3 className="text-base font-black">Budgets and waves</h3>
+          <article className="mt-3 rounded-lg border border-white/10 bg-white/[.03] p-3">
+            <h3 className="text-sm font-black">Budgets and waves</h3>
             <ul className="mt-3 list-disc space-y-1 pl-6 text-sm text-slate-300">
               <li>Song JSON: max 8192 bytes.</li>
               <li>SFX JSON: max 1024 bytes.</li>
@@ -173,25 +173,25 @@ export default function Page() {
             </ul>
           </article>
 
-          <figure className="mt-5 overflow-hidden rounded-xl border border-white/10 bg-black/40">
-            <figcaption className="border-b border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+          <figure className="mt-3 overflow-hidden rounded-lg border border-white/10 bg-black/40">
+            <figcaption className="border-b border-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-400">
               Minimal song
             </figcaption>
-            <pre className="overflow-x-auto p-4 text-xs leading-relaxed text-cyan-100 sm:text-sm">
+            <pre className="overflow-x-auto p-3 text-xs leading-relaxed text-cyan-100">
               <code>{SONG_JSON}</code>
             </pre>
           </figure>
         </section>
 
-        <section aria-label="SFX recipes" className="mt-12">
-          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">
+        <section aria-label="SFX recipes" className="mt-6">
+          <h2 className="text-xl font-black tracking-tight">
             SFX recipes
           </h2>
-          <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+          <p className="mt-1 max-w-2xl text-sm text-slate-300">
             Copy-ready starting points from the built-in preset library. Tweak
             freq, freqEnd, dur, and vol to taste, then test with POST submit.
           </p>
-          <div className="mt-6 grid gap-5 md:grid-cols-3">
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
             <RecipeCard
               title="Raygun"
               blurb="Descending saw zap. Lower freqEnd for a deeper pew."

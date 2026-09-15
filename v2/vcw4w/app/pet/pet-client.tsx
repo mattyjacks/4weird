@@ -52,12 +52,12 @@ export function PetClient() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="relative">
       {showCoach ? (
         <div
           role="dialog"
           aria-label="Pet room quick tour"
-          className="rounded-2xl border border-cyan-300/30 bg-cyan-300/[.06] p-5"
+          className="absolute inset-x-0 top-0 z-20 max-h-[70vh] overflow-y-auto rounded-2xl border border-cyan-300/30 bg-slate-950/95 p-5 shadow-2xl shadow-cyan-950/50 backdrop-blur"
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <h2 className="text-lg font-bold text-white">
@@ -72,11 +72,11 @@ export function PetClient() {
               Start caring
             </button>
           </div>
-          <ol className="mt-4 grid gap-3 sm:grid-cols-3">
+          <ol className="mt-2 grid gap-2 sm:grid-cols-3">
             {STEPS.map((step, index) => (
               <li
                 key={step.title}
-                className="rounded-xl border border-white/10 bg-slate-950/60 p-4"
+                className="rounded-xl border border-white/10 bg-slate-950/60 p-3"
               >
                 <p className="text-xs font-bold uppercase tracking-wider text-cyan-300">
                   Step {index + 1}
@@ -90,14 +90,14 @@ export function PetClient() {
           </ol>
         </div>
       ) : (
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-1">
           <button
             type="button"
             onClick={replay}
             aria-label="Replay the pet room quick tour"
-            className="rounded-xl border border-white/15 px-4 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10"
+            className="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 hover:bg-white/10"
           >
-            Replay tour
+            (?) Tour
           </button>
         </div>
       )}

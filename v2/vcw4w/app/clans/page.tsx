@@ -33,21 +33,37 @@ export const metadata: Metadata = {
 export default function ClansPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      
-      <section className="mx-auto max-w-4xl px-5 py-20">
-        <Link className="text-cyan-300 hover:underline" href="/">
-          ← Home
-        </Link>
-        <h1 className="mt-4 text-4xl font-black">
-          4weird <span className="text-cyan-300">Clans</span>
-        </h1>
-        <p className="mt-4 text-slate-300">
+      {/* Compact command bar: title + directory context + creation trigger inline */}
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-slate-950/90 backdrop-blur">
+        <div className="mx-auto flex h-11 max-w-6xl items-center gap-3 px-4">
+          <Link className="shrink-0 text-sm text-cyan-300 hover:underline" href="/">
+            ← Home
+          </Link>
+          <h1 className="truncate text-base font-black">
+            4weird <span className="text-cyan-300">Clans</span>
+          </h1>
+          <p className="hidden truncate text-xs text-slate-400 lg:block">
+            Gamer and coder crews · reading is public; posting needs login + membership
+          </p>
+          <a
+            href="#clan-create"
+            className="ml-auto shrink-0 rounded-lg bg-cyan-300 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-cyan-200"
+          >
+            + Create Clan
+          </a>
+        </div>
+      </div>
+
+      <section className="mx-auto max-w-6xl px-4 py-6">
+        <p className="text-xs text-slate-400 lg:hidden">
           Gamer and coder crews. Reading is public; posting needs a login and clan membership.
-          Love a post? Give it 💌; love letters are clan-native appreciation (never coins), earned via daily
-          bonus + quests + loved posts, spent on gifts and advanced awards.
         </p>
-        <div className="mt-10">
-          <Suspense fallback={<p className="text-slate-400">Loading clans…</p>}>
+        <p className="mt-1 hidden text-xs text-slate-500 lg:block">
+          Love a post? Give it 💌; love letters are clan-native appreciation (never coins), earned via
+          daily bonus + quests + loved posts, spent on gifts and advanced awards.
+        </p>
+        <div id="clan-create" className="mt-4 scroll-mt-16">
+          <Suspense fallback={<p className="text-sm text-slate-400">Loading clans…</p>}>
             <ClanBrowser />
           </Suspense>
         </div>

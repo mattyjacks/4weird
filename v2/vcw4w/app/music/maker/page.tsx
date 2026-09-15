@@ -16,21 +16,20 @@ export default async function Page() {
   cacheTag("music");
 
   return (
-    <div className="bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
+    <div className="flex h-dvh flex-col bg-slate-950 text-white">
+      <header className="flex h-10 shrink-0 items-center gap-3 border-b border-white/10 px-3 sm:px-4">
+        <p className="shrink-0 text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-300">
           Music Maker · Studio
         </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
+        <h1 className="truncate text-sm font-bold text-white">
           Sequence tiny songs, <span className="text-cyan-300">right here.</span>
         </h1>
-        <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
-          Sixteen steps per track, eight instruments, one tempo slider — plus
-          an SFX lab for rayguns and explosions. Everything runs on your
-          device: save to this browser, copy or download the song JSON, share
-          a link, or export a WAV.
+        <p className="ml-auto hidden truncate text-xs text-slate-400 lg:block">
+          16 steps per track · 8 instruments · tempo · WAV export
         </p>
-        <div className="mt-8">
+      </header>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-6xl px-3 py-3 sm:px-4">
           <Suspense
             fallback={
               <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
@@ -41,7 +40,7 @@ export default async function Page() {
             <MakerShell />
           </Suspense>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

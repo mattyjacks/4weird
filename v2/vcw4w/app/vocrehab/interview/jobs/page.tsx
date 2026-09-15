@@ -12,17 +12,17 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="vocrehab-interview-jobs mx-auto w-full max-w-3xl space-y-4 p-6">
+    <main className="vocrehab-interview-jobs mx-auto w-full max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/vocrehab/interview">Interview</Link> → Jobs
       </nav>
-      <h1 className="text-2xl font-bold">Pick a job to rehearse</h1>
+      <h1 className="text-xl font-bold">Pick a job to rehearse</h1>
       <p className="text-muted-foreground">
         20 real jobs, one shared question frame, role-tailored final question plus
         follow-ups and a curveball. Beginner is always open; Advanced unlocks after
         a Beginner pass, Expert after an Advanced pass — retries unlimited.
       </p>
-      <ul className="grid gap-3">
+      <ul className="grid gap-2">
         {vocrehabInterviewJobs.map((job) => (
           <li key={job.id}>
             <VocrehabJobCard job={job} />

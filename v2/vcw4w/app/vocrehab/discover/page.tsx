@@ -17,16 +17,18 @@ const LINKS = [
 
 export default function VocrehabDiscoverPage() {
   return (
-    <main className="vocrehab-discover mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">Discover: no tests that feel like tests</h1>
-      <p className="mt-2 text-stone-700 dark:text-stone-300">
+    <main className="vocrehab-discover mx-auto w-full max-w-6xl px-3 py-3">
+      <h1 className="text-lg font-bold tracking-tight text-stone-900 dark:text-stone-50">Discover: no tests that feel like tests</h1>
+      <p className="mt-0.5 text-[13px] text-stone-700 dark:text-stone-300">
         You play short work scenarios instead of filling long forms. What you do in the game becomes your profile — strengths first, never labels.
       </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-2.5 grid grid-cols-2 gap-2.5 md:grid-cols-3 xl:grid-cols-5">
         {LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm hover:shadow">
-            <h2 className="text-lg font-semibold text-stone-900">{l.title}</h2>
-            <p className="mt-1 text-sm text-stone-600">{l.blurb}</p>
+          <Link key={l.href} href={l.href} className="flex flex-col rounded-lg border border-stone-200 bg-white p-3 shadow-sm hover:shadow">
+            <h2 className="text-sm font-semibold text-stone-900">{l.title}</h2>
+            <p className="mt-0.5 text-xs text-stone-600">{l.blurb}</p>
+            <p className="mt-1 text-[11px] font-medium text-stone-500">Estimated: 5 mins · Not Started</p>
+            <span className="mt-auto pt-2 text-xs font-semibold text-cyan-700">Start Assessment &rarr;</span>
           </Link>
         ))}
       </div>

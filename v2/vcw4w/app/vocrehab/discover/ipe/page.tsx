@@ -69,17 +69,17 @@ export default function Page() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-6">
+    <main className="mx-auto max-w-3xl space-y-4 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground print:hidden">
         <Link href="/vocrehab/play">Arcade</Link> → Vocational assessment
       </nav>
-      <h1 className="text-2xl font-bold">Vocational assessment (IPE builder)</h1>
+      <h1 className="text-xl font-bold">Vocational assessment (IPE builder)</h1>
       <p>
         Answer in plain language — game results can prefill the strengths box, and you edit everything. This
         draft helps your counselor write your employment plan. Nothing here is a verdict; you approve every word.
       </p>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
           <label htmlFor="vocrehab-ipe-interests" className="font-medium">
             What kind of work sounds good? What gets in the way?
@@ -124,7 +124,7 @@ export default function Page() {
         </fieldset>
       </div>
 
-      <section aria-label="Draft profile" aria-live="polite" className="space-y-2 rounded-lg border p-4">
+      <section aria-label="Draft profile" aria-live="polite" className="space-y-2 rounded-lg border p-3">
         <h2 className="font-semibold">✓ Your draft (strengths first)</h2>
         <p className="text-sm"><strong>Strengths:</strong> {profile.strengths.join("; ")}</p>
         <p className="text-sm"><strong>Supports:</strong> {profile.supports.join(" ")}</p>

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Marketplace } from "@/components/agents/marketplace";
 import { MyCompute } from "@/components/agents/my-compute";
 import { NanoclawDeploy } from "@/components/agents/nanoclaw-deploy";
-import { AgentBotNav } from "@/components/agents/agent-bot-nav";
+import { AgentBotNav } from "@/components/agents/agent-bot-nav";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/agents" },
@@ -38,14 +38,14 @@ export default function AgentsPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       
-      <section className="mx-auto max-w-5xl px-5 py-20">
+      <section className="mx-auto max-w-6xl px-4 py-6 sm:px-5">
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home
         </Link>
-        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">🌐 RENT TECH</p>
-        <h1 className="mt-4 text-4xl font-black">Rent an agent</h1>
+        <p className="mt-2 text-xs font-bold tracking-widest text-cyan-300">🌐 RENT TECH</p>
+        <h1 className="mt-1 text-2xl font-black">Rent an agent</h1>
         <AgentBotNav current="/agents" />
-        <p className="mt-4 text-slate-300">
+        <p className="mt-2 text-slate-300">
           Rent an OpenClaw / NanoClaw / VibeCodeWorker agent - or a Xonotic
           game server where VibeCodeWorker plays for you or you play yourself.
           Pick a listing below to rent it, or list your own compute below to
@@ -53,7 +53,35 @@ export default function AgentsPage() {
           serverful (always-on pod) or serverless (scale-to-zero) through this same page,
           chatting on the website or Telegram with one bot key.
         </p>
-        <p className="mt-2 text-sm text-slate-400">
+        <ol
+          className="mt-3 flex h-10 items-center gap-1 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60 px-2 text-xs font-bold [scrollbar-width:thin]"
+          aria-label="Rent an agent in 4 steps"
+        >
+          <li className="flex shrink-0 items-center gap-1.5">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-300 text-[11px] text-slate-950">1</span>
+            Key
+            <span aria-hidden="true" className="text-slate-600">→</span>
+          </li>
+          <li className="flex shrink-0 items-center gap-1.5">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-300 text-[11px] text-slate-950">2</span>
+            Store
+            <span aria-hidden="true" className="text-slate-600">→</span>
+          </li>
+          <li className="flex shrink-0 items-center gap-1.5">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-300 text-[11px] text-slate-950">3</span>
+            Rent
+            <span aria-hidden="true" className="text-slate-600">→</span>
+          </li>
+          <li className="flex shrink-0 items-center gap-1.5">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-cyan-300 text-[11px] text-slate-950">4</span>
+            Chat
+          </li>
+        </ol>
+        <details className="mt-3 rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-2">
+          <summary className="cursor-pointer text-sm font-bold text-cyan-300">
+            Setup guide (?) — key, escrow, autoplay, desktops
+          </summary>
+          <p className="mt-2 text-sm text-slate-400">
           Bot key first: claim a username + issue a <code>bot4weird_…</code> key at{" "}
           <Link href="/bot/setup" className="text-cyan-300 hover:underline">
             /bot/setup
@@ -118,10 +146,11 @@ export default function AgentsPage() {
           </Link>{" "}
           for team rooms your bot can join ([BOT]).
         </p>
-        <Suspense fallback={<p className="mt-10 text-sm text-slate-400">Loading deploy guide…</p>}>
+        <Suspense fallback={<p className="mt-2 text-sm text-slate-400">Loading deploy guide…</p>}>
           <NanoclawDeploy />
         </Suspense>
-        <nav className="mt-8 flex gap-2" aria-label="Agent marketplace tabs">
+        </details>
+        <nav className="sticky top-0 z-10 -mx-1 mt-3 flex gap-2 bg-slate-950/90 px-1 py-1.5 backdrop-blur" aria-label="Agent marketplace tabs">
           <a
             href="#browse"
             className="rounded-t-lg border border-b-0 border-slate-800 bg-slate-900 px-4 py-2 text-sm font-bold text-cyan-300"
@@ -135,14 +164,14 @@ export default function AgentsPage() {
             List your compute
           </a>
         </nav>
-        <div className="rounded-b-xl rounded-tr-xl border border-slate-800 p-5">
-          <section id="browse" aria-label="Rent an agent">
+        <div className="rounded-b-xl rounded-tr-xl border border-slate-800 p-4">
+          <section id="browse" className="scroll-mt-16" aria-label="Rent an agent">
             <Suspense fallback={<p className="text-sm text-slate-400">Loading marketplace…</p>}>
               <Marketplace />
             </Suspense>
           </section>
-          <hr className="my-10 border-slate-800" />
-          <section id="my-compute" aria-label="List your compute">
+          <hr className="my-4 border-slate-800" />
+          <section id="my-compute" className="scroll-mt-16" aria-label="List your compute">
             <Suspense fallback={<p className="text-sm text-slate-400">Loading your compute…</p>}>
               <MyCompute />
             </Suspense>

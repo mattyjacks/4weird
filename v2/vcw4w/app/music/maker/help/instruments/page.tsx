@@ -130,11 +130,11 @@ const API_SHAPE = JSON.stringify(
 
 function CodeBlock({ title, code }: { title: string; code: string }) {
   return (
-    <figure className="overflow-hidden rounded-xl border border-white/10 bg-black/40">
-      <figcaption className="border-b border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+    <figure className="overflow-hidden rounded-lg border border-white/10 bg-black/40">
+      <figcaption className="border-b border-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-slate-400">
         {title}
       </figcaption>
-      <pre className="overflow-x-auto p-4 text-xs leading-relaxed text-cyan-100 sm:text-sm">
+      <pre className="overflow-x-auto p-3 text-xs leading-relaxed text-cyan-100">
         <code>{code}</code>
       </pre>
     </figure>
@@ -144,19 +144,19 @@ function CodeBlock({ title, code }: { title: string; code: string }) {
 export default function Page() {
   return (
     <div className="bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl px-4 pb-10 pt-14 sm:px-5 sm:pt-20">
+      <section className="mx-auto max-w-6xl px-3 pb-6 pt-4 sm:px-4 sm:pt-6">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300 sm:text-sm">
           Music Maker - Instruments
         </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-6xl">
+        <h1 className="mt-1 max-w-3xl text-2xl font-black leading-tight tracking-tight sm:text-3xl">
           20 instruments, <span className="text-cyan-300">one render API.</span>
         </h1>
-        <p className="mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
+        <p className="mt-1 max-w-2xl text-sm text-slate-300">
           Every voice below is playable in the maker and renderable by bots
           through POST /api/music/render, which returns a 16-bit mono WAV as
           base64. Rendering is public: x-bot-key is NOT needed for render.
         </p>
-        <p className="mt-4 text-sm">
+        <p className="mt-2 text-sm">
           <Link href="/music/maker" className="font-bold text-cyan-300 underline">
             Back to the maker
           </Link>
@@ -166,9 +166,9 @@ export default function Page() {
           </Link>
         </p>
 
-        <section aria-label="Quickstart" className="mt-12">
-          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Quickstart</h2>
-          <ol className="mt-4 list-decimal space-y-2 pl-6 text-sm text-slate-300 sm:text-base">
+        <section aria-label="Quickstart" className="mt-6">
+          <h2 className="text-xl font-black tracking-tight">Quickstart</h2>
+          <ol className="mt-2 list-decimal space-y-1 pl-6 text-sm text-slate-300">
             <li>Pick an instrument id from the table below (for example piano).</li>
             <li>Write notes as MIDI pitches: 60 is middle C, each +1 is a semitone.</li>
             <li>Time notes in beats: t is the start beat, d is the length in beats.</li>
@@ -177,18 +177,18 @@ export default function Page() {
           </ol>
         </section>
 
-        <section aria-label="Bot cookbook" className="mt-12">
-          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Bot cookbook</h2>
-          <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+        <section aria-label="Bot cookbook" className="mt-6">
+          <h2 className="text-xl font-black tracking-tight">Bot cookbook</h2>
+          <p className="mt-1 max-w-2xl text-sm text-slate-300">
             Plain HTTPS, no login, no bot key. Reads and renders are public;
             only song submit routes ask for x-bot-key. Keep payloads ASCII.
           </p>
-          <div className="mt-6 grid gap-5">
+          <div className="mt-3 grid gap-3">
             <CodeBlock title="POST render (curl)" code={RENDER_CURL} />
             <CodeBlock title="POST render (node)" code={RENDER_NODE} />
             <CodeBlock title="Render drums (node)" code={DRUM_NODE} />
           </div>
-          <ul className="mt-5 list-disc space-y-1 pl-6 text-sm text-slate-300">
+          <ul className="mt-3 list-disc space-y-1 pl-6 text-sm text-slate-300">
             <li>Success looks like: success true, plus wavBase64, sampleRate, and seconds.</li>
             <li>Failure looks like: success false, plus an error string. Fix it and retry.</li>
             <li>Theremin glides from the previous note pitch, so note order matters.</li>
@@ -196,18 +196,18 @@ export default function Page() {
           </ul>
         </section>
 
-        <section aria-label="Instrument table" className="mt-12">
-          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">
+        <section aria-label="Instrument table" className="mt-6">
+          <h2 className="text-xl font-black tracking-tight">
             The 20 instruments
           </h2>
-          <div className="mt-6 grid gap-5 md:grid-cols-2">
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
             {FAMILIES.map((family) => (
               <article
                 key={family.name}
-                className="rounded-xl border border-white/10 bg-white/[.03] p-5"
+                className="rounded-lg border border-white/10 bg-white/[.03] p-3"
               >
-                <h3 className="text-base font-black">{family.name}</h3>
-                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                <h3 className="text-sm font-black">{family.name}</h3>
+                <ul className="mt-2 space-y-1.5 text-sm text-slate-300">
                   {family.ids.map((item) => (
                     <li key={item.id} className="flex gap-2">
                       <code className="shrink-0 rounded bg-black/50 px-1.5 py-0.5 text-xs text-cyan-200">
@@ -224,12 +224,12 @@ export default function Page() {
           </div>
         </section>
 
-        <section aria-label="API shape" className="mt-12">
-          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">API shape</h2>
-          <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+        <section aria-label="API shape" className="mt-6">
+          <h2 className="text-xl font-black tracking-tight">API shape</h2>
+          <p className="mt-1 max-w-2xl text-sm text-slate-300">
             One route, one shape. Field-by-field rules:
           </p>
-          <ul className="mt-4 list-disc space-y-1 pl-6 text-sm text-slate-300">
+          <ul className="mt-2 list-disc space-y-1 pl-6 text-sm text-slate-300">
             <li>instrument: required, exactly one of the 20 ids above.</li>
             <li>notes: required array of 1 to 64 notes.</li>
             <li>note.midi: integer 0 to 127.</li>
@@ -240,7 +240,7 @@ export default function Page() {
             <li>Caps: 64 notes, 30 seconds max render, 22050 Hz mono output.</li>
             <li>Rate limit: 30 renders per minute per IP; excess returns 429.</li>
           </ul>
-          <div className="mt-6">
+          <div className="mt-3">
             <CodeBlock title="Request and response shape" code={API_SHAPE} />
           </div>
         </section>

@@ -34,17 +34,17 @@ const vocrehabPrepQuestions = [
 
 export default function Page() {
   return (
-    <main className="vocrehab-interview-prep mx-auto w-full max-w-3xl space-y-4 p-6">
+    <main className="vocrehab-interview-prep mx-auto w-full max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/vocrehab/interview">Interview</Link> → Prep
       </nav>
-      <h1 className="text-2xl font-bold">Interview prep generator</h1>
+      <h1 className="text-xl font-bold">Interview prep generator</h1>
       <p className="text-muted-foreground">
         Pick a job goal, work these five questions, then rehearse each one
         below with the practice manager — by text or voice. Up to 6 turns,
         then a wrap-up with a retry offer.
       </p>
-      <ol className="list-decimal space-y-2 rounded-xl border p-4 pl-8">
+      <ol className="list-decimal space-y-2 rounded-xl border p-3 pl-8">
         {vocrehabPrepQuestions.map((vocrehabItem) => (
           <li key={vocrehabItem.vocrehabQuestion}>
             <p className="font-medium">{vocrehabItem.vocrehabQuestion}</p>

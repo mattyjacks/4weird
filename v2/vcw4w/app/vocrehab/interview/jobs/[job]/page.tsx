@@ -20,11 +20,11 @@ export default async function Page({ params }: { params: Promise<{ job: string }
   if (!vocrehabIsInterviewJobId(job)) notFound();
   const content = vocrehabInterviewJobFor(job);
   return (
-    <main className="vocrehab-interview-room-page mx-auto w-full max-w-3xl space-y-4 p-6">
+    <main className="vocrehab-interview-room-page mx-auto w-full max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/vocrehab/interview">Interview</Link> → <Link href="/vocrehab/interview/jobs">Jobs</Link> → {content.title}
       </nav>
-      <h1 className="text-2xl font-bold">{content.title} — live rehearsal</h1>
+      <h1 className="text-xl font-bold">{content.title} — live rehearsal</h1>
       <p className="text-muted-foreground">
         One question at a time, up to 6 turns, then a report card. Ephemeral by
         default — nothing leaves this tab until you tap Save.

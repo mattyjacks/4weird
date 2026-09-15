@@ -11,30 +11,31 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div className="bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-5 sm:py-14">
+    <div className="flex h-[calc(100vh-64px)] flex-col overflow-hidden bg-slate-950 text-white">
+      <section className="flex h-9 shrink-0 items-center gap-2 overflow-hidden border-b border-white/10 px-3">
         <CachedSpaceshipsIntro />
-        <div className="mt-8">
-          {/* WebGL runtime (live canvas, per-visitor state): dynamic island
-              streaming behind the fallback; never cached. */}
-          <Suspense fallback={<p className="text-sm text-slate-400">Loading starship…</p>}>
-            <SpaceshipRuntime />
-          </Suspense>
-        </div>
       </section>
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {/* WebGL runtime (live canvas, per-visitor state): dynamic island
+            streaming behind the fallback; never cached. */}
+        <Suspense fallback={<p className="text-sm text-slate-400">Loading starship…</p>}>
+          <SpaceshipRuntime />
+        </Suspense>
+      </div>
     </div>
   );
 }
 
 // Static intro copy: no per-user data, cached hourly.
+// Compact single-row bar so the canvas fills the viewport (zero-scroll arcade).
 async function CachedSpaceshipsIntro() {
   "use cache";
   cacheLife("hours");
   return (
     <>
-      <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">Spaceship Simulation</p>
-      <h1 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">Pilot a weird little starship</h1>
-      <p className="mt-4 max-w-2xl text-slate-300">
+      <p className="shrink-0 text-[11px] font-bold uppercase tracking-[0.25em] text-cyan-300">Spaceship Simulation</p>
+      <h1 className="shrink-0 truncate text-sm font-black tracking-tight">Pilot a weird little starship</h1>
+      <p className="hidden truncate text-xs text-slate-400 xl:block">
         The original 4weird WebGL spaceship simulation, preserved intact and touch-ready.
       </p>
     </>

@@ -588,17 +588,27 @@ export default function TerminalPage() {
   const attached = pods.find((p) => p.id === attachedId) ?? null;
 
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "2rem 1rem", fontFamily: "monospace" }}>
-      <h1>CryptArt Commander</h1>
-      <p style={{ fontFamily: "sans-serif" }}>
+    <main style={{ maxWidth: 1100, margin: "0 auto", padding: "1rem 1rem 2rem", fontFamily: "monospace" }}>
+      <h1 style={{ margin: "0.25rem 0" }}>CryptArt Commander</h1>
+      <p style={{ fontFamily: "sans-serif", margin: "0 0 0.75rem" }}>
         Local power-user terminal. Allow-listed commands only — no server execution, works offline.
         Desktop relay (<code>pair</code>/<code>link</code>/<code>exec</code>) is opt-in and allow-listed.
       </p>
-      <DesktopStatus />
+      <div style={{ background: "#2b2b2b", borderRadius: "8px 8px 0 0", padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <span aria-hidden="true" style={{ display: "flex", gap: "0.35rem" }}>
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57", display: "inline-block" }} />
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e", display: "inline-block" }} />
+          <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840", display: "inline-block" }} />
+        </span>
+        <span style={{ color: "#e8e8e8", fontSize: "0.85rem", whiteSpace: "nowrap" }}>commander — local sandbox</span>
+        <span style={{ flex: 1, minWidth: 0, marginBottom: "-0.75rem" }}>
+          <DesktopStatus />
+        </span>
+      </div>
       <div
         aria-live="polite"
         onClick={() => inputRef.current?.focus()}
-        style={{ background: "#0a0a0a", color: "#d7ffd7", borderRadius: 8, padding: "1rem", minHeight: 320, maxHeight: 480, overflowY: "auto" }}
+        style={{ background: "#0a0a0a", color: "#d7ffd7", borderRadius: "0 0 8px 8px", padding: "1rem", height: "calc(100vh - 120px)", minHeight: 320, overflowY: "auto" }}
       >
         {lines.map((l) => (
           <div key={l.id} style={{ color: l.kind === "error" ? "#ff9d9d" : l.kind === "input" ? "#9adcff" : "#d7ffd7", whiteSpace: "pre-wrap" }}>
@@ -626,8 +636,9 @@ export default function TerminalPage() {
           />
         </form>
       </div>
-      <section aria-label="Virtual desktop pods" style={{ fontFamily: "sans-serif", marginTop: "1.5rem" }}>
-        <h2 style={{ fontFamily: "monospace" }}>Virtual desktop pods</h2>
+      <section aria-label="Virtual desktop pods" style={{ fontFamily: "sans-serif", marginTop: "0.75rem" }}>
+        <details>
+          <summary style={{ fontFamily: "monospace", cursor: "pointer" }}>Virtual desktop pods</summary>
         {podsState === "loading" && pods.length === 0 ? (
           <p>Loading your pods…</p>
         ) : pods.length === 0 ? (
@@ -697,6 +708,7 @@ export default function TerminalPage() {
             </p>
           </div>
         )}
+        </details>
       </section>
     </main>
   );

@@ -13,7 +13,122 @@ import styles from "./game-catalog.module.css";
 
 const PAGE_SIZE = 24;
 const picks = ["overtake", "lastwordszombies", "gravegain2d", "gravegain3d", "battlesharks2", "serversavershield", "assassinanimals"];
-const Card = memo(function Card({ game, recommended = false }: { game: Game; recommended?: boolean }) { const a11y = getGameA11y(game.slug); const a11yBadges = [a11y.keyboardOnly ? "⌨️ keyboard" : null, !a11y.colorDependent ? "🎨 color-free" : "🎨 filter me", "♿ assists"].filter(Boolean) as string[]; return <article className={`${styles.card} perf-card`}><div className={`${styles.art} ${styles[`art${game.slug}`] ?? ""}`} aria-hidden="true"><span>{game.emoji}</span><i /><div className={styles.badges}>{recommended && <b>RECOMMENDED</b>}<em>📱 + 💻</em></div><div className={styles.playMark}>▶</div></div><div className={styles.body}><div><h3>{game.title}</h3><small>{game.genre}</small></div><div className="mt-1"><RatingBadge rating={game.rating ?? "kids"} /> <InfoTip side="bottom" text="Rating shows who the game is for: kids, teens, or adults. Adults games hide when Kids Mode is on." label="About ratings" /></div><p>{game.description}</p><div className={styles.tags}>{game.tags.slice(0,3).map(tag=><span key={tag}>{tag}</span>)}</div><div className={styles.tags} aria-label={`Accessibility: ${a11yBadges.join(", ")}`}>{a11yBadges.map(b=><span key={b}>{b}</span>)}<InfoTip side="bottom" text="Accessibility badges show input needs at a glance. Keyboard means playable without a mouse." label="About accessibility badges" /></div><Link href={`/games/${game.slug}/play`} className={styles.play} aria-label={`Play ${game.title} now`}>PLAY NOW <span aria-hidden="true">→</span></Link></div></article> })
+
+function a11yBadgesFor(slug: string) {
+  const a11y = getGameA11y(slug);
+  return [
+    a11y.keyboardOnly ? "⌨️ keyboard" : null,
+    !a11y.colorDependent ? "🎨 color-free" : "🎨 filter me",
+    "♿ assists",
+  ].filter(Boolean) as string[];
+}
+
+// Compact arcade card (~190px): 16:9 emoji thumb with hover-play overlay,
+// title + rating + Info button. Full description/tags/a11y live in the
+// side drawer (no page push), opened via onInfo.
+const Card = memo(function Card({
+  game,
+  recommended = false,
+  onInfo,
+}: {
+  game: Game;
+  recommended?: boolean;
+  onInfo: (slug: string) => void;
+}) {
+  return (
+    <article className={`${styles.card}${recommended ? ` ${styles.recommendedCard}` : ""} perf-card`}>
+      <Link
+        href={`/games/${game.slug}/play`}
+        className={`${styles.art} ${styles[`art${game.slug}`] ?? ""}`}
+        aria-label={`Play ${game.title} now`}
+      >
+        <span aria-hidden="true">{game.emoji}</span>
+        <i aria-hidden="true" />
+        <div className={styles.badges}>
+          {recommended && <b>RECOMMENDED</b>}
+          <em>📱 + 💻</em>
+        </div>
+        <div className={styles.playMark} aria-hidden="true">
+          ▶
+        </div>
+      </Link>
+      <div className={styles.body}>
+        <div className={styles.titleRow}>
+          <h3>{game.title}</h3>
+          <small>{game.genre}</small>
+        </div>
+        <div className={styles.metaRow}>
+          <RatingBadge rating={game.rating ?? "kids"} />
+          <button
+            type="button"
+            className={styles.infoBtn}
+            onClick={() => onInfo(game.slug)}
+            aria-label={`About ${game.title}`}
+          >
+            ⓘ Info
+          </button>
+        </div>
+        <Link href={`/games/${game.slug}/play`} className={styles.play} aria-label={`Play ${game.title} now`}>
+          PLAY NOW <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+    </article>
+  );
+});
+
+// Side drawer: full game details without leaving the catalog view.
+function GameDrawer({ game, onClose }: { game: Game; onClose: () => void }) {
+  const badges = a11yBadgesFor(game.slug);
+  return (
+    <div className={styles.overlay} onClick={onClose}>
+      <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={`About ${game.title}`}
+        className={styles.drawer}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button type="button" className={styles.drawerClose} onClick={onClose} aria-label="Close details">
+          ✕
+        </button>
+        <div className={`${styles.art} ${styles.drawerArt} ${styles[`art${game.slug}`] ?? ""}`} aria-hidden="true">
+          <span>{game.emoji}</span>
+          <i />
+        </div>
+        <h2>{game.title}</h2>
+        <small className={styles.drawerGenre}>{game.genre}</small>
+        <div className={styles.drawerRow}>
+          <RatingBadge rating={game.rating ?? "kids"} />{" "}
+          <InfoTip
+            side="bottom"
+            text="Rating shows who the game is for: kids, teens, or adults. Adults games hide when Kids Mode is on."
+            label="About ratings"
+          />
+        </div>
+        <p className={styles.drawerDesc}>{game.description}</p>
+        <div className={styles.tags}>
+          {game.tags.slice(0, 3).map((tag) => (
+            <span key={tag}>{tag}</span>
+          ))}
+        </div>
+        <div className={styles.tags} aria-label={`Accessibility: ${badges.join(", ")}`}>
+          {badges.map((b) => (
+            <span key={b}>{b}</span>
+          ))}
+          <InfoTip
+            side="bottom"
+            text="Accessibility badges show input needs at a glance. Keyboard means playable without a mouse."
+            label="About accessibility badges"
+          />
+        </div>
+        <Link href={`/games/${game.slug}/play`} className={styles.play} aria-label={`Play ${game.title} now`}>
+          PLAY NOW <span aria-hidden="true">→</span>
+        </Link>
+      </aside>
+    </div>
+  );
+}
+
 export function GameCatalog({ games }: { games: Game[] }) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -23,6 +138,8 @@ export function GameCatalog({ games }: { games: Game[] }) {
   // Teens + Adults, teen band hides Adults. 99 = no child session.
   const [kidMaxAge, setKidMaxAge] = useState(99);
   const [workerSlugs, setWorkerSlugs] = useState<string[] | null>(null);
+  // Side-drawer selection: game slug or null (closed).
+  const [drawerSlug, setDrawerSlug] = useState<string | null>(null);
   // Pagination/windowing: render PAGE_SIZE cards at a time so 100+ game
   // lists scroll fast; "Show more" appends the next window.
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -127,5 +244,125 @@ export function GameCatalog({ games }: { games: Game[] }) {
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const showMore = useCallback(() => { setVisibleCount((n) => Math.min(n + PAGE_SIZE, filtered.length)); }, [filtered.length]);
   const hiddenAdults = kids ? games.filter((g) => (g.rating ?? "kids") === "adults").length : 0;
-  const surprise = () => { const pool = filtered.length ? filtered : games.filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge); const game = pool[Math.floor(Math.random() * pool.length)]; window.location.assign(`/games/${game.slug}/play`) }; const recommended = picks.map(slug => games.find(g => g.slug === slug)).filter((g): g is Game => Boolean(g)).filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge && (!kids || (g.rating ?? "kids") !== "adults")); return <><section className={styles.hero}><p>4WEIRD ARCADE // FREE TO TRY, NO INSTALL</p><h1>Find your next <span>weird</span> world.</h1><h2>34 free browser games: arcade racers, dungeon crawlers, typing survival, plus business sims that teach cap tables, finance, and pipelines. Playing takes seconds; coders can ship their own world via NewGamePlus.</h2><div><a href="#recommended">EXPLORE PICKS ↓</a><button type="button" onClick={surprise}>⌘ SURPRISE ME</button></div><div><span>New here? Gamers <Link href="/games/overtake/play">race Overtake</Link> · Coders <Link href="/games/lastwordszombies/play">survive Last Words Zombies</Link> · Business <Link href="/games/financialfreedom/play">run Financial Freedom</Link></span></div><div><label><input type="checkbox" checked={kids} onChange={e => toggleKids(e.target.checked)} /> 🔒 Kids Mode; hide Adults (18+) games <InfoTip side="bottom" text="Hides Adults (18+) games across the catalog. Teens games still ask a 13+ check before playing." label="About Kids Mode" /></label></div><div><Link href="/family/login">🎮 Kid &amp; teen login (name#1234)</Link></div></section><div className="mx-auto max-w-6xl px-4 pt-4"><KidBanner /></div>{kids && <p role="status">🔒 Kids Mode is on - {hiddenAdults} Adults (18+) game{hiddenAdults === 1 ? " is" : "s are"} hidden. Teens (13-17) games ask a 13+ age check before playing.</p>}<section className={styles.section} id="recommended"><header><div><p>START HERE</p><h2>7 staff picks to start with</h2></div><span>racers, RPGs + money sims</span></header><div className={`${styles.grid} perf-list`}>{recommended.map(g => <Card key={g.slug} game={g} recommended />)}</div></section><section className={styles.section}><header><div><p>FULL LIBRARY · ALL 34</p><h2>Choose your portal</h2></div><span role="status">{filtered.length} games online · showing {visible.length}</span></header><div className={styles.filters}><label><span>⌕</span><input aria-label="Search games" type="search" inputMode="search" autoComplete="off" enterKeyHint="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search the arcade" /></label><div>{genres.map(item => <button type="button" key={item} aria-pressed={genre === item} className={genre === item ? styles.active : ""} onClick={() => setGenre(item)}>{item}</button>)}</div></div><div className={`${styles.grid} perf-list`}>{visible.map(g => <Card key={g.slug} game={g} />)}</div>{visible.length < filtered.length && <div><button type="button" onClick={showMore}>Show more ({filtered.length - visible.length} remaining)</button></div>}{!filtered.length && <p className={styles.empty}>No games found. Clear the signal and try again.</p>}</section></>
+  const openInfo = useCallback((slug: string) => { setDrawerSlug(slug); }, []);
+  const closeInfo = useCallback(() => { setDrawerSlug(null); }, []);
+  // Escape closes the drawer; body scroll locks while it is open.
+  useEffect(() => {
+    if (!drawerSlug) return undefined;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setDrawerSlug(null); };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [drawerSlug]);
+  const surprise = () => {
+    const pool = filtered.length ? filtered : games.filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge);
+    const game = pool[Math.floor(Math.random() * pool.length)];
+    window.location.assign(`/games/${game.slug}/play`);
+  };
+  const recommended = picks
+    .map(slug => games.find(g => g.slug === slug))
+    .filter((g): g is Game => Boolean(g))
+    .filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge && (!kids || (g.rating ?? "kids") !== "adults"));
+  const drawerGame = drawerSlug ? (games.find((g) => g.slug === drawerSlug) ?? null) : null;
+  return (
+    <div className={styles.wrap}>
+      {/* Sticky 48px filter bar: title + search + category pills + kids + surprise */}
+      <div className={styles.bar} role="search">
+        <h1 className={styles.barTitle}>Arcade ({filtered.length})</h1>
+        <label className={styles.search}>
+          <span aria-hidden="true">🔍</span>
+          <input
+            aria-label="Search games"
+            type="search"
+            inputMode="search"
+            autoComplete="off"
+            enterKeyHint="search"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search the arcade"
+          />
+        </label>
+        <div className={styles.pills} role="group" aria-label="Filter by category">
+          {genres.map(item => (
+            <button
+              type="button"
+              key={item}
+              aria-pressed={genre === item}
+              className={genre === item ? styles.active : ""}
+              onClick={() => setGenre(item)}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+        <label className={styles.kids} title="Hides Adults (18+) games across the catalog. Teens games still ask a 13+ check before playing.">
+          <input type="checkbox" checked={kids} onChange={e => toggleKids(e.target.checked)} />
+          🔒 Kids
+        </label>
+        <button type="button" className={styles.surprise} onClick={surprise}>
+          ⌘ Surprise
+        </button>
+      </div>
+      <div className="mx-auto max-w-6xl px-4 pt-4">
+        <KidBanner />
+      </div>
+      {kids && (
+        <p role="status" className={styles.kidsNote}>
+          🔒 Kids Mode is on - {hiddenAdults} Adults (18+) game{hiddenAdults === 1 ? " is" : "s are"} hidden. Teens
+          (13-17) games ask a 13+ age check before playing.
+        </p>
+      )}
+      <section className={styles.section} id="recommended" aria-label="Staff picks">
+        <header className={styles.secHead}>
+          <div>
+            <p>START HERE</p>
+            <h2>7 staff picks to start with</h2>
+          </div>
+          <span>racers, RPGs + money sims</span>
+        </header>
+        <div className={`${styles.grid} perf-list`}>
+          {recommended.map(g => (
+            <Card key={g.slug} game={g} recommended onInfo={openInfo} />
+          ))}
+        </div>
+      </section>
+      <section className={styles.section} aria-label="Full game library">
+        <header className={styles.secHead}>
+          <div>
+            <p>FULL LIBRARY · ALL 34</p>
+            <h2>Choose your portal</h2>
+          </div>
+          <span role="status">
+            {filtered.length} games online · showing {visible.length}
+          </span>
+        </header>
+        <div className={`${styles.grid} perf-list`}>
+          {visible.map(g => (
+            <Card key={g.slug} game={g} onInfo={openInfo} />
+          ))}
+        </div>
+        {visible.length < filtered.length && (
+          <div className={styles.moreWrap}>
+            <button type="button" className={styles.moreBtn} onClick={showMore}>
+              Show more ({filtered.length - visible.length} remaining)
+            </button>
+          </div>
+        )}
+        {!filtered.length && <p className={styles.empty}>No games found. Clear the signal and try again.</p>}
+      </section>
+      <p className={styles.footLinks}>
+        <span>
+          New here? Gamers <Link href="/games/overtake/play">race Overtake</Link> · Coders{" "}
+          <Link href="/games/lastwordszombies/play">survive Last Words Zombies</Link> · Business{" "}
+          <Link href="/games/financialfreedom/play">run Financial Freedom</Link>
+        </span>
+        <Link href="/family/login">🎮 Kid &amp; teen login (name#1234)</Link>
+      </p>
+      {drawerGame && <GameDrawer game={drawerGame} onClose={closeInfo} />}
+    </div>
+  );
 }

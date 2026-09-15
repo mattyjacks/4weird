@@ -181,7 +181,7 @@ export function StockStudio() {
   const page = lastRun?.page ?? 1;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className={`rounded-full px-3 py-1 text-xs font-bold ${configured === false ? "bg-amber-400/15 text-amber-200" : "bg-emerald-400/15 text-emerald-200"}`}>
           {configured === null ? "○ Pexels status unknown - search to check" : configured ? "● Pexels live · 0 coins" : "● Pexels not configured; sign in + set key"}
@@ -196,23 +196,22 @@ export function StockStudio() {
         </p>
       </CompactDetails>
 
-      <section aria-label="Vibe presets" className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <section aria-label="Vibe presets" className="flex gap-1.5 overflow-x-auto pb-1">
         {PEXELS_PRESETS.map((preset) => (
           <button
             key={preset.label}
             type="button"
             onClick={() => runPreset(preset)}
             disabled={busy}
-            title={preset.blurb}
-            className="rounded-2xl border border-white/10 bg-white/[.03] p-3 text-left transition hover:border-emerald-300/50 hover:bg-emerald-300/10 disabled:opacity-50"
+            title={`${preset.label} — ${preset.blurb}`}
+            className="h-8 shrink-0 rounded-full border border-white/10 bg-white/[.03] px-3 text-xs font-bold transition hover:border-emerald-300/50 hover:bg-emerald-300/10 disabled:opacity-50"
           >
-            <p className="text-sm font-bold">{preset.emoji} {preset.label}</p>
-            <p className="mt-0.5 truncate text-xs text-slate-400">{preset.blurb}</p>
+            {preset.emoji} {preset.label}
           </button>
         ))}
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+      <section className="sticky top-0 z-10 rounded-xl border border-white/10 bg-slate-950/95 p-3.5 backdrop-blur">
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Stock type">
           {(["image", "video"] as PexelsKind[]).map((k) => (
             <button
@@ -315,22 +314,22 @@ export function StockStudio() {
       </section>
 
       {items.length === 0 && !lastRun && (
-        <p className="rounded-2xl border border-dashed border-white/15 p-8 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-dashed border-white/15 p-3.5 text-center text-sm text-slate-500">
           🗺️ The treasure map is blank. Tap a vibe above, roll the 🎲, or type your own quest to fill it with loot.
         </p>
       )}
 
       {items.length > 0 && (
-        <section aria-label="Stock results" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <section aria-label="Stock results" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item) => (
-            <article key={`${item.kind}-${item.id}`} className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[.03] transition hover:border-emerald-300/40">
+              <article key={`${item.kind}-${item.id}`} className="group overflow-hidden rounded-xl border border-white/10 bg-white/[.03] transition hover:border-emerald-300/40">
               {item.kind === "video" ? (
                 <video src={item.url} poster={item.previewUrl || undefined} controls preload="metadata" className="aspect-video w-full bg-black object-cover" />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={item.previewUrl} alt={item.alt} loading="lazy" className="aspect-video w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
               )}
-              <div className="space-y-2 p-4">
+              <div className="space-y-2 p-3">
                 <p className="text-xs text-slate-400">
                   {item.credit} ·{" "}
                   <a href={item.creditUrl} target="_blank" rel="noreferrer" className="underline">creator</a> ·{" "}

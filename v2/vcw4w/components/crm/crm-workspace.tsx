@@ -128,7 +128,7 @@ function Highlight({ text, needle }: { text: string; needle: string }) {
 
 function SearchEmptyState({ title, hint, onClear }: { title: string; hint: string; onClear: () => void }) {
   return (
-    <div className="rounded-xl border border-dashed border-white/15 bg-black/20 p-6 text-center">
+    <div className="rounded-xl border border-dashed border-white/15 bg-black/20 p-3.5 text-center">
       <p className="font-semibold text-white">{title}</p>
       <p className="mt-1 text-sm text-slate-400">{hint}</p>
       <button type="button" onClick={onClear} aria-label="Clear search" className="mt-3 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10">
@@ -346,11 +346,11 @@ function healthScore(nContacts: number, nOpenDeals: number, wonCoins: number): n
 }
 
 const inputCls = "min-w-0 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none";
-const cardCls = "rounded-2xl border border-white/10 bg-white/[.04] p-5";
+const cardCls = "rounded-2xl border border-white/10 bg-white/[.04] p-3.5";
 const btnCls = "min-h-[44px] rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none";
 const ghostBtnCls = "min-h-[36px] rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none";
 const stageBtnCls = "min-h-[44px] min-w-[44px] rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none";
-const tabBtnBase = "min-h-[44px] rounded-lg px-3 py-1.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none";
+const tabBtnBase = "min-h-[36px] rounded-lg px-3 py-1.5 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none";
 
 export function CrmWorkspace() {
   const [orgs, setOrgs] = useState<Org[]>([]);
@@ -1700,7 +1700,7 @@ export function CrmWorkspace() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <section className={cardCls}>
         <div className="flex flex-wrap items-center gap-3">
           <label className="text-sm font-semibold text-slate-300" htmlFor="crm-org">Org</label>
@@ -1795,7 +1795,7 @@ export function CrmWorkspace() {
             })}
           </div>
         )}
-        <div className="sticky top-0 z-10 -mx-5 mt-3 border-b border-white/10 bg-slate-950/90 px-5 py-2 backdrop-blur" >
+        <div className="sticky top-0 z-10 -mx-3.5 mt-2 border-b border-white/10 bg-slate-950/90 px-3.5 py-1 backdrop-blur" >
           <div className="flex gap-2 overflow-x-auto pb-1 snap-x motion-reduce:scroll-auto" role="tablist" aria-label="CRM sections">
             {TABS.map((t, i) => {
               const count = tabCounts[t.key] ?? null;
@@ -1876,7 +1876,7 @@ export function CrmWorkspace() {
             <span className="text-xs text-slate-400">100 coins = $1.00</span>
           </section>
 
-          <section aria-label="CRM dashboard summary" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <section aria-label="CRM dashboard summary" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {busy && !summary ? (
               <>
                 {["a", "b", "c", "d", "e", "f", "g", "h"].map((k) => (

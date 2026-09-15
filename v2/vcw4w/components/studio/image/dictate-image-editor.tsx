@@ -62,6 +62,7 @@ export function DictateImageEditor() {
   const [zoom, setZoom] = useState<number>(1);
   const [notice, setNotice] = useState<string | null>(null);
   const [undoDepth, setUndoDepth] = useState<number>(0);
+  const [inspectorTab, setInspectorTab] = useState<"layers" | "slicer">("layers");
 
   const layersRef = useRef<Map<string, DictateLayer>>(new Map());
   const displayRef = useRef<HTMLCanvasElement | null>(null);
@@ -540,29 +541,74 @@ export function DictateImageEditor() {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-white">
-      <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_260px]">
-        <ToolPalette
-          tool={tool}
-          onTool={setTool}
-          color={color}
-          onColor={setColor}
-          size={size}
-          onSize={(v) => setSize(clampBrushSize(v))}
-          zoom={zoom}
-          onZoom={setZoom}
-          onAiStub={handleAiStub}
-        />
-        <DictateCanvas
-          onDisplayReady={onDisplayReady}
-          onStrokeStart={handleStrokeStart}
-          onStrokeMove={handleStrokeMove}
-          onStrokeEnd={handleStrokeEnd}
-          zoom={zoom}
-          eyedropperActive={tool === "eyedropper"}
-        />
-        <div className="flex flex-col gap-4">
-          <LayersPanel
+    <div className="flex flex-col rounded-2xl border border-slate-800 bg-slate-950 p-4 text-white lg:h-screen lg:max-h-screen lg:overflow-hidden">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+          DictatePic · 512 × 512 · {metas.length} layers
+        </p>
+        <button
+          type="button"
+          onClick={handleExport}
+          className="rounded bg-cyan-500 px-3 py-2 text-xs font-bold text-black"
+        >
+          ⬇️ Export PNG
+        </button>
+      </div>
+      <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[220px_minmax(0,1fr)_260px]">
+        <div className="lg:min-h-0 lg:overflow-y-auto">
+          <ToolPalette
+            tool={tool}
+            onTool={setTool}
+            color={color}
+            onColor={setColor}
+            size={size}
+            onSize={(v) => setSize(clampBrushSize(v))}
+            zoom={zoom}
+            onZoom={setZoom}
+            onAiStub={handleAiStub}
+          />
+        </div>
+        <div className="min-w-0 lg:min-h-0 lg:overflow-y-auto">
+          <DictateCanvas
+            onDisplayReady={onDisplayReady}
+            onStrokeStart={handleStrokeStart}
+            onStrokeMove={handleStrokeMove}
+            onStrokeEnd={handleStrokeEnd}
+            zoom={zoom}
+            eyedropperActive={tool === "eyedropper"}
+          />
+        </div>
+        <div className="flex flex-col gap-2 lg:min-h-0 lg:overflow-y-auto">
+          <div role="tablist" aria-label="Inspector" className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={inspectorTab === "layers"}
+              onClick={() => setInspectorTab("layers")}
+              className={`rounded p-2 text-xs font-bold ${
+                inspectorTab === "layers"
+                  ? "bg-cyan-500 text-black"
+                  : "bg-slate-800 text-slate-200"
+              }`}
+            >
+              Layers
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={inspectorTab === "slicer"}
+              onClick={() => setInspectorTab("slicer")}
+              className={`rounded p-2 text-xs font-bold ${
+                inspectorTab === "slicer"
+                  ? "bg-cyan-500 text-black"
+                  : "bg-slate-800 text-slate-200"
+              }`}
+            >
+              Slicer
+            </button>
+          </div>
+          {inspectorTab === "layers" ? (
+            <LayersPanel
             layers={metas}
             activeId={activeId}
             onSelect={setActiveId}
@@ -604,7 +650,9 @@ export function DictateImageEditor() {
             undoDepth={undoDepth}
             onExport={handleExport}
           />
-          <SlicePanel />
+          ) : (
+            <SlicePanel />
+          )}
         </div>
       </div>
       <p aria-live="polite" className="mt-4 min-h-6 text-xs text-slate-400">

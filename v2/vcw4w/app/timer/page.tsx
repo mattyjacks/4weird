@@ -13,24 +13,32 @@ export const metadata: Metadata = {
 export default function TimerPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-4xl px-5 py-10 sm:py-16">
-        <p className="text-sm font-bold tracking-widest text-cyan-300">4WEIRD // ORG TOOLING</p>
-        <h1 className="mt-2 text-4xl font-black">⏱️ Timer + 👻 Ghost Cash</h1>
-        <p className="mt-3 text-slate-300">
-          Clock org work to the second, prove presence with activity beats, and settle up in Ghost Cash; a
-          centrally-controlled hypothetical unit with <b>no legal value</b>: it measures debts, stores nothing, buys
-          nothing.
-        </p>
-        <p className="mt-3 text-sm text-slate-400">
-          For business use: tracked seconds invoice into Ghost debts, which the Business Hub turns into real
-          invoices; contracts live under <b>/business/contracts</b>, client records in the CRM, and shift notes
-          attach proof in the Vault. Export the work diary as CSV for bookkeeping.
-        </p>
-        <div className="mt-6">
-          <BusinessCrosslinks exclude={["/timer"]} />
-        </div>
-        <div className="mt-8">
-          <Suspense fallback={<p className="rounded-2xl border border-white/10 bg-white/[.04] p-8 text-center text-sm text-slate-400">Loading timer…</p>}>
+      <section className="mx-auto max-w-5xl gap-3 px-4 py-3">
+        {/* Compact inline title bar: Ghost timer widget sits directly below at y:64 */}
+        <header className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2">
+          <h1 className="text-lg font-black">⏱️ Timer + 👻 Ghost Cash</h1>
+          <span className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-300">
+            4WEIRD // ORG TOOLING
+          </span>
+          <p className="hidden min-w-0 flex-1 truncate text-xs text-slate-400 xl:block">
+            Second-precision org clock; Ghost Cash has no legal value — a ruler for debts.
+          </p>
+          {/* 8 org tool shortcuts → compact header drawer */}
+          <details className="relative">
+            <summary className="h-10 cursor-pointer list-none items-center rounded-full border border-white/10 bg-white/[0.04] px-3 text-xs font-bold text-slate-200 hover:border-cyan-300/40 [&::-webkit-details-marker]:hidden">
+              🧰 Tools
+            </summary>
+            <div className="absolute right-0 z-20 mt-1 w-80 rounded-xl border border-white/10 bg-slate-900 p-3.5 shadow-xl">
+              <BusinessCrosslinks exclude={["/timer"]} />
+              <p className="mt-2 text-[11px] leading-snug text-slate-500">
+                Contracts: <b>/business/contracts</b> · clients: CRM · proof: Vault · diary: CSV export.
+              </p>
+            </div>
+          </details>
+        </header>
+        {/* Hero timer widget first — single-row toolbar + metric ribbon live inside GhostTimer (untouched) */}
+        <div className="mt-3">
+          <Suspense fallback={<p className="rounded-xl border border-white/10 bg-white/[.04] p-3.5 text-center text-sm text-slate-400">Loading timer…</p>}>
             <GhostTimer />
           </Suspense>
         </div>

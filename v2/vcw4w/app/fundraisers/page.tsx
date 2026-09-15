@@ -22,7 +22,7 @@ async function CurrencyLegend() {
   cacheLife("days");
   cacheTag("currency-legend");
   return (
-    <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+    <ul className="mt-3 grid gap-2 sm:grid-cols-3">
       {CURRENCY_LEGEND.map((c) => (
         <li key={c.emoji + c.name} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
           <p className="font-bold">
@@ -38,30 +38,30 @@ async function CurrencyLegend() {
 export default function FundraisersPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-4xl space-y-8 px-5 py-20">
+      <section className="mx-auto max-w-6xl space-y-3 px-4 py-4">
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home
         </Link>
-        <header className="space-y-3">
+        <header className="space-y-1.5">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">Launch campaigns</p>
-          <h1 className="text-4xl font-black sm:text-5xl">Fund the launch.</h1>
-          <p className="max-w-2xl text-slate-300">
+          <h1 className="text-2xl font-black">Fund the launch.</h1>
+          <p className="max-w-2xl text-sm text-slate-300">
             Back someone&apos;s game launch or tech startup with Vibe Coins; gifts for creative work, not charity and not
             investment. No equity, no interest, no profit-share, no cash-out. Every coin includes the 25% platform cut.
           </p>
         </header>
-        <div className="rounded-xl border border-red-300/30 bg-red-300/10 p-4 text-sm text-red-100">
-          <p className="font-bold">🚧 Fundraisers are disabled for now; but still working under the hood.</p>
+        <details open className="rounded-xl border border-red-300/30 bg-red-300/10 p-3.5 text-sm text-red-100">
+          <summary className="cursor-pointer font-bold">🚧 Fundraisers are disabled for now; but still working under the hood.</summary>
           <p className="mt-1">{FUNDRAISERS_DISABLED_NOTICE}</p>
           <p className="mt-2 text-red-200/90">{FUNDRAISERS_COMPLIANCE_NOTE}</p>
-        </div>
-        <section aria-label="Currency legend" className="rounded-xl border border-white/10 bg-slate-900/60 p-4">
-          <h2 className="text-lg font-bold">What each emoji means</h2>
+        </details>
+        <details aria-label="Currency legend" className="rounded-xl border border-white/10 bg-slate-900/60 px-3 py-1.5">
+          <summary className="cursor-pointer"><h2 className="inline text-base font-bold">What each emoji means</h2></summary>
           <p className="mt-1 text-sm text-slate-400">
             One emoji, one meaning, everywhere on 4weird. Real money always uses 💸; never 🪙.
           </p>
           <CurrencyLegend />
-        </section>
+        </details>
         <Suspense fallback={<p className="text-sm text-slate-400">Loading campaigns…</p>}>
           <FundraiserBrowser />
         </Suspense>

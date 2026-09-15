@@ -1062,7 +1062,7 @@ export function BotSetupClient() {
   ].join("\n");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {status.text ? (
         <p
           role="status"
@@ -1076,7 +1076,7 @@ export function BotSetupClient() {
         </p>
       ) : null}
 
-      <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+      <section className="rounded-xl border border-white/10 bg-white/[.04] p-3.5">
         <h2 className="text-xl font-bold">Identity</h2>
         <p className="mt-2 text-sm text-slate-300">
           human_id:{" "}
@@ -1120,7 +1120,7 @@ export function BotSetupClient() {
         <p className="mt-2 text-xs text-slate-500">3-24 chars: lowercase letters, numbers, _.</p>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+      <section className="rounded-xl border border-white/10 bg-white/[.04] p-3.5">
         <h2 className="text-xl font-bold">API keys</h2>
         <p className="mt-1 text-xs text-slate-500">
           Every key can carry its own lifetime + daily coin budgets, spend warnings, expiry, max uses, IP
@@ -1199,7 +1199,7 @@ export function BotSetupClient() {
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+      <section className="rounded-xl border border-white/10 bg-white/[.04] p-3.5">
         <h2 className="text-xl font-bold">Scopes</h2>
         <p className="mt-1 text-xs text-slate-500">
           Uncheck scopes on a key to narrow it. A key with no boxes checked keeps every scope.
@@ -1224,7 +1224,7 @@ export function BotSetupClient() {
         </table>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+      <section className="rounded-xl border border-white/10 bg-white/[.04] p-3.5">
         <h2 className="text-xl font-bold">Quickstart</h2>
         <p className="mt-2 text-sm text-slate-400">
           Yes - you can keep the key out of your code: put it in an env var called{" "}
@@ -1275,7 +1275,7 @@ export function BotSetupClient() {
         </p>
       </section>
 
-      <section id="connect-agent" className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[.04] p-6">
+      <section id="connect-agent" className="rounded-xl border border-cyan-300/20 bg-cyan-300/[.04] p-3.5">
         <h2 className="text-xl font-bold">Connect your agent automatically</h2>
         <p className="mt-2 text-sm text-slate-300">
           Getting your agent to use the skill takes 4 steps - do them in order. Paste one of the blocks below into
@@ -1361,7 +1361,7 @@ export function BotSetupClient() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
+      <section className="rounded-xl border border-white/10 bg-white/[.04] p-3.5">
         <h2 className="text-xl font-bold">Playground</h2>
         <p className="mt-2 text-sm text-slate-400">
           Paste a bot key to try an authenticated read (calls{" "}

@@ -95,6 +95,7 @@ export function MmoBrowser() {
   const [source, setSource] = useState<Source>("demo");
   const [gameFilter, setGameFilter] = useState<string>("all");
   const [ageFilter, setAgeFilter] = useState<string>("all");
+  const [view, setView] = useState<"grid" | "table">("grid");
 
   useEffect(() => {
     let cancelled = false;
@@ -146,13 +147,14 @@ export function MmoBrowser() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3">
-        <label className="text-sm text-slate-300">
+      {/* Compact sticky filter bar: Game + Age + view toggle + quote source */}
+      <div className="sticky top-12 z-10 -mx-1 flex flex-wrap items-center gap-2 bg-slate-950/95 px-1 py-2 backdrop-blur">
+        <label className="text-xs text-slate-300">
           Game{" "}
           <select
             value={gameFilter}
             onChange={(event) => handleGameChange(event.target.value)}
-            className="ml-1 rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+            className="ml-1 rounded-md border border-white/10 bg-slate-900 px-2 py-1 text-xs text-white"
           >
             <option value="all">All games</option>
             {games.map((slug) => (
@@ -162,12 +164,12 @@ export function MmoBrowser() {
             ))}
           </select>
         </label>
-        <label className="text-sm text-slate-300">
-          Age band{" "}
+        <label className="text-xs text-slate-300">
+          Age{" "}
           <select
             value={ageFilter}
             onChange={(event) => handleAgeChange(event.target.value)}
-            className="ml-1 rounded-lg border border-white/10 bg-slate-900 px-3 py-2 text-sm text-white"
+            className="ml-1 rounded-md border border-white/10 bg-slate-900 px-2 py-1 text-xs text-white"
           >
             <option value="all">All ages</option>
             {AGE_BANDS.map((band) => (
@@ -177,46 +179,103 @@ export function MmoBrowser() {
             ))}
           </select>
         </label>
-        <span className="ml-auto text-xs text-slate-400">
+        <div className="flex overflow-hidden rounded-md border border-white/10 text-xs font-semibold" role="group" aria-label="View toggle">
+          <button
+            type="button"
+            onClick={() => setView("grid")}
+            aria-pressed={view === "grid"}
+            className={`px-2.5 py-1 ${view === "grid" ? "bg-cyan-300 text-slate-950" : "text-slate-300 hover:bg-white/10"}`}
+          >
+            Grid
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("table")}
+            aria-pressed={view === "table"}
+            className={`px-2.5 py-1 ${view === "table" ? "bg-cyan-300 text-slate-950" : "text-slate-300 hover:bg-white/10"}`}
+          >
+            Table
+          </button>
+        </div>
+        <span className="ml-auto text-[11px] text-slate-400">
           {source === "live" ? "Live quotes" : "Demo quotes (offline)"} &middot;{" "}
           {visible.length} realm{visible.length === 1 ? "" : "s"}
         </span>
       </div>
 
       {visible.length === 0 ? (
-        <p className="mt-6 rounded-2xl border border-white/10 bg-white/[.04] p-6 text-sm text-slate-300">
+        <p className="mt-3 rounded-xl border border-white/10 bg-white/[.04] p-4 text-xs text-slate-300">
           No realms match these filters. Try widening the game or age band.
         </p>
+      ) : view === "table" ? (
+        <div className="mt-2 overflow-x-auto rounded-xl border border-white/10">
+          <table className="w-full min-w-[640px] border-collapse text-left text-xs">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[.03] uppercase tracking-wider text-slate-400">
+                <th scope="col" className="px-2 py-1.5">Realm</th>
+                <th scope="col" className="px-2 py-1.5">Dim</th>
+                <th scope="col" className="px-2 py-1.5">Age</th>
+                <th scope="col" className="px-2 py-1.5">Players</th>
+                <th scope="col" className="px-2 py-1.5">Cost</th>
+                <th scope="col" className="px-2 py-1.5"><span className="sr-only">Enter</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((realm) => (
+                <tr key={realm.slug} className="border-b border-white/5 hover:bg-white/[.03]">
+                  <td className="px-2 py-1.5 font-bold text-white">
+                    {realm.name}{" "}
+                    {realm.hostFree ? (
+                      <span className="ml-1 rounded-full bg-emerald-400/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">Free</span>
+                    ) : null}
+                  </td>
+                  <td className="px-2 py-1.5 text-slate-300">{realm.dimension.toUpperCase()}</td>
+                  <td className="px-2 py-1.5 text-slate-300">{realm.ageBand}</td>
+                  <td className="px-2 py-1.5 text-slate-300">up to {realm.maxParty}</td>
+                  <td className="px-2 py-1.5 font-bold text-cyan-300">{realm.costPerMin}/min</td>
+                  <td className="px-2 py-1.5 text-right">
+                    <a href={`/mmo/rent?realm=${encodeURIComponent(realm.slug)}`} className="font-bold text-cyan-300 hover:underline">Enter &rarr;</a>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
           {visible.map((realm) => (
             <li
               key={realm.slug}
-              className="rounded-2xl border border-white/10 bg-white/[.04] p-6"
+              className="flex h-[160px] flex-col rounded-xl border border-white/10 bg-white/[.04] p-3"
             >
-              <div className="flex items-start justify-between gap-2">
-                <h2 className="text-xl font-black">{realm.name}</h2>
+              <div className="flex items-start justify-between gap-1.5">
+                <h2 className="truncate text-sm font-black">{realm.name}</h2>
                 {realm.hostFree ? (
-                  <span className="shrink-0 rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-bold text-emerald-300">
+                  <span className="shrink-0 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                     Host-free
                   </span>
                 ) : null}
               </div>
-              <p className="mt-2 text-sm text-slate-400">
-                {realm.dimension.toUpperCase()} &middot; {realm.ageBand} &middot;
-                up to {realm.maxParty} players
+              <p className="mt-1 text-[11px] text-slate-400">
+                {realm.dimension.toUpperCase()} &middot; {realm.ageBand} &middot; up to {realm.maxParty}
               </p>
-              <p className="mt-4 text-sm text-slate-200">
-                <span className="text-2xl font-black text-cyan-300">
+              <p className="mt-1.5 text-[11px] text-slate-200">
+                <span className="text-lg font-black text-cyan-300">
                   {realm.costPerMin}
                 </span>{" "}
-                coins/min per player
+                coins/min
               </p>
               {realm.hostFree ? (
-                <p className="mt-1 text-xs text-emerald-300">
-                  Free to join — the host covers server, load, and rental.
-                </p>
-              ) : null}
+                <p className="text-[10px] text-emerald-300">Free to join — host covers all.</p>
+              ) : (
+                <p className="text-[10px] text-slate-500">{realm.maxParty} players max</p>
+              )}
+              <a
+                href={`/mmo/rent?realm=${encodeURIComponent(realm.slug)}`}
+                className="mt-auto rounded-md bg-cyan-300 px-2 py-1 text-center text-[11px] font-bold text-slate-950 transition hover:bg-cyan-200"
+              >
+                Enter World &rarr;
+              </a>
             </li>
           ))}
         </ul>

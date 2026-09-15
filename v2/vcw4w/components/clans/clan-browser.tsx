@@ -83,8 +83,8 @@ export function ClanBrowser() {
   }
 
   return (
-    <div className="space-y-8">
-      <form onSubmit={create} className="rounded-xl border border-cyan-400/20 bg-slate-900 p-5">
+    <div className="space-y-3">
+      <form onSubmit={create} className="rounded-lg border border-cyan-400/20 bg-slate-900 p-3.5">
         <h2 className="text-lg font-bold text-cyan-300">Start a clan</h2>
         <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Login required to create. Slug: a-z, 0-9, dashes (max 40).</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -141,7 +141,7 @@ export function ClanBrowser() {
 
       {loading && <p className="text-slate-600 dark:text-slate-400">Loading clans…</p>}
       {error && <p className="text-red-400">{error}</p>}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex min-h-[44px] flex-wrap items-center gap-2 rounded-lg border border-white/10 bg-white/[.02] px-2 py-1">
         {["", "hclan", "sclan", "bclan"].map((t) => (
           <button
             key={t || "all"}
@@ -152,9 +152,9 @@ export function ClanBrowser() {
           </button>
         ))}
       </div>
-      <ul className="grid gap-4 sm:grid-cols-2">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {clans.map((c) => (
-          <li key={c.id} className="rounded-xl border border-white/10 bg-slate-900 p-5">
+          <li key={c.id} className="rounded-lg border border-white/10 bg-slate-900 p-3.5">
             <div className="flex flex-wrap items-center gap-2">
               <Link href={`/clans/${c.slug}`} className="text-lg font-bold text-cyan-300 hover:underline">
                 {c.name}

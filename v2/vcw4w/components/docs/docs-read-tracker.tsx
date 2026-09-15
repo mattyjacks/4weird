@@ -119,7 +119,7 @@ export function DocsReadTracker() {
   return (
     <div
       aria-label="Reading progress"
-      className="mt-4 rounded-3xl border border-border bg-card p-4"
+      className="mt-3 rounded-2xl border border-border bg-card p-3"
     >
       <p className="text-sm font-black">
         {done ? (
@@ -133,7 +133,7 @@ export function DocsReadTracker() {
           Resumed at {seconds}s of {DOCS_REQUIRED_SECONDS}s — keep going.
         </p>
       )}
-      <div className="mt-3 space-y-3">
+      <div className="mt-2 space-y-2">
         <div>
           <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
             <span>{done ? "Time on guide" : remaining > 0 ? `${remaining}s left to read` : "Time done ✓"}</span>
@@ -175,7 +175,7 @@ export function DocsReadTracker() {
           </div>
         </div>
       </div>
-      <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
         {done ? (
           <>Counted toward your {DOCS_DATA.length}-guide total. It stays counted.</>
         ) : (

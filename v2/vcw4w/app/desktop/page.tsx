@@ -29,9 +29,9 @@ async function CachedDesktopGuide() {
   cacheTag("desktop");
   return (
     <>
-      <div id="testing" className="mt-12 scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <div id="testing" className="mt-6 scroll-mt-24 rounded-2xl border border-slate-800 bg-slate-900 p-3.5">
         <p className="text-xs font-bold tracking-widest text-cyan-300">STEP 3 · WEB-APP TESTING</p>
-        <h2 className="mt-1 text-2xl font-black">Test 4weird games on a remote</h2>
+        <h2 className="mt-1 text-xl font-black">Test 4weird games on a remote</h2>
         <p className="mt-2 max-w-3xl text-sm text-slate-300">
           Every test remote boots a <strong>Kasm Ubuntu desktop on port 6901</strong> (Chromium inside), so the
           stream link <strong>always loads</strong> once the pod boots - the old remotes pointed at 6901 on images
@@ -60,8 +60,8 @@ async function CachedDesktopGuide() {
         </p>
       </div>
 
-      <div id="plans" className="mt-10 grid gap-4 md:grid-cols-2 scroll-mt-24">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <div id="plans" className="mt-6 grid gap-3 md:grid-cols-3 scroll-mt-24">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3.5">
           <h2 className="font-bold">💻 CPU Desktop - Ubuntu GUI (Kasm)</h2>
           <p className="mt-2 text-sm text-slate-400">
             <code>runpod/kasm-docker:cuda11</code> (template <code>runpod-desktop</code>) on a cheap CPU pod -
@@ -74,7 +74,7 @@ async function CachedDesktopGuide() {
             <li>Best for: browsing, files, notebooks, bots, cron helpers, light dev, cheap game testing</li>
           </ul>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3.5">
           <h2 className="font-bold">🖥️ GPU Desktop - RunPod Desktop (Kasm)</h2>
           <p className="mt-2 text-sm text-slate-400">
             Official <code>runpod/kasm-docker:cuda11</code> (template <code>runpod-desktop</code>). Full XFCE
@@ -87,10 +87,21 @@ async function CachedDesktopGuide() {
             <li>Best for: Blender, CUDA, ComfyUI sidecar, GPU testing</li>
           </ul>
         </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-3.5">
+          <h2 className="font-bold">JupyterLab + SSH notebooks</h2>
+          <p className="mt-2 text-sm text-slate-400">
+            CPU: official <code>runpod/base:1.0.2-ubuntu2204</code> on 8888. GPU: PyTorch CUDA image on 8888. SSH per
+            RunPod console - one click from either desktop plan above.
+          </p>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-slate-400">
+            <li>Best for: notebooks, light dev, bots, cron helpers</li>
+            <li>Stop ends compute billing (disk kept); terminate deletes the disk</li>
+          </ul>
+        </div>
       </div>
 
-      <div className="mt-10 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <h2 className="font-bold">How renting works</h2>
+      <details className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-3.5">
+        <summary className="cursor-pointer font-bold">How renting works</summary>
         <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-300">
           <li>Sign in, pick CPU (default) or GPU, pick GUI (default) or Jupyter, optionally cap your $/hr max (GPU only) or paste a custom image.</li>
           <li>
@@ -118,7 +129,7 @@ async function CachedDesktopGuide() {
             Xonotic autoplay →
           </Link>
         </p>
-      </div>
+      </details>
     </>
   );
 }
@@ -126,20 +137,20 @@ async function CachedDesktopGuide() {
 export default function DesktopPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-5xl px-5 py-16">
+      <section className="mx-auto max-w-5xl px-5 py-6">
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home
         </Link>
-        <p className="mt-4 text-xs font-bold tracking-widest text-cyan-300">🌐 RENT TECH / RUNPOD CONTROL PANE</p>
-        <h1 className="mt-2 text-4xl font-black">Your RunPods, one control pane</h1>
+        <p className="mt-2 text-xs font-bold tracking-widest text-cyan-300">🌐 RENT TECH / RUNPOD CONTROL PANE</p>
+        <h1 className="mt-1 text-2xl font-black">Your RunPods, one control pane</h1>
         <AgentBotNav current="/desktop" />
-        <p className="mt-4 max-w-3xl text-slate-300">
+        <p className="mt-2 max-w-3xl text-sm text-slate-300">
           Rent, open, and manage <strong>only your pods</strong> - Virtual Desktops, web-app test remotes, and custom
           container images - all on real RunPod hardware, billed <strong>per second</strong>. Every pod below was
           created by you; nobody else&apos;s pods ever appear here, and every power button re-checks ownership
           server-side.
         </p>
-        <p className="mt-2 max-w-3xl text-sm text-slate-400">
+        <details className="mt-2 max-w-3xl rounded-xl border border-white/10 bg-white/[.02] px-3 py-2 text-sm text-slate-400"><summary className="cursor-pointer font-bold text-slate-200">[i] Idle guard and billing policies</summary><p className="mt-1">
           🔔 Idle guard (configurable per pod): <strong>60 min</strong> with no input rings a warning chime in your
           open tab, <strong>15 min</strong> later the pod <strong>stops</strong> (disk kept), and after{" "}
           <strong>24h</strong> untended it <strong>terminates</strong> (disk lost). A server sweep enforces the same
@@ -149,33 +160,34 @@ export default function DesktopPage() {
             /my/usage/
           </Link>{" "}
           via <code>POST /api/agents/runpod-sync</code>.
-        </p>
+          </p>
+        </details>
 
-        <nav aria-label="Control pane sections" className="mt-6 flex flex-wrap gap-2 text-sm">
+        <nav aria-label="Control pane sections" className="mt-3 flex flex-wrap gap-2 text-sm">
           <a href="#launch" className="rounded-full border border-cyan-300/40 px-4 py-1.5 font-bold text-cyan-200 hover:bg-cyan-300/10">1 · Launch</a>
           <a href="#my-pods" className="rounded-full border border-white/20 px-4 py-1.5 text-slate-200 hover:bg-white/10">2 · My pods</a>
           <a href="#testing" className="rounded-full border border-white/20 px-4 py-1.5 text-slate-200 hover:bg-white/10">3 · Web-app testing</a>
           <a href="#plans" className="rounded-full border border-white/20 px-4 py-1.5 text-slate-200 hover:bg-white/10">4 · Plans & billing</a>
         </nav>
 
-        <div id="launch" className="mt-8 scroll-mt-24">
+        <div id="launch" className="mt-6 scroll-mt-24">
           <p className="text-xs font-bold tracking-widest text-cyan-300">STEP 1 · LAUNCH</p>
-          <h2 className="mt-1 text-2xl font-black">Rent a desktop or custom image</h2>
+          <h2 className="mt-1 text-xl font-black">Rent a desktop or custom image</h2>
           <p className="mt-1 max-w-3xl text-sm text-slate-400">
             CPU is preselected (cheapest). GPU adds hardware acceleration. Advanced dropdown rents any container image.
             Booking provisions a live pod and hands you a clickable proxy URL; nothing is ever faked - no stock, no
             key, or over budget comes back as an honest <code>started: false</code> state with no spend.
           </p>
-          <div className="mt-4">
+            <div className="mt-3">
             <Suspense fallback={<p className="text-sm text-slate-500">Loading launch options…</p>}>
               <DesktopRental />
             </Suspense>
           </div>
         </div>
 
-        <div id="my-pods" className="mt-12 scroll-mt-24">
+        <div id="my-pods" className="mt-6 scroll-mt-24">
           <p className="text-xs font-bold tracking-widest text-cyan-300">STEP 2 · MY PODS (ADMIN)</p>
-          <h2 className="mt-1 text-2xl font-black">Control every pod you own</h2>
+          <h2 className="mt-1 text-xl font-black">Control every pod you own</h2>
           <p className="mt-1 max-w-3xl text-sm text-slate-400">
             Desktops, test remotes, rental servers, render workers - each card shows its container image, live pod
             status, last activity, and idle guard, plus <strong>Stop / Start / Restart / Terminate / Delete</strong>.{" "}
@@ -185,7 +197,7 @@ export default function DesktopPage() {
             permanently (disk lost, asks for confirmation). The same dashboard lives at{" "}
             <Link href="/runpods" className="text-cyan-300 hover:underline">My RunPods</Link>.
           </p>
-          <div className="mt-4">
+            <div className="mt-3">
             <Suspense fallback={<p className="text-sm text-slate-500">Loading your pods…</p>}>
               <RunpodDashboard />
             </Suspense>

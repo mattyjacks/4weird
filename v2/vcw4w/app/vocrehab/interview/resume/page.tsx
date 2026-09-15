@@ -99,14 +99,14 @@ export default function VocrehabInterviewResumePage() {
     "w-full rounded-lg border border-neutral-700 bg-neutral-900 p-2 text-sm text-neutral-100";
 
   return (
-    <main className="vocrehab-interview-resume mx-auto w-full max-w-3xl space-y-4 p-6">
-      <h1 className="text-2xl font-bold">Resume builder</h1>
+    <main className="vocrehab-interview-resume mx-auto w-full max-w-3xl space-y-3 p-4">
+      <h1 className="text-xl font-bold">Resume builder</h1>
       <p className="text-muted-foreground">
         Header is yours to enter; strengths come from what you approve.
         Volunteer work, caregiving, gigs, and training all count. Export as
         JSON or print — nothing here sends your resume anywhere.
       </p>
-      <div className="grid gap-3">
+      <div className="grid gap-2">
         <label className="text-sm">
           Name
           <input

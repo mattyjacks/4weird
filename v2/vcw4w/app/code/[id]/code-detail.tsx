@@ -72,34 +72,34 @@ export function CodeDetail({ id }: { id: string }) {
 
   if (error) {
     return (
-      <main className="mx-auto max-w-3xl px-5 py-16">
+      <main className="mx-auto max-w-5xl px-4 py-8">
         <p className="rounded-xl border border-red-500/40 bg-red-950/20 p-4 text-sm text-red-200">{error}</p>
       </main>
     );
   }
   if (!sub) {
     return (
-      <main className="mx-auto max-w-3xl px-5 py-16">
+      <main className="mx-auto max-w-5xl px-4 py-8">
         <p className="text-sm text-muted-foreground">Loading…</p>
       </main>
     );
   }
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-5xl space-y-6 px-5 py-16">
+      <section className="mx-auto max-w-5xl space-y-4 px-4 py-8">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
+          <p className="text-xs font-semibold uppercase tracking-widest text-cyan-300">
             {sub.status} · {sub.verdict}
             {sub.quarantined ? " · quarantined" : ""}
           </p>
-          <h1 className="mt-2 text-4xl font-black">🎮 {sub.title}</h1>
-          <p className="mt-2 font-mono text-xs text-slate-400">
+          <h1 className="mt-1 text-2xl font-black">🎮 {sub.title}</h1>
+          <p className="mt-1 font-mono text-xs text-slate-400">
             game root: {sub.game_root || "(zip root)"} · {(sub.zip_bytes / 1024).toFixed(1)} KB ·
             sha256 {sub.zip_sha256.slice(0, 16)}…
           </p>
         </div>
         {sub.audit_findings.length > 0 && (
-          <ul className="list-disc space-y-1 rounded-2xl border border-border bg-card p-5 pl-9 text-sm">
+          <ul className="list-disc space-y-1 rounded-2xl border border-border bg-card p-4 pl-8 text-sm">
             {sub.audit_findings.map((f, i) => (
               <li key={i}>
                 <span className="font-mono font-bold">[{f.code}]</span> {f.detail}
@@ -107,12 +107,12 @@ export function CodeDetail({ id }: { id: string }) {
             ))}
           </ul>
         )}
-        <div className="flex flex-wrap gap-2">
+        <div className="sticky top-0 z-10 -mx-1 flex flex-wrap gap-2 bg-slate-950/90 px-1 py-2 backdrop-blur">
           <button
             type="button"
             onClick={() => void audit(false)}
             disabled={auditing}
-            className="rounded-full border border-border px-5 py-2 text-sm font-bold disabled:opacity-50"
+            className="rounded-full border border-border px-4 py-1.5 text-sm font-bold disabled:opacity-50"
           >
             Re-run audit
           </button>
@@ -120,23 +120,23 @@ export function CodeDetail({ id }: { id: string }) {
             type="button"
             onClick={() => void audit(true)}
             disabled={auditing}
-            className="rounded-full bg-cyan-600 px-5 py-2 text-sm font-black text-white disabled:opacity-50"
+            className="rounded-full bg-cyan-600 px-4 py-1.5 text-sm font-black text-white disabled:opacity-50"
           >
             {auditing ? "Auditing…" : "Deep AI audit (coins)"}
           </button>
           {sub.download && (
             <a
               href={sub.download}
-              className="rounded-full border border-cyan-500 px-5 py-2 text-sm font-bold text-cyan-300"
+              className="rounded-full border border-cyan-500 px-4 py-1.5 text-sm font-bold text-cyan-300"
             >
               Download .zip ↓
             </a>
           )}
         </div>
         {aiNote && (
-          <div className="rounded-2xl border border-cyan-500/30 bg-cyan-950/20 p-5 text-sm">
+          <div className="rounded-2xl border border-cyan-500/30 bg-cyan-950/20 p-4 text-sm">
             <p className="font-black">🤖 Deep review</p>
-            <p className="mt-2 whitespace-pre-wrap">{aiNote}</p>
+            <p className="mt-1 whitespace-pre-wrap">{aiNote}</p>
           </div>
         )}
         <CodeViewer

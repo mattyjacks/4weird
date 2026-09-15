@@ -53,7 +53,7 @@ export default async function GamesPage() {
   // client-side and is unaffected by this server cache.
   const games = await getCachedGames();
   return (
-    <div className="bg-[#070912] text-white">
+    <div id="top" className="bg-[#070912] text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -69,7 +69,38 @@ export default async function GamesPage() {
           ),
         }}
       />
+      {/* Compact sticky arcade command bar (48px): title + count + actions stay visible */}
+      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#070912]/90 backdrop-blur">
+        <div className="mx-auto flex h-12 max-w-6xl items-center gap-2 px-4 sm:px-5">
+          <h1 className="text-base font-black tracking-tight">Arcade</h1>
+          <span className="rounded-full border border-fuchsia-400/40 px-2 py-0.5 font-mono text-[11px] font-bold text-fuchsia-200">{games.length} games</span>
+          <span className="hidden rounded-full border border-emerald-400/40 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-200 sm:inline">free to try</span>
+          <span className="flex-1" />
+          <a href="#catalog" className="rounded-full border border-white/20 px-3 py-1 text-xs font-bold hover:bg-white/10">Browse catalog</a>
+          <a href="/newgameplus" className="rounded-full bg-fuchsia-500 px-3 py-1 text-xs font-bold text-white transition hover:bg-fuchsia-400">Ship your own</a>
+        </div>
+      </div>
+      <div id="catalog" className="mx-auto max-w-6xl scroll-mt-14 px-4 py-3 sm:px-5">
+        {/* Sticky 48px arcade command bar: anchor shortcuts only, no logic.
+          Filter/search + dense 5-col grid live in <GameCatalog/> below. */}
+      <nav aria-label="Arcade sections" className="sticky top-0 z-10 border-b border-white/10 bg-[#070912]/90 backdrop-blur">
+        <div className="mx-auto flex h-12 max-w-6xl items-center gap-2 overflow-x-auto px-4">
+          <span className="shrink-0 text-sm font-black tracking-tight">
+            Arcade
+          </span>
+          <span className="shrink-0 rounded-full border border-white/15 px-2 py-0.5 font-mono text-[11px] text-white/70">
+            35 games · free to try
+          </span>
+          <a href="#recommended" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10">
+            Staff picks ↓
+          </a>
+          <a href="#top" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10">
+            Back to top ↑
+          </a>
+        </div>
+      </nav>
       <GameCatalog games={games} />
+      </div>
     </div>
   );
 }

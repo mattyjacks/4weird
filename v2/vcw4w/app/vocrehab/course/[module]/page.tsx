@@ -35,11 +35,11 @@ export default async function VocrehabModulePage({
   const vocrehabModule = vocrehabFindCatalogModule(module);
   if (!vocrehabModule) notFound();
   return (
-    <main className="vocrehab-module mx-auto w-full max-w-3xl px-4 py-8">
+    <main className="vocrehab-module mx-auto w-full max-w-3xl px-4 py-4">
       <Link href="/vocrehab/course" className="text-sm font-medium text-emerald-700 underline dark:text-emerald-400">
         &larr; All lessons
       </Link>
-      <div className="mt-4 rounded-xl border border-stone-200 bg-white p-5 shadow-sm sm:p-8">
+      <div className="mt-3 rounded-xl border border-stone-200 bg-white p-3.5 shadow-sm sm:p-4">
         <VocrehabLessonPlayer vocrehabModule={vocrehabModule} />
       </div>
     </main>

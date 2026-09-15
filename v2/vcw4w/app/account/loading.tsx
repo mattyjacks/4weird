@@ -5,18 +5,20 @@ export default function Loading() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <section
-        className="mx-auto max-w-4xl px-5 py-20"
+        className="mx-auto max-w-5xl px-4 py-6"
         aria-busy="true"
         aria-label="Loading your account"
       >
-        <h1 className="text-4xl font-black">Your account</h1>
-        <p className="mt-4 text-slate-300">Your saves, coins, and settings live here.</p>
-        <div className="mt-10 animate-pulse space-y-8">
-          <div className="h-6 w-48 rounded bg-white/10" />
-          <div className="h-40 rounded-2xl border border-white/10 bg-white/[.04]" />
-          <div className="h-40 rounded-2xl border border-white/10 bg-white/[.04]" />
+        <h1 className="text-2xl font-black">Your account</h1>
+        <p className="mt-1 text-xs text-slate-400">Your saves, coins, and settings live here.</p>
+        <div className="mt-4 animate-pulse space-y-3">
+          <div className="h-5 w-40 rounded bg-white/10" />
+          <div className="grid gap-3 lg:grid-cols-2">
+            <div className="h-24 rounded-xl border border-white/10 bg-white/[.04]" />
+            <div className="h-24 rounded-xl border border-white/10 bg-white/[.04]" />
+          </div>
         </div>
-        <p role="status" className="mt-6 text-sm text-slate-400">
+        <p role="status" className="mt-4 text-xs text-slate-400">
           Loading your account…
         </p>
       </section>

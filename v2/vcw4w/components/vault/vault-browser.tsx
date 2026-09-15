@@ -720,8 +720,8 @@ export function VaultBrowser() {
   const scopeLabel = scope === "personal" ? "Personal" : scope === "team" ? "Team" : "Org";
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2 text-sm" role="radiogroup" aria-label="Vault scope">
+    <div className="space-y-3">
+      <div className="sticky top-0 z-10 flex min-h-11 flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-sm" role="radiogroup" aria-label="Vault scope">
         {(["personal", "team", "org"] as const).map((s) => (
           <button
             key={s}
@@ -854,7 +854,7 @@ export function VaultBrowser() {
       </div>
 
       <div
-        className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-4 text-sm"
+        className="flex min-h-16 flex-wrap items-center gap-2 rounded-xl border border-dashed border-border bg-card px-3 py-2 text-sm"
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
@@ -883,7 +883,7 @@ export function VaultBrowser() {
       </div>
 
       {queue.length > 0 && (
-        <div className="space-y-2 rounded-2xl border border-border bg-card p-4 text-sm" aria-label="Upload queue">
+        <div className="space-y-2 rounded-xl border border-border bg-card p-3.5 text-sm" aria-label="Upload queue">
           <div className="flex items-center justify-between gap-2">
             <p className="font-bold">
               Uploads {queueActive ? `· ${Math.round(overall * 100)}%` : "· done"}
@@ -929,9 +929,9 @@ export function VaultBrowser() {
         </div>
       )}
 
-      <ul className="grid gap-2 sm:grid-cols-2" aria-busy={busy}>
+      <ul className="divide-y divide-white/5 overflow-hidden rounded-xl border border-border bg-card" aria-busy={busy}>
         {(cwd || folders.length > 0) && (
-          <li className="rounded-xl border border-dashed border-border bg-card p-3 text-sm">
+          <li className="px-3 py-1.5 text-sm">
             <nav aria-label="Vault folders" className="flex flex-wrap items-center gap-1 text-xs">
               <button type="button" onClick={() => setCwd("")} className={`min-h-[44px] font-mono font-bold underline ${!cwd ? "text-foreground" : "text-cyan-600 dark:text-cyan-300"}`}>
                 Vault
@@ -975,7 +975,7 @@ export function VaultBrowser() {
           </li>
         )}
         {selected.length > 0 && (
-          <li className="flex min-h-[44px] flex-wrap items-center gap-2 rounded-xl border border-cyan-600 bg-card p-3 text-sm sm:col-span-2">
+          <li className="flex min-h-9 flex-wrap items-center gap-2 bg-cyan-600/10 px-3 py-1.5 text-sm">
             <span className="font-bold">{selected.length} selected</span>
             <button type="button" onClick={() => setSelected([])} className="min-h-[44px] rounded-full border border-border px-3 py-1 text-xs font-bold">
               Clear
@@ -989,8 +989,8 @@ export function VaultBrowser() {
           </li>
         )}
         {filesHere.map((f) => (
-          <li key={f.id} className="rounded-xl border border-border bg-card p-3 text-sm">
-            <p className="flex items-center gap-2">
+          <li key={f.id} className="flex min-h-9 flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 text-sm">
+            <p className="flex min-w-44 flex-1 items-center gap-2">
               {!f.quarantined && (
                 <input
                   type="checkbox"
@@ -1002,13 +1002,13 @@ export function VaultBrowser() {
               )}
               <span className="truncate font-mono font-bold" title={f.path}>{basename(f.path)}</span>
             </p>
-            <p className="mt-1 truncate font-mono text-[11px] text-muted-foreground">{f.path}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="hidden truncate font-mono text-[11px] text-muted-foreground xl:block xl:max-w-64">{f.path}</p>
+            <p className="shrink-0 text-xs text-muted-foreground">
               {f.kind} · {formatBytes(f.bytes)} · {new Date(f.updated_at).toLocaleString()}
               {f.quarantined ? " · 🛡️ quarantined (hidden)" : ""}
             </p>
             {showTrash ? (
-              <span className="mt-1 flex min-h-[44px] flex-wrap items-center gap-3">
+              <span className="mt-0.5 flex min-h-9 flex-wrap items-center gap-3">
                 <button type="button" onClick={() => void restoreFile(f.id)} className="min-h-[44px] text-xs font-bold text-cyan-600 underline dark:text-cyan-300">
                   Restore
                 </button>
@@ -1017,7 +1017,7 @@ export function VaultBrowser() {
                 </button>
               </span>
             ) : !f.quarantined ? (
-              <span className="mt-1 flex min-h-[44px] flex-wrap items-center gap-3">
+              <span className="mt-0.5 flex min-h-9 flex-wrap items-center gap-3">
                 <button type="button" onClick={(e) => void openPreview(f, e.currentTarget)} className="min-h-[44px] text-xs font-bold text-cyan-600 underline dark:text-cyan-300">
                   Preview
                 </button>

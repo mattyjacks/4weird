@@ -64,7 +64,7 @@ export function BotKeyGuide({ username }: { username?: string | null }) {
   };
 
   return (
-    <section aria-label="Key safety guide" className="rounded-2xl border border-emerald-300/20 bg-emerald-300/[.04] p-6">
+    <section aria-label="Key safety guide" className="rounded-xl border border-emerald-300/20 bg-emerald-300/[.04] p-3.5">
       <p className="text-xs font-black uppercase tracking-[0.25em] text-emerald-300">4 steps · 5 minutes</p>
       <h2 className="mt-1 text-xl font-black">Use the key without leaking it</h2>
       <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-slate-300">

@@ -72,49 +72,55 @@ export function ZipSubmitForm() {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
-      <div>
-        <label className="text-sm font-bold" htmlFor="zip-file">Game .zip (max 50 MB; keeps every game loading fast ⚡)</label>
-        <input
-          id="zip-file"
-          type="file"
-          accept=".zip,application/zip"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="mt-1 block w-full text-sm"
-        />
+    <div className="space-y-3 rounded-xl border border-border bg-card p-3.5">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-bold" htmlFor="zip-title">Title</label>
+            <input
+              id="zip-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="My Weird Game"
+              maxLength={80}
+              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-bold" htmlFor="zip-root">
+              Game root inside the .zip <span className="font-normal text-muted-foreground">(like Vercel; where index.html lives; blank = zip root)</span>
+            </label>
+            <input
+              id="zip-root"
+              value={gameRoot}
+              onChange={(e) => setGameRoot(e.target.value)}
+              placeholder="dist / public / games/my-game"
+              maxLength={256}
+              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="text-sm font-bold" htmlFor="zip-file">Game .zip (max 50 MB; keeps every game loading fast ⚡)</label>
+          <input
+            id="zip-file"
+            type="file"
+            accept=".zip,application/zip"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            className="mt-1 flex min-h-30 w-full items-center rounded-lg border border-dashed border-border bg-background px-3 py-2 text-sm"
+          />
+        </div>
       </div>
-      <div>
-        <label className="text-sm font-bold" htmlFor="zip-title">Title</label>
-        <input
-          id="zip-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="My Weird Game"
-          maxLength={80}
-          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-        />
+      <div className="flex justify-end lg:sticky lg:bottom-0">
+        <button
+          type="button"
+          onClick={submit}
+          disabled={busy}
+          className="rounded-full bg-cyan-600 px-6 py-2 text-sm font-black text-white transition hover:bg-cyan-500 disabled:opacity-50"
+        >
+          {busy ? "Scanning…" : "Upload + scan"}
+        </button>
       </div>
-      <div>
-        <label className="text-sm font-bold" htmlFor="zip-root">
-          Game root inside the .zip <span className="font-normal text-muted-foreground">(like Vercel; where index.html lives; blank = zip root)</span>
-        </label>
-        <input
-          id="zip-root"
-          value={gameRoot}
-          onChange={(e) => setGameRoot(e.target.value)}
-          placeholder="dist / public / games/my-game"
-          maxLength={256}
-          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm"
-        />
-      </div>
-      <button
-        type="button"
-        onClick={submit}
-        disabled={busy}
-        className="rounded-full bg-cyan-600 px-6 py-2 text-sm font-black text-white transition hover:bg-cyan-500 disabled:opacity-50"
-      >
-        {busy ? "Scanning…" : "Upload + scan"}
-      </button>
       <p className="text-xs text-muted-foreground">
         Storage + audit are metered in coins (25% cut included). Malware, keyloggers,
         cybercrime tools, and sexual content are hard-denied, quarantined, and queued for

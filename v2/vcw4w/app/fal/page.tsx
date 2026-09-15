@@ -17,21 +17,22 @@ export default async function FalPage() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl px-5 py-16">
-        <p className="text-sm font-semibold uppercase tracking-widest text-fuchsia-300">fal.ai · Game dev + coding</p>
-        <h1 className="mt-2 text-4xl font-black">✨ fal.ai Studio - 30 ways to make magic</h1>
-        <p className="mt-4 max-w-3xl text-slate-300">
-          Concept art to cutscenes to NPC voices to transcribed playtests: every run is metered in
-          Vibe Coins (100 coins = $1.00) with the 25% platform cut INCLUDED - never added on top.
-          Signed-in players meter coins; usage lands on <a className="underline" href="/my/usage/">/my/usage</a> per
-          op + game, and VibeCodeWorker runs can file fal art straight into their evidence trail.
-          Need real photos or clips instead of AI art? <a className="underline" href="/stock">Free stock (Pexels)</a> is
-          royalty-free at 0 coins a search.
+      {/* Compact command header: title + 1-line pitch; studio catalog starts ~y:100, above the fold */}
+      <section className="mx-auto max-w-7xl px-4 py-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-fuchsia-300">fal.ai · Game dev + coding</p>
+          <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[11px] font-bold text-emerald-200">30 tools · 25% cut included</span>
+          <a href="/stock" className="ml-auto text-[11px] font-semibold text-cyan-300 hover:underline">Need real photos? Free stock (Pexels) →</a>
+        </div>
+        <h1 className="mt-0.5 text-xl font-black">✨ fal.ai Studio - 30 ways to make magic</h1>
+        <p className="mt-0.5 max-w-4xl text-xs text-slate-400">
+          Concept art to cutscenes to NPC voices to transcribed playtests, metered in Vibe Coins (100 coins = $1.00).
+          Usage lands on <a className="underline" href="/my/usage/">/my/usage</a> per op + game; VibeCodeWorker runs can file fal art into their evidence trail.
         </p>
-        <div className="mt-10">
+        <div className="mt-2">
           <Suspense
             fallback={
-              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+              <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-3 text-xs text-slate-400">
                 Loading fal.ai Studio…
               </p>
             }

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-3xl space-y-4 p-6">
+    <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/vocrehab/play">Practice arcade</Link> →{" "}
         <Link href="/vocrehab/play/inbox-sprint">Inbox Sprint</Link> → Phishing drill

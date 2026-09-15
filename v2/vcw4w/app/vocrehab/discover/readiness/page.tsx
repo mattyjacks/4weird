@@ -59,11 +59,11 @@ export default function Page() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-6">
+    <main className="mx-auto max-w-3xl space-y-4 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground print:hidden">
         <Link href="/vocrehab/play">Arcade</Link> → Work readiness
       </nav>
-      <h1 className="text-2xl font-bold">Work readiness profile</h1>
+      <h1 className="text-xl font-bold">Work readiness profile</h1>
       <p>
         Mark the areas that feel steady — the rest become supports, not failures. Numbers stay behind an
         explainer; the headline is always human language. Accommodation flags are conversation starters, never
@@ -104,7 +104,7 @@ export default function Page() {
         </div>
       </fieldset>
 
-      <section aria-label="Profile" aria-live="polite" className="space-y-2 rounded-lg border p-4">
+      <section aria-label="Profile" aria-live="polite" className="space-y-2 rounded-lg border p-3">
         <h2 className="font-semibold">✓ {info.headline}</h2>
         <p className="text-sm">{info.whatItMeans}</p>
         <p className="text-sm"><strong>Strengths:</strong> {strengths.length > 0 ? strengths.join("; ") : "still surfacing — try a practice round"}</p>

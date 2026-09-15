@@ -19,7 +19,80 @@ async function CachedPrivacyBody() {
   cacheLife('max');
   cacheTag('site-legal');
   return (
-      <section className="space-y-6">
+      <div className="grid gap-4 lg:grid-cols-[212px_minmax(0,1fr)]">
+        <nav aria-label="Privacy policy sections" className="max-h-56 self-start overflow-auto rounded-2xl border border-border bg-card p-3 lg:sticky lg:top-4 lg:max-h-[70vh]">
+          <p className="px-1 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">On this page</p>
+          <ul className="mt-2 space-y-0.5 text-[13px] leading-snug">
+            <li><a href="#privacy-s1" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">1 · Controller</a></li>
+            <li><a href="#privacy-s2" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">2 · Data collected</a></li>
+            <li><a href="#privacy-s2a" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">2A · VocRehab</a></li>
+            <li><a href="#privacy-s3" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">3 · Uses &amp; bases</a></li>
+            <li><a href="#privacy-s4" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">4 · Cookies</a></li>
+            <li><a href="#privacy-s5" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">5 · Providers</a></li>
+            <li><a href="#privacy-s6" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">6 · Transfers</a></li>
+            <li><a href="#privacy-s7" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">7 · Retention</a></li>
+            <li><a href="#privacy-s8" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8 · Security</a></li>
+            <li><a href="#privacy-s9" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">9 · Your rights</a></li>
+            <li><a href="#privacy-s10" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">10 · Automation</a></li>
+            <li><a href="#privacy-s11" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">11 · Exercise rights</a></li>
+            <li><a href="#privacy-s12" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">12 · Children</a></li>
+            <li><a href="#privacy-s13" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">13 · Links &amp; changes</a></li>
+            <li><a href="#privacy-s14" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">14 · Contact</a></li>
+          </ul>
+        </nav>
+        <div className="min-w-0">
+          <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+            <table className="w-full min-w-[560px] border-collapse text-left text-[13px] leading-snug">
+              <caption className="px-4 pt-3 text-left text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Summary — the sections below control</caption>
+              <thead>
+                <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <th scope="col" className="px-4 py-2">Data category</th>
+                  <th scope="col" className="px-4 py-2">Purpose</th>
+                  <th scope="col" className="px-4 py-2">Retention</th>
+                  <th scope="col" className="px-4 py-2">Control</th>
+                </tr>
+              </thead>
+              <tbody className="text-muted-foreground">
+                <tr className="border-b border-border/60">
+                  <td className="px-4 py-2 font-bold text-white">Account &amp; profile</td>
+                  <td className="px-4 py-2">Run accounts, Clans, saves</td>
+                  <td className="px-4 py-2">While active</td>
+                  <td className="px-4 py-2"><a className={a} href="#privacy-s1">§1–2</a></td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <td className="px-4 py-2 font-bold text-white">Gameplay &amp; telemetry</td>
+                  <td className="px-4 py-2">Progress, leaderboards, matchmaking</td>
+                  <td className="px-4 py-2">While active</td>
+                  <td className="px-4 py-2"><a className={a} href="#privacy-s2">§2</a></td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <td className="px-4 py-2 font-bold text-white">Coins &amp; transactions</td>
+                  <td className="px-4 py-2">Billing, tips, campaigns</td>
+                  <td className="px-4 py-2">Tax &amp; records law</td>
+                  <td className="px-4 py-2"><a className={a} href="#privacy-s7">§7</a></td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <td className="px-4 py-2 font-bold text-white">Technical &amp; safety</td>
+                  <td className="px-4 py-2">Security, fraud, moderation</td>
+                  <td className="px-4 py-2">As needed + legal holds</td>
+                  <td className="px-4 py-2"><a className={a} href="#privacy-s8">§8</a></td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <td className="px-4 py-2 font-bold text-white">Cookies &amp; prefs</td>
+                  <td className="px-4 py-2">Sign-in, settings, consented analytics</td>
+                  <td className="px-4 py-2">7-day banner renewal</td>
+                  <td className="px-4 py-2"><a className={a} href="#privacy-s4">§4</a></td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 font-bold text-white">VocRehab rehearsals</td>
+                  <td className="px-4 py-2">Practice transcripts you save</td>
+                  <td className="px-4 py-2">§7 schedule; deletes with account</td>
+                  <td className="px-4 py-2"><a className={a} href="#privacy-s2a">§2A</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+      <section className="mt-4 space-y-3">
         <p>
           This policy describes how MattyJacks LLC (“MattyJacks,” “we,” “us,” or “our”) handles information across the
           4weird Games websites, games, persistent-world/MMORPG modes, server rentals, stock media,
@@ -30,7 +103,12 @@ async function CachedPrivacyBody() {
           or any domain where the Service is served.
         </p>
 
+        <details id="privacy-s1" data-legal open className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>1. Who is responsible for your information</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           MattyJacks LLC, New Hampshire, USA, is the controller (or “business”) for information collected through the
           Service. Contact: <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a>. Exercise your
@@ -39,7 +117,14 @@ async function CachedPrivacyBody() {
           11.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s2" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>2. Information we collect</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p><strong className="text-white">Account and identity.</strong> Email address, password-authentication records, display name, public handle, permanent human ID (bot users), and account timestamps.</p>
         <p><strong className="text-white">Profiles and preferences.</strong> Display name, handle, account settings (friend requests, playtime visibility, marketing email, Kids Mode flag), accessibility controls, and creator submissions.</p>
         <p><strong className="text-white">Games.</strong> Cloud-save content (game, slot 0-3, versioned data ≤1 MiB, including any permanent cheat-mode mark; slot 0 can never be marked), gameplay telemetry (kills, actions, active seconds, deaths), matchmaking/lobby/presence records, and leaderboard aggregates (handles + totals only).</p>
@@ -60,17 +145,38 @@ async function CachedPrivacyBody() {
         <p><strong className="text-white">Automatic technical data.</strong> IP address, browser and device characteristics, request logs, pages or features used, approximate location derived from IP, security and fraud-prevention events (including rate-limit and trial-abuse signals). Games and accessibility controls may store preferences and progress in your browser (local storage).</p>
         <p><strong className="text-white">Sources and what we do not collect.</strong> We collect directly from you, automatically from your device, from parents who create Child accounts, and from providers who confirm checkout or safety signals. We do not collect phone/SMS numbers, contact lists, calendars, precise GPS, or biometric identifiers/voiceprints: voice is generated or transcribed per turn, microphone interruption audio never leaves your device, and screen/camera frames are processed per turn only and never stored. We store salted IP hashes (not raw IPs) for trial-abuse and safety records, and we collect no sensitive Article 9 data beyond what you voluntarily post.</p>
 
+        </div>
+        </details>
+        <details id="privacy-s2a" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>2A. VocRehab module (special section)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p><strong className="text-white">Ephemeral by default; text only; no audio, ever.</strong> VocRehab rehearsals live in your tab until you explicitly tap Save while signed in. Microphone input is transcribed on your device and only the text you send is transmitted — we never record, upload, or store audio, and there is no audio export because no audio exists.</p>
         <p><strong className="text-white">What saving stores.</strong> Saving persists the text transcript plus the report card (per-turn praise/tweak/invitation and axis scores) with the job, difficulty, and mode in the session record. Saving requires the separate <em>voice-rehearsal-save</em> consent (in addition to session-assist, roleplay-save, data-export, and course-sync); guests cannot save. Counselors see only rehearsals you explicitly saved or shared — never in-progress or discarded practice.</p>
         <p><strong className="text-white">Redaction + export.</strong> Saved text passes PII redaction (email, SSN, dates, phone, ID numbers) before render and storage, and blocklisted topics (legal/medical conclusions, benefits guarantees, identifier requests) are refused with a rephrase prompt. Your export includes saved transcripts under the existing roleplay-turns allowlist; raw audio is categorically excluded. Grades and report cards are an automated practice signal, not a hiring decision.</p>
         <p><strong className="text-white">Retention.</strong> Saved VocRehab work follows the Section 7 schedule and deletes with your account at <a className={a} href="/my/rights">/my/rights/</a>, subject to the Section 11 exceptions. Do not enter Social Security numbers, claim numbers, case numbers, or birth dates — VocRehab never asks for them.</p>
 
+        </div>
+        </details>
+        <details id="privacy-s3" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>3. How we use information (and GDPR legal bases)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>We use information to provide, secure, maintain, improve, troubleshoot, personalize, and administer the Service; authenticate users; preserve progress and settings; operate Clans, bots, rentals, workspaces, and leaderboards; process and reconcile transactions; communicate about the Service; prevent fraud, abuse, and security incidents; moderate content and protect safety; and comply with legal obligations. We may create aggregated or de-identified information and use it for any lawful business purpose.</p>
         <p>Where the GDPR/UK GDPR applies, our legal bases are: <em>contract</em> (providing the Service you request, Art. 6(1)(b)); <em>legitimate interests</em> (security, fraud prevention, moderation, service improvement; balanced against your rights, Art. 6(1)(f)); <em>consent</em> (optional analytics/marketing email, Art. 6(1)(a), withdrawable anytime); and <em>legal obligation</em> (records, safety reporting, responding to lawful requests, Art. 6(1)(c)).</p>
 
+        </div>
+        </details>
+        <details id="privacy-s4" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>4. Cookies and similar technologies</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           A cookie banner loads on every page until you choose, and asks again once every 7 days. You get real
           options: <strong className="text-white">Accept all</strong> (which we strongly recommend; it funds free
@@ -98,7 +204,14 @@ async function CachedPrivacyBody() {
           tracking. Marketing email is off by default with unsubscribe in every message; we send no marketing SMS/push.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s5" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>5. Disclosures and service providers</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>We provide your information to private third parties only as needed for the purposes above, to:</p>
         <ul className="list-disc space-y-2 pl-6">
           <li><strong className="text-white">Hosting and delivery:</strong> Vercel (hosting, analytics, edge routing) and Cloudflare (network delivery and security);</li>
@@ -129,7 +242,14 @@ async function CachedPrivacyBody() {
           your account reference.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s6" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>6. International transfers</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           We are based in the United States and the Service is operated from the U.S. If you use the Service from the
           EEA, UK, Switzerland, or elsewhere, your information is transferred to and processed in the U.S. and other
@@ -137,7 +257,14 @@ async function CachedPrivacyBody() {
           retain information only under the bases in Section 3.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s7" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>7. Retention</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           We retain information only as long as reasonably necessary for the purposes in Section 3: while your account
           is active; for records, security, dispute resolution, and legal compliance afterward; safety and CSAM
@@ -155,7 +282,14 @@ async function CachedPrivacyBody() {
           lobby convention above.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s8" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>8. Security</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           We use reasonable administrative, technical, and organizational measures; including authentication, row-level
           database authorization, hashed bot-key storage, input validation, rate limiting, CSRF origin checks, and
@@ -164,7 +298,14 @@ async function CachedPrivacyBody() {
           your credentials and bot keys secret.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s9" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>9. Your rights (U.S., GDPR, and global)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Depending on your jurisdiction and applicable law, you may have the rights below. We honor them as required
           and extend self-service access, portability, correction, and deletion to all signed-in users through{" "}
@@ -186,7 +327,14 @@ async function CachedPrivacyBody() {
           may be sent to <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a>.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s10" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>10. Automated decision-making</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           We do not make decisions producing legal or similarly significant effects about you by purely automated means.
           Automated systems (spam triage, cheat detection, AI-assisted moderation, fraud guards) support human review;
@@ -194,7 +342,14 @@ async function CachedPrivacyBody() {
           and you may ask for human review of any such decision.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s11" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>11. How to exercise your rights (self-service + special cases)</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           <strong className="text-white">Your own account; self-service only.</strong> Sign in and use{" "}
           <a className={a} href="/my/rights">/my/rights/</a> to download your data (access/portability) or permanently
@@ -224,7 +379,14 @@ async function CachedPrivacyBody() {
           will explain any denial and your appeal options.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s12" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>12. Children</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           Direct accounts are <strong>13+ only (Teen 13-17, Adult 18+)</strong> - the Service is not directed to
           children under 13, and we do not knowingly collect their personal information through direct signup (which
@@ -246,7 +408,14 @@ async function CachedPrivacyBody() {
           collected for shard access.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s13" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>13. Third parties and changes</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The Service may link to third-party websites or services; their privacy practices are governed by their own
           policies, not this one. We may update this policy at any time by posting an updated version and changing its
@@ -254,14 +423,25 @@ async function CachedPrivacyBody() {
           date is subject to the updated policy.
         </p>
 
+        </div>
+        </details>
+        <details id="privacy-s14" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
         <h2 className={h2}>14. Contact</h2>
+            <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
+          </summary>
+          <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           MattyJacks LLC · New Hampshire, USA ·{" "}
           <a className={a} href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> · Self-service rights:{" "}
           <a className={a} href="/my/rights">/my/rights/</a> · Deceased-user family and other special-case requests:
           email with proof of authority as described in Section 11.
         </p>
+          </div>
+        </details>
       </section>
+        </div>
+      </div>
   );
 }
 

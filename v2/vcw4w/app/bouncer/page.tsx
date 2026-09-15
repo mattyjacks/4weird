@@ -11,18 +11,21 @@ export const metadata: Metadata = {
 
 export default function BouncerPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-5xl px-5 py-16">
-        <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">
-          4WEIRD // DELIVERABILITY
-        </p>
-        <h1 className="mt-2 text-4xl font-black">Email Bouncer</h1>
-        <p className="mt-4 max-w-3xl text-slate-300">
-          Paste a list of up to 50 emails to check deliverability, spam-trap
-          hits, and toxicity risk. Results export to CSV. Nothing is sent —
-          this only verifies.
-        </p>
-        <div className="mt-10">
+    <main className="bg-slate-950 text-white">
+      <section className="mx-auto max-w-7xl px-4 py-3 sm:px-5">
+        <div className="flex items-center gap-3">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-cyan-300">
+            4WEIRD // DELIVERABILITY
+          </p>
+          <h1 className="truncate text-sm font-black">Email Bouncer</h1>
+          <p className="hidden truncate text-[11px] text-slate-400 md:block">
+            Up to 50 emails — deliverability, spam-trap &amp; toxicity. Nothing is sent.
+          </p>
+        </div>
+        {/* Workbench frame (uxpass p36): on desktop the checker lives in a
+            100vh panel with its own scroll so inputs + scorecard stay in view.
+            Inner 45/55 input|results split lives in BouncerChecker (follow-up). */}
+        <div className="mt-2 lg:h-[calc(100dvh-96px)] lg:min-h-[420px] lg:overflow-y-auto lg:rounded-2xl">
           {/* Static header streams in the shell; the checker resolves at
               request time and stays defensive if /api/bouncer/* is missing. */}
           <Suspense

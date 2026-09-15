@@ -72,18 +72,18 @@ type UsageResponse = {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-      <h2 className="text-xl font-bold">{title}</h2>
-      <div className="mt-4 space-y-3 text-sm text-slate-300">{children}</div>
+    <section className="rounded-xl border border-white/10 bg-white/[.04] p-3 sm:p-4">
+      <h2 className="text-sm font-bold">{title}</h2>
+      <div className="mt-2 space-y-2 text-sm text-slate-300">{children}</div>
     </section>
   );
 }
 
 function SpendGrid({ label, spend, usd }: { label: string; spend: Spend; usd: (c: number) => string }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">{label}</p>
-      <p className="mt-1 text-3xl font-black text-white">
+    <div className="rounded-lg border border-white/10 bg-black/30 p-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+      <p className="mt-0.5 text-xl font-black text-white">
         {spend.gross} <span className="text-sm font-semibold text-slate-400">coins ({usd(spend.gross)})</span>
       </p>
       <p className="mt-1 text-xs text-slate-400">
@@ -156,9 +156,9 @@ export function UsageClient() {
   }
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-4 space-y-3">
       <form
-        className="flex flex-wrap items-end gap-3 rounded-2xl border border-white/10 bg-white/[.03] p-4"
+        className="flex flex-wrap items-end gap-2 rounded-xl border border-white/10 bg-white/[.03] p-2"
         onSubmit={(e) => {
           e.preventDefault();
           const sid = sessionFilter.trim();
@@ -178,12 +178,12 @@ export function UsageClient() {
         </label>
         <button className="rounded-lg bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950">Refresh</button>
       </form>
-      <p role="status" className="text-sm text-slate-400">{message}</p>
+      <p role="status" className="text-xs text-slate-400">{message}</p>
 
       {data && (
         <>
           <Card title="Gaming Buddy + game AI; the four windows you asked for">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <SpendGrid label={data.session?.id ? "Current session" : "Session (none selected)"} spend={data.session} usd={usd} />
               <SpendGrid label="Total (all time)" spend={data.total} usd={usd} />
               <SpendGrid label="Last 24 hours" spend={data.last24h} usd={usd} />
@@ -197,7 +197,7 @@ export function UsageClient() {
           </Card>
 
           <Card title="Game rentals; loads + per-second play">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-3">
               <SpendGrid label="Total (all time)" spend={data.gameRent?.total ?? { gross: 0, cut: 0, provider: 0, turns: 0 }} usd={usd} />
               <SpendGrid label="Last 24 hours" spend={data.gameRent?.last24h ?? { gross: 0, cut: 0, provider: 0, turns: 0 }} usd={usd} />
               <SpendGrid label="Last hour" spend={data.gameRent?.lastHour ?? { gross: 0, cut: 0, provider: 0, turns: 0 }} usd={usd} />
@@ -208,7 +208,7 @@ export function UsageClient() {
               rate (default 1 coin/hr) per second from the first second. Same-version replays within 24h are free.
               &ldquo;Turns&rdquo; above counts play sessions.
             </p>
-            <p className="rounded-xl border border-white/10 bg-black/30 p-4 text-sm">
+            <p className="rounded-lg border border-white/10 bg-black/30 p-3 text-xs">
               ⏱ Hours played: <b className="text-white">{((data.gameRent?.secondsTotal ?? 0) / 3600).toFixed(1)}h</b> all time
               {" "}· {((data.gameRent?.secondsDay ?? 0) / 3600).toFixed(1)}h last 24h
               {" "}· {((data.gameRent?.secondsHour ?? 0) / 3600).toFixed(1)}h last hour
@@ -231,17 +231,17 @@ export function UsageClient() {
                 <table className="w-full min-w-[560px] border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-white/10 uppercase tracking-widest text-slate-500">
-                      <th className="px-3 py-2">When</th><th className="px-3 py-2">Game</th><th className="px-3 py-2">What</th><th className="px-3 py-2">Gross</th><th className="px-3 py-2">Cut</th>
+                      <th className="px-2 py-1">When</th><th className="px-2 py-1">Game</th><th className="px-2 py-1">What</th><th className="px-2 py-1">Gross</th><th className="px-2 py-1">Cut</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(data.gameRent?.recent ?? []).map((r, i) => (
                       <tr key={i} className="border-b border-white/5">
-                        <td className="px-3 py-2">{new Date(r.created_at).toLocaleString()}</td>
-                        <td className="px-3 py-2">{r.game_slug}</td>
-                        <td className="px-3 py-2">{r.source === "load" ? "load (exact bytes)" : "per-second play"}</td>
-                        <td className="px-3 py-2">{r.gross_coins}</td>
-                        <td className="px-3 py-2">{r.cut_coins}</td>
+                        <td className="px-2 py-1">{new Date(r.created_at).toLocaleString()}</td>
+                        <td className="px-2 py-1">{r.game_slug}</td>
+                        <td className="px-2 py-1">{r.source === "load" ? "load (exact bytes)" : "per-second play"}</td>
+                        <td className="px-2 py-1">{r.gross_coins}</td>
+                        <td className="px-2 py-1">{r.cut_coins}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -300,17 +300,17 @@ export function UsageClient() {
           </Card>
 
           <Card title="RunPod; real spend, mirrored">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] p-4">
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div className="rounded-lg border border-cyan-300/30 bg-cyan-300/[.06] p-3">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">RunPod total (USD)</p>
-                <p className="mt-1 text-3xl font-black">${data.runpod.totalUsd.toFixed(4)}</p>
+                <p className="mt-0.5 text-xl font-black">${data.runpod.totalUsd.toFixed(4)}</p>
                 <p className="mt-1 text-xs text-slate-400">≈ {data.runpod.coinsEquivalent} coins display-equiv (100 coins = $1.00)</p>
               </div>
-              <div className="rounded-xl border border-white/10 p-4">
+              <div className="rounded-lg border border-white/10 p-3">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Buckets</p>
-                <p className="mt-1 text-3xl font-black">{data.runpod.buckets}</p>
+                <p className="mt-0.5 text-xl font-black">{data.runpod.buckets}</p>
               </div>
-              <div className="rounded-xl border border-white/10 p-4">
+              <div className="rounded-lg border border-white/10 p-3">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Last sync</p>
                 <p className="mt-1 text-sm font-bold">{data.runpod.lastSync ? new Date(data.runpod.lastSync).toLocaleString() : "never"}</p>
                 <button
@@ -344,17 +344,17 @@ export function UsageClient() {
                 <table className="w-full min-w-[560px] border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-white/10 uppercase tracking-widest text-slate-500">
-                      <th className="px-3 py-2">Bucket</th><th className="px-3 py-2">Kind</th><th className="px-3 py-2">Resource</th><th className="px-3 py-2">USD</th><th className="px-3 py-2">Billed time</th>
+                      <th className="px-2 py-1">Bucket</th><th className="px-2 py-1">Kind</th><th className="px-2 py-1">Resource</th><th className="px-2 py-1">USD</th><th className="px-2 py-1">Billed time</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.runpod.recent.map((r, i) => (
                       <tr key={i} className="border-b border-white/5">
-                        <td className="px-3 py-2">{new Date(r.time_bucket).toLocaleDateString()}</td>
-                        <td className="px-3 py-2">{r.kind}</td>
-                        <td className="px-3 py-2 font-mono">{r.remote_id || "-"}</td>
-                        <td className="px-3 py-2">${Number(r.amount_usd).toFixed(4)}</td>
-                        <td className="px-3 py-2">{r.time_billed_ms ? `${Math.round(r.time_billed_ms / 3_600_000 * 100) / 100}h` : "-"}</td>
+                        <td className="px-2 py-1">{new Date(r.time_bucket).toLocaleDateString()}</td>
+                        <td className="px-2 py-1">{r.kind}</td>
+                        <td className="px-2 py-1 font-mono">{r.remote_id || "-"}</td>
+                        <td className="px-2 py-1">${Number(r.amount_usd).toFixed(4)}</td>
+                        <td className="px-2 py-1">{r.time_billed_ms ? `${Math.round(r.time_billed_ms / 3_600_000 * 100) / 100}h` : "-"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -364,35 +364,35 @@ export function UsageClient() {
           </Card>
 
           <Card title="All compute, combined">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-cyan-300/30 bg-cyan-300/[.06] p-4">
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div className="rounded-lg border border-cyan-300/30 bg-cyan-300/[.06] p-3">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Combined gross</p>
-                <p className="mt-1 text-3xl font-black">{data.combined.gross} <span className="text-sm text-slate-400">({usd(data.combined.gross)})</span></p>
+                <p className="mt-0.5 text-xl font-black">{data.combined.gross} <span className="text-sm text-slate-400">({usd(data.combined.gross)})</span></p>
                 <p className="mt-1 text-xs text-slate-400">game AI + fal.ai + game rentals + newgameplus + submissions + meshy + vault + agent rentals + workspaces + clan fees</p>
               </div>
-              <div className="rounded-xl border border-white/10 p-4">
+              <div className="rounded-lg border border-white/10 p-3">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Platform 25%</p>
-                <p className="mt-1 text-3xl font-black">{data.combined.cut}</p>
+                <p className="mt-0.5 text-xl font-black">{data.combined.cut}</p>
               </div>
-              <div className="rounded-xl border border-white/10 p-4">
+              <div className="rounded-lg border border-white/10 p-3">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Providers 75%</p>
-                <p className="mt-1 text-3xl font-black">{data.combined.provider}</p>
+                <p className="mt-0.5 text-xl font-black">{data.combined.provider}</p>
               </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-white/10 p-4">Game AI: <b>{data.total.gross}</b> coins ({data.total.turns} turns)</div>
-              <div className="rounded-xl border border-white/10 p-4">Game rentals: <b>{data.gameRent?.total.gross ?? 0}</b> coins ({data.gameRent?.total.turns ?? 0} sessions)</div>
-              <div className="rounded-xl border border-white/10 p-4">Agent rentals: <b>{data.agentCompute.gross}</b> coins ({data.agentCompute.slices} slices)</div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 p-3">Game AI: <b>{data.total.gross}</b> coins ({data.total.turns} turns)</div>
+              <div className="rounded-lg border border-white/10 p-3">Game rentals: <b>{data.gameRent?.total.gross ?? 0}</b> coins ({data.gameRent?.total.turns ?? 0} sessions)</div>
+              <div className="rounded-lg border border-white/10 p-3">Agent rentals: <b>{data.agentCompute.gross}</b> coins ({data.agentCompute.slices} slices)</div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-white/10 p-4">Workspaces: <b>{data.workspace.gross}</b> coins ({data.workspace.charges} charges)</div>
-              <div className="rounded-xl border border-white/10 p-4">Clans: <b>{data.clan?.total.gross ?? 0}</b> coins ({data.clan?.total.charges ?? 0} charges)</div>
-              <div className="rounded-xl border border-white/10 p-4">NewGamePlus: <b>{data.newgameplus?.gross ?? 0}</b> coins ({data.newgameplus?.turns ?? 0} builds)</div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 p-3">Workspaces: <b>{data.workspace.gross}</b> coins ({data.workspace.charges} charges)</div>
+              <div className="rounded-lg border border-white/10 p-3">Clans: <b>{data.clan?.total.gross ?? 0}</b> coins ({data.clan?.total.charges ?? 0} charges)</div>
+              <div className="rounded-lg border border-white/10 p-3">NewGamePlus: <b>{data.newgameplus?.gross ?? 0}</b> coins ({data.newgameplus?.turns ?? 0} builds)</div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-white/10 p-4">Submissions: <b>{data.submissions?.gross ?? 0}</b> coins ({data.submissions?.turns ?? 0} charges)</div>
-              <div className="rounded-xl border border-white/10 p-4">Meshy.ai: <b>{data.meshy?.gross ?? 0}</b> coins ({data.meshy?.turns ?? 0} runs)</div>
-              <div className="rounded-xl border border-white/10 p-4">Vault: <b>{data.vault?.gross ?? 0}</b> coins ({data.vault?.turns ?? 0} charges)</div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 p-3">Submissions: <b>{data.submissions?.gross ?? 0}</b> coins ({data.submissions?.turns ?? 0} charges)</div>
+              <div className="rounded-lg border border-white/10 p-3">Meshy.ai: <b>{data.meshy?.gross ?? 0}</b> coins ({data.meshy?.turns ?? 0} runs)</div>
+              <div className="rounded-lg border border-white/10 p-3">Vault: <b>{data.vault?.gross ?? 0}</b> coins ({data.vault?.turns ?? 0} charges)</div>
             </div>
           </Card>
 
@@ -428,17 +428,17 @@ export function UsageClient() {
                 <table className="w-full min-w-[560px] border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-white/10 uppercase tracking-widest text-slate-500">
-                      <th className="px-3 py-2">Service</th><th className="px-3 py-2">Qty</th><th className="px-3 py-2">Gross</th><th className="px-3 py-2">Cut</th><th className="px-3 py-2">Provider</th>
+                      <th className="px-2 py-1">Service</th><th className="px-2 py-1">Qty</th><th className="px-2 py-1">Gross</th><th className="px-2 py-1">Cut</th><th className="px-2 py-1">Provider</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.workspace.byService.map((s) => (
                       <tr key={s.service} className="border-b border-white/5">
-                        <td className="px-3 py-2 font-semibold text-white">{s.service}</td>
-                        <td className="px-3 py-2">{s.qty}</td>
-                        <td className="px-3 py-2">{s.gross}</td>
-                        <td className="px-3 py-2">{s.cut}</td>
-                        <td className="px-3 py-2">{s.provider}</td>
+                        <td className="px-2 py-1 font-semibold text-white">{s.service}</td>
+                        <td className="px-2 py-1">{s.qty}</td>
+                        <td className="px-2 py-1">{s.gross}</td>
+                        <td className="px-2 py-1">{s.cut}</td>
+                        <td className="px-2 py-1">{s.provider}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -506,20 +506,20 @@ export function UsageClient() {
                 <table className="w-full min-w-[720px] border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-white/10 uppercase tracking-widest text-slate-500">
-                      <th className="px-3 py-2">When</th><th className="px-3 py-2">Game</th><th className="px-3 py-2">Kind</th><th className="px-3 py-2">Mode</th><th className="px-3 py-2">Source</th><th className="px-3 py-2">Gross</th><th className="px-3 py-2">Cut</th><th className="px-3 py-2">Session</th>
+                      <th className="px-2 py-1">When</th><th className="px-2 py-1">Game</th><th className="px-2 py-1">Kind</th><th className="px-2 py-1">Mode</th><th className="px-2 py-1">Source</th><th className="px-2 py-1">Gross</th><th className="px-2 py-1">Cut</th><th className="px-2 py-1">Session</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.recentGameAi.map((r, i) => (
                       <tr key={i} className="border-b border-white/5">
-                        <td className="px-3 py-2">{new Date(r.created_at).toLocaleString()}</td>
-                        <td className="px-3 py-2">{r.game_slug}</td>
-                        <td className="px-3 py-2">{r.kind}</td>
-                        <td className="px-3 py-2">{r.mode}</td>
-                        <td className="px-3 py-2">{r.source}</td>
-                        <td className="px-3 py-2">{r.gross_coins}</td>
-                        <td className="px-3 py-2">{r.cut_coins}</td>
-                        <td className="px-3 py-2 font-mono">{r.session_id ? String(r.session_id).slice(0, 8) + "…" : "-"}</td>
+                        <td className="px-2 py-1">{new Date(r.created_at).toLocaleString()}</td>
+                        <td className="px-2 py-1">{r.game_slug}</td>
+                        <td className="px-2 py-1">{r.kind}</td>
+                        <td className="px-2 py-1">{r.mode}</td>
+                        <td className="px-2 py-1">{r.source}</td>
+                        <td className="px-2 py-1">{r.gross_coins}</td>
+                        <td className="px-2 py-1">{r.cut_coins}</td>
+                        <td className="px-2 py-1 font-mono">{r.session_id ? String(r.session_id).slice(0, 8) + "…" : "-"}</td>
                       </tr>
                     ))}
                   </tbody>

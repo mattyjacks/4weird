@@ -53,8 +53,32 @@ export default async function VcwPage() {
         }
       />
 
+      <nav aria-label="On this page" className="sticky top-2 z-10 mt-4 rounded-xl border border-border bg-card/95 px-3 py-2 backdrop-blur">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">On this page</p>
+        <div className="mt-1 flex flex-wrap gap-1">
+          {[
+            ["#floor-plan", "Surfaces"],
+            ["#agent-loop", "Agent loop"],
+            ["#evidence", "Evidence"],
+            ["#field-notes", "Runs + bugs"],
+            ["#keys-gateway", "Keys + gateway"],
+            ["#full-fidelity", "Trail + compare"],
+            ["#batch-media", "Batch + media"],
+            ["#remotes", "Autoplay"],
+            ["#probe-first", "Status first"],
+            ["#auth", "Auth"],
+            ["#handoffs", "Handoffs"],
+          ].map(([href, label]) => (
+            <a key={href} href={href} className="rounded-md px-2 py-0.5 text-xs font-bold text-muted-foreground transition hover:bg-accent hover:text-foreground">
+              {label}
+            </a>
+          ))}
+        </div>
+      </nav>
+
       <SectionHead
         index="1"
+        id="floor-plan"
         kicker="The floor plan"
         title="Surfaces at /vibecodeworker/*"
         body="Overview, hub, run, full, phone, docs, and demo - each pairs a guide with the live surface plus a public service-status pill. If the pill reports trouble, wait before opening runs: the loop depends on the service underneath."
@@ -62,6 +86,7 @@ export default async function VcwPage() {
 
       <SectionHead
         index="2"
+        id="agent-loop"
         kicker="The assembly line"
         title="The 7-step agent loop"
         body="Signed in, every route returns success envelopes and rate-limits per user. Read the full run (trail + findings) before every next step."
@@ -80,6 +105,7 @@ export default async function VcwPage() {
 
       <SectionHead
         index="3"
+        id="evidence"
         kicker="Exhibit A"
         title="What good evidence looks like"
       />
@@ -94,19 +120,20 @@ export default async function VcwPage() {
 
       <SectionHead
         index="4"
+        id="field-notes"
         kicker="Field notes"
         title="Writing runs + bugs that get fixed"
       />
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
         {[
           ["🎯 Goals", "One verifiable claim per run: “menu → new game → first checkpoint, no console errors.”"],
           ["🔬 Steps", "Small, timestamped, evidence-first: “screenshot shows…”, “score event fired…”."],
           ["🐞 Bugs", "Expected vs. actual + repro path + severity + run link. Critical = data loss, payment error, safety."],
           ["🏁 Verdicts", "Pass (evidence), fail (repro defect filed), inconclusive (blocked - say what blocked you)."],
         ].map(([t, b]) => (
-          <div key={t} className="rounded-2xl border border-border bg-card p-4">
-            <p className="font-black">{t}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          <div key={t} className="rounded-xl border border-border bg-card p-3">
+            <p className="text-sm font-black">{t}</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">{b}</p>
           </div>
         ))}
       </div>
@@ -119,6 +146,7 @@ export default async function VcwPage() {
 
       <SectionHead
         index="5"
+        id="keys-gateway"
         kicker="Keys + gateway"
         title="Call the loop with your own tools"
         body="The run loop above uses your login session. The gateway (under /api/vcw/gateway/*) gives the same loop a key you can paste into your own agent tools - hosted on our GPUs, or routed to your own provider keys (BYOK)."
@@ -132,20 +160,21 @@ export default async function VcwPage() {
           ["Watch the spend", <>GET /api/vcw/gateway/usage shows your latest 50 metered rows. Every figure is gross with the 25% cut already inside - same as every metered surface on the site.</>],
         ]}
       />
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
         {[
           ["💰 Gateway prices (gross, cut inside)", "run-open 10 · action-step 1 · bug-file 2 · handoff 5 · worker-min 6 · byok-route 2 coins. Hosted adds 15% over provider cost (9% enterprise); BYOK bills the base price. 100 coins = $1.00, always."],
           ["🔑 Key hygiene", "Copy the secret once, store it like a password, set a budget + expiry, revoke keys you stop using. Gateway-key reads and writes are metered to your coins like session calls."],
         ].map(([t, b]) => (
-          <div key={t} className="rounded-2xl border border-border bg-card p-4">
-            <p className="font-black">{t}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          <div key={t} className="rounded-xl border border-border bg-card p-3">
+            <p className="text-sm font-black">{t}</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">{b}</p>
           </div>
         ))}
       </div>
 
       <SectionHead
         index="6"
+        id="full-fidelity"
         kicker="Full fidelity"
         title="Read the whole trail, then compare"
         body="The run detail caps the trail for speed (steps_limit 1-200, bugs_limit 1-100), but nothing is lost: the export removes the caps for archiving, and compare answers “did the fix work” side-by-side. Detail, export, and compare are read-only, so none of them meter coins."
@@ -166,6 +195,7 @@ export default async function VcwPage() {
 
       <SectionHead
         index="7"
+        id="batch-media"
         kicker="Batch + media"
         title="Batch steps, chain fal media"
         body="The loop usually produces a whole observe → reason → act triplet per iteration. Recording it one step at a time costs three metered round trips - batch appends 1-20 steps in one call, validated exactly like single steps."
@@ -186,19 +216,20 @@ export default async function VcwPage() {
 
       <SectionHead
         index="8"
+        id="remotes"
         kicker="Remotes"
         title="Autoplay: real remotes, honest no's"
         body="Autoplay starts a RunPod remote that drives the play page for you - cpu for cheap, gpu for vision, gpu-boosted (pinned RTX 4090 class) for the hardest titles. It never fakes a worker URL: no stock, no credentials, or over budget comes back as started:false with the code and the manual next step."
       />
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
         {[
           ["🖥️ cpu · 0.14/min", "Cheapest seat: a CPU remote drives the first-party play page. A 60-minute run lands around 9 coins."],
           ["🎮 gpu · 0.63/min", "Vision seat: a GPU remote watches and plays the same on-site page. About 38 coins for a full hour."],
           ["🚀 gpu-boosted · 2.2/min", "Fastest eyes, exact quote at start: pinned RTX 4090 class (5090 fallback), required for off-site Xonotic. About 132 coins per hour ceiling."],
         ].map(([t, b]) => (
-          <div key={t} className="rounded-2xl border border-border bg-card p-4">
-            <p className="font-black">{t}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          <div key={t} className="rounded-xl border border-border bg-card p-3">
+            <p className="text-sm font-black">{t}</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">{b}</p>
           </div>
         ))}
       </div>
@@ -211,18 +242,19 @@ export default async function VcwPage() {
 
       <SectionHead
         index="9"
+        id="probe-first"
         kicker="Look before you leap"
         title="Probe status + dashboard first"
         body="Two authenticated reads prove the loop is usable before you spend a coin: status for the control plane, dashboard for your own recent runs and bugs. Both are rate-limited per user and both refuse strangers with 401."
       />
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
         {[
           ["📡 GET /api/vcw/status", "Service health (ok, degraded, unavailable, or unconfigured), catalog game count, your run/bug totals, every fal op grouped by observe/reason/act phase, plus the swarm tools hint for multi-agent QA."],
           ["🗂️ GET /api/vcw/dashboard", "Service state plus your 10 most recent runs and 10 most recent bugs in one call - with counts for open runs, runs by verdict, and bugs by severity. The hint field points at the deeper run/bug filters."],
         ].map(([t, b]) => (
-          <div key={t} className="rounded-2xl border border-border bg-card p-4">
-            <p className="font-black">{t}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          <div key={t} className="rounded-xl border border-border bg-card p-3">
+            <p className="text-sm font-black">{t}</p>
+            <p className="mt-0.5 text-[13px] text-muted-foreground">{b}</p>
           </div>
         ))}
       </div>
@@ -234,6 +266,7 @@ export default async function VcwPage() {
 
       <SectionHead
         index="10"
+        id="auth"
         kicker="Who may do what"
         title="Three doors, one keychain"
         body="Every gateway call resolves its caller from exactly one credential, tried in order: your login session, a bot key carrying a vcw scope, or a vcw_live_ gateway key. All failures collapse to one uniform “authentication required” - the how is never leaked."
@@ -254,6 +287,7 @@ export default async function VcwPage() {
 
       <SectionHead
         index="11"
+        id="handoffs"
         kicker="Take it with you"
         title="Handoffs: markdown any tool can read"
         body="POST /api/vcw/handoff with an optional run_id and reason (defaults to your latest run) returns a portable markdown brief capped for pasting: trail digest, 50 steps, 50 bugs, and next actions for the coding agent. Metered at 5 coins gross - assembled only for a paid handoff."

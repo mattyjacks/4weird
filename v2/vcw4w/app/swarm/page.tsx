@@ -20,8 +20,8 @@ export const metadata: Metadata = {
 // time-to-first-paint never waits on the chat bundle.
 
 /**
- * Static marketing shell — hero copy and section intros. Pure markup,
- * no request-time data. Cached (`hours` + tag `swarm`).
+ * Static marketing shell — one-line intro. Pure markup, no request-time
+ * data. Cached (`hours` + tag `swarm`).
  *
  * NOTE: 'use client' widgets (AgentBotNav, SwarmChatLazy, DevSwarmPanel)
  * stay outside cached scopes in the page below — cached output must not
@@ -35,20 +35,11 @@ async function CachedSwarmShell() {
   cacheLife("hours");
   cacheTag("swarm");
   return (
-    <>
-      <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-violet-300">🌐 Rent tech / Swarm chat</p>
-      <h1 className="mt-2 text-4xl font-black">Your agent, with a brain</h1>
-      <p className="mt-4 max-w-3xl text-slate-300">
-        One chat box, up to five agents behind it, and an internal brain that remembers you: say
-        “remember that …” once and every future turn knows it for ~150 tokens. File personal .txt
-        notes and matching chunks join the prompt automatically (~300 tokens max). Pick the
-        orchestration (auto uses the built-in observe→reason→act loop to plan
-        and delegate), run serverless right here or serverful on a real RunPod pod/desktop,
-        and watch parallel work fan out into child instances of the swarm itself. Chat turns meter
-        per agent in Vibe Coins with
-        the 25% platform cut included, never on top; local-engine turns are free and labelled.
-      </p>
-    </>
+    <p className="mt-1 max-w-4xl text-xs text-slate-400">
+      One chat box, up to five agents behind it, and an internal brain that remembers you (“remember that …” ≈150 tokens/turn).
+      Personal .txt RAG (~300 tokens max), auto observe→reason→act orchestration, serverless here or serverful on RunPod.
+      Per-agent Vibe Coin metering, 25% cut included; local-engine turns are free and labelled.
+    </p>
   );
 }
 
@@ -60,38 +51,90 @@ async function CachedDevSwarmIntro() {
   cacheLife("hours");
   cacheTag("swarm");
   return (
-    <>
-      <h2 className="text-2xl font-black">DevSwarm — repo swarm</h2>
-      <p className="mt-2 max-w-3xl text-slate-300">
-        The public build board behind 4weird: live counts and links into the repo swarm brain.
-      </p>
-    </>
+    <p className="mt-1 max-w-4xl text-xs text-slate-400">
+      The public build board behind 4weird: live counts and links into the repo swarm brain.
+    </p>
   );
 }
 
 export default function SwarmPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl px-5 py-16">
-        <Link className="text-cyan-300 hover:underline" href="/agents">
-          ← Rent an agent
+    <main className="bg-slate-950 text-white lg:h-screen lg:overflow-hidden">
+      {/* 36px command header: title + API key badge, no banner */}
+      <header className="mx-auto flex h-9 max-w-[1600px] items-center gap-2 px-4">
+        <Link className="text-xs text-cyan-300 hover:underline" href="/agents">
+          ← Agents
         </Link>
+        <h1 className="truncate text-base font-black">Your agent, with a brain</h1>
+        <span className="hidden rounded-full bg-emerald-400/15 px-2 py-0.5 text-[11px] font-bold text-emerald-200 sm:inline">● serverless · metered/turn</span>
+        <Link href="/agents" className="hidden rounded-full border border-white/15 px-2 py-0.5 text-[11px] font-semibold text-slate-300 hover:bg-white/10 md:inline">
+          🔑 API keys
+        </Link>
+        <details className="relative ml-auto shrink-0">
+          <summary className="cursor-pointer list-none rounded-full border border-white/15 px-2 py-0.5 text-[11px] font-semibold text-slate-300 hover:bg-white/10 [&::-webkit-details-marker]:hidden">
+            ☰ Swarm sections ▾
+          </summary>
+          <div className="absolute right-0 z-30 mt-1 w-64 rounded-xl border border-white/15 bg-slate-900 p-2 shadow-2xl">
+            <AgentBotNav current="/swarm" />
+          </div>
+        </details>
+      </header>
+
+      <div className="mx-auto max-w-[1600px] px-4 pb-4">
         <CachedSwarmShell />
-        <AgentBotNav current="/swarm" />
-        <div className="mt-8">
-          <Suspense fallback={<p className="text-sm text-slate-500">Loading swarm chat…</p>}>
-            <SwarmChatLazy />
-          </Suspense>
+        {/* 3-pane IDE cockpit: 20% agent rail | 55% chat + docked prompt | 25% telemetry */}
+        <div className="mt-2 grid gap-2 lg:h-[calc(100vh-110px)] lg:grid-cols-[20%_55%_25%]">
+          {/* Left rail: agent roster + orchestration shortcuts (chat selectors live in the center widget) */}
+          <nav aria-label="Agent rail" className="min-h-0 rounded-xl border border-white/10 bg-white/[.02] p-2 lg:overflow-y-auto">
+            <p className="px-1 text-[10px] font-bold tracking-widest text-violet-300">AGENTS</p>
+            <ul className="mt-1 space-y-1 text-xs">
+              {["Agent 1", "Agent 2", "Agent 3"].map((a, i) => (
+                <li key={a}>
+                  <a href="#swarm-chat" className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5 hover:border-white/25">
+                    <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${i === 0 ? "bg-emerald-400" : "bg-slate-500"}`} aria-hidden="true" />
+                    <span className="font-bold text-white">{a}</span>
+                    <span className="ml-auto text-[10px] text-slate-500">{i === 0 ? "active" : "idle"}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 px-1 text-[10px] font-bold tracking-widest text-violet-300">ORCHESTRATION</p>
+            <ul className="mt-1 space-y-1 text-xs text-slate-300">
+              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">auto</b> <span className="text-slate-500">built-in observe→reason→act</span></li>
+              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">serverless</b> <span className="text-slate-500">chat right here</span></li>
+              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">serverful</b> <span className="text-slate-500">RunPod pod/desktop</span></li>
+            </ul>
+            <p className="mt-2 px-1 text-[10px] text-slate-500">Model + temperature dials live in the chat widget →</p>
+          </nav>
+
+          {/* Center stage: live streaming chat + docked prompt (unchanged widget) */}
+          <div id="swarm-chat" className="min-h-0 scroll-mt-12 rounded-xl border border-white/10 bg-white/[.02] p-2 lg:overflow-y-auto">
+            <Suspense fallback={<p className="text-xs text-slate-500">Loading swarm chat…</p>}>
+              <SwarmChatLazy />
+            </Suspense>
+          </div>
+
+          {/* Right panel: orchestration telemetry explainer (live meters render per-turn in the chat widget) */}
+          <aside aria-label="Telemetry" className="min-h-0 rounded-xl border border-white/10 bg-white/[.02] p-2 lg:overflow-y-auto">
+            <p className="px-1 text-[10px] font-bold tracking-widest text-cyan-300">TELEMETRY</p>
+            <ul className="mt-1 space-y-1 text-xs text-slate-300">
+              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">⚡ tokens/sec</b> <span className="text-slate-500">— streams live per turn in chat</span></li>
+              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">🛠️ tool calls</b> <span className="text-slate-500">— orchestration trace per message</span></li>
+              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">🧠 context gauge</b> <span className="text-slate-500">— brain ~150 tok + .txt RAG ~300 tok max</span></li>
+              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">💰 metering</b> <span className="text-slate-500">— per-agent coins, 25% incl.; ledger on <Link href="/my/usage/" className="text-cyan-300 hover:underline">/my/usage/</Link></span></li>
+            </ul>
+            <div className="mt-2 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5">
+              <h2 className="text-xs font-black">DevSwarm — repo swarm</h2>
+              <CachedDevSwarmIntro />
+              <div className="mt-1">
+                <Suspense fallback={<p className="text-xs text-slate-500">Loading build board…</p>}>
+                  <DevSwarmPanel />
+                </Suspense>
+              </div>
+            </div>
+          </aside>
         </div>
-      </section>
-      <section className="mx-auto max-w-6xl px-5 pb-16">
-        <CachedDevSwarmIntro />
-        <div className="mt-6">
-          <Suspense fallback={<p className="text-sm text-slate-500">Loading build board…</p>}>
-            <DevSwarmPanel />
-          </Suspense>
-        </div>
-      </section>
+      </div>
     </main>
   );
 }

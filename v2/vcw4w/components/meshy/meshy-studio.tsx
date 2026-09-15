@@ -113,7 +113,7 @@ export function MeshyStudio() {
   }, [job]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {!configured && (
         <p className="rounded-xl border border-amber-500/40 bg-amber-950/20 p-3 text-xs text-amber-200">
           MESHY_API_KEY is not set on this server; the catalog + quotes below are live, but
@@ -126,7 +126,7 @@ export function MeshyStudio() {
             key={o.op}
             type="button"
             onClick={() => setOp(o.op)}
-            className={`rounded-2xl border p-4 text-left transition ${op === o.op ? "border-cyan-500 bg-cyan-500/10" : "border-border bg-card hover:bg-accent"}`}
+            className={`rounded-xl border p-3.5 text-left transition ${op === o.op ? "border-cyan-500 bg-cyan-500/10" : "border-border bg-card hover:bg-accent"}`}
           >
             <p className="font-black">{o.name}</p>
             <p className="mt-1 text-xs text-muted-foreground">{o.blurb}</p>
@@ -137,45 +137,51 @@ export function MeshyStudio() {
           </button>
         ))}
       </div>
-      <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
-        <p className="text-xs text-muted-foreground">
-          Prompt or image?{" "}
-          <InfoTip side="bottom" text="Text-to-3D uses the description; image-to-3D uses the image URL. Send only what your tool needs." label="About prompt versus image" />
-        </p>
-        <input
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the 3D model…"
-          maxLength={2000}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-        />
-        <input
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="Source image_url (https); for image-to-3D"
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs"
-        />
-        <button
-          type="button"
-          onClick={generate}
-          disabled={busy}
-          className="rounded-full bg-cyan-600 px-6 py-2 text-sm font-black text-white disabled:opacity-50"
-        >
-          {busy ? "Queueing…" : "Generate 3D"}
-        </button>
-        {msg && <p className="text-xs text-muted-foreground">{msg}{" "}
-          <InfoTip side="bottom" text="Finished models auto-save to your Vault. The result link appears here when ready." label="About Vault autosave" />
-        </p>}
-        {status && <p className="font-mono text-xs">status: {status}{" "}
-          <InfoTip side="bottom" text="Status refreshes on its own every few seconds. Keep this open until it says done." label="About auto-polling" />
-        </p>}
-        {advice.length > 0 && (
-          <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-            {advice.map((a, i) => (
-              <li key={i}>{a}</li>
-            ))}
-          </ul>
-        )}
+      <div className="grid gap-3 rounded-xl border border-border bg-card p-3.5 lg:grid-cols-[35%_65%]">
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground">
+            Prompt or image?{" "}
+            <InfoTip side="bottom" text="Text-to-3D uses the description; image-to-3D uses the image URL. Send only what your tool needs." label="About prompt versus image" />
+          </p>
+          <input
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Describe the 3D model…"
+            maxLength={2000}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+          />
+          <input
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="Source image_url (https); for image-to-3D"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs"
+          />
+          <button
+            type="button"
+            onClick={generate}
+            disabled={busy}
+            className="rounded-full bg-cyan-600 px-6 py-2 text-sm font-black text-white disabled:opacity-50"
+          >
+            {busy ? "Queueing…" : "Generate 3D"}
+          </button>
+        </div>
+        <div className="space-y-2 rounded-xl border border-border bg-background p-3.5" aria-live="polite">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Viewport · status</p>
+          {msg && <p className="text-xs text-muted-foreground">{msg}{" "}
+            <InfoTip side="bottom" text="Finished models auto-save to your Vault. The result link appears here when ready." label="About Vault autosave" />
+          </p>}
+          {!msg && <p className="text-xs text-muted-foreground">Queue a generation to watch live status here; the finished model auto-saves to your Vault.</p>}
+          {status && <p className="font-mono text-xs">status: {status}{" "}
+            <InfoTip side="bottom" text="Status refreshes on its own every few seconds. Keep this open until it says done." label="About auto-polling" />
+          </p>}
+          {advice.length > 0 && (
+            <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+              {advice.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );

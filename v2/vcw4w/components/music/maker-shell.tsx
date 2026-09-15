@@ -550,26 +550,26 @@ export function MakerShell() {
   }, [buildSong]);
 
   return (
-    <div className="min-w-0 max-w-full space-y-8 overflow-x-clip">
-      <style>{`.music-tempo-slider{-webkit-appearance:none;appearance:none;height:44px;background:transparent;cursor:pointer}.music-tempo-slider::-webkit-slider-runnable-track{height:8px;border-radius:9999px;background:rgba(255,255,255,.15)}.music-tempo-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-10px;height:28px;width:28px;border-radius:9999px;background:#67e8f9;border:2px solid #0e7490}.music-tempo-slider::-moz-range-track{height:8px;border-radius:9999px;background:rgba(255,255,255,.15)}.music-tempo-slider::-moz-range-thumb{height:28px;width:28px;border-radius:9999px;background:#67e8f9;border:2px solid #0e7490}`}</style>
+    <div className="min-w-0 max-w-full space-y-3 overflow-x-clip">
+      <style>{`.music-tempo-slider{-webkit-appearance:none;appearance:none;height:32px;background:transparent;cursor:pointer}.music-tempo-slider::-webkit-slider-runnable-track{height:8px;border-radius:9999px;background:rgba(255,255,255,.15)}.music-tempo-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-6px;height:20px;width:20px;border-radius:9999px;background:#67e8f9;border:2px solid #0e7490}.music-tempo-slider::-moz-range-track{height:8px;border-radius:9999px;background:rgba(255,255,255,.15)}.music-tempo-slider::-moz-range-thumb{height:20px;width:20px;border-radius:9999px;background:#67e8f9;border:2px solid #0e7490}`}</style>
       <section
         aria-label="Song settings"
-        className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-6"
+        className="sticky top-0 z-10 rounded-xl border border-white/10 bg-slate-950/95 p-3 backdrop-blur"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-          <label className="flex-1 text-sm font-bold text-slate-200">
-            Song title
+        <div className="flex min-h-10 flex-wrap items-center gap-x-3 gap-y-2">
+          <label className="flex min-w-36 flex-1 items-center gap-2 text-xs font-bold text-slate-200">
+            <span className="shrink-0 uppercase tracking-widest text-slate-400">Title</span>
             <input
               type="text"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               maxLength={80}
-              className="mt-2 min-h-[44px] w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-base font-normal text-white placeholder:text-slate-500"
+              className="h-9 w-full min-w-0 rounded-lg border border-white/10 bg-slate-950 px-2.5 text-sm font-normal text-white placeholder:text-slate-500"
               placeholder="Name your song"
             />
           </label>
-          <label className="text-sm font-bold text-slate-200 sm:w-64">
-            Tempo: {bpm} BPM
+          <label className="flex items-center gap-2 text-xs font-bold text-slate-200">
+            <span className="shrink-0 tabular-nums text-slate-400">{bpm} BPM</span>
             <input
               type="range"
               min={MIN_BPM}
@@ -577,16 +577,15 @@ export function MakerShell() {
               step={1}
               value={bpm}
               onChange={(event) => setBpm(Number(event.target.value))}
-              className="music-tempo-slider mt-2 h-[44px] w-full touch-manipulation accent-cyan-300"
+              aria-label={`Tempo: ${bpm} BPM`}
+              className="music-tempo-slider h-8 w-32 touch-manipulation accent-cyan-300 sm:w-44"
             />
           </label>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
           {isPlaying ? (
             <button
               type="button"
               onClick={stopPlayback}
-              className="min-h-[44px] touch-manipulation rounded-xl bg-rose-400 px-5 py-3 text-sm font-black text-slate-950 hover:bg-rose-300"
+              className="rounded-lg bg-rose-400 px-3 py-1.5 text-xs font-black text-slate-950 hover:bg-rose-300"
             >
               Stop
             </button>
@@ -595,7 +594,7 @@ export function MakerShell() {
               type="button"
               onClick={handlePlay}
               disabled={tracks.length === 0}
-              className="min-h-[44px] touch-manipulation rounded-xl bg-cyan-300 px-5 py-3 text-sm font-black text-slate-950 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-lg bg-cyan-300 px-3 py-1.5 text-xs font-black text-slate-950 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40"
             >
               Play (loop)
             </button>
@@ -603,28 +602,28 @@ export function MakerShell() {
           <button
             type="button"
             onClick={handleSave}
-            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
+            className="rounded-lg border border-white/15 bg-white/[.05] px-3 py-1.5 text-xs font-bold text-white hover:bg-white/[.12]"
           >
             Save to browser
           </button>
           <button
             type="button"
             onClick={handleDownloadJson}
-            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
+            className="rounded-lg border border-white/15 bg-white/[.05] px-3 py-1.5 text-xs font-bold text-white hover:bg-white/[.12]"
           >
             Download JSON
           </button>
           <button
             type="button"
             onClick={handleCopyJson}
-            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
+            className="rounded-lg border border-white/15 bg-white/[.05] px-3 py-1.5 text-xs font-bold text-white hover:bg-white/[.12]"
           >
             Copy JSON
           </button>
           <button
             type="button"
             onClick={handleCopyLink}
-            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12]"
+            className="rounded-lg border border-white/15 bg-white/[.05] px-3 py-1.5 text-xs font-bold text-white hover:bg-white/[.12]"
           >
             Copy link
           </button>
@@ -632,27 +631,27 @@ export function MakerShell() {
             type="button"
             onClick={handleExportWav}
             disabled={isBusy || tracks.length === 0}
-            className="min-h-[44px] touch-manipulation rounded-xl border border-white/15 bg-white/[.05] px-5 py-3 text-sm font-bold text-white hover:bg-white/[.12] disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-lg border border-white/15 bg-white/[.05] px-3 py-1.5 text-xs font-bold text-white hover:bg-white/[.12] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isBusy ? "Rendering…" : "Export WAV"}
           </button>
         </div>
         {status ? (
-          <p role="status" className="mt-3 text-sm text-slate-300">
+          <p role="status" className="mt-2 text-xs text-slate-300">
             {status}
           </p>
         ) : null}
       </section>
 
-      <section aria-label="Tracks" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-black text-white">
+      <section aria-label="Tracks" className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-black text-white">
             Tracks ({tracks.length})
           </h2>
           <button
             type="button"
             onClick={handleAddTrack}
-            className="min-h-[44px] touch-manipulation rounded-xl bg-white px-5 py-3 text-sm font-black text-slate-950 hover:bg-slate-200"
+            className="rounded-lg bg-white px-3 py-1.5 text-xs font-black text-slate-950 hover:bg-slate-200"
           >
             Add track
           </button>
@@ -666,7 +665,7 @@ export function MakerShell() {
           <article
             key={track.id}
             aria-label={`Track ${index + 1}`}
-            className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-5"
+            className="min-w-0 max-w-full overflow-hidden rounded-xl border border-white/10 bg-white/[.03] p-3.5"
           >
             <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center">
               <h3 className="text-sm font-black uppercase tracking-widest text-slate-300">
@@ -687,7 +686,7 @@ export function MakerShell() {
                     onChange={(event) =>
                       handleInstrumentChange(track.id, event.target.value)
                     }
-                    className="ml-1 max-w-full touch-manipulation rounded-lg border border-white/10 bg-slate-950 px-3 py-3 text-base font-normal text-white"
+                    className="ml-1 max-w-full touch-manipulation rounded-lg border border-white/10 bg-slate-950 px-2.5 py-1.5 text-sm font-normal text-white"
                   >
                     {INSTRUMENTS.map((inst) => (
                       <option key={inst} value={inst}>
@@ -700,7 +699,7 @@ export function MakerShell() {
                   type="button"
                   onClick={() => handleRemoveTrack(track.id)}
                   aria-label={`Remove track ${index + 1}`}
-                  className="min-h-[44px] touch-manipulation rounded-lg border border-rose-300/30 px-4 py-3 text-xs font-bold text-rose-200 hover:bg-rose-400/10"
+                  className="touch-manipulation rounded-lg border border-rose-300/30 px-3 py-1.5 text-xs font-bold text-rose-200 hover:bg-rose-400/10"
                 >
                   Remove
                 </button>
@@ -717,9 +716,9 @@ export function MakerShell() {
 
       <section
         aria-label="Compose mode"
-        className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-6"
+        className="rounded-xl border border-white/10 bg-white/[.03] p-3.5"
       >
-        <h2 className="text-xl font-black text-white">Compose mode</h2>
+        <h2 className="text-lg font-black text-white">Compose mode</h2>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">
           Theory Forge guides scales and grids, Pure AI Summon dreams the
           whole track, and Human Hands keeps your notes in the lead. The
@@ -732,9 +731,9 @@ export function MakerShell() {
 
       <section
         aria-label="Modulation lanes"
-        className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-6"
+        className="rounded-xl border border-white/10 bg-white/[.03] p-3.5"
       >
-        <h2 className="text-xl font-black text-white">Mod FX lanes</h2>
+        <h2 className="text-lg font-black text-white">Mod FX lanes</h2>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">
           Per-step filter cutoff, wobble, vibrato, detune, and volume trims
           for each track. Lane edits stay in the editor — the exported song
@@ -756,9 +755,9 @@ export function MakerShell() {
 
       <section
         aria-label="Sound effects lab"
-        className="rounded-2xl border border-white/10 bg-white/[.03] p-4 sm:p-6"
+        className="rounded-xl border border-white/10 bg-white/[.03] p-3.5"
       >
-        <h2 className="text-xl font-black text-white">SFX lab</h2>
+        <h2 className="text-lg font-black text-white">SFX lab</h2>
         <p className="mt-2 max-w-2xl text-sm text-slate-300">
           Design one-shot rayguns, jumps, and explosions to pair with your
           song.

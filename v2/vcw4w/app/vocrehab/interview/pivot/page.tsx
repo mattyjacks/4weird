@@ -11,11 +11,11 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="vocrehab-interview-pivot mx-auto w-full max-w-3xl space-y-4 p-6">
+    <main className="vocrehab-interview-pivot mx-auto w-full max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/vocrehab/interview">Interview</Link> → Background pivot
       </nav>
-      <h1 className="text-2xl font-bold">The background pivot</h1>
+      <h1 className="text-xl font-bold">The background pivot</h1>
       <p className="text-muted-foreground">
         Growth-framed, accountability-forward, short — about 30 to 60 seconds
         spoken. No graphic detail, no legal claims, and it ends on the present:
@@ -23,7 +23,7 @@ export default function Page() {
         the hard question once, kindly, and never asks for case numbers,
         charges in detail, or court identifiers.
       </p>
-      <ol className="list-decimal space-y-2 rounded-xl border p-4 pl-8">
+      <ol className="list-decimal space-y-2 rounded-xl border p-3 pl-8">
         <li>
           <p className="font-medium">One neutral line about the past.</p>
           <p className="text-sm text-muted-foreground">

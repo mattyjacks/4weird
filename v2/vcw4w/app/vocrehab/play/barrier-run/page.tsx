@@ -16,7 +16,7 @@ import VocrehabGameBarrierRun from "@/components/vocrehab/vocrehab-game-barrier-
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-3xl space-y-4 p-6">
+    <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/vocrehab/play">Practice arcade</Link> → Barrier Run
       </nav>

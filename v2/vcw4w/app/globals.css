@@ -952,3 +952,25 @@ html.a11y-reduced-motion .perf-frame, html.a11y-reduced-motion .fw-fake-fullscre
 /* Minimum 44px tap target (WCAG 2.5.8 / Apple HIG): apply to small
    icon-only buttons/links so the hit area never drops below 44x44 CSS px. */
 .tap-target-min { min-width: 44px; min-height: 44px; }
+
+/* ---- DS-UXPASS-21: global compactness tokens (additive only) ----
+   Encodes spec Global Implementation Architecture as opt-in utilities:
+   section py-4/md:py-6, card p-3.5/md:p-4, gap-2.5/md:gap-3.5,
+   hero text-2xl/md:text-3xl, 40px toolbars, dense tables, 100vh cockpits.
+   Layout/typography/spacing only; no colors, no overrides above. */
+.ux-hero-compact { font-size: 1.5rem; line-height: 2rem; font-weight: 800; letter-spacing: -0.01em; margin: 0; }
+@media (min-width: 768px) { .ux-hero-compact { font-size: 1.875rem; line-height: 2.25rem; } }
+.ux-section-compact { padding-top: 1rem; padding-bottom: 1rem; }
+@media (min-width: 768px) { .ux-section-compact { padding-top: 1.5rem; padding-bottom: 1.5rem; } }
+.ux-card-dense { padding: 0.875rem; border-radius: 0.75rem; }
+@media (min-width: 768px) { .ux-card-dense { padding: 1rem; } }
+.ux-grid-tight { display: grid; gap: 0.625rem; }
+@media (min-width: 768px) { .ux-grid-tight { gap: 0.875rem; } }
+.ux-toolbar-40 { display: flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; padding: 0.25rem 0.5rem; }
+.ux-filter-bar-48 { display: flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0.375rem 0.625rem; }
+.ux-table-dense { width: 100%; font-size: 0.8125rem; line-height: 1.3; border-collapse: collapse; }
+.ux-table-dense th, .ux-table-dense td { padding: 0.375rem 0.625rem; text-align: left; vertical-align: middle; }
+.ux-table-dense tbody tr { min-height: 2.25rem; }
+.ux-cockpit-100vh { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.ux-cockpit-body { flex: 1 1 auto; min-height: 0; overflow: auto; }
+.ux-stepper-row { display: flex; align-items: center; gap: 0.5rem; min-height: 2.5rem; overflow-x: auto; white-space: nowrap; }

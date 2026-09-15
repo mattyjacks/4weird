@@ -100,7 +100,7 @@ function usd(n: number): string {
 
 const inputCls =
   "min-w-0 rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none";
-const cardCls = "rounded-2xl border border-white/10 bg-white/[.04] p-5";
+const cardCls = "rounded-2xl border border-white/10 bg-white/[.04] p-3.5";
 const btnCls =
   "min-h-[44px] rounded-lg bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 motion-reduce:transition-none";
 const ghostBtnCls =
@@ -443,16 +443,16 @@ export function InvoiceManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <style>{`@media print {
   .invoice-print-sheet { color: #000 !important; background: #fff !important; border-color: #000 !important; }
   .invoice-print-sheet * { color: #000 !important; border-color: #999 !important; background: transparent !important; }
 }`}</style>
       <section
-        className="rounded-2xl border border-amber-300/40 bg-amber-300/10 p-4"
+        className="rounded-2xl border border-amber-300/40 bg-amber-300/10 px-3 py-2"
         aria-label="Invoice compliance notice"
       >
-        <p className="text-sm font-bold text-amber-200">
+        <p className="text-xs font-bold text-amber-200">
           👻 These are NOT tax invoices — internal coin accounting only.
         </p>
         <p className="mt-1 text-xs leading-relaxed text-amber-100/80">
@@ -582,9 +582,13 @@ export function InvoiceManager() {
         {notice && <p className="mt-3 text-sm text-cyan-200" role="status">{notice}</p>}
       </section>
 
-      <section className={cardCls} aria-label="New invoice">
-        <h2 className="text-lg font-bold">New invoice (draft)</h2>
-        <form onSubmit={createInvoice} className="mt-4 space-y-4">
+      {/* Creation flow lives in a collapsed drawer so the ledger below stays
+          above the fold; every field, handler, and CTA inside is unchanged. */}
+      <details className={cardCls} aria-label="New invoice">
+        <summary className="cursor-pointer text-sm font-bold text-white">
+          + Create Invoice (draft)
+        </summary>
+        <form onSubmit={createInvoice} className="mt-3 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-sm text-slate-300">
               Company (select)
@@ -764,7 +768,7 @@ export function InvoiceManager() {
             Create draft invoice
           </button>
         </form>
-      </section>
+      </details>
 
       <section className={`space-y-3 ${printId ? "print:hidden" : ""}`} aria-label="Invoices">
         {busy && !visible.length ? (

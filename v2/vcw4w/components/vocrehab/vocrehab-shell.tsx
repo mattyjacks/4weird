@@ -53,7 +53,7 @@ function VocrehabProgressRailInner() {
   const done = vocrehabProgress.vocrehabDone;
   const total = vocrehabCourseOutline.length;
   return (
-    <div className="vocrehab-progress-rail rounded-xl border border-stone-200 bg-white p-4" role="status" aria-label="Course progress">
+    <div className="vocrehab-progress-rail w-full max-w-xs shrink-0 rounded-xl border border-stone-200 bg-white p-3" role="status" aria-label="Course progress">
       <p className="text-sm font-semibold text-stone-900">
         {xp} XP · {done}/{total} lessons done
       </p>
@@ -69,24 +69,24 @@ function VocrehabProgressRailInner() {
 
 export default function VocrehabShell() {
   return (
-    <div className="vocrehab-shell mx-auto w-full max-w-5xl px-4 py-8">
-      <p className="vocrehab-hero text-2xl font-bold text-stone-900 dark:text-stone-50">
-        Figure out work at your pace — play first, decide with supports, keep your data.
-      </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+    <div className="vocrehab-shell mx-auto w-full max-w-6xl px-4 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <p className="vocrehab-hero min-w-0 flex-1 basis-64 text-xl font-bold text-stone-900 dark:text-stone-50">
+          Figure out work at your pace — play first, decide with supports, keep your data.
+        </p>
+        <Suspense fallback={<div className="w-full max-w-xs rounded-xl border border-stone-200 bg-white p-3 text-sm text-stone-500">Loading progress…</div>}>
+          <VocrehabProgressRailInner />
+        </Suspense>
+      </div>
+      <div className="mt-3 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         {SUITES.map((s) => (
-          <Link key={s.href} href={s.href} className="vocrehab-suite-card rounded-xl border border-stone-200 bg-white p-5 shadow-sm hover:shadow">
-            <h2 className="text-lg font-semibold text-stone-900">{s.title}</h2>
+          <Link key={s.href} href={s.href} className="vocrehab-suite-card rounded-xl border border-stone-200 bg-white p-4 shadow-sm hover:shadow">
+            <h2 className="text-base font-semibold text-stone-900">{s.title}</h2>
             <p className="mt-1 text-sm text-stone-600">{s.blurb}</p>
           </Link>
         ))}
       </div>
-      <div className="mt-6">
-        <Suspense fallback={<div className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-500">Loading progress…</div>}>
-          <VocrehabProgressRailInner />
-        </Suspense>
-      </div>
-      <p className="vocrehab-trust mt-6 text-xs text-stone-500 dark:text-stone-400">
+      <p className="vocrehab-trust mt-4 text-xs text-stone-500 dark:text-stone-400">
         Teaching sketches only — never a benefits promise or a label. Your runs save only when you ask, and your export is yours to take.
       </p>
     </div>

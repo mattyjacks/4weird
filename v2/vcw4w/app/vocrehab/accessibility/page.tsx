@@ -19,17 +19,17 @@ const VOCREHAB_A11Y_ROWS = [
 
 export default function VocrehabAccessibilityPage() {
   return (
-    <main className="vocrehab-accessibility mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-50">Accessibility is the product</h1>
+    <main className="vocrehab-accessibility mx-auto w-full max-w-3xl px-4 py-4">
+      <h1 className="text-xl font-bold text-stone-900 dark:text-stone-50">Accessibility is the product</h1>
       <p className="mt-2 text-stone-700 dark:text-stone-300">
         The toolbar pinned above every VocRehab page controls text size,
         contrast, voice, motion, and keyboard hints — applied to this module
         only, remembered on your device only.
       </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
         {VOCREHAB_A11Y_ROWS.map((r) => (
-          <section key={r.title} aria-label={r.title} className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-stone-900">{r.title}</h2>
+          <section key={r.title} aria-label={r.title} className="rounded-xl border border-stone-200 bg-white p-3.5 shadow-sm">
+            <h2 className="text-base font-semibold text-stone-900">{r.title}</h2>
             <p className="mt-1 text-sm text-stone-600">{r.body}</p>
           </section>
         ))}

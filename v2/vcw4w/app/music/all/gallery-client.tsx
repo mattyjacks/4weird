@@ -526,24 +526,24 @@ export function GalleryClient() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {notice ? (
-        <p role="status" className="rounded-xl border border-cyan-300/30 bg-cyan-300/10 p-4 text-sm text-cyan-100">
+        <p role="status" className="rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-sm text-cyan-100">
           {notice}
         </p>
       ) : null}
 
       <section aria-label="Song library">
-        <h2 className="text-xl font-extrabold">Library</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-base font-extrabold">Library</h2>
+        <p className="mt-0.5 text-xs text-slate-400">
           {songs.length} songs: {seedSongs.length} seeds, {savedSongs.length} saved in this browser.
         </p>
         {songs.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
+          <p className="mt-2 rounded-lg border border-white/10 bg-white/[.03] px-3 py-2 text-sm text-slate-400">
             No songs yet. Songs you make will appear here after you save them.
           </p>
         ) : (
-          <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+          <ul className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
             {songs.map(({ song, source }, index) => {
               const json = JSON.stringify(song);
               const key = song.title + "-" + index;
@@ -553,21 +553,21 @@ export function GalleryClient() {
               return (
                 <li
                   key={key}
-                  className="rounded-xl border border-white/10 bg-white/[.03] p-4"
+                  className="min-h-[36px] rounded-lg border border-white/10 bg-white/[.03] px-3 py-2"
                 >
-                  <p className="text-xs uppercase tracking-widest text-slate-500">
+                  <p className="text-[11px] uppercase tracking-widest text-slate-500">
                     {source === "seed" ? "Seed song" : "Saved song"}
                   </p>
-                  <h3 className="mt-1 text-lg font-bold">{song.title}</h3>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <h3 className="mt-0.5 text-sm font-bold">{song.title}</h3>
+                  <p className="mt-0.5 truncate text-xs text-slate-400">
                     {song.bpm} BPM - {song.tracks.length} tracks - {sizeOf(song)} bytes
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {isPlaying ? (
                       <button
                         type="button"
                         onClick={stopPlayback}
-                        className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold hover:bg-white/20"
+                        className="rounded-md bg-white/10 px-2 py-1 text-xs font-bold hover:bg-white/20"
                       >
                         Stop
                       </button>
@@ -575,7 +575,7 @@ export function GalleryClient() {
                       <button
                         type="button"
                         onClick={() => playSong(song)}
-                        className="rounded-lg bg-cyan-300 px-3 py-1.5 text-sm font-bold text-slate-950 hover:bg-cyan-200"
+                        className="rounded-md bg-cyan-300 px-2 py-1 text-xs font-bold text-slate-950 hover:bg-cyan-200"
                       >
                         Play
                       </button>
@@ -583,13 +583,13 @@ export function GalleryClient() {
                     <button
                       type="button"
                       onClick={() => void copyJson(song.title, song)}
-                      className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
+                      className="rounded-md border border-white/15 px-2 py-1 text-xs hover:bg-white/10"
                     >
                       {copiedKey === song.title ? "Copied" : "Copy JSON"}
                     </button>
                     <a
                       href={remixHref}
-                      className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
+                      className="rounded-md border border-white/15 px-2 py-1 text-xs hover:bg-white/10"
                     >
                       Remix in maker
                     </a>
@@ -597,17 +597,17 @@ export function GalleryClient() {
                       <button
                         type="button"
                         onClick={() => deleteSaved(song.title)}
-                        className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
+                        className="rounded-md border border-white/15 px-2 py-1 text-xs hover:bg-white/10"
                       >
                         Remove
                       </button>
                     ) : null}
                   </div>
-                  <details className="mt-3">
+                  <details className="mt-1.5">
                     <summary className="cursor-pointer text-xs text-slate-500">
                       View JSON ({json.length} chars)
                     </summary>
-                    <pre className="mt-2 max-h-40 overflow-auto rounded-lg bg-black/40 p-3 text-xs text-slate-300">
+                    <pre className="mt-1.5 max-h-24 overflow-auto rounded-md bg-black/40 p-2 text-xs text-slate-300">
                       {json}
                     </pre>
                   </details>
@@ -619,28 +619,28 @@ export function GalleryClient() {
       </section>
 
       <section aria-label="Sound effects">
-        <h2 className="text-xl font-extrabold">Sound effects</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <h2 className="text-base font-extrabold">Sound effects</h2>
+        <p className="mt-0.5 text-xs text-slate-400">
           Short one-shot sounds for games. Each is 1024 bytes or less.
         </p>
-        <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+        <ul className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
           {SEED_SFX.map((sfx) => {
             const isPlaying = playingSfx === sfx.name;
             return (
               <li
                 key={sfx.name}
-                className="rounded-xl border border-white/10 bg-white/[.03] p-4"
+                className="min-h-[36px] rounded-lg border border-white/10 bg-white/[.03] px-3 py-2"
               >
-                <h3 className="text-lg font-bold">{sfx.name}</h3>
-                <p className="mt-1 text-sm text-slate-400">
+                <h3 className="text-sm font-bold">{sfx.name}</h3>
+                <p className="mt-0.5 truncate text-xs text-slate-400">
                   {sfx.kind} - {sfx.steps.length} steps - {sizeOf(sfx)} bytes
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {isPlaying ? (
                     <button
                       type="button"
                       onClick={stopPlayback}
-                      className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-bold hover:bg-white/20"
+                      className="rounded-md bg-white/10 px-2 py-1 text-xs font-bold hover:bg-white/20"
                     >
                       Stop
                     </button>
@@ -648,7 +648,7 @@ export function GalleryClient() {
                     <button
                       type="button"
                       onClick={() => playSfx(sfx)}
-                      className="rounded-lg bg-cyan-300 px-3 py-1.5 text-sm font-bold text-slate-950 hover:bg-cyan-200"
+                      className="rounded-md bg-cyan-300 px-2 py-1 text-xs font-bold text-slate-950 hover:bg-cyan-200"
                     >
                       Play
                     </button>
@@ -656,7 +656,7 @@ export function GalleryClient() {
                   <button
                     type="button"
                     onClick={() => void copyJson(sfx.name, sfx)}
-                    className="rounded-lg border border-white/15 px-3 py-1.5 text-sm hover:bg-white/10"
+                    className="rounded-md border border-white/15 px-2 py-1 text-xs hover:bg-white/10"
                   >
                     {copiedKey === sfx.name ? "Copied" : "Copy JSON"}
                   </button>
@@ -667,13 +667,13 @@ export function GalleryClient() {
         </ul>
       </section>
 
-      <section aria-label="Bot contract" className="rounded-xl border border-white/10 bg-white/[.03] p-4">
-        <h2 className="text-xl font-extrabold">For bots</h2>
-        <p className="mt-1 text-sm text-slate-400">
+      <section aria-label="Bot contract" className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-2">
+        <h2 className="text-base font-extrabold">For bots</h2>
+        <p className="mt-0.5 text-xs text-slate-400">
           Machine-readable song list: GET /api/music/list (also served at /api/music).
           Submit and share songs as Song4W JSON, 8192 bytes or less.
         </p>
-        <p className="mt-3 text-sm">
+        <p className="mt-2 text-sm">
           <a href="/api/music/list" className="underline hover:text-cyan-200">
             GET /api/music/list
           </a>
@@ -682,7 +682,7 @@ export function GalleryClient() {
             GET /api/music
           </a>
         </p>
-        <pre className="mt-3 overflow-auto rounded-lg bg-black/40 p-3 text-xs text-slate-300">
+        <pre className="mt-2 overflow-auto rounded-md bg-black/40 p-2 text-xs text-slate-300">
           {JSON.stringify(MINIMAL_SONG_EXAMPLE)}
         </pre>
       </section>

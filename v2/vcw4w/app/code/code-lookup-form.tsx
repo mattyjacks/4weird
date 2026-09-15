@@ -37,7 +37,7 @@ export function CodeLookupForm() {
     <form
       onSubmit={onSubmit}
       noValidate
-      className="mt-8 rounded-2xl border border-white/10 bg-white/[.04] p-5"
+      className="mt-0 rounded-2xl border border-white/10 bg-white/[.04] p-5"
       aria-label="Look up a submission audit"
     >
       <label htmlFor="code-id" className="text-sm font-bold">

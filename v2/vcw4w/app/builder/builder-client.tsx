@@ -12,14 +12,14 @@ const PLATFORMS: { id: PlatformId; label: string; artifact: string }[] = [
 ];
 
 const RUNTIMES: { id: RuntimeId; label: string; blurb: string }[] = [
-  { id: "node", label: "Node.js runtime", blurb: "Bundle Node so the app runs with no install step." },
-  { id: "python", label: "Python runtime", blurb: "Bundle Python for scripted tools and helpers." },
-  { id: "ffmpeg", label: "FFmpeg", blurb: "Bundle FFmpeg for audio and video export." },
+  { id: "node", label: "Node.js", blurb: "No install step." },
+  { id: "python", label: "Python", blurb: "Scripted helpers." },
+  { id: "ffmpeg", label: "FFmpeg", blurb: "Audio/video export." },
 ];
 
 const LICENSES = ["MIT", "Apache-2.0", "GPL-3.0", "Proprietary"] as const;
 
-const ICON_CHOICES = ["\u{1F680}", "\u{1F3AE}", "\u{1F4E6}", "\u{2699}\u{FE0F}", "\u{1F3A8}", "\u{1F916}", "\u{1F47E}", "\u{2B50}"];
+const ICON_CHOICES = ["🚀", "🎮", "📦", "⚙️", "🎨", "🤖", "👾", "⭐"];
 
 const DRAFT_KEY = "4weird-builder-draft-v1";
 const VERSION_RE = /^\d+\.\d+\.\d+$/;
@@ -174,6 +174,17 @@ export function BuilderClient() {
     }
   }
 
+  function buildPackage() {
+    if (errors.length > 0) {
+      setNotice(errors[0]);
+      return;
+    }
+    downloadJson();
+    setNotice(
+      `Build staged: ${config.project.slug}-setup-${config.project.appVersion} for ${config.targets.length} target${config.targets.length === 1 ? "" : "s"} (${config.targets.map((t) => t.artifact).join(", ")}). Config downloaded — hand it to your packager.`,
+    );
+  }
+
   function resetDraft() {
     setName("My Weird App");
     setVersion("1.0.0");
@@ -190,163 +201,192 @@ export function BuilderClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <div className="rounded-3xl border border-white/10 bg-white/[.04] p-6 sm:p-8">
-        <h2 className="text-xl font-black">Configure</h2>
-
-        <label className="mt-6 block text-sm font-semibold text-slate-200">
-          Project name
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="My Weird App"
-            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white placeholder:text-slate-500"
-          />
-        </label>
-
-        <label className="mt-4 block text-sm font-semibold text-slate-200">
-          Version
-          <input
-            value={version}
-            onChange={(e) => setVersion(e.target.value)}
-            placeholder="1.0.0"
-            inputMode="numeric"
-            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white placeholder:text-slate-500"
-          />
-        </label>
-
-        <fieldset className="mt-6">
-          <legend className="text-sm font-semibold text-slate-200">Platforms</legend>
-          <div className="mt-2 space-y-2">
-            {PLATFORMS.map((p) => (
-              <label
-                key={p.id}
-                className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={platforms.includes(p.id)}
-                  onChange={() => toggle(platforms, p.id, setPlatforms)}
-                  className="h-4 w-4 accent-cyan-300"
-                />
-                <span className="font-semibold">{p.label}</span>
-                <span className="text-slate-400">({p.artifact})</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <fieldset className="mt-6">
-          <legend className="text-sm font-semibold text-slate-200">App icon</legend>
-          <div className="mt-2 flex flex-wrap gap-2" role="radiogroup" aria-label="App icon">
-            {ICON_CHOICES.map((choice) => (
-              <button
-                key={choice}
-                type="button"
-                role="radio"
-                aria-checked={icon === choice}
-                onClick={() => setIcon(choice)}
-                className={`rounded-xl border px-3 py-2 text-2xl transition ${
-                  icon === choice
-                    ? "border-cyan-300/70 bg-cyan-300/10"
-                    : "border-white/10 bg-slate-900 hover:border-cyan-300/40"
-                }`}
-              >
-                {choice}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        <label className="mt-6 block text-sm font-semibold text-slate-200">
-          License
-          <select
-            value={license}
-            onChange={(e) => setLicense(e.target.value as (typeof LICENSES)[number])}
-            className="mt-2 w-full rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white"
-          >
-            {LICENSES.map((l) => (
-              <option key={l} value={l}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <fieldset className="mt-6">
-          <legend className="text-sm font-semibold text-slate-200">Bundled runtimes</legend>
-          <div className="mt-2 space-y-2">
-            {RUNTIMES.map((r) => (
-              <label
-                key={r.id}
-                className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={runtimes.includes(r.id)}
-                  onChange={() => toggle(runtimes, r.id, setRuntimes)}
-                  className="mt-0.5 h-4 w-4 accent-cyan-300"
-                />
-                <span>
-                  <span className="block font-semibold">{r.label}</span>
-                  <span className="block text-slate-400">{r.blurb}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={downloadJson}
-            className="rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
-          >
-            Download JSON
-          </button>
+    <div className="flex h-[calc(100vh-120px)] min-h-[560px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[.03]">
+      {/* Sticky top-right command bar: Copy + Download + Build */}
+      <div className="sticky top-0 z-10 flex shrink-0 items-center gap-2 border-b border-white/10 bg-slate-950/90 px-3 py-2 backdrop-blur">
+        <p className="min-w-0 flex-1 truncate text-[11px] text-slate-400" role="status">
+          {errors.length > 0 ? (
+            <span className="text-amber-300">Warning: {errors[0]}</span>
+          ) : (
+            <>
+              Ready: {config.targets.length} target{config.targets.length === 1 ? "" : "s"} -{" "}
+              {config.project.slug} {config.project.appVersion}
+            </>
+          )}
+          {notice ? <span className="text-cyan-200"> — {notice}</span> : null}
+        </p>
+        <div className="flex shrink-0 gap-1.5">
           <button
             type="button"
             onClick={copyJson}
-            className="rounded-xl border border-white/15 px-4 py-2 text-sm font-bold text-white transition hover:border-cyan-300/50"
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-bold text-white transition hover:border-cyan-300/50"
           >
-            Copy JSON
+            Copy
           </button>
           <button
             type="button"
-            onClick={resetDraft}
-            className="rounded-xl border border-white/15 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:border-cyan-300/50"
+            onClick={downloadJson}
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-bold text-white transition hover:border-cyan-300/50"
           >
-            Reset
+            Download
+          </button>
+          <button
+            type="button"
+            onClick={buildPackage}
+            className="rounded-lg bg-cyan-300 px-3 py-1.5 text-xs font-bold text-slate-950 transition hover:bg-cyan-200"
+          >
+            Build
           </button>
         </div>
-
-        {errors.length > 0 ? (
-          <ul className="mt-4 space-y-1 rounded-xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-200">
-            {errors.map((e) => (
-              <li key={e}>{e}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-4 text-sm text-slate-400">
-            Ready: {config.targets.length} target{config.targets.length === 1 ? "" : "s"} for{" "}
-            {config.project.slug} {config.project.appVersion}.
-          </p>
-        )}
-        {notice ? (
-          <p role="status" className="mt-2 text-sm text-cyan-200">
-            {notice}
-          </p>
-        ) : null}
       </div>
 
-      <div className="rounded-3xl border border-white/10 bg-white/[.04] p-6 sm:p-8">
-        <h2 className="text-xl font-black">Live config preview</h2>
-        <p className="mt-2 text-sm text-slate-400">
-          This exact JSON is what Download and Copy produce.
-        </p>
-        <pre className="mt-4 max-h-[560px] overflow-auto rounded-xl border border-white/10 bg-slate-950 p-4 text-xs leading-relaxed text-cyan-100">
-          {configText}
-        </pre>
+      {/* 2-col split: dense inputs | fixed-height JSON preview */}
+      <div className="grid min-h-0 flex-1 gap-3 p-3 lg:grid-cols-2">
+        <div className="min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-slate-950/60 p-3">
+          {/* Name + Version side-by-side */}
+          <div className="grid grid-cols-[minmax(0,1fr)_140px] gap-2">
+            <label className="block text-[11px] font-semibold text-slate-200">
+              Project name
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="My Weird App"
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-2.5 py-1.5 text-sm text-white placeholder:text-slate-500"
+              />
+            </label>
+            <label className="block text-[11px] font-semibold text-slate-200">
+              Version
+              <input
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+                placeholder="1.0.0"
+                inputMode="numeric"
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-2.5 py-1.5 font-mono text-sm text-white placeholder:text-slate-500"
+              />
+            </label>
+          </div>
+
+          {/* Platform pills */}
+          <fieldset className="mt-3">
+            <legend className="text-[11px] font-semibold text-slate-200">Platforms</legend>
+            <div className="mt-1 flex flex-wrap gap-1.5" role="group" aria-label="Platforms">
+              {PLATFORMS.map((p) => {
+                const active = platforms.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => toggle(platforms, p.id, setPlatforms)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                      active
+                        ? "border-cyan-300/70 bg-cyan-300/15 text-cyan-100"
+                        : "border-white/10 bg-slate-900 text-slate-400 hover:border-cyan-300/40"
+                    }`}
+                  >
+                    {p.label} <span className="font-mono font-normal opacity-70">{p.artifact}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          {/* Icon + License compact row */}
+          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_130px] items-start gap-2">
+            <fieldset>
+              <legend className="text-[11px] font-semibold text-slate-200">App icon</legend>
+              <div className="mt-1 flex flex-wrap gap-1" role="radiogroup" aria-label="App icon">
+                {ICON_CHOICES.map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    role="radio"
+                    aria-checked={icon === choice}
+                    onClick={() => setIcon(choice)}
+                    className={`rounded-lg border px-2 py-1 text-lg leading-none transition ${
+                      icon === choice
+                        ? "border-cyan-300/70 bg-cyan-300/10 text-white"
+                        : "border-white/10 bg-slate-900 text-slate-400 hover:border-cyan-300/40"
+                    }`}
+                  >
+                    {choice}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <label className="block text-[11px] font-semibold text-slate-200">
+              License
+              <select
+                value={license}
+                onChange={(e) => setLicense(e.target.value as (typeof LICENSES)[number])}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-white"
+              >
+                {LICENSES.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {/* Runtime 2x2 grid */}
+          <fieldset className="mt-3">
+            <legend className="text-[11px] font-semibold text-slate-200">Bundled runtimes</legend>
+            <div className="mt-1 grid grid-cols-2 gap-1.5">
+              {RUNTIMES.map((r) => {
+                const active = runtimes.includes(r.id);
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => toggle(runtimes, r.id, setRuntimes)}
+                    className={`rounded-lg border px-2.5 py-1.5 text-left transition ${
+                      active
+                        ? "border-cyan-300/60 bg-cyan-300/10"
+                        : "border-white/10 bg-slate-900 hover:border-cyan-300/40"
+                    }`}
+                  >
+                    <span className="block text-xs font-bold text-white">
+                      [{active ? "x" : " "}] {r.label}
+                    </span>
+                    <span className="block text-[10px] text-slate-400">{r.blurb}</span>
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={resetDraft}
+                className="rounded-lg border border-dashed border-white/15 px-2.5 py-1.5 text-left text-xs font-semibold text-slate-400 transition hover:border-cyan-300/50 hover:text-white"
+              >
+                Reset draft
+                <span className="block text-[10px] font-normal opacity-70">Defaults + clear autosave</span>
+              </button>
+            </div>
+          </fieldset>
+
+          {errors.length > 0 ? (
+            <ul className="mt-3 space-y-0.5 rounded-lg border border-amber-300/30 bg-amber-300/10 p-2.5 text-[11px] text-amber-200">
+              {errors.map((e) => (
+                <li key={e}>{e}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+
+        {/* Fixed-height highlighted JSON preview */}
+        <div className="flex min-h-0 flex-col rounded-xl border border-cyan-300/20 bg-slate-950 p-3">
+          <div className="flex shrink-0 items-center justify-between">
+            <h2 className="font-mono text-[11px] font-bold text-cyan-300">config.json — live</h2>
+            <span className="font-mono text-[10px] text-slate-500">
+              {configText.length} chars - Copy/Download/Build emit this exact JSON
+            </span>
+          </div>
+          <pre className="mt-2 min-h-0 flex-1 overflow-auto rounded-lg border border-white/10 bg-black p-3 font-mono text-[11px] leading-relaxed text-cyan-100">
+            {configText}
+          </pre>
+        </div>
       </div>
     </div>
   );

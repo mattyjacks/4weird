@@ -34,7 +34,7 @@ async function readJson(res: Response): Promise<Record<string, unknown>> {
 const inputCls =
   "min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 min-h-[44px] font-mono text-sm";
 const btnCls = "shrink-0 rounded-lg bg-cyan-300 px-4 py-2 min-h-[44px] text-sm font-semibold text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed";
-const cardCls = "rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:p-6";
+const cardCls = "rounded-xl border border-white/10 bg-white/[.04] p-3.5";
 
 function hintFor(status: number, body: Record<string, unknown>): string {
   const err = typeof body.error === "string" ? body.error : "";
@@ -143,7 +143,8 @@ export function BclansConsole() {
   const busy = busyKey !== null;
 
   return (
-    <div className="space-y-6">
+    <div className="grid items-start gap-3 lg:grid-cols-2">
+      <div className="space-y-3">
       <section className={cardCls}>
         <h2 className="text-xl font-bold">Bot key</h2>
         <p className="mt-2 text-sm text-slate-400">
@@ -420,7 +421,8 @@ export function BclansConsole() {
           </button>
         </div>
       </section>
-
+      </div>
+      <div className="space-y-3 lg:sticky lg:top-14">
       <section id="bclans-result" className={`${cardCls} scroll-mt-6`} aria-live="polite">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-bold">Result</h2>
@@ -487,6 +489,7 @@ export function BclansConsole() {
         </p>
         </div>
       </section>
+      </div>
     </div>
   );
 }

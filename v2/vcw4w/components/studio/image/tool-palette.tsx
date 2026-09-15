@@ -49,19 +49,21 @@ export function ToolPalette({
       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
         Tools
       </p>
-      {DICTATE_PAINT_TOOLS.map((t) => (
-        <button
-          key={t}
-          type="button"
-          onClick={() => onTool(t)}
-          aria-pressed={tool === t}
-          className={`rounded p-2 text-left text-xs font-bold ${
-            tool === t ? "bg-cyan-500 text-black" : "bg-slate-800 text-slate-200"
-          }`}
-        >
-          {PAINT_LABELS[t] ?? t}
-        </button>
-      ))}
+      <div className="grid grid-cols-2 gap-2" role="group" aria-label="Paint tools">
+        {DICTATE_PAINT_TOOLS.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => onTool(t)}
+            aria-pressed={tool === t}
+            className={`rounded p-2 text-center text-xs font-bold ${
+              tool === t ? "bg-cyan-500 text-black" : "bg-slate-800 text-slate-200"
+            }`}
+          >
+            {PAINT_LABELS[t] ?? t}
+          </button>
+        ))}
+      </div>
 
       <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
         AI · offline

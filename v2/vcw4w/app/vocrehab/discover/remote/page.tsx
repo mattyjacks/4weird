@@ -72,11 +72,11 @@ export default function Page() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-6">
+    <main className="mx-auto max-w-3xl space-y-4 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground print:hidden">
         <Link href="/vocrehab/play">Arcade</Link> → Remote feasibility
       </nav>
-      <h1 className="text-2xl font-bold">Remote work feasibility analyzer</h1>
+      <h1 className="text-xl font-bold">Remote work feasibility analyzer</h1>
       <p>
         The verdict comes from the remote-task game triple plus an environment checklist you fill in with plain
         yes/no answers — no jargon. Many people land on hybrid with supports rather than remote-or-nothing, and
@@ -100,7 +100,7 @@ export default function Page() {
         </div>
       </fieldset>
 
-      <section aria-label="Verdict" aria-live="polite" className="space-y-2 rounded-lg border p-4">
+      <section aria-label="Verdict" aria-live="polite" className="space-y-2 rounded-lg border p-3">
         <h2 className="font-semibold">✓ {info.headline}</h2>
         <p className="text-sm">{result.summary}</p>
         <p className="text-sm"><strong>Supports that help:</strong></p>

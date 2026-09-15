@@ -131,37 +131,14 @@ export function SongCard({ song, compact }: SongCardProps): React.JSX.Element {
   const tracks = Array.isArray(song?.tracks) ? song.tracks.length : 0;
 
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[.03] p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-violet-500/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-violet-200">
-          Song
-        </span>
-        {bpm > 0 ? (
-          <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
-            {bpm} BPM
-          </span>
-        ) : null}
-      </div>
-      <h3 className="text-base font-bold text-white">{title}</h3>
-      {compact ? null : (
-        <p className="text-xs text-slate-400">
-          {tracks} {tracks === 1 ? "track" : "tracks"} | {notes}{" "}
-          {notes === 1 ? "note" : "notes"} |{" "}
-          {bytes >= 0 ? `${bytes} / ${MAX_SONG_BYTES} bytes` : "size unknown"}
-        </p>
-      )}
-      {!check.ok ? (
-        <p role="alert" className="text-xs text-red-300">
-          Invalid song: {check.errors[0] ?? "unknown reason"}
-        </p>
-      ) : null}
-      <div className="mt-auto flex flex-wrap items-center gap-2">
+    <article className="flex min-h-9 flex-col justify-center gap-1 rounded-xl border border-white/10 bg-white/[.03] px-3 py-1.5">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         {status === "playing" ? (
           <button
             type="button"
             onClick={onStop}
             aria-label={`Stop preview of ${title}`}
-            className="rounded-lg bg-white/10 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-white/20"
+            className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-semibold text-white transition hover:bg-white/20"
           >
             Stop
           </button>
@@ -171,21 +148,42 @@ export function SongCard({ song, compact }: SongCardProps): React.JSX.Element {
             onClick={onPreview}
             disabled={!check.ok}
             aria-label={`Preview ${title}`}
-            className="rounded-lg bg-cyan-400 px-3 py-1.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
+            className="rounded-lg bg-cyan-400 px-2.5 py-1 text-xs font-bold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-50"
           >
             Preview
           </button>
+        )}
+        <h3 className="min-w-0 flex-1 truncate text-sm font-bold text-white">{title}</h3>
+        <span className="rounded-full bg-violet-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-200">
+          Song
+        </span>
+        {bpm > 0 ? (
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+            {bpm} BPM
+          </span>
+        ) : null}
+        {compact ? null : (
+          <span className="hidden text-[11px] text-slate-500 md:inline">
+            {tracks} {tracks === 1 ? "track" : "tracks"} | {notes}{" "}
+            {notes === 1 ? "note" : "notes"} |{" "}
+            {bytes >= 0 ? `${bytes} / ${MAX_SONG_BYTES} B` : "size unknown"}
+          </span>
         )}
         <button
           type="button"
           onClick={onCopy}
           aria-label={`Copy ${title} JSON`}
-          className="rounded-lg border border-white/15 px-3 py-1.5 text-sm font-semibold text-slate-200 transition hover:border-white/30 hover:text-white"
+          className="rounded-lg border border-white/15 px-2.5 py-1 text-xs font-semibold text-slate-200 transition hover:border-white/30 hover:text-white"
         >
           {copied ? "Copied" : "Copy JSON"}
         </button>
       </div>
-      <p role="status" className="text-xs text-slate-400">
+      {!check.ok ? (
+        <p role="alert" className="text-[11px] text-red-300">
+          Invalid song: {check.errors[0] ?? "unknown reason"}
+        </p>
+      ) : null}
+      <p role="status" className="text-[11px] text-slate-500">
         {status === "error" && check.ok
           ? "Preview unavailable in this browser. "
           : null}
@@ -213,20 +211,18 @@ function LegacyCard({ item }: { item: unknown }): React.JSX.Element {
     /* fail-open: keep defaults */
   }
   return (
-    <article className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[.03] p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-amber-200">
-          {kind}
-        </span>
-        <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold text-slate-300">
-          legacy format
-        </span>
-      </div>
-      <h3 className="text-base font-bold text-white">{title}</h3>
-      <p className="text-xs text-slate-400">
+    <article className="flex min-h-9 flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-white/10 bg-white/[.03] px-3 py-1.5">
+      <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200">
+        {kind}
+      </span>
+      <h3 className="min-w-0 flex-1 truncate text-sm font-bold text-white">{title}</h3>
+      <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+        legacy format
+      </span>
+      <span className="hidden text-[11px] text-slate-500 md:inline">
         Legacy $music:1 loop (pre-4W-1). Plays in the maker; 4W-1 transcription
         in progress.
-      </p>
+      </span>
     </article>
   );
 }
@@ -259,7 +255,7 @@ export function SongGrid({ initial, limit }: SongGridProps): React.JSX.Element {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-2">
       {items.map((item, index) => {
         let valid = false;
         try {

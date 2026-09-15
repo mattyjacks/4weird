@@ -238,14 +238,16 @@ export default function P2pClient() {
   const estimatedUsd = estimatedCoins / COINS_PER_DOLLAR;
 
   return (
-    <div style={{ display: "grid", gap: "1rem" }}>
-      <div
-        style={{
-          border: "1px solid rgba(255,255,255,0.12)",
-          borderRadius: 12,
-          padding: "1rem",
-        }}
-      >
+    <div
+      style={{
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: 12,
+        padding: "1rem",
+        display: "grid",
+        gap: "0.75rem",
+      }}
+    >
+      <div>
         <h2 style={{ margin: 0 }}>Donate personal seconds (opt-in)</h2>
         <p>
           Off by default. Press Start to run a local hash benchmark in this
@@ -270,6 +272,28 @@ export default function P2pClient() {
               Stop
             </button>
           )}
+          <span
+            style={{
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 999,
+              padding: "0.25rem 0.625rem",
+            }}
+          >
+            {running
+              ? mode === "worker"
+                ? "Web Worker"
+                : "main-thread"
+              : "Stopped"}
+          </span>
+          <span
+            style={{
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 999,
+              padding: "0.25rem 0.625rem",
+            }}
+          >
+            {Math.round(hashesPerSec).toLocaleString()} hashes/sec
+          </span>
         </div>
         <p role="status" aria-live="polite">
           {running
@@ -278,13 +302,7 @@ export default function P2pClient() {
         </p>
       </div>
 
-      <div
-        style={{
-          border: "1px solid rgba(255,255,255,0.12)",
-          borderRadius: 12,
-          padding: "1rem",
-        }}
-      >
+      <div>
         <h2 style={{ margin: 0 }}>Live benchmark</h2>
         <dl>
           <div>
@@ -307,13 +325,7 @@ export default function P2pClient() {
         </dl>
       </div>
 
-      <div
-        style={{
-          border: "1px solid rgba(255,255,255,0.12)",
-          borderRadius: 12,
-          padding: "1rem",
-        }}
-      >
+      <div>
         <h2 style={{ margin: 0 }}>Honest estimate</h2>
         <dl>
           <div>

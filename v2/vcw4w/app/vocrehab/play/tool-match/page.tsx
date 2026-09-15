@@ -10,11 +10,11 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-6">
+    <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/vocrehab/play">Arcade</Link> → Tool Crib
       </nav>
-      <h1 className="text-2xl font-bold">Tool Crib</h1>
+      <h1 className="text-xl font-bold">Tool Crib</h1>
       <VocrehabGameToolMatch />
     </main>
   );

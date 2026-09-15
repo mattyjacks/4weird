@@ -20,10 +20,10 @@ export function DocsNav() {
   return (
     <nav
       aria-label="Docs navigation"
-      className="overflow-hidden rounded-3xl border border-border bg-card"
+      className="overflow-hidden rounded-2xl border border-border bg-card"
     >
-      <div className="bg-gradient-to-r from-cyan-500/20 via-violet-500/15 to-fuchsia-500/20 p-4">
-        <p className="text-base font-black">
+      <div className="bg-gradient-to-r from-cyan-500/20 via-violet-500/15 to-fuchsia-500/20 p-3">
+        <p className="text-sm font-black">
           📚 4weird <span className="text-cyan-600 dark:text-cyan-300">Docs</span>
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
@@ -54,7 +54,7 @@ export function DocsNav() {
           </p>
         )}
       </div>
-      <ul className="space-y-1 p-3">
+      <ul className="space-y-0.5 p-2">
         {DOCS_DATA.map((item) => {
           const active = pathname === item.href;
           const completed = hydrated && isRead(item.href);
@@ -64,7 +64,7 @@ export function DocsNav() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 aria-label={`${item.label}${completed ? " (completed)" : ""}`}
-                className={`group flex items-start gap-2.5 rounded-2xl border px-3 py-2.5 transition ${
+                className={`group flex items-start gap-2 rounded-xl border px-2 py-1 transition ${
                   active
                     ? "border-cyan-500/50 bg-gradient-to-r from-cyan-500/15 to-violet-500/15"
                     : "border-transparent hover:border-border hover:bg-accent"
@@ -72,23 +72,23 @@ export function DocsNav() {
               >
                 <span
                   aria-hidden="true"
-                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-lg ${item.card} ${
+                  className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-base ${item.card} ${
                     active ? "ring-2 ring-cyan-400/60" : "ring-1 ring-black/10 dark:ring-white/10"
                   }`}
                 >
                   {item.icon}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className={`block text-sm font-bold ${active ? "text-cyan-600 dark:text-cyan-200" : ""}`}>
+                  <span className={`block text-[13px] font-bold leading-5 ${active ? "text-cyan-600 dark:text-cyan-200" : ""}`}>
                     {item.label}
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">{item.blurb}</span>
+                  <span className="block truncate text-[11px] leading-tight text-muted-foreground">{item.blurb}</span>
                 </span>
                 {completed && (
                   <span
                     aria-hidden="true"
                     title="Completed"
-                    className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[11px] font-black text-emerald-600 dark:text-emerald-300"
+                    className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[10px] font-black text-emerald-600 dark:text-emerald-300"
                   >
                     ✓
                   </span>

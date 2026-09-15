@@ -19,10 +19,10 @@ export default function CodePage({ params }: { params: Promise<{ id: string }> }
   return (
     <Suspense
       fallback={
-        <main className="mx-auto max-w-3xl px-5 py-16" aria-busy="true" aria-label="Loading submission">
-          <p className="text-sm font-semibold uppercase tracking-widest text-cyan-300">Code review</p>
-          <h1 className="mt-2 text-4xl font-black text-white">Loading submission…</h1>
-          <p className="mt-2 text-sm text-slate-400">Verdict, findings, and audit stream in privately.</p>
+        <main className="mx-auto max-w-5xl px-4 py-8" aria-busy="true" aria-label="Loading submission">
+          <p className="text-xs font-semibold uppercase tracking-widest text-cyan-300">Code review</p>
+          <h1 className="mt-1 text-2xl font-black text-white">Loading submission…</h1>
+          <p className="mt-1 text-sm text-slate-400">Verdict, findings, and audit stream in privately.</p>
         </main>
       }
     >

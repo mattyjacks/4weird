@@ -24,39 +24,86 @@ const theme = {
 // data (no cookies/headers/searchParams), so the grid joins the prerendered
 // shell and streams inside <Suspense>. Per-guide read progress stays client-side
 // (useDocsProgress, localStorage) and is never cached.
+// Collapsible hub groups (spec p68: Platform | Arcade | DevCompute | VocRehab).
+// href-keyed here in the route shell so no lib/component wiring is needed;
+// guides missing from the map fall back to the first group so every link
+// always renders exactly once.
+const DOCS_GROUPS = [
+  { id: "platform", label: "Platform & Economics", hrefs: ["/docs/about", "/docs/getting-started", "/docs/vibe-coins", "/docs/support-launches", "/docs/clans", "/docs/privacy-safety", "/docs/faq"] },
+  { id: "arcade", label: "Arcade & Games", hrefs: ["/docs/playing-games", "/docs/mmo", "/docs/mmo/hosting", "/docs/mmo/age-bands", "/docs/mmo/player", "/docs/mmo/host", "/docs/mmo/safety", "/docs/mmo/faq", "/docs/game-ai-buddy", "/docs/explore-more"] },
+  { id: "devcompute", label: "Developer & Compute", hrefs: ["/docs/bots", "/docs/agents-compute", "/docs/vibecodeworker"] },
+  { id: "vocrehab", label: "Vocational Rehab", hrefs: [] as string[] },
+] as const;
+
 async function CachedGuidesGrid() {
   "use cache";
   cacheLife("days");
   cacheTag("docs-hub");
   const guides = await getDocsHub();
+  const indexed = guides.map((doc, i) => ({ doc, i }));
+  const groupOf = (href: string) =>
+    DOCS_GROUPS.find((g) => (g.hrefs as readonly string[]).includes(href)) ?? DOCS_GROUPS[0];
   return (
-    <div className="mt-6 grid gap-4 sm:grid-cols-2">
-      {guides.map((doc, i) => (
-        <Link
-          key={doc.href}
-          href={doc.href}
-          className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-1 hover:shadow-2xl"
-        >
-          <div aria-hidden="true" className={`h-2 bg-gradient-to-r ${doc.card}`} />
-          <div className="p-5">
-            <div className="flex items-center gap-3">
-              <span aria-hidden="true" className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br text-2xl ${doc.card}`}>
-                {doc.icon}
+    <div className="mt-6 space-y-3">
+      {DOCS_GROUPS.map((g) => {
+        const items = indexed.filter(({ doc }) => groupOf(doc.href).id === g.id);
+        return (
+          <details
+            key={g.id}
+            open
+            className="overflow-hidden rounded-2xl border border-border bg-card/40"
+          >
+            <summary className="flex h-7 cursor-pointer list-none items-center gap-2 px-4 text-[13px] font-bold transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+              {g.label}
+              <span className="rounded-full border border-border px-2 py-px text-[11px] font-black text-muted-foreground">
+                {g.id === "vocrehab" ? items.length + 1 : items.length}
               </span>
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                  Guide {String(i + 1).padStart(2, "0")}
-                </p>
-                <h2 className="text-lg font-black leading-tight">{doc.label}</h2>
-              </div>
+            </summary>
+            <div className="grid gap-3 border-t border-border/60 p-3 sm:grid-cols-2 lg:grid-cols-3">
+              {items.map(({ doc, i }) => (
+                <Link
+                  key={doc.href}
+                  href={doc.href}
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-1 hover:shadow-2xl"
+                >
+                  <div aria-hidden="true" className={`h-1.5 bg-gradient-to-r ${doc.card}`} />
+                  <div className="p-4">
+                    <div className="flex items-center gap-2.5">
+                      <span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-xl ${doc.card}`}>
+                        {doc.icon}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                          Guide {String(i + 1).padStart(2, "0")} · {g.label}
+                        </p>
+                        <h2 className="text-base font-black leading-tight">{doc.label}</h2>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground">{doc.blurb}</p>
+                    <span className="mt-2 inline-block text-sm font-bold text-cyan-600 transition group-hover:translate-x-1 dark:text-cyan-300">
+                      Read guide →
+                    </span>
+                  </div>
+                </Link>
+              ))}
+              {g.id === "vocrehab" && (
+                <Link
+                  href="/vocrehab"
+                  className="group relative overflow-hidden rounded-2xl border border-dashed border-border bg-card p-4 transition hover:-translate-y-1 hover:shadow-2xl"
+                >
+                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                    Practice module
+                  </p>
+                  <p className="mt-1 text-base font-black">VocRehab practice →</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Drills, discovery, and the course track live under /vocrehab.
+                  </p>
+                </Link>
+              )}
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">{doc.blurb}</p>
-            <span className="mt-3 inline-block text-sm font-bold text-cyan-600 transition group-hover:translate-x-1 dark:text-cyan-300">
-              Read guide →
-            </span>
-          </div>
-        </Link>
-      ))}
+          </details>
+        );
+      })}
     </div>
   );
 }
@@ -64,6 +111,24 @@ async function CachedGuidesGrid() {
 export default function DocsHome() {
   return (
     <article>
+      <div className="sticky top-0 z-10 mb-4 flex h-12 items-center gap-3 rounded-2xl border border-border bg-card/95 px-4 backdrop-blur">
+        <p className="shrink-0 text-sm font-black">
+          📚 <Link href="/docs" className="hover:underline">Docs</Link>
+        </p>
+        <form action="/search" method="get" role="search" className="flex flex-1 items-center gap-2">
+          <label htmlFor="docs-search" className="sr-only">Search documentation</label>
+          <input
+            id="docs-search"
+            name="q"
+            type="search"
+            placeholder="Quick search documentation... ⌘K"
+            className="h-8 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none placeholder:text-muted-foreground focus:border-cyan-500/60"
+          />
+          <button type="submit" className="shrink-0 rounded-lg border border-border px-3 py-1.5 text-sm font-bold transition hover:border-cyan-500/50">
+            Search
+          </button>
+        </form>
+      </div>
       <DocsHero
         eyebrow="4weird.com/docs/ · 13 guides"
         title={<>The manual for <span className={theme.title}>Future Forward Fun.</span></>}

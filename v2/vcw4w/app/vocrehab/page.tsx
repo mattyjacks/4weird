@@ -20,13 +20,13 @@ export default function VocrehabHubPage() {
   return (
     <main className="vocrehab-hub">
       <VocrehabShell />
-      <section aria-label="More suites" className="mx-auto w-full max-w-5xl px-4 pb-10">
-        <div className="mt-2 grid gap-4 sm:grid-cols-2">
+      <section aria-label="More suites" className="mx-auto w-full max-w-5xl px-4 pb-6">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {VOCREHAB_SUITES.map((s) => (
             <Link
               key={s.href}
               href={s.href}
-              className="rounded-xl border border-stone-200 bg-white p-5 shadow-sm hover:shadow"
+              className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm hover:shadow"
             >
               <h2 className="text-lg font-semibold text-stone-900">{s.title}</h2>
               <p className="mt-1 text-sm text-stone-600">{s.blurb}</p>

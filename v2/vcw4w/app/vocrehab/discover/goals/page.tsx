@@ -48,18 +48,18 @@ export default function Page() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-6">
+    <main className="mx-auto max-w-3xl space-y-4 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground print:hidden">
         <Link href="/vocrehab/play">Arcade</Link> → Goal alignment
       </nav>
-      <h1 className="text-2xl font-bold">Job goal alignment checker</h1>
+      <h1 className="text-xl font-bold">Job goal alignment checker</h1>
       <p>
         Compare a job goal with strengths you observed in the games plus your own local-market notes. There is
         no labor-market database and no hiring prediction here — just reasons tied to what you showed you can
         do, matched against what you know about nearby work.
       </p>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
           <label htmlFor="vocrehab-goals-text" className="font-medium">Your job goal (your own words)</label>
           <input

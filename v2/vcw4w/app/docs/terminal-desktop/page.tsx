@@ -10,21 +10,21 @@ export const metadata: Metadata = {
 
 export default function TerminalDesktopDocsPage() {
   return (
-    <main style={{ maxWidth: 760, margin: "0 auto", padding: "2rem 1rem" }}>
-      <p>
-        <Link href="/docs">← Docs</Link> · <Link href="/terminal">/terminal</Link> ·{" "}
-        <Link href="/desktop">/desktop</Link>
+    <main className="mx-auto w-full max-w-3xl px-4 py-4">
+      <p className="text-xs text-muted-foreground">
+        <Link href="/docs" className="hover:underline">← Docs</Link> · <Link href="/terminal" className="hover:underline">/terminal</Link> ·{" "}
+        <Link href="/desktop" className="hover:underline">/desktop</Link>
       </p>
-      <h1>Terminal ↔ Desktop bridge</h1>
-      <p>
+      <h1 className="mt-2 text-2xl font-black tracking-tight">Terminal ↔ Desktop bridge</h1>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         <code>/terminal</code> (CryptArt Commander) is a local, allow-listed sandbox: every input maps to a
         TypeScript handler, publishes an <code>interopBus</code> event, and never performs server execution or
         fetches. It connects to desktop surfaces by <strong>printing guidance + deep-links</strong> — it never
         launches or controls them.
       </p>
 
-      <h2>Two desktops, one terminal</h2>
-      <ul>
+      <h2 className="mt-6 text-lg font-black tracking-tight">Two desktops, one terminal</h2>
+      <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
         <li>
           <strong>Virtual desktop</strong> — <Link href="/desktop?from=terminal&kind=virtual">/desktop (virtual)</Link>:
           RunPod pods in the browser. Use it when you need cloud GPUs without installing anything. Provisioning
@@ -37,8 +37,8 @@ export default function TerminalDesktopDocsPage() {
         </li>
       </ul>
 
-      <h2>Terminal commands</h2>
-      <ul>
+      <h2 className="mt-6 text-lg font-black tracking-tight">Terminal commands</h2>
+      <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
         <li>
           <code>desktop [virtual|local|opencode]</code> — prints which desktop fits and a deep-link such as{" "}
           <code>/desktop?from=terminal&amp;kind=virtual</code>.
@@ -49,8 +49,8 @@ export default function TerminalDesktopDocsPage() {
         </li>
       </ul>
 
-      <h2>What /terminal can / can&apos;t do</h2>
-      <ul>
+      <h2 className="mt-6 text-lg font-black tracking-tight">What /terminal can / can&apos;t do</h2>
+      <ul className="mt-2 space-y-1.5 text-sm leading-relaxed">
         <li>
           <strong>Can:</strong> <code>help</code>, <code>echo</code>, <code>status</code>,{" "}
           <code>coins</code> quotes, <code>luck</code> previews, <code>desktop</code> / <code>opencode</code>{" "}
@@ -62,7 +62,7 @@ export default function TerminalDesktopDocsPage() {
         </li>
       </ul>
 
-      <p>
+      <p className="mt-4 text-sm leading-relaxed">
         Try it: open <Link href="/terminal">/terminal</Link>, type <code>desktop virtual</code>, then follow the
         printed link to <Link href="/desktop">/desktop</Link>.
       </p>

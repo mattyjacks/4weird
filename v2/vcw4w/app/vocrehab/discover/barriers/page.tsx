@@ -53,11 +53,11 @@ export default function Page() {
   };
 
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-6">
+    <main className="mx-auto max-w-3xl space-y-4 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground print:hidden">
         <Link href="/vocrehab/play/barrier-run">Barrier Run game</Link> → Barrier Buster
       </nav>
-      <h1 className="text-2xl font-bold">Barrier Buster</h1>
+      <h1 className="text-xl font-bold">Barrier Buster</h1>
       <p>
         Pick the barriers that fit your life — each one maps to concrete strategies with exit ramps. These are
         suggestions, never prescriptions. Medical, legal, and benefits questions are handoffs to a person, not
@@ -86,7 +86,7 @@ export default function Page() {
         <h2 className="font-semibold">Your strategy shortlist</h2>
         {strategies.length === 0 && <p className="text-sm text-muted-foreground">Pick at least one barrier above.</p>}
         {strategies.map((s) => (
-          <article key={`${s.barrier}-${s.title}`} className="rounded-lg border p-4">
+          <article key={`${s.barrier}-${s.title}`} className="rounded-lg border p-3">
             <h3 className="font-medium">✓ {s.barrierLabel} — {s.title}</h3>
             <ol className="list-decimal pl-5 text-sm">
               {s.steps.map((step) => (

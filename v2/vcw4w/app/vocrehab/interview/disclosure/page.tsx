@@ -11,18 +11,18 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <main className="vocrehab-interview-disclosure mx-auto w-full max-w-3xl space-y-4 p-6">
+    <main className="vocrehab-interview-disclosure mx-auto w-full max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
         <Link href="/vocrehab/interview">Interview</Link> → Disclosure
       </nav>
-      <h1 className="text-2xl font-bold">Disclosure + accommodation ask</h1>
+      <h1 className="text-xl font-bold">Disclosure + accommodation ask</h1>
       <p className="text-muted-foreground">
         You own every word. A strong ask has four lines: two sentences of
         disclosure, one sentence requesting the accommodation, one sentence on
         how it helps you do the role well. Share only what you are comfortable
         sharing.
       </p>
-      <p className="rounded-xl border p-4 text-sm">
+      <p className="rounded-xl border p-3 text-sm">
         <strong>Not disclosing right now is completely valid too.</strong> A
         ready closing line: “I will follow up if a need arises.” Nobody here
         will ever pressure you to disclose.

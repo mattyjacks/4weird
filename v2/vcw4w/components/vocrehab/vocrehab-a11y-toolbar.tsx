@@ -105,11 +105,18 @@ export function VocrehabA11yToolbar() {
   }
 
   return (
-    <div
-      className="vocrehab-a11y-toolbar"
-      role="toolbar"
-      aria-label="VocRehab display and access options"
-    >
+    <details className="fixed bottom-4 right-4 z-40 max-w-[calc(100vw-2rem)] rounded-2xl border border-stone-300 bg-white/95 shadow-xl backdrop-blur">
+      <summary
+        aria-label="Open display and access options"
+        className="cursor-pointer list-none rounded-2xl px-3.5 py-2 text-sm font-semibold text-stone-900 hover:bg-stone-100 [&::-webkit-details-marker]:hidden"
+      >
+        Access options
+      </summary>
+      <div
+        className="vocrehab-a11y-toolbar max-w-sm border-t border-stone-200"
+        role="toolbar"
+        aria-label="VocRehab display and access options"
+      >
       <span className="vocrehab-a11y-label" id="vocrehab-text-size-label">
         Text size
       </span>
@@ -193,7 +200,8 @@ export function VocrehabA11yToolbar() {
           or arrows. Press Tab to move, Enter to choose, arrow keys on sliders.
         </p>
       ) : null}
-    </div>
+      </div>
+    </details>
   );
 }
 

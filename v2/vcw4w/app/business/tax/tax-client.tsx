@@ -194,11 +194,11 @@ export function TaxClient() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <div className="rounded-3xl border border-white/10 bg-white/[.04] p-6 sm:p-8">
-        <h2 className="text-xl font-black">Estimate</h2>
+    <div className="grid gap-3 lg:h-full lg:min-h-0 lg:grid-cols-2">
+      <div className="rounded-2xl border border-white/10 bg-white/[.04] p-3.5 lg:min-h-0 lg:overflow-y-auto">
+        <h2 className="text-lg font-black">Estimate</h2>
 
-        <label className="mt-6 block text-sm font-semibold text-slate-200">
+        <label className="mt-3 block text-sm font-semibold text-slate-200">
           Annual freelance income (USD)
           <input
             value={incomeRaw}
@@ -209,7 +209,7 @@ export function TaxClient() {
           />
         </label>
 
-        <label className="mt-4 block text-sm font-semibold text-slate-200">
+        <label className="mt-3 block text-sm font-semibold text-slate-200">
           Other business expenses (USD)
           <input
             value={otherExpensesRaw}
@@ -220,7 +220,7 @@ export function TaxClient() {
           />
         </label>
 
-        <label className="mt-4 block text-sm font-semibold text-slate-200">
+        <label className="mt-3 block text-sm font-semibold text-slate-200">
           State
           <select
             value={stateCode}
@@ -236,7 +236,7 @@ export function TaxClient() {
         </label>
 
         {estimate ? (
-          <div className="mt-6 rounded-2xl border border-white/10 bg-slate-950 p-4 text-sm">
+          <div className="mt-3 rounded-2xl border border-white/10 bg-slate-950 p-4 text-sm">
             <h3 className="font-bold text-slate-100">Worked estimate</h3>
             <dl className="mt-3 space-y-1.5 text-slate-300">
               <div className="flex justify-between gap-4">
@@ -282,14 +282,14 @@ export function TaxClient() {
             </p>
           </div>
         ) : (
-          <p className="mt-6 rounded-xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-200">
+          <p className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/10 p-4 text-sm text-amber-200">
             Enter numbers for income and expenses to see the worked estimate.
           </p>
         )}
       </div>
 
-      <div className="rounded-3xl border border-white/10 bg-white/[.04] p-6 sm:p-8">
-        <div className="flex items-center justify-between gap-4">
+      <div className="rounded-2xl border border-white/10 bg-white/[.04] p-3.5 lg:min-h-0 lg:overflow-y-auto">
+        <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-black">Receipts ({receipts.length})</h2>
           <button
             type="button"
@@ -300,7 +300,7 @@ export function TaxClient() {
           </button>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-3 grid grid-cols-2 gap-3">
           <label className="col-span-2 block text-sm font-semibold text-slate-200 sm:col-span-1">
             Vendor / note
             <input
@@ -342,22 +342,22 @@ export function TaxClient() {
         <button
           type="button"
           onClick={addReceipt}
-          className="mt-4 rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+          className="mt-3 rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
         >
           Add receipt
         </button>
 
         {receipts.length === 0 ? (
-          <p className="mt-6 rounded-xl border border-white/10 bg-slate-950 p-4 text-sm text-slate-400">
+          <p className="mt-3 rounded-xl border border-white/10 bg-slate-950 p-4 text-sm text-slate-400">
             No receipts yet. Add your first one above — receipts add into the
             expense side of the estimate and export to CSV.
           </p>
         ) : (
-          <ul className="mt-6 space-y-2">
+          <ul className="mt-3 space-y-2">
             {[...receipts].reverse().map((r) => (
               <li
                 key={r.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm"
+                className="flex min-h-[36px] items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-950 px-3 py-1.5 text-sm"
               >
                 <span className="min-w-0">
                   <span className="block truncate font-semibold text-white">{r.vendor}</span>
@@ -381,7 +381,7 @@ export function TaxClient() {
           </ul>
         )}
 
-        <p className="mt-4 text-sm text-slate-400">
+        <p className="mt-3 text-sm text-slate-400">
           Receipts total: <span className="font-bold text-white">{money(receiptsTotal)}</span>
         </p>
         {notice ? (

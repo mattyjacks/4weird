@@ -7,25 +7,28 @@ export function SectionHead({
   kicker,
   title,
   body,
+  id,
 }: {
   index: string;
   kicker: string;
   title: string;
   body?: React.ReactNode;
+  /** Optional anchor id so long guides can link to this section (sticky TOC). */
+  id?: string;
 }) {
   return (
-    <div className="mt-12">
+    <div className="mt-8 scroll-mt-20" id={id}>
       <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.25em] text-muted-foreground">
         <span
           aria-hidden="true"
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 text-[13px] font-black text-white"
+          className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-violet-500 text-xs font-black text-white"
         >
           {index}
         </span>
         {kicker}
       </p>
-      <h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
-      {body && <p className="mt-2 max-w-3xl leading-relaxed text-muted-foreground">{body}</p>}
+      <h2 className="mt-2 text-xl font-black tracking-tight sm:text-2xl">{title}</h2>
+      {body && <p className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted-foreground">{body}</p>}
     </div>
   );
 }
@@ -56,12 +59,12 @@ export function Callout({
   children: React.ReactNode;
 }) {
   return (
-    <aside className={`mt-5 rounded-2xl border p-5 ${CALLOUT_STYLES[tone]}`}>
-      <p className="font-black">
+    <aside className={`mt-4 rounded-xl border p-3.5 ${CALLOUT_STYLES[tone]}`}>
+      <p className="text-sm font-black">
         <span aria-hidden="true" className="mr-2">{CALLOUT_ICON[tone]}</span>
         {title}
       </p>
-      <div className="mt-2 text-sm leading-relaxed text-muted-foreground">{children}</div>
+      <div className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{children}</div>
     </aside>
   );
 }
@@ -77,8 +80,8 @@ export function MockWindow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-slate-950 text-slate-200 shadow-2xl dark:border-white/15">
-      <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-2.5">
+    <div className="mt-4 overflow-hidden rounded-xl border border-black/10 bg-slate-950 text-slate-200 shadow-2xl dark:border-white/15">
+      <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-3 py-1.5">
         <span aria-hidden="true" className="flex gap-1.5">
           <i className="h-2.5 w-2.5 rounded-full bg-rose-400" />
           <i className="h-2.5 w-2.5 rounded-full bg-amber-300" />
@@ -91,7 +94,7 @@ export function MockWindow({
           </span>
         )}
       </div>
-      <div className="p-4 sm:p-5">{children}</div>
+      <div className="p-3">{children}</div>
     </div>
   );
 }
@@ -99,18 +102,18 @@ export function MockWindow({
 /** Vertical timeline steps. */
 export function Steps({ items }: { items: [string, React.ReactNode][] }) {
   return (
-    <ol className="mt-6 space-y-0">
+    <ol className="mt-4 space-y-0">
       {items.map(([title, body], i) => (
-        <li key={title} className="relative flex gap-4 pb-6 last:pb-0">
+        <li key={title} className="relative flex gap-3 pb-4 last:pb-0">
           <div className="flex flex-col items-center" aria-hidden="true">
-            <span className="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-sm font-black text-white shadow-lg">
+            <span className="z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-xs font-black text-white shadow-lg">
               {i + 1}
             </span>
             {i < items.length - 1 && <span className="w-0.5 flex-1 bg-gradient-to-b from-cyan-400/60 to-violet-500/30" />}
           </div>
-          <div className="min-w-0 flex-1 rounded-2xl border border-border bg-card p-4">
-            <h3 className="font-bold">{title}</h3>
-            <div className="mt-1 text-sm leading-relaxed text-muted-foreground">{body}</div>
+          <div className="min-w-0 flex-1 rounded-xl border border-border bg-card p-3">
+            <h3 className="text-sm font-bold">{title}</h3>
+            <div className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{body}</div>
           </div>
         </li>
       ))}
@@ -121,8 +124,8 @@ export function Steps({ items }: { items: [string, React.ReactNode][] }) {
 /** 25/75 split bar. */
 export function SplitBar({ leftLabel = "75% provider", rightLabel = "25% platform" }: { leftLabel?: string; rightLabel?: string }) {
   return (
-    <div className="mt-5 overflow-hidden rounded-2xl border border-border">
-      <div className="flex h-14 text-sm font-black">
+    <div className="mt-4 overflow-hidden rounded-xl border border-border">
+      <div className="flex h-10 text-[13px] font-black">
         <div className="flex w-3/4 items-center justify-center bg-gradient-to-r from-cyan-400 to-emerald-300 text-slate-950">
           {leftLabel}
         </div>
@@ -130,7 +133,7 @@ export function SplitBar({ leftLabel = "75% provider", rightLabel = "25% platfor
           {rightLabel}
         </div>
       </div>
-      <p className="bg-card px-4 py-3 text-xs text-muted-foreground">
+      <p className="bg-card px-3 py-2 text-xs text-muted-foreground">
         Example: a 400-coin ($4.00) job → 300 coins provider credits, 100 coins platform. You only ever see the gross 400. All credits are on-site only (cloud compute, game credits, other on-site services); never cash-out, never withdrawable.
       </p>
     </div>
@@ -143,7 +146,7 @@ export function Pager({ current }: { current: string }) {
   const prev = DOCS_DATA[(i - 1 + DOCS_DATA.length) % DOCS_DATA.length];
   const next = DOCS_DATA[(i + 1) % DOCS_DATA.length];
   return (
-    <nav aria-label="More guides" className="mt-12 grid gap-3 sm:grid-cols-2">
+    <nav aria-label="More guides" className="mt-8 grid gap-2.5 sm:grid-cols-2">
       {[
         { d: prev, k: "← Previous guide" },
         { d: next, k: "Next guide →" },
@@ -151,14 +154,14 @@ export function Pager({ current }: { current: string }) {
         <Link
           key={d.href}
           href={d.href}
-          className={`group rounded-2xl border border-border bg-gradient-to-br p-5 transition hover:border-cyan-500/50 ${d.card}`}
+          className={`group rounded-xl border border-border bg-gradient-to-br p-3.5 transition hover:border-cyan-500/50 ${d.card}`}
         >
           <p className="text-[11px] font-black uppercase tracking-[0.25em] text-muted-foreground">{k}</p>
-          <p className="mt-1 text-lg font-black">
+          <p className="mt-0.5 text-base font-black">
             <span aria-hidden="true" className="mr-2">{d.icon}</span>
             {d.label}
           </p>
-          <p className="text-sm text-muted-foreground">{d.blurb}</p>
+          <p className="text-[13px] text-muted-foreground">{d.blurb}</p>
         </Link>
       ))}
     </nav>
