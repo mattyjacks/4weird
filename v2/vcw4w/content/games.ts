@@ -30,7 +30,9 @@ const recommendedSlugs = new Set([
 for (const game of games) game.recommended = recommendedSlugs.has(game.slug);
 const seen = new Set<string>();
 for (const game of games) {
-  if (!/^[a-z0-9-]+$/.test(game.slug) || seen.has(game.slug)) throw new Error(`Invalid or duplicate game slug: ${game.slug}`);
+  // Preserve the legacy mixed-case slug used by GraveGain2DA's routes and bundles.
+  const validSlug = /^[a-z0-9-]+$/.test(game.slug) || game.slug === 'gravegain2dA';
+  if (!validSlug || seen.has(game.slug)) throw new Error(`Invalid or duplicate game slug: ${game.slug}`);
   if (!game.title.trim() || !game.description.trim()) throw new Error(`Incomplete game metadata: ${game.slug}`);
   if (game.runtimePath !== `/games/${game.slug}/index.html`) throw new Error(`Invalid game runtime path: ${game.slug}`);
   seen.add(game.slug);
