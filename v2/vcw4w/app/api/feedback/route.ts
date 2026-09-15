@@ -81,9 +81,19 @@ import { clientIp, isEmail } from "@/lib/validate";
 //     (screenshot >8MB), 429 (rate limit — guests share a tighter 10/min
 //     per-IP bucket plus a 5/hour/IP backstop on top of the base 30/min
 //     bucket), 500 (store write failure), or 503 ("feedback store not set
-//     up." fail-open when the table/bucket/service-role config — or the
-//     visibility/contact/source/annotations columns — is missing; never
-//     faked).
+//     up." fail-open ONLY when the store itself is genuinely missing — no
+//     feedback_reports table at all, no service-role config, or a missing
+//     bucket on screenshot submits; never faked).
+//   Degrade path (DS-FIXFB-01): when the full insert hits a missing
+//     table/column error (42703/PGRST204/message match — prod DB lagging
+//     the migration chain), the route RETRIES with base columns only
+//     (reporter_type, rating, critique, text_body, labels, bot_extras,
+//     page_url, user_agent, screenshot_path; status takes its DB default)
+//     and stashes the extended fields (visibility, contact_name,
+//     contact_email, annotations, source, user_id) into
+//     bot_extras._degraded (plus the missing-column name) so the report
+//     still lands as 201 with nothing lost; the degradation is logged
+//     server-side with the missing-column name.
 //   Clients must read `success` + `error`/`id` (NOT bare `id`/`message`).
 //
 // Storage: row in `feedback_reports` + object in the `feedback-screenshots`
@@ -99,10 +109,10 @@ import { clientIp, isEmail } from "@/lib/validate";
 // contact_email (both NULL unless guest), annotations (jsonb, [] when
 // absent). (The migration has NO screenshot_bytes/sha256 columns —
 // screenshot bytes are validated in-memory only via the magic-byte /
-// polyglot guards, never inserted.) When the DS-FBOV-06 columns have not
-// been migrated yet the insert fails with a missing-column error and the
-// route returns 503 STORE_MISSING (fail-open, never faked) instead of
-// silently dropping the new fields.
+// polyglot guards, never inserted.) When the extended columns have not
+// been migrated yet the full insert fails with a missing-column error and
+// the route takes the DS-FIXFB-01 degrade path (base-columns retry +
+// bot_extras._degraded stash, 201) instead of 503ing the submit.
 
 const MAX_TEXT_CHARS = 4000;
 const MAX_URL_CHARS = 2048;
@@ -160,6 +170,20 @@ function isMissingTable(error: { code?: unknown; message?: unknown }): boolean {
     message.includes("feedback_reports") ||
     message.includes("schema cache")
   );
+}
+
+function missingColumnName(error: { code?: unknown; message?: unknown }): string | null {
+  // Same detection pattern as isMissingTable/isMissingColumn: Postgres
+  // 42703 ('column "visibility" of relation "feedback_reports" does not
+  // exist') and PostgREST PGRST204 ("Could not find the 'visibility'
+  // column ... in the schema cache") both name the column — pull it out
+  // so the degrade path can log exactly which migration lagged.
+  const m = String(error?.message ?? "");
+  const pg = /column "([^"]+)"/i.exec(m);
+  if (pg?.[1]) return pg[1];
+  const pgrst = /'([^']+)' column/i.exec(m);
+  if (pgrst?.[1]) return pgrst[1];
+  return null;
 }
 
 function isMissingBucket(message: string): boolean {
@@ -820,41 +844,83 @@ export async function POST(req: Request) {
   // rather than null).
   // Identity columns: user_id (uuid, NULL for anonymous/guest), visibility,
   // contact_name, contact_email, source. reporter_type stays orthogonal.
-  const { data: row, error: rowErr } = await svc
+  const fullInsert = {
+    reporter_type: reporterType,
+    rating,
+    critique,
+    text_body: text,
+    labels,
+    bot_extras: botExtras,
+    annotations,
+    page_url: pageUrl,
+    user_agent: req.headers.get("user-agent")?.slice(0, 512) ?? null,
+    screenshot_path: screenshotPath,
+    screenshot_mime: screenshotKind ? SCREENSHOT_META[screenshotKind].contentType : null,
+    screenshot_width: screenshotDims?.width ?? null,
+    screenshot_height: screenshotDims?.height ?? null,
+    user_id: userId,
+    visibility,
+    contact_name: contactName,
+    contact_email: contactEmail,
+    source,
+  };
+  const first = await svc
     .from("feedback_reports")
-    .insert({
-      reporter_type: reporterType,
-      rating,
-      critique,
-      text_body: text,
-      labels,
-      bot_extras: botExtras,
-      annotations,
-      page_url: pageUrl,
-      user_agent: req.headers.get("user-agent")?.slice(0, 512) ?? null,
-      screenshot_path: screenshotPath,
-      screenshot_mime: screenshotKind ? SCREENSHOT_META[screenshotKind].contentType : null,
-      screenshot_width: screenshotDims?.width ?? null,
-      screenshot_height: screenshotDims?.height ?? null,
-      user_id: userId,
-      visibility,
-      contact_name: contactName,
-      contact_email: contactEmail,
-      source,
-    })
+    .insert(fullInsert)
     .select("id")
     .maybeSingle();
+  let row = (first.data as { id?: unknown } | null) ?? null;
+  const rowErr = first.error;
   if (rowErr) {
-    if (isMissingTable(rowErr as { code?: unknown; message?: unknown })) {
-      return fail(STORE_MISSING, 503);
+    const errLike = rowErr as { code?: unknown; message?: unknown };
+    if (!isMissingTable(errLike) && !isMissingColumn(errLike)) {
+      return dbFail("api/feedback", rowErr, "Unable to save feedback.", 500);
     }
-    // Identity/source/annotations migrations not applied yet (unknown
-    // user_id/visibility/contact/source/annotations column) — fail open
-    // with the store-missing contract, never fake success.
-    if (isMissingColumn(rowErr as { code?: unknown; message?: unknown })) {
-      return fail(STORE_MISSING, 503);
+    // Degrade path (DS-FIXFB-01): prod DB lags the migration chain, so the
+    // full insert hit a missing table/column. Retry with base columns only
+    // (status takes its DB default) and stash the extended fields into
+    // bot_extras._degraded so nothing is lost — the report still lands as
+    // 201 instead of 503ing ALL feedback.
+    const missing = missingColumnName(errLike) ?? "unknown";
+    const degradedExtras: Record<string, unknown> = {
+      ...botExtras,
+      _degraded: {
+        visibility,
+        user_id: userId,
+        contact_name: contactName,
+        contact_email: contactEmail,
+        source,
+        annotations,
+        missing_column: missing,
+      },
+    };
+    const retry = await svc
+      .from("feedback_reports")
+      .insert({
+        reporter_type: reporterType,
+        rating,
+        critique,
+        text_body: text,
+        labels,
+        bot_extras: degradedExtras,
+        page_url: pageUrl,
+        user_agent: req.headers.get("user-agent")?.slice(0, 512) ?? null,
+        screenshot_path: screenshotPath,
+      })
+      .select("id")
+      .maybeSingle();
+    if (retry.error) {
+      // Genuinely missing store (no table at all) stays 503; anything else
+      // is a real write failure.
+      if (isMissingTable(retry.error as { code?: unknown; message?: unknown })) {
+        return fail(STORE_MISSING, 503);
+      }
+      return dbFail("api/feedback", retry.error, "Unable to save feedback.", 500);
     }
-    return dbFail("api/feedback", rowErr, "Unable to save feedback.", 500);
+    console.warn("[api] feedback degraded insert (extended columns missing, report preserved)", {
+      missing_column: missing,
+    });
+    row = (retry.data as { id?: unknown } | null) ?? null;
   }
   const id = (row as { id?: unknown } | null)?.id ?? null;
   if (id === null || id === undefined) {

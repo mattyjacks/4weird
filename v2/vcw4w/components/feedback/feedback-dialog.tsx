@@ -19,8 +19,13 @@ export const FEEDBACK_MAX_SCREENSHOT_BYTES = 8 * 1024 * 1024;
 export interface FeedbackDialogProps {
   open: boolean;
   onClose: () => void;
-  reporterType: FeedbackReporterType;
-  setReporterType: (next: FeedbackReporterType) => void;
+  /**
+   * Human-flow compat (DS-FIXFB-05): bots use the API and never open the
+   * dialog, so the dialog no longer renders the Human/Bot radio. Both stay
+   * optional (default human) so old callers keep compiling and submitting.
+   */
+  reporterType?: FeedbackReporterType;
+  setReporterType?: (next: FeedbackReporterType) => void;
   rating: FeedbackRating | null;
   onRatingChange: (next: FeedbackRating) => void;
   critique: FeedbackCritique | null;
@@ -118,10 +123,22 @@ function visibilityLabel(visibility: FeedbackVisibility): string {
   return "Anonymous";
 }
 
+/**
+ * Store-missing probe (DS-FIXFB-05): the API's bare "feedback store not set
+ * up." string renders as an unactionable red line. Match it
+ * case-insensitively (period optional) so the dialog can swap in actionable
+ * copy while every other error still surfaces verbatim.
+ */
+const STORE_MISSING_RE = /feedback store not set up\.?/i;
+
+export function isFeedbackStoreMissingError(message: string | null | undefined): boolean {
+  return typeof message === "string" && STORE_MISSING_RE.test(message);
+}
+
 export function FeedbackDialog({
   open,
   onClose,
-  reporterType,
+  reporterType = "human",
   setReporterType,
   rating,
   onRatingChange,
@@ -153,8 +170,10 @@ export function FeedbackDialog({
   children = null,
 }: FeedbackDialogProps) {
   // Silence the unused-prop warning while keeping the contract surface:
-  // size display is owned by the dropzone thumbnail.
+  // size display is owned by the dropzone thumbnail. setReporterType stays
+  // for API compat (bots submit via the API, never the dialog).
   void screenshotSize;
+  void setReporterType;
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -577,38 +596,11 @@ export function FeedbackDialog({
               </p>
             </div>
 
-            {/* 5 — Reporter type */}
-            <div role="radiogroup" aria-label="Reporter type" className="space-y-2">
-              <span className="text-sm font-medium">Who is reporting?</span>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={reporterType === "human" ? "default" : "outline"}
-                  size="sm"
-                  role="radio"
-                  aria-checked={reporterType === "human"}
-                  disabled={submitting}
-                  onClick={() => setReporterType("human")}
-                  className="min-h-[44px]"
-                >
-                  Human
-                </Button>
-                <Button
-                  type="button"
-                  variant={reporterType === "bot" ? "default" : "outline"}
-                  size="sm"
-                  role="radio"
-                  aria-checked={reporterType === "bot"}
-                  disabled={submitting}
-                  onClick={() => setReporterType("bot")}
-                  className="min-h-[44px]"
-                >
-                  Bot
-                </Button>
-              </div>
-            </div>
-
-            {/* 6 — Identity */}
+            {/* 5 — Identity (single identity question: Tracked / Anonymous /
+              Guest). The Human/Bot reporter radio was removed here
+              (DS-FIXFB-05): bots file via the API and never open the dialog,
+              so it was redundant for humans. reporterType/setReporterType
+              props stay for API compat (default human). */}
             {onVisibilityChange ? (
               <div role="radiogroup" aria-label="Identity" className="space-y-2">
                 <span className="text-sm font-medium">How should we credit this?</span>
@@ -693,7 +685,7 @@ export function FeedbackDialog({
               </div>
             ) : null}
 
-            {/* 7 — Labels */}
+            {/* 6 — Labels */}
             {onLabelsChange ? (
               <div className="space-y-1.5">
                 <label htmlFor={labelsInputId} className="text-sm font-medium">
@@ -740,6 +732,9 @@ export function FeedbackDialog({
               </dl>
             </section>
 
+            {/* Compat-only: unreachable via the dialog UI since the Human/Bot
+              radio was removed (bots use the API), but retained so a
+              programmatic reporterType="bot" still explains itself. */}
             {reporterType === "bot" && (
               <section
                 aria-label="Bot-only recordkeeping"
@@ -758,8 +753,11 @@ export function FeedbackDialog({
               <p
                 role="alert"
                 className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+                title={isFeedbackStoreMissingError(error) ? error : undefined}
               >
-                {error}
+                {isFeedbackStoreMissingError(error)
+                  ? "Couldn't reach the feedback store — your draft is kept, try again shortly."
+                  : error}
               </p>
             ) : null}
 

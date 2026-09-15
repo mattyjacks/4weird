@@ -1,0 +1,22 @@
+{
+  "id": "DS-FIXFB-01",
+  "title": "Route graceful degradation when extended columns lag",
+  "goal": "FIXFB prod-503 slice DS-FIXFB-01: Route graceful degradation when extended columns lag. Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/api/feedback/route.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fixfb-01",
+  "created": "2026-09-15T02:39:03.337Z",
+  "updated": "2026-09-15T02:44:00.000Z",
+  "log": [
+    "2026-09-15T02:39:03.337Z lead: envelope minted for FIXFB prod-503 wave, awaiting claim.",
+    "2026-09-15T02:40:00.000Z fixfb-01: claimed (in_progress). Implementing degrade-path retry in route.ts only.",
+    "2026-09-15T02:44:00.000Z fixfb-01: done. route.ts only: missing table/column insert failure now retries with base columns + bot_extras._degraded stash (201), 503 kept for genuinely missing store. Gates: npx eslint app/api/feedback/route.ts clean; npx tsc --noEmit clean."
+  ]
+}

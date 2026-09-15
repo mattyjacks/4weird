@@ -1,0 +1,22 @@
+{
+  "id": "DS-FIXFB-05",
+  "title": "Dialog cleanup: drop stale Human/Bot radio, better 503 copy",
+  "goal": "FIXFB prod-503 slice DS-FIXFB-05: Dialog cleanup: drop stale Human/Bot radio, better 503 copy. Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/feedback-dialog.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fixfb-05",
+  "created": "2026-09-15T02:39:03.337Z",
+  "updated": "2026-09-15T02:47:00.000Z",
+  "log": [
+    "2026-09-15T02:39:03.337Z lead: envelope minted for FIXFB prod-503 wave, awaiting claim.",
+    "2026-09-15T02:41:00.000Z fixfb-05: claimed, reading feedback-dialog.tsx fully + feedback-button.tsx contract before edit.",
+    "2026-09-15T02:47:00.000Z fixfb-05: done. FILES: v2/vcw4w/components/feedback/feedback-dialog.tsx only (feedback-button.tsx read-only, untouched). CHANGES: (1) reporterType/setReporterType props now optional default human, Human/Bot radio removed, Tracked/Anonymous/Guest picker kept as single identity question, bot-details panel retained compat-only; (2) store-missing error renders actionable copy with verbatim in title, all other errors verbatim. GATES: npx tsc --noEmit clean (no output), npx eslint components/feedback/feedback-dialog.tsx clean (no output). FOLLOW-UPS: none; suggest steward verify dialog screenshot + consider button-side default reporterType human cleanup (other lane, QUEUE if wanted)."
+  ]
+}

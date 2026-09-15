@@ -1,0 +1,22 @@
+{
+  "id": "DS-FIXFB-04",
+  "title": "Coins daily status + settings 500 triage and fix",
+  "goal": "FIXFB prod-503 slice DS-FIXFB-04: Coins daily status + settings 500 triage and fix. Scope-only, gates green, evidence in log.",
+  "lane": "economy",
+  "scope": [
+    "v2/vcw4w/app/api/coins/daily/status/route.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fixfb-04",
+  "created": "2026-09-15T02:39:03.337Z",
+  "updated": "2026-09-15T02:58:00.000Z",
+  "log": [
+    "2026-09-15T02:39:03.337Z lead: envelope minted for FIXFB prod-503 wave, awaiting claim.",
+    "2026-09-15T02:52:00.000Z fixfb-04: claimed. Triage start: read status route (scope) + settings + coins/daily (read-only) + api-respond + service/server + rate-limit + migrations.",
+    "2026-09-15T02:58:00.000Z fixfb-04: VERDICT shared root cause (half-deployed prod DB, same incident as feedback 503). daily_claims/account_settings/claim_daily_bonus all exist in-repo (20260910040000/20260910070000/20260910200000/20261001000000). Scope file needs NO edit: isMissingSchemaError guard covers 42P01/42703/PGRST204/PGRST205 -> 200 fail-closed unavailable; rateLimit pure in-mem (no throw path); remaining 500s only via dbFail/catch with server evidence (correct). GATES: tsc --noEmit exit 0 (full project), eslint exit 0 (status+settings+daily routes+api-respond). QUEUE lines filed for FIXFB-02 prod migration + two read-only one-liners (daily POST PGRST202/42883 gap, settings PUT no guard). No files edited except envelope + QUEUE. Done."
+  ]
+}

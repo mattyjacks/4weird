@@ -169,6 +169,26 @@ const { success, id } = await res.json(); // success panel shows 'Report ID: <id
         search-index wiring is filed as a QUEUE.md request for the site-nav lane - nothing here touches shared manifests.
       </Callout>
 
+      <SectionHead
+        index="7"
+        kicker="Deploy"
+        title="Deploy checklist + 503 triage"
+        body="Live incident note: feedback returned 503 “feedback store not set up.” in production because the store was only half-deployed. Run this checklist in order before calling feedback done."
+      />
+      <Steps
+        items={[
+          ["Apply the migrations in order", <>Seven migrations build the feedback store layer by layer: <code className="font-mono">20261120000000</code> base (tables), <code className="font-mono">20261212000001</code> admin/events, <code className="font-mono">20261213000000</code> annotations/AI, <code className="font-mono">20261215000000</code> AI contract, <code className="font-mono">20261216000000</code> converge, <code className="font-mono">20261217000000</code> neutral, <code className="font-mono">20261218000000</code> repair. Skip one and the API degrades instead of writing.</>],
+          ["Create the feedback-screenshots bucket", <>Screenshot uploads need the <code className="font-mono">feedback-screenshots</code> storage bucket. No bucket means annotated shots fail while text-only feedback still posts.</>],
+          ["Set the server key", <>The API needs <code className="font-mono">SUPABASE_SERVICE_ROLE_KEY</code> as a server-only env var. It never ships to the browser — missing key means the server cannot write, and every submit answers 503.</>],
+          ["Read the 503 per cause", <>“feedback store not set up.” is one message with four causes: missing table (base migration not applied), missing column (a later migration skipped — extended fields stash instead), missing bucket (screenshots fail, text posts), missing key (nothing writes). Match the cause before re-running the checklist.</>],
+          ["Trust graceful degradation", <>When an extended column is absent the API stashes the extended fields with the report instead of rejecting it — nothing is lost, and the repair migration backfills the columns on next deploy.</>],
+        ]}
+      />
+      <Callout tone="rose" title="503? Don't retry blindly.">
+        Confirm tables, then columns, then bucket, then server key — in that order. Retrying the same POST without
+        the missing layer just returns the same 503 with the same cause.
+      </Callout>
+
       <Pager current="/docs/feedback" />
     </article>
   );

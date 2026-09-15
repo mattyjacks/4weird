@@ -1,0 +1,22 @@
+{
+  "id": "DS-FIXFB-06",
+  "title": "Admin status-flip API route (triage action)",
+  "goal": "FIXFB prod-503 slice DS-FIXFB-06: Admin status-flip API route (triage action). Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/api/feedback/[id]/status/route.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fixfb-06",
+  "created": "2026-09-15T02:39:03.337Z",
+  "updated": "2026-09-15T03:12:00.000Z",
+  "log": [
+    "2026-09-15T02:39:03.337Z lead: envelope minted for FIXFB prod-503 wave, awaiting claim.",
+    "2026-09-15T03:05:00.000Z fixfb-06: claimed, building app/api/feedback/[id]/status/route.ts (admin status-flip).",
+    "2026-09-15T03:12:00.000Z fixfb-06: done. CREATED app/api/feedback/[id]/status/route.ts only (zero edits elsewhere). POST admin-only (401 anon/403 non-admin) {status, note?<=2000}; service-role flip + dual-shape feedback_events audit; 503 STORE_MISSING fail-open; GET 405. Gates: npx tsc --noEmit clean (no output), npx eslint app/api/feedback/[id]/status/route.ts clean (no output)."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "DS-FIXFB-07",
+  "title": "Deploy checklist + 503 triage docs",
+  "goal": "FIXFB prod-503 slice DS-FIXFB-07: Deploy checklist + 503 triage docs. Scope-only, gates green, evidence in log.",
+  "lane": "docs",
+  "scope": [
+    "v2/vcw4w/app/docs/feedback/page.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fixfb-07",
+  "created": "2026-09-15T02:39:03.337Z",
+  "updated": "2026-09-15T03:05:00.000Z",
+  "log": [
+    "2026-09-15T02:39:03.337Z lead: envelope minted for FIXFB prod-503 wave, awaiting claim.",
+    "2026-09-15T03:00:00.000Z fixfb-07: claimed, adding deploy checklist + 503 triage section to app/docs/feedback/page.tsx only.",
+    "2026-09-15T03:05:00.000Z fixfb-07: added Section 7 Deploy checklist + 503 triage (migrations in order, bucket, service-role key, per-cause 503 table, graceful degradation). Gates: npx tsc --noEmit clean (no output), npx eslint app/docs/feedback/page.tsx clean (no output). Scope: v2/vcw4w/app/docs/feedback/page.tsx only."
+  ]
+}

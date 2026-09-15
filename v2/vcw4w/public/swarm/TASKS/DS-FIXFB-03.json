@@ -1,0 +1,22 @@
+{
+  "id": "DS-FIXFB-03",
+  "title": "Prod preflight verifier for the feedback store",
+  "goal": "FIXFB prod-503 slice DS-FIXFB-03: Prod preflight verifier for the feedback store. Scope-only, gates green, evidence in log.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/scripts/verify-feedback-prod.mjs"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fixfb-03",
+  "created": "2026-09-15T02:39:03.337Z",
+  "updated": "2026-09-15T03:15:00.000Z",
+  "log": [
+    "2026-09-15T02:39:03.337Z lead: envelope minted for FIXFB prod-503 wave, awaiting claim.",
+    "2026-09-15T03:05:00.000Z fixfb-03: claimed; building scripts/verify-feedback-prod.mjs (static preflight: insert-column coverage, events/ai-logs id shapes, neutral critique, bucket, version uniqueness).",
+    "2026-09-15T03:15:00.000Z fixfb-03: done. Created v2/vcw4w/scripts/verify-feedback-prod.mjs (NEW file only; no old-v1). Gates GREEN from v2/vcw4w: node scripts/verify-feedback-prod.mjs PASS (8 checks: 18 reports insert cols + 7 ai_logs insert cols + 5 AI update cols + events dual ids + ailogs dual ids + critique-neutral + bucket + 9 feedback migrations unique versions), npx eslint scripts/verify-feedback-prod.mjs zero output (0 errors, 0 warnings). Note: bucket check passes via DS-FIXFB-02 repair migration 20261218000000_feedback_store_repair.sql (landed mid-flight; verifier now locks it in)."
+  ]
+}
