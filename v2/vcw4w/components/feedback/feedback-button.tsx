@@ -91,8 +91,8 @@ function readDraft(): Partial<FeedbackDraft> {
 function sanitizeDraft(d: Partial<FeedbackDraft>): Partial<FeedbackDraft> {
   const out: Partial<FeedbackDraft> = {};
   if (d.reporterType === "human" || d.reporterType === "bot") out.reporterType = d.reporterType;
-  if (d.rating === "good" || d.rating === "okay" || d.rating === "bad") out.rating = d.rating;
-  if (d.critique === "positive" || d.critique === "neutral" || d.critique === "negative") out.critique = d.critique;
+  if (d.rating === "good" || d.rating === "okay" || d.rating === "bad" || d.rating === "none") out.rating = d.rating;
+  if (d.critique === "positive" || d.critique === "neutral" || d.critique === "negative" || d.critique === "none") out.critique = d.critique;
   if (typeof d.text === "string") out.text = d.text.slice(0, FEEDBACK_MAX_TEXT);
   if (Array.isArray(d.labels)) {
     out.labels = d.labels
@@ -137,11 +137,11 @@ export type FeedbackIdentityDraft = {
 };
 
 function isFeedbackRating(value: unknown): value is FeedbackRating {
-  return value === "good" || value === "okay" || value === "bad";
+  return value === "good" || value === "okay" || value === "bad" || value === "none";
 }
 
 function isFeedbackCritique(value: unknown): value is FeedbackCritique {
-  return value === "positive" || value === "neutral" || value === "negative";
+  return value === "positive" || value === "neutral" || value === "negative" || value === "none";
 }
 
 function isFeedbackVisibility(value: unknown): value is FeedbackVisibility {
@@ -263,10 +263,10 @@ export function FeedbackButton({ className }: FeedbackButtonProps) {
   const [reporterType, setReporterType] =
     useState<FeedbackReporterType>(() => readDraft().reporterType ?? "human");
   const [rating, setRating] = useState<FeedbackRating | null>(
-    () => readDraft().rating ?? null,
+    () => readDraft().rating ?? "none",
   );
   const [critique, setCritique] = useState<FeedbackCritique | null>(
-    () => readDraft().critique ?? null,
+    () => readDraft().critique ?? "none",
   );
   const [text, setText] = useState(() => readDraft().text ?? "");
   const [labels, setLabels] = useState<string[]>(() => readDraft().labels ?? []);
@@ -348,8 +348,8 @@ export function FeedbackButton({ className }: FeedbackButtonProps) {
     : "guest";
 
   const resetForm = useCallback(() => {
-    setRating(null);
-    setCritique(null);
+    setRating("none");
+    setCritique("none");
     setText("");
     setLabels([]);
     setScreenshot(null);
@@ -507,11 +507,11 @@ export function FeedbackButton({ className }: FeedbackButtonProps) {
     // (route.ts) so inline errors match server errors verbatim.
     const trimmed = text.trim();
     if (rating === null) {
-      setSubmitError("Invalid rating (good|okay|bad).");
+      setSubmitError("Invalid rating (good|okay|bad|none).");
       return;
     }
     if (critique === null) {
-      setSubmitError("Invalid critique (positive|neutral|negative).");
+      setSubmitError("Invalid critique (positive|neutral|negative|none).");
       return;
     }
     if (trimmed.length < 1 || trimmed.length > FEEDBACK_MAX_TEXT) {

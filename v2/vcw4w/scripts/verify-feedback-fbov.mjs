@@ -50,8 +50,8 @@ if (!route.includes("Invalid annotations (array, <=20).")) {
 // --- Route: core dialog contract (no regressions) ----------------------------
 for (const token of [
   '"human", "bot"',
-  "Invalid rating (good|okay|bad).",
-  "Invalid critique (positive|neutral|negative).",
+  "Invalid rating (good|okay|bad|none).",
+  "Invalid critique (positive|neutral|negative|none).",
   "Invalid text (1..4000 chars).",
   "Method not allowed.",
 ]) {

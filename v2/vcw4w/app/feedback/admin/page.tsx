@@ -356,6 +356,7 @@ function FilterFields({ f }: { f: FeedbackFilters }) {
           <option value="good">good</option>
           <option value="okay">okay</option>
           <option value="bad">bad</option>
+          <option value="none">none</option>
         </select>
       </label>
       <label className={labelCls}>
@@ -365,6 +366,7 @@ function FilterFields({ f }: { f: FeedbackFilters }) {
           <option value="positive">😄 positive</option>
           <option value="neutral">😐 neutral</option>
           <option value="negative">😭 negative</option>
+          <option value="none">➖ none</option>
         </select>
       </label>
       <label className={labelCls}>

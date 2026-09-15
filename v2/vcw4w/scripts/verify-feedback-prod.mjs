@@ -193,9 +193,26 @@ for (const [code, table] of [["events-ids", "feedback_events"], ["ailogs-ids", "
     /check\s*\(\s*critique\s+in\s*\([^)]*'neutral'[^)]*\)/i.test(codeOf(src)),
   );
   if (!neutralOk) {
-    fail("critique-neutral", "no feedback migration widens the critique check to include 'neutral' (route accepts positive|neutral|negative).");
+    fail("critique-neutral", "no feedback migration widens the critique check to include 'neutral' (route accepts positive|neutral|negative|none).");
   }
   pass("check critique-neutral green (some migration checks critique in (..., 'neutral', ...)).");
+}
+
+// -- FAIL[rating-none + critique-none]: 'none' in SOME migration check -------
+{
+  const noneOk = [...migSrc.values()].some((src) =>
+    /check\s*\(\s*rating\s+in\s*\([^)]*'none'[^)]*\)/i.test(codeOf(src)),
+  );
+  const critiqueNoneOk = [...migSrc.values()].some((src) =>
+    /check\s*\(\s*critique\s+in\s*\([^)]*'none'[^)]*\)/i.test(codeOf(src)),
+  );
+  if (!noneOk) {
+    fail("rating-none", "no feedback migration widens the rating check to include 'none' (route accepts good|okay|bad|none).");
+  }
+  if (!critiqueNoneOk) {
+    fail("critique-none", "no feedback migration widens the critique check to include 'none' (route accepts positive|neutral|negative|none).");
+  }
+  pass("check rating-none + critique-none green (some migration checks rating/critique in (..., 'none', ...)).");
 }
 
 // -- FAIL[bucket]: feedback-screenshots bucket creation -----------------------

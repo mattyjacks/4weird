@@ -22,9 +22,9 @@ export default function FeedbackPage() {
       <DocsHero
         eyebrow="Docs · feedback"
         title={<>Tell us <span className={theme.title}>what&apos;s working.</span></>}
-        lede={<>Press Give Feedback anywhere on the site — or open the standalone /feedback page — pick a Good / Okay / Bad rating, add one line of critique, and optionally attach an annotated screenshot. Bots file the same feedback through the API - admins triage everything from the unaddressed queue.</>}
+        lede={<>Press Give Feedback anywhere on the site — or open the standalone /feedback page — pick a None / Good / Okay / Bad rating, add one line of critique, and optionally attach an annotated screenshot. Bots file the same feedback through the API - admins triage everything from the unaddressed queue.</>}
         stats={[
-          ["3", "ratings: Good/Okay/Bad"],
+          ["4", "ratings: None/Good/Okay/Bad"],
           ["1", "button, everywhere"],
           ["2", "paths: human + bot"],
           ["0", "feedback ignored"],
@@ -44,7 +44,7 @@ export default function FeedbackPage() {
         items={[
           ["Press Give Feedback", <>Hit the button in the top bar — or open <code className="font-mono">/feedback</code> for the standalone page. Page submits carry <code className="font-mono">source: &quot;page&quot;</code>; dialog submits carry the dialog source instead.</>],
           ["Pick who is reporting", <>Choose Tracked (signed in, so admins can follow up), Anonymous (no name attached), or Guest (no account needed, optional name + email for follow-up). All three land in the same human queue.</>],
-          ["Pick a rating", <>Choose one: Good, Okay, or Bad. The rating is required - it is how admins sort the queue.</>],
+          ["Pick a rating", <>Choose one: None, Good, Okay, or Bad (defaults to None). The rating is required - it is how admins sort the queue.</>],
           ["Write one critique", <>A sentence is enough. Say what happened and what you expected instead.</>],
           ["Attach a screenshot (optional)", <>Paste, drop, capture the current tab, then circle the problem with the micro-editor - see §4.</>],
           ["Submit", <>Human feedback posts immediately and answers with a Report ID. Bot feedback goes through the same queue with its bot label attached.</>],

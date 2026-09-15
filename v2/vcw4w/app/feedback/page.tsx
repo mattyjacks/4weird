@@ -32,8 +32,8 @@ import { capturePageForFeedback } from "@/components/feedback/screenshot-capture
 import type { FeedbackVisibility } from "@/components/feedback/feedback-dialog";
 import { createClient } from "@/lib/supabase/client";
 
-type Rating = "good" | "okay" | "bad";
-  type Critique = "positive" | "neutral" | "negative";
+type Rating = "good" | "okay" | "bad" | "none";
+  type Critique = "positive" | "neutral" | "negative" | "none";
 
 const MAX_TEXT = 4000;
 const MAX_SCREENSHOT_BYTES = 8 * 1024 * 1024;
@@ -62,8 +62,8 @@ function readDraft(): {
     const visibility = parsed["visibility"];
     return {
       text: typeof parsed["text"] === "string" ? parsed["text"].slice(0, MAX_TEXT) : "",
-      rating: rating === "good" || rating === "okay" || rating === "bad" ? rating : null,
-      critique: critique === "positive" || critique === "neutral" || critique === "negative" ? critique : null,
+      rating: rating === "good" || rating === "okay" || rating === "bad" || rating === "none" ? rating : null,
+      critique: critique === "positive" || critique === "neutral" || critique === "negative" || critique === "none" ? critique : null,
       visibility: isFeedbackVisibility(visibility) ? visibility : null,
     };
   } catch {
@@ -75,8 +75,8 @@ export default function FeedbackPage() {
   // Draft restore via lazy initializers (same key/shape the dialog uses;
   // text only — screenshots never persist). SSR-safe: readDraft() returns
   // defaults without window.
-  const [rating, setRating] = useState<Rating>(() => readDraft().rating ?? "okay");
-  const [critique, setCritique] = useState<Critique>(() => readDraft().critique ?? "negative");
+  const [rating, setRating] = useState<Rating>(() => readDraft().rating ?? "none");
+  const [critique, setCritique] = useState<Critique>(() => readDraft().critique ?? "none");
   const [visibility, setVisibility] = useState<FeedbackVisibility>(() => readDraft().visibility ?? "guest");
   const [visibilityTouched, setVisibilityTouched] = useState(() => readDraft().visibility !== null);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
@@ -151,8 +151,8 @@ export default function FeedbackPage() {
   }, []);
 
   const handleClear = useCallback(() => {
-    setRating("okay");
-    setCritique("negative");
+    setRating("none");
+    setCritique("none");
     setText("");
     setLabelsRaw("");
     setContactName("");
@@ -202,13 +202,13 @@ export default function FeedbackPage() {
     setError("");
     try {
       // Client validation mirrors POST /api/feedback verbatim.
-      if (rating !== "good" && rating !== "okay" && rating !== "bad") {
-        setError("Invalid rating (good|okay|bad).");
+      if (rating !== "good" && rating !== "okay" && rating !== "bad" && rating !== "none") {
+        setError("Invalid rating (good|okay|bad|none).");
         setBusy(false);
         return;
       }
-      if (critique !== "positive" && critique !== "neutral" && critique !== "negative") {
-        setError("Invalid critique (positive|neutral|negative).");
+      if (critique !== "positive" && critique !== "neutral" && critique !== "negative" && critique !== "none") {
+        setError("Invalid critique (positive|neutral|negative|none).");
         setBusy(false);
         return;
       }
@@ -465,7 +465,7 @@ export default function FeedbackPage() {
           <div>
             <p className="text-sm font-bold text-slate-200">How was it?</p>
             <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Rating">
-              {(["good", "okay", "bad"] as Rating[]).map((r) => (
+              {(["none", "good", "okay", "bad"] as Rating[]).map((r) => (
                 <button
                   key={r}
                   type="button"
@@ -473,7 +473,7 @@ export default function FeedbackPage() {
                   onClick={() => setRating(r)}
                   className={pill(rating === r)}
                 >
-                  {r === "good" ? "😊 good" : r === "okay" ? "😐 okay" : "😞 bad"}
+                  {r === "good" ? "😊 good" : r === "okay" ? "😐 okay" : r === "bad" ? "😞 bad" : "➖ none"}
                 </button>
               ))}
             </div>
@@ -482,7 +482,7 @@ export default function FeedbackPage() {
           <div>
             <p className="text-sm font-bold text-slate-200">What kind of note?</p>
             <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Critique">
-              {(["positive", "neutral", "negative"] as Critique[]).map((c) => (
+              {(["none", "positive", "neutral", "negative"] as Critique[]).map((c) => (
                 <button
                   key={c}
                   type="button"
@@ -490,7 +490,7 @@ export default function FeedbackPage() {
                   onClick={() => setCritique(c)}
                   className={pill(critique === c)}
                 >
-                  {c === "positive" ? "😄 praise" : c === "neutral" ? "😐 meh" : "😭 problem"}
+                  {c === "positive" ? "😄 praise" : c === "neutral" ? "😐 meh" : c === "negative" ? "😭 problem" : "➖ none"}
                 </button>
               ))}
             </div>

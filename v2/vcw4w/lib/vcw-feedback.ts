@@ -168,10 +168,10 @@ export function validateBotExtras(input: unknown): ValidateBotExtrasResult {
   return { ok: true, value };
 }
 
-export const BOT_FEEDBACK_RATINGS = ["good", "okay", "bad"] as const;
+export const BOT_FEEDBACK_RATINGS = ["good", "okay", "bad", "none"] as const;
 export type BotFeedbackRating = (typeof BOT_FEEDBACK_RATINGS)[number];
 
-export const BOT_FEEDBACK_CRITIQUES = ["positive", "neutral", "negative"] as const;
+export const BOT_FEEDBACK_CRITIQUES = ["positive", "neutral", "negative", "none"] as const;
 export type BotFeedbackCritique = (typeof BOT_FEEDBACK_CRITIQUES)[number];
 
 export interface SubmitBotFeedbackArgs {

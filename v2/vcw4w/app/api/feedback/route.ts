@@ -19,10 +19,10 @@ import { clientIp, isEmail } from "@/lib/validate";
 //
 // Canonical fields (both encodings):
 //   reporterType: "human" | "bot" (required)
-//   rating: "good" | "okay" | "bad" (required, except legacy bot submits
-//     below which default to "okay")
-//   critique: "positive" | "neutral" | "negative" (required, except legacy bot submits
-//     below which default to "neutral")
+//   rating: "good" | "okay" | "bad" | "none" (required, except legacy bot submits
+//     below which default to "none")
+//   critique: "positive" | "neutral" | "negative" | "none" (required, except legacy bot submits
+//     below which default to "none")
 //   text: 1..4000 chars (required, except legacy bot submits may send
 //     title + description instead — mapped to text server-side)
 //   pageUrl: optional URL at submit moment (falls back to startedUrl)
@@ -71,7 +71,7 @@ import { clientIp, isEmail } from "@/lib/validate";
 //   botId/runId/workerId/model/promptRef/reproSteps/logExcerpt/confidence:
 //     folded into `botExtras` when `botExtras` does not already carry them.
 //   rating/critique absent on a reporterType:"bot" submit default to
-//     "okay"/"neutral" (humans must always send them explicitly).
+//     "none"/"none" (humans must always send them explicitly).
 //
 // Response contract (shared lib/api-respond envelope — the UI contract):
 //   success: { success: true, id, reporterType, rating, critique,
@@ -137,8 +137,8 @@ const VISIBILITIES = new Set(["tracked", "anonymous", "guest"]);
 const SOURCES = new Set(["dialog", "page", "bot-api"]);
 const ANNOTATION_TOOLS = new Set(["arrow", "rect", "circle", "line", "text", "highlight", "blur"]);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const RATINGS = new Set(["good", "okay", "bad"]);
-const CRITIQUES = new Set(["positive", "neutral", "negative"]);
+const RATINGS = new Set(["good", "okay", "bad", "none"]);
+const CRITIQUES = new Set(["positive", "neutral", "negative", "none"]);
 const BOT_SEVERITIES = new Set(["low", "medium", "high", "critical"]);
 
 // Bounds mirror lib/vcw-feedback.ts BOT_EXTRAS_SCHEMA so server-side
@@ -646,17 +646,17 @@ export async function POST(req: Request) {
   }
 
   // rating/critique: required, except legacy bot submits (title/description
-  // era callers that never sent them) default to okay/neutral. An
+  // era callers that never sent them) default to none/none. An
   // explicitly-sent invalid value still 400s — defaults only fill absence.
   let rating = str("rating");
-  if (!rating && isBot) rating = "okay";
+  if (!rating && isBot) rating = "none";
   if (!rating || !RATINGS.has(rating)) {
-    return fail("Invalid rating (good|okay|bad).", 400);
+    return fail("Invalid rating (good|okay|bad|none).", 400);
   }
   let critique = str("critique");
-  if (!critique && isBot) critique = "neutral";
+  if (!critique && isBot) critique = "none";
   if (!critique || !CRITIQUES.has(critique)) {
-    return fail("Invalid critique (positive|neutral|negative).", 400);
+    return fail("Invalid critique (positive|neutral|negative|none).", 400);
   }
 
   // text: canonical; legacy bot callers sent title + description instead.

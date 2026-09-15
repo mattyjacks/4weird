@@ -7,8 +7,8 @@ import { ScreenshotAnnotator, type Annotation as ScreenshotAnnotation } from "./
 import { ScreenshotDropzone } from "./screenshot-dropzone";
 
 export type FeedbackReporterType = "human" | "bot";
-export type FeedbackRating = "good" | "okay" | "bad";
-export type FeedbackCritique = "positive" | "neutral" | "negative";
+export type FeedbackRating = "good" | "okay" | "bad" | "none";
+export type FeedbackCritique = "positive" | "neutral" | "negative" | "none";
 export type FeedbackVisibility = "tracked" | "anonymous" | "guest";
 
 export const FEEDBACK_MAX_TEXT = 4000;
@@ -89,8 +89,8 @@ export interface FeedbackDialogProps {
   children?: React.ReactNode;
 }
 
-const RATINGS: FeedbackRating[] = ["good", "okay", "bad"];
-const CRITIQUES: FeedbackCritique[] = ["positive", "neutral", "negative"];
+const RATINGS: FeedbackRating[] = ["none", "good", "okay", "bad"];
+const CRITIQUES: FeedbackCritique[] = ["none", "positive", "neutral", "negative"];
 
 const TEMPLATES: { label: string; body: string }[] = [
   {
@@ -108,12 +108,14 @@ const TEMPLATES: { label: string; body: string }[] = [
 ];
 
 function ratingLabel(rating: FeedbackRating): string {
+  if (rating === "none") return "None";
   if (rating === "good") return "Good";
   if (rating === "okay") return "Okay";
   return "Bad";
 }
 
 function critiqueLabel(critique: FeedbackCritique): string {
+  if (critique === "none") return "➖ None";
   if (critique === "positive") return "😄 Positive";
   if (critique === "neutral") return "😐 Neutral";
   return "😭 Negative";
