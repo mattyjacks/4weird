@@ -9,8 +9,9 @@ import { FeedbackButton } from "@/components/feedback/feedback-button";
  *
  * Mobile top of screen ALWAYS (except in-game) shows one row:
  *   Menu 2 | Give Feedback | Menu 1 | X
- * (Menu 1 hides on desktop (lg+), where the header's full nav bar serves
- * that lane — the sheet it opens renders below lg only.)
+ * Menu 2 and Menu 1 stay visible at ALL widths (including desktop): both
+ * lanes must be one tap away from the top bar everywhere. The dismissed
+ * slim fallback keeps compact Menu 2 / Menu 1 buttons for the same reason.
  * - Menu 2 / Menu 1 buttons are the SINGLE entry points for their lanes:
  *   they dispatch "fw:open-menu2" / "fw:open-menu1" to open the existing
  *   MenuSidebar drawer / SiteHeader sheet — no duplicate nav trees here,
@@ -92,7 +93,8 @@ export function FeedbackBar() {
   const inGame = pathname?.startsWith("/games/") ?? false;
 
   if (dismissed) {
-    // Slim inline fallback at page top: Give Feedback stays reachable and
+    // Slim inline fallback at page top: menu lanes stay one tap away
+    // (compact icon+number buttons), Give Feedback stays reachable and
     // a restore control brings the full bar back. Always non-sticky.
     return (
       <div
@@ -102,7 +104,29 @@ export function FeedbackBar() {
         style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
       >
         <div className="mx-auto flex min-h-[44px] max-w-6xl items-center justify-center gap-2 px-4 py-1">
+          <button
+            type="button"
+            onClick={openMenu2}
+            aria-label="Open menu 2"
+            title="Open menu 2"
+            style={{ borderRadius: MENU2_RADIUS }}
+            className={`${TOUCH} inline-flex shrink-0 items-center justify-center rounded-lg border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none`}
+          >
+            <span aria-hidden="true">☰</span>
+            <span aria-hidden="true" className="ml-0.5 text-[10px] font-black">2</span>
+          </button>
           <FeedbackButton className={`${TOUCH} motion-reduce:transition-none`} />
+          <button
+            type="button"
+            onClick={openMenu1}
+            aria-label="Open menu 1"
+            title="Open menu 1"
+            style={{ borderRadius: MENU1_RADIUS }}
+            className={`${TOUCH} inline-flex shrink-0 items-center justify-center rounded-lg border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none`}
+          >
+            <span aria-hidden="true">☰</span>
+            <span aria-hidden="true" className="ml-0.5 text-[10px] font-black">1</span>
+          </button>
           <button
             type="button"
             onClick={restore}
@@ -153,17 +177,18 @@ export function FeedbackBar() {
             className={`${TOUCH} w-full min-w-0 justify-center truncate motion-reduce:transition-none sm:w-auto`}
           />
         </div>
-        {/* Menu 1 opens the header sheet, which renders below lg only
-            (lg:hidden): on desktop the full nav bar already serves this lane,
-            so the button hides there — otherwise the click locked body scroll
-            with no visible sheet and no close affordance. */}
+        {/* Menu 1 opens the header sheet at every width — desktop included:
+            both menu lanes stay one tap away in the top bar. On desktop the
+            sheet expands in-flow below the header (no scroll lock); the same
+            button toggles it back closed, and Escape / picking a link works
+            everywhere. */}
         <button
           type="button"
           onClick={openMenu1}
           aria-label="Open menu 1"
           title="Open menu 1"
           style={{ borderRadius: MENU1_RADIUS }}
-          className={`${TOUCH} inline-flex shrink-0 items-center justify-center gap-1 border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none lg:hidden`}
+          className={`${TOUCH} inline-flex shrink-0 items-center justify-center gap-1 border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none`}
         >
           <span aria-hidden="true">☰</span>
           menu&nbsp;1

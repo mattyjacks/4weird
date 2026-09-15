@@ -189,7 +189,7 @@ const SidebarGroup = memo(function SidebarGroup({
 
 /**
  * Global Menu 2 Sidebar: desktop-left drawer + mobile drawer (separate from
- * the header's mobile Menu 1 sheet).
+ * the header's Menu 1 sheet).
  * - Hidden by default; a pill re-opens it (top-left on desktop,
  *   thumb-reachable bottom-left floating button on mobile).
  * - Every link carries a 1-line "quick info" + (?) detail popover.

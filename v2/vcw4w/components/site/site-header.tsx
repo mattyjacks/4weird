@@ -396,9 +396,10 @@ const HeaderCtas = memo(function HeaderCtas({ signedIn, onNavigate }: { signedIn
 });
 
 // Demo quick-links (DS-MOB-01): the four live-demo beats, one tap inside the
-// mobile sheet — menu button (tap 1) + shortcut (tap 2) from anywhere.
-// Hrefs mirror lib/site-nav.ts literals. Sheet-only surface (the sheet is
-// lg:hidden), so desktop output is untouched. Fail-open: plain Links.
+// sheet — menu button (tap 1) + shortcut (tap 2) from anywhere.
+// Hrefs mirror lib/site-nav.ts literals. Sheet surface (the sheet opens at
+// every width via the top bar's Menu 1 button), so desktop output stays
+// reachable too. Fail-open: plain Links.
 const DEMO_QUICK_LINKS: { href: string; label: string }[] = [
   { href: "/games", label: "🎮 Play" },
   { href: "/music/maker", label: "🎹 Music Maker" },
@@ -615,9 +616,11 @@ export function SiteHeader() {
   }, [pathname]);
 
   // FeedbackBar bridge (layout lane): the bar's Menu 1 button dispatches
-  // "fw:open-menu1" — open the existing sheet, no duplicate nav tree.
+  // "fw:open-menu1" — it TOGGLES the existing sheet (the bar is the only
+  // desktop close affordance, so the same tap must open and close it),
+  // no duplicate nav tree.
   useEffect(() => {
-    const onOpen = () => setOpen(true);
+    const onOpen = () => setOpen((v) => !v);
     window.addEventListener("fw:open-menu1", onOpen);
     return () => window.removeEventListener("fw:open-menu1", onOpen);
   }, []);
@@ -642,11 +645,11 @@ export function SiteHeader() {
     };
   }, [openMenu]);
 
-  // Mobile sheet: lock background scroll while open so the panel owns the
+  // Sheet: lock background scroll while open so the panel owns the
   // gesture, and close on Escape. The sheet itself stays inner-scrollable.
-  // Lock below lg only: the sheet renders lg:hidden, so locking on desktop
-  // traps the page behind an invisible panel (Menu 2's drawer follows the
-  // same mobile-only lock in menu-sidebar.tsx).
+  // Lock below lg only: on desktop the sheet expands in-flow (no overlay),
+  // so the page stays scrollable — locking there would trap it behind
+  // nothing (Menu 2's drawer follows the same mobile-only lock).
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
@@ -762,15 +765,18 @@ export function SiteHeader() {
           </nav>
         </div>
 
-        {/* Mobile + tablet sheet: same groups as the desktop/tablet bars in an
-            accordion. Capped to the viewport and inner-scrollable so every
-            option stays reachable; two-column cards on sm+ for tablets. */}
+        {/* Sheet (all widths): same groups as the desktop/tablet bars in an
+            accordion, opened from the header toggle or the top bar's Menu 1
+            button (which toggles it closed too). Capped to the viewport and
+            inner-scrollable so every option stays reachable; two-column
+            cards on sm+ for tablets. On desktop it expands in-flow below
+            the header row with no scroll lock. */}
         {open && (
           <nav
             ref={mobileNavRef}
             id="site-mobile-nav"
-            aria-label="Mobile navigation"
-            className="mobile-nav-sheet mobile-nav-scroll mobile-fluid sticky top-0 z-40 border-t border-border bg-background px-3 pb-4 pt-3 lg:hidden dark:border-white/10 dark:bg-black"
+            aria-label="Site navigation menu"
+            className="mobile-nav-sheet mobile-nav-scroll mobile-fluid sticky top-0 z-40 border-t border-border bg-background px-3 pb-4 pt-3 dark:border-white/10 dark:bg-black"
             style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 1rem))" }}
           >
             {/* Menu 1 top mirror of the desktop bar (no IDs duplicated):
