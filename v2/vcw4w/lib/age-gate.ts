@@ -144,7 +144,7 @@ export function formatWait(wait: WaitParts): string {
   return parts.join(", ");
 }
 
-const KIDS_MODE_KEY = "4weird-kids-mode";
+export const KIDS_MODE_KEY = "4weird-kids-mode";
 
 /**
  * Kids Mode is a device + account preference (NOT age data): when on,

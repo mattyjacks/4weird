@@ -1,0 +1,89 @@
+-- ============================================================================
+-- DS-SECFIX2-17: reconcile lint-0029 ghost/timer/booking RPCs against
+-- 20261220000018_sqlint_revoke_booking_mmo.sql.
+--
+-- VERDICT: ALREADY FULLY COVERED -- this file is intentionally DOC-ONLY
+-- (zero executable statements), per precedent
+-- 20261220000011_sqlint_pgcrypto_schema.sql. No REVOKE/GRANT delta is
+-- landed because every envelope RPC already carries the target grant
+-- shape (revoke anon+public, keep authenticated) in shipped migrations,
+-- and every one of them has a live user-JWT .rpc caller, so revoking
+-- authenticated would break the app.
+--
+-- ENVELOPE SET (15 RPCs) vs 20261220000018 COVERAGE (verified 2026-09-15):
+--   ghost_create_contract(uuid,text,uuid,uuid,numeric) .. covered lines 120-121
+--     def: 20260925000100_watcher_multirole_ghost.sql:335
+--     caller (keep authenticated): app/api/ghost/contracts/route.ts:42
+--       .rpc("ghost_create_contract", {
+--   ghost_clock_in(uuid,text) .......................... covered lines 123-124
+--     def: 20260925000100_watcher_multirole_ghost.sql:360 (+ grants 378-379)
+--     caller: app/api/ghost/timer/route.ts:44 .rpc("ghost_clock_in", {
+--   ghost_beat(uuid,integer) ........................... covered lines 126-127
+--     def: 20260925000100_watcher_multirole_ghost.sql:382 (+ grants 404-405)
+--     caller: app/api/ghost/timer/route.ts:54 .rpc("ghost_beat", {
+--   ghost_clock_out(uuid) .............................. covered lines 129-130
+--     def: 20260925000100_watcher_multirole_ghost.sql:407 (+ grants 425-426)
+--     caller: app/api/ghost/timer/route.ts:62 .rpc("ghost_clock_out", {
+--   ghost_invoice_timer(uuid) .......................... covered lines 132-133
+--     def: 20260925000100_watcher_multirole_ghost.sql:429 (+ grants 454-455)
+--     caller: app/api/ghost/timer/route.ts:70 .rpc("ghost_invoice_timer", {
+--     (invoice stays authenticated per task rule; caller exists, so kept.)
+--   ghost_mark_debt(uuid,uuid,uuid,numeric,text) ....... covered lines 135-136
+--     def: 20260925000100_watcher_multirole_ghost.sql:459 (+ grants 479-480)
+--     caller: app/api/ghost/debts/route.ts:48 .rpc("ghost_mark_debt", {
+--   ghost_settle_debt(uuid,text) ....................... covered lines 138-139
+--     def: 20260925000100_watcher_multirole_ghost.sql:483 (+ grants 499-500)
+--     caller: app/api/ghost/debts/route.ts:64 .rpc("ghost_settle_debt", {
+--     (settle stays authenticated per task rule; caller exists, so kept.)
+--   ghost_org_summary(uuid) ............................ covered lines 141-142
+--     def: 20260925000100_watcher_multirole_ghost.sql:533 (+ grants 596-597)
+--     caller: app/api/ghost/summary/route.ts:21,41 .rpc("ghost_org_summary", {
+--   start_timer(uuid,uuid,text,boolean,boolean,text,text) .. DEDUP lines 58-66
+--     defs: 20261113000000_timer_ownership_hardening.sql:25 (+ grants 101-102);
+--       latest 20261211000000_ghost_rename.sql:69 (+ grants 145-146);
+--       restated 20261220000005_security_revoke_orgs_mmo.sql:179-180,
+--       20261219000009_seclint_auth_social.sql:508-509
+--     caller: app/api/time/timer/route.ts:114 .rpc("start_timer", {
+--   stop_timer(uuid,text,uuid,boolean,integer) .......... DEDUP lines 58-66
+--     defs: 20261113000000_timer_ownership_hardening.sql:108 (+ grants 202-203);
+--       latest 20261211000000_ghost_rename.sql:150 (+ grants 245-246);
+--       restated 20261220000005_security_revoke_orgs_mmo.sql:182-183,
+--       20261219000009_seclint_auth_social.sql:511-512
+--     caller: app/api/time/timer/route.ts:162 .rpc("stop_timer", {
+--   heartbeat_usage(uuid,integer) ...................... covered lines 81-82
+--     def: 20260910100000_agent_rentals.sql:237 (+ grants 279-280);
+--       latest 20260930000000_heartbeat_escrow_cap.sql:19 (+ grants 45-46)
+--     caller: app/api/agents/bookings/[id]/heartbeat/route.ts:54
+--       .rpc("heartbeat_usage", {
+--   book_listing(uuid,integer) ......................... covered lines 78-79
+--     def: 20260910100000_agent_rentals.sql:194 (+ grants 232-233)
+--     caller: app/api/agents/[id]/book/route.ts:69 .rpc("book_listing", {
+--   create_listing(text,text,text,text,integer) ........ covered lines 75-76
+--     def: 20260910100000_agent_rentals.sql:151 (+ grants 190-191)
+--     caller: app/api/agents/route.ts:81 .rpc("create_listing", {
+--   end_booking(uuid) .................................. covered lines 84-85
+--     def: 20260910100000_agent_rentals.sql:284 (+ grants 311-312)
+--     caller: app/api/agents/bookings/[id]/end/route.ts:56,65
+--       .rpc("end_booking", {
+--   settle_booking_escrow(uuid) ........................ covered lines 87-88
+--     def: 20261018000000_ledger_pairing_hardening.sql:378 (+ grants 431-432);
+--       latest 20261019000000_crowns_earn_ledger.sql:343 (+ grants 397-398)
+--     caller: app/api/agents/bookings/[id]/end/route.ts:48
+--       .rpc("settle_booking_escrow", {
+--     (settle stays authenticated per task rule; caller exists, so kept.)
+--
+-- GRANT TABLE (target shape, all already in force -- no change):
+--   all 15 above: REVOKE from anon,public (incl. public pseudo-role) DONE;
+--     GRANT EXECUTE TO authenticated KEPT (user-JWT caller exists for each).
+--   zero-caller revocations (revoke authenticated too): NONE in this set --
+--     every envelope RPC has >=1 caller under v2/vcw4w/app, so the
+--     "revoke authenticated for zero-caller RPCs" branch fires for nothing.
+--
+-- WHY NO DO $$ pg_proc GUARDS: every signature above is exact-verified by
+-- grep in shipped migrations (defs cited per row); there are no uncertain
+-- overloads, so no conditional guards are needed. Comments + REVOKE/GRANT
+-- only; no CREATE OR REPLACE; never granted to anon.
+--
+-- RERUNNABLE: vacuously (no statements). service_role bypasses grants and
+-- is unaffected either way.
+-- ============================================================================

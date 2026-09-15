@@ -1,0 +1,71 @@
+-- ============================================================================
+-- DS-SECFIX2-13 (seclint2 / lint-0029): coin + budget RPC grants reconciliation.
+--
+-- DECISION: NO NEW GRANT CHANGES. All 14 envelope signatures already carry
+-- `revoke all ... from public, anon` + `grant execute ... to authenticated`
+-- in shipped, immutable migrations, with bodies untouched throughout. This
+-- file intentionally contains ZERO executable statements (doc-comment only),
+-- per precedent 20261220000011_sqlint_pgcrypto_schema.sql. Any restatement
+-- here would be an idempotent no-op duplicate, not a fix.
+--
+-- Reconciliation against 20261220000003_security_revoke_money.sql (money
+-- writes) and 20261220000016_sqlint_revoke_ledger_meter.sql (ledger/meter
+-- reads+writes), verified 2026-09-15 by grepping shipped migrations for the
+-- REVOKE/GRANT lines and grepping v2/vcw4w/app for user-JWT .rpc callers
+-- (user-scoped createClient() = anon key + user cookies = `authenticated`):
+--
+--   get_my_coin_balance() -- prior: 20260911000000:104-105,
+--     20261219000008:128-129, 00016:87-88. Callers: coins/balance,
+--     coins/host, dps-compute, fal/generate, meshy/generate, buddy/*,
+--     openrouter-vendor/generate, outscraper/search, mmo/billing/charge,
+--     my/rights, newgameplus/vcw-verify.
+--   get_my_coin_refunds() -- prior: 20261012000000:240-241,
+--     20261219000008:131-132, 00016:90-91. Caller: coins/refunds:18.
+--   get_my_refundable_lots() -- prior: 20261012000000:151-152,
+--     20261219000008:143-144, 00016:96-97. Caller: coins/refunds:17.
+--   get_my_crown_balances() -- prior: 20261019000000:157-158,
+--     20261219000008:134-135, 00016:93-94. Caller: crowns/balance:19.
+--   refund_coin_lot(uuid, numeric) -- def 20261012000000:157
+--     (p_lot_id uuid, p_coins numeric default null; identity args uuid,
+--     numeric). Prior: 20261012000000:215-216, 20261219000008:116-117,
+--     00003:123-124, 00016:81-82. Caller: coins/refund:72.
+--   apply_referral(text) -- def 20260910070000:74 (p_code text). Prior:
+--     20260910070000:89-90, 20261219000008:152-153, 00003:133-134,
+--     00016:129-130. Caller: referrals:70 (p_code).
+--   get_or_create_referral_code() -- def 20260910070000:56. Prior:
+--     20260910070000:71-72, 20261219000008:155-156, 00016:132-133.
+--     Caller: referrals:21.
+--   claim_daily_bonus() -- def 20260910070000:36. Prior: 20260910070000:53-54,
+--     20261025000000:38-39, 00003:129-130, 00016:123-124.
+--     Caller: coins/daily:41.
+--   claim_alpha_tester_bonus() -- def 20260925000000:5. Prior:
+--     20260925000000:27-28, 20260910200000:34-35, 00003:131-132,
+--     00016:126-127. Caller: coins/alpha:22.
+--   set_my_budget(numeric, integer, boolean) -- def 20260911000000:131
+--     (p_cap, p_alert, p_hard_stop). Prior: 20260911000000:153-154,
+--     20261219000008:224-225, 20261220000005:173-174, 20261220000013:114-115.
+--     (Absent from 00003/00016 by lane split -- budgets live in the org/mmo
+--     revoke files -- but fully covered there.) Caller: budgets:65.
+--   set_org_budget(uuid, numeric, integer, boolean) -- def 20260911000000:142
+--     (p_org, p_cap, p_alert, p_hard_stop). Prior: 20260911000000:153-154,
+--     20261219000008:227-228, 20261220000005:176-177, 20261220000013:117-118.
+--     (Same lane-split note as set_my_budget.) Callers: budgets:64,
+--     budgets/squads:126.
+--   purchase_cosmetic_item(text, text, numeric) -- def 20260921000000:72.
+--     Prior: 20260921000000:108-109, 20261219000008:161-162, 00003:157-158,
+--     00016:156-157. Caller: cosmetics/buy:67.
+--   charge_dev_action(text, text, numeric, text, text, text, text) -- def
+--     20260921000000:113. Prior: 20260921000000:163-164,
+--     20261219000008:65-66, 00003:119-120, 00016:162-163.
+--     Caller: dev-charges:109.
+--   cancel_subscription(uuid) -- def 20260922000000:348 (p_subscription_id).
+--     Prior: 20260922000000:358-359, 20261219000008:167-168, 00016:138-139.
+--     Caller: support/subscribe:64.
+--
+-- CLASSIFICATION: every signature above is authenticated-only (revoke public
+-- + anon; keep authenticated) because each has at least one legit user-JWT
+-- .rpc caller. There are zero zero-caller money-moving RPCs in this set, so
+-- no full revoke (authenticated included) applies. Never grant anon.
+-- service_role is untouched (revokes are per-role). No CREATE OR REPLACE,
+-- no body, amount, split, or ledger-pairing change anywhere.
+-- ============================================================================

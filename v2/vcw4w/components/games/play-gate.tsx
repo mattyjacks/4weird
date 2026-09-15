@@ -8,7 +8,7 @@ import { AdSlot } from "@/components/ads/AdSlot";
 import { AgeGate } from "@/components/games/age-gate";
 import { RatingBadge } from "@/components/games/rating-badge";
 import { KidBanner } from "@/components/family/kid-banner";
-import { requiredAgeFor, getGameRating, isKidsMode } from "@/lib/age-gate";
+import { requiredAgeFor, getGameRating, isKidsMode, KIDS_MODE_KEY } from "@/lib/age-gate";
 import { bandMinAge } from "@/lib/family";
 import {
   CONTENT_MODE_LABELS,
@@ -501,8 +501,18 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       // Account settings broadcasts its saves under this key (other tabs):
       // that is exactly the "I set my band but the game still blocks me"
       // moment, so reset the block instead of just re-reading behind it.
-      if (event.key === "4weird-age-band-changed") recheckBand();
-      else refresh();
+      if (event.key === "4weird-age-band-changed") {
+        recheckBand();
+        return;
+      }
+      // Scoped refresh only. The runtime frame is same-origin, so every game
+      // save/highscore/setting write fires a storage event in this window;
+      // re-resolving on those wiped the in-memory DOB pass and unmounted the
+      // running game back to the age check on every autosave (Start → save →
+      // DOB loop). Only keys that change the gate re-resolve: the Kids Mode
+      // flag (cross-tab toggles) and a full clear (key null). Content-mode
+      // keys are owned by the clamp listener below (via contentNonce).
+      if (event.key === KIDS_MODE_KEY || event.key === null) refresh();
     };
     window.addEventListener("kids-mode-changed", refresh);
     window.addEventListener("kid-session-changed", refresh);

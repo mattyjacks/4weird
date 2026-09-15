@@ -1,0 +1,69 @@
+-- ============================================================================
+-- DS-SECFIX2-20 (integrator doc): seclint2 landing note, 2026-09-15.
+-- DOC-ONLY migration: zero executable statements. Safe to apply in any
+-- order; `supabase db push` treats it as a no-op marker.
+--
+-- (a) EXTERNAL-dashboard item — the single remaining item from the
+--     2026-09-15T06:02Z linter CSV that NO SQL migration can fix:
+--     auth.leaked_password_protection MUST be enabled in the Supabase
+--     dashboard. Exact click path: Supabase dashboard -> select project ->
+--     Authentication -> Policies / Password protection section -> enable
+--     "Leaked password protection" (HaveIBeenPwned check). Verify the toggle
+--     reads ON after saving. Re-running migrations will never clear this
+--     finding; only the dashboard toggle does.
+--
+-- (b) Intentional anon keeps with route evidence (one line each: function,
+--     anon-kept-because route, revision that pins it):
+--     clan_leaderboard(uuid) — anon-kept because unauthenticated GET
+--       /api/clans/[slug] serves public readers — pinned by
+--       20261220000012_sqlint_revoke_clan.sql S50-55.
+--     clan_minute_rate(uuid) — anon-kept because unauthenticated GET
+--       /api/clans/[slug] serves public readers — pinned by
+--       20261220000012_sqlint_revoke_clan.sql S50-55.
+--     clan_roster_page(uuid,integer,timestamptz,uuid) — anon-kept because
+--       unauthenticated GET /api/clans/[slug] serves public readers —
+--       pinned by 20261220000012_sqlint_revoke_clan.sql S50-55.
+--     game_chart_summary() — anon-kept because explicit ANON client in
+--       app/api/analytics/route.ts serves aggregate counts — pinned by
+--       20261220000015_sqlint_revoke_game_match.sql header (public reads).
+--     leaderboard_top(text,text) — anon-kept because public leaderboard
+--       page needs no login (handles+totals only) — pinned by
+--       20261220000015_sqlint_revoke_game_match.sql header (public reads).
+--     love_post_totals(uuid) — anon-kept because award badges on public
+--       clan pages via app/api/love/post/[id] — pinned by
+--       20261220000017_sqlint_revoke_social.sql S26-29.
+--     love_profile_stats(text) — anon-kept because public handle stats
+--       via app/api/love/profile (zeroed bodies for hidden) — pinned by
+--       20261220000017_sqlint_revoke_social.sql S30-32.
+--     start_kid_session(...) — anon-kept because kid branch of
+--       app/api/games/session/route.ts uses req.cookies kid_session, no
+--       login (anon caller) — pinned by
+--       20261220000014_sqlint_revoke_kid_family.sql S9-15.
+--     heartbeat_kid_session(...) — anon-kept because kid branch of
+--       app/api/games/session/route.ts uses req.cookies kid_session, no
+--       login (anon caller) — pinned by
+--       20261220000014_sqlint_revoke_kid_family.sql S9-15.
+--     end_kid_session(...) — anon-kept because kid branch of
+--       app/api/games/session/route.ts uses req.cookies kid_session, no
+--       login (anon caller) — pinned by
+--       20261220000014_sqlint_revoke_kid_family.sql S9-15.
+--     (Residual context: 20261222000000_linter_residual_anon_lockdown.sql
+--     restates the same keeps — 0014 pgcrypto-in-public deliberate KEEP,
+--     0028 rows above BY DESIGN, 0029 authenticated rows intentional RPC
+--     surface — and locks only the phantom 5-arg meter_submission_charge
+--     overload to server-only.)
+--
+-- (c) supabase db push order note: migrations apply in version (filename)
+--     order; the 20261222* seclint2 deltas are REVOKE/GRANT-only and
+--     rerunnable (idempotent restates are safe); this file edits no shipped
+--     file — nothing in 20261222* modifies an already-shipped migration.
+--
+-- (d) Union check on disk state at time of writing: 20261222000000 through
+--     20261222000020 ALL present (00-11, 12 vendor-meter, 13, 14, 15 party,
+--     16, 17, 18 bot-campaign, 19 internals, 20 this file). Zero CREATE
+--     statements in any 20261222* delta (REVOKE/GRANT-only or doc-only), so
+--     zero NEW functions exist and zero ALTER ... SET search_path pins were
+--     needed. Sibling envelopes 11-19 still read in_progress at check time
+--     (files landed, markings pending — their business, untouched here).
+--     Union is FULL-GREEN on files: versions gate green, no duplicate ids.
+-- ============================================================================

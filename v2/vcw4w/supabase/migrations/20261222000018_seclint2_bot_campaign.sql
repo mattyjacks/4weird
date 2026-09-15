@@ -1,0 +1,101 @@
+-- ============================================================================
+-- DS-SECFIX2-18 (seclint2 bot/campaign): lint-0029 RPC reconciliation — DECISION:
+-- DOC-ONLY, ZERO STATEMENTS. No REVOKE/GRANT/CREATE emitted here.
+--
+-- WHY (verified 2026-09-15 against shipped + seclint/seclint2 migrations and
+-- repo-wide `\.rpc\(['"]<name>['"]` grep under v2/vcw4w/app + lib +
+-- components): every one of the 13 in-scope functions already carries an
+-- authenticated-only grant (REVOKE ALL FROM public/anon + GRANT EXECUTE TO
+-- authenticated), and every one has at least one live user-JWT .rpc caller,
+-- so there is nothing left to revoke and nothing safe to widen. service_role
+-- bypasses grants, so server/cron callers are unaffected either way.
+--
+-- PRIOR COVERAGE (each already authenticated-only; REVOKE/GRANT idempotent
+-- so no restate needed):
+--   * ensure_bot_identity() ............ 20261219000007:151-152,
+--     20261220000017:80-81 (shipped pin: authenticated-only since
+--     20260910090000:187-188, re-pinned 20260910120000:100-101,
+--     20260910180100:114-115)
+--   * ensure_default_org() ............. 20261219000007:154-155,
+--     20261220000013:66-67 (shipped: 20260928000000:112-113)
+--   * issue_bot_key(text,text,text) .... 20261219000009:591-592,
+--     20261220000017:86-87 (shipped: 20260910090000:264-265,
+--     20260910120000:149-150)
+--   * revoke_bot_key(uuid) ............. 20261219000009:594-595,
+--     20261220000017:89-90 (shipped: 20260910090000:282-283,
+--     20260910120000:160-161)
+--   * set_bot_username(text) ........... 20261219000009:600-601,
+--     20261220000017:83-84 (shipped: 20260910090000:228-229,
+--     20260910120000:127-128, 20260910180100:169-170)
+--   * create_launch_campaign(uuid,text,text,numeric,text,text,timestamptz)
+--     ............................... 20261219000009:624-625,
+--     20261220000016:153-154 (shipped: 20260922000000:447-448)
+--   * contribute_launch_campaign(uuid,numeric)
+--     ............................... 20261219000008:173-174,
+--     20261220000003:141-142, 20261220000016:144-145
+--     (shipped: 20260922000000:495-496, re-pinned 20261018000000:264-265,
+--     20261019000000:339-340, 20261025000005:147-148)
+--   * close_launch_campaign(uuid,text) . 20261219000009:627-628,
+--     20261220000016:147-148 (shipped: 20260922000000:512-513)
+--   * launch_campaign_progress(uuid) ... 20261219000009:630-631,
+--     20261220000016:150-151 (shipped: 20260922000000:530-531 granted
+--     anon+authenticated+service_role; later seclint narrowed to
+--     authenticated-only — public GETs fail open in code, see below)
+--   * create_support_tier(uuid,text,numeric,text)
+--     ............................... 20261219000009:633-634,
+--     20261220000017:95-96 (shipped: 20260922000000:302-303)
+--   * subscribe_to_tier(uuid) .......... 20261219000008:221-222,
+--     20261220000003:159-160, 20261220000016:135-136
+--     (shipped: 20260922000000:345-346, re-pinned 20261018000000:214-215,
+--     20261025000001:65-66, 20261025000005:95-96)
+--   * fund_clan_wallet(uuid,numeric) ... 20261219000008:71-72,
+--     20261220000003:135-136, 20261220000012:105-106,
+--     20261222000006:73-74 (shipped: 20260912000000:468-469,
+--     re-pinned 20261207000000:452-453)
+--   * donate_clan_upkeep(uuid,numeric) . 20261219000008:176-177,
+--     20261220000003:143-144, 20261220000012:108-109,
+--     20261222000006:70-71 (shipped: 20260916000000:513-514,
+--     re-pinned 20261207000000:400-401)
+--
+-- CALLER EVIDENCE (all callers use the user-JWT createClient(); none use a
+-- bare anon key, so authenticated-only is the correct posture):
+--   * ensure_bot_identity() ............ app/api/bot/identity/route.ts:37
+--     (login-gated POST; binding evidence: user-JWT called)
+--   * set_bot_username(text) ........... app/api/bot/identity/route.ts:75
+--     (same file; binding evidence: user-JWT called)
+--   * issue_bot_key(text,text,text) .... app/api/bot/keys/route.ts:194
+--     (login-gated POST; binding evidence: user-JWT called)
+--   * revoke_bot_key(uuid) ............. app/api/bot/keys/[id]/revoke/route.ts:36
+--     (login-gated; binding evidence: user-JWT called)
+--   * ensure_default_org() ............. app/api/orgs/route.ts:23
+--     (GET, login-required 401 before the call)
+--   * create_launch_campaign(7-arg) .... app/api/fundraisers/route.ts:79 (POST)
+--   * contribute_launch_campaign ....... app/api/fundraisers/[id]/contribute/route.ts:67
+--   * close_launch_campaign ............ app/api/fundraisers/[id]/close/route.ts:41
+--   * launch_campaign_progress(uuid) ... app/api/fundraisers/[id]/route.ts:26
+--     (public GET detail) + app/api/fundraisers/route.ts:42 (public GET list);
+--     both call via createClient() and fail open
+--     (`progress ?? { raised_gross: 0, backers: 0 }`), so logged-out readers
+--     get zeroed progress instead of a 403 break — matches the "public GETs
+--     fail open in code" note in 20261220000006:41-42. Anon stays revoked
+--     BY DESIGN; widening to anon is out of scope for this lane.
+--   * create_support_tier(4-arg) ....... app/api/support/tiers/route.ts:59
+--   * subscribe_to_tier(uuid) .......... app/api/support/subscribe/route.ts:79
+--   * fund_clan_wallet(uuid,numeric) ... app/api/clans/[slug]/economy/route.ts:138
+--     (login-gated; already authenticated-only per 20261220000012)
+--   * donate_clan_upkeep(uuid,numeric) . app/api/clans/[slug]/economy/route.ts:157
+--     (login-gated; already authenticated-only per 20261220000012)
+--
+-- SCOPE NOTES:
+--   * fund_clan_wallet + donate_clan_upkeep skipped per envelope (identical
+--     restate would be safe but redundant on top of 00012 + 22000006).
+--   * No NEVER-called function in this set: the revoke-authenticated-too
+--     branch does not trigger, so no DO $$ pg_proc guard is needed.
+--   * 20261220000002 covers trigger-helper internals only; none of the 13
+--     overlap it, which is expected (these are all client-RPC'd, not
+--     trigger helpers).
+--
+-- This file intentionally contains ZERO executable statements: it is a
+-- valid, rerunnable migration whose only content is this reconciliation
+-- record (precedent: 20261220000011_sqlint_pgcrypto_schema.sql).
+-- ============================================================================

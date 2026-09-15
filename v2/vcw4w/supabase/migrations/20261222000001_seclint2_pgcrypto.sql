@@ -1,0 +1,73 @@
+-- ============================================================================
+-- DS-SECFIX2-01: audit lint 0014 (extension pgcrypto in public).
+--
+-- DECISION: KEEP pgcrypto IN public. DO NOT MOVE to extensions. This file
+-- intentionally contains ZERO executable statements: it is a valid,
+-- rerunnable migration whose only content is this justification (same
+-- pattern as 20261220000011_sqlint_pgcrypto_schema.sql).
+--
+-- WHY (re-verified 2026-09-15 against shipped migrations):
+-- Shipped, immutable migration files contain functions pinned to
+-- `SET search_path = public` whose bodies call pgcrypto routines
+-- UNQUALIFIED. Relocating the extension to `extensions` would make those
+-- calls unresolvable (42883) at runtime, reintroducing the exact outage
+-- that 20261102000000_bot_runtime_repairs.sql repaired:
+--
+--   * 20260910130000_teams_enterprise_bundle.sql:1008
+--     public.push_file(...) pinned search_path=public calls digest(...,'sha1')
+--   * 20260910030000_lobbies_analytics_and_trial_credit.sql:25
+--     lobby-create fn (pinned line 22) calls gen_random_bytes(8)
+--   * 20260910090000_bot_platform.sql:168,209,254
+--     ensure_bot_identity / issue flows (pinned lines 154,195,238)
+--     call gen_random_bytes(6)
+--   * 20260910070000_daily_and_referrals.sql:63
+--     referral-code fn (pinned lines 37/57/75/95) calls gen_random_bytes(6)
+--   * 20260910120000_reconcile_clans_bots.sql:90,112,140
+--     fns pinned lines 83/105/132 call gen_random_bytes(6)
+--   * 20260910180100_profile_provisioning_and_clans_hardening.sql:94,147
+--     provisioning fns (set search_path=public lines 65/122)
+--     call gen_random_bytes(6)
+--   * 20261103000000_bot_username_ambiguity_fix.sql:48
+--     set_bot_username fixup (pinned) calls gen_random_bytes(6)
+--   * 100+ column defaults `DEFAULT gen_random_uuid()` across shipped
+--     migrations, plus gen_random_bytes(24) token defaults
+--     (teams bundle lines 87/118, zip_vault_meshy line 95).
+--   * No SQL usage of hmac/crypt/gen_salt/pgp_*/encrypt/decrypt anywhere
+--     in supabase/migrations; app-layer digest/hmac hits are Node
+--     crypto.createHash/createHmac, not pgcrypto, unaffected.
+--   * No qualified public.gen_random_*/public.digest/extensions.* refs in
+--     SQL (comments only), so keeping in public breaks no qualified calls.
+--
+-- The safe fixes (per-function `SET search_path = public, extensions`, or
+-- schema-qualifying the calls) would require editing shipped migrations,
+-- which is forbidden; `ALTER DATABASE ... SET search_path` is unreliable
+-- on managed Supabase. So the lint is accepted as a documented,
+-- deliberate placement — matching the rationale already recorded in
+-- 20261102000000_bot_runtime_repairs.sql lines 13-19,
+-- 20261220000001_security_pgcrypto.sql (conditional keep-in-public pin),
+-- 20261220000011_sqlint_pgcrypto_schema.sql (KEEP-IN-PUBLIC decision), and
+-- 20261222000000_linter_residual_anon_lockdown.sql (residual 0014 BY DESIGN).
+--
+-- CONFLICT RECONCILED: 20261219000002_seclint_pgcrypto.sql records the
+-- opposite MOVE-to-extensions and flags the KEEP-vs-MOVE conflict for the
+-- lead. The MOVE loses on correctness: it runs BEFORE the
+-- 20261220000001 conditional pin (which restores pgcrypto to public when
+-- found elsewhere), and every shipped caller above pins search_path=public
+-- with unqualified calls, so the extensions placement would 42883 in prod
+-- with no legal repair inside shipped files. KEEP (this file) governs.
+--
+-- NEW-FUNCTION SWEEP (2026-09-15): no NEW unpinned pgcrypto callers exist,
+-- so no ALTER FUNCTION ... SET search_path pins land here. Checked:
+-- 20261220000012-20261220000018 (REVOKE/GRANT-only, no CREATE FUNCTION),
+-- 20261221000000 (REVOKE/GRANT-only), 20261222000000 (conditional DO on
+-- meter_submission_charge + community_stat_averages, no pgcrypto calls),
+-- 20261222000002/00004/00005/00007/00009/00010 (REVOKE/GRANT plus
+-- belt-and-braces `ALTER ... SET search_path = public` pins; no bodies,
+-- no gen_random_*/digest/pgcrypto references). Nothing to pin.
+--
+-- Append-only: never edit a shipped migration, including this one once
+-- pushed — a future move goes in a NEW timestamped file together with a
+-- coordinated repair of every call site above. A future lane may revisit
+-- the move ONLY together with widening every dependent to
+-- `SET search_path = public, extensions` in NEW (non-shipped) files.
+-- ============================================================================

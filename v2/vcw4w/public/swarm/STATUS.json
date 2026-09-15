@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "updated": "2026-09-15T02:46:00.000Z",
+  "updated": "2026-09-15T06:12:51.679Z",
   "swarm": "devswarm",
   "counts": {
-    "open": 2,
+    "open": 1,
     "claimed": 0,
     "in_progress": 7,
     "blocked": 121,
-    "done": 396
+    "done": 397
   },
   "lanes": [
     "web",

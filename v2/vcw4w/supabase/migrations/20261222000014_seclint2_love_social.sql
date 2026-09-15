@@ -1,0 +1,45 @@
+-- ============================================================================
+-- DS-SECFIX2-14: reconcile lint 0028/0029 love/social RPCs against
+-- 20261220000017_sqlint_revoke_social.sql.
+--
+-- VERDICT: NO DELTA — 20261220000017 already covers all 10 in-scope
+-- functions identically to what this lane requires. This file is
+-- intentionally ZERO-STATEMENT (doc-comment only), per precedent
+-- 20261220000011_sqlint_pgcrypto_schema.sql. No REVOKE/GRANT restated,
+-- no CREATE OR REPLACE, no anon grants added.
+--
+-- Coverage cross-check (20261220000017 line refs: §1 = authenticated-only,
+-- §2 = intentionally public):
+--   love_me()                                  §1 (revoke anon; grant authenticated)
+--   give_love_letter(uuid)                     §1 (revoke anon; grant authenticated)
+--   award_love_letter(uuid, text)              §1 (revoke anon; grant authenticated)
+--   my_friends()                               §1 (revoke anon; grant authenticated)
+--   request_friend_by_handle(text)             §1 (revoke anon; grant authenticated)
+--   respond_friend_request(uuid, boolean)      §1 (revoke anon; grant authenticated)
+--   file_report(text, uuid, text, text)        §1 (revoke anon; grant authenticated)
+--   request_verification(text)                 §1 (revoke anon; grant authenticated)
+--   love_post_totals(uuid)                     §2 (anon KEPT by design — see below)
+--   love_profile_stats(text)                   §2 (anon KEPT by design — see below)
+--
+-- Route evidence (verified 2026-09-15, repo-wide `\.rpc\(['"]<name>['"]`
+-- grep over v2/vcw4w app+lib+components; lib/ and components/ have zero
+-- matches — all callers are server route handlers via user-JWT client):
+--   AUTHENTICATED (user JWT, route enforces login via auth.getUser()):
+--     love_me                  <- app/api/love/me/route.ts:12 (auth.getUser :10)
+--     give_love_letter         <- app/api/love/give/route.ts:49
+--     award_love_letter        <- app/api/love/award/route.ts:53
+--     my_friends               <- app/api/social/friends/route.ts:15 (auth.getUser :12)
+--     request_friend_by_handle <- app/api/social/friends/route.ts:41 (auth.getUser :24)
+--     respond_friend_request   <- app/api/social/friends/route.ts:69 (auth.getUser :50)
+--     file_report              <- app/api/clans/report/route.ts:47
+--     request_verification     <- app/api/verification/route.ts:45
+--   PUBLIC BY DESIGN (no auth check in handler; logged-out visitors served):
+--     love_post_totals         <- app/api/love/post/[id]/route.ts:13
+--                                (GET, no getUser/requireAuth; anon must keep EXECUTE)
+--     love_profile_stats       <- app/api/love/profile/route.ts:17
+--                                (GET, rate-limited only; hidden profiles already
+--                                zero counters inside the function body)
+--
+-- OUT OF SCOPE: community_stat_averages() is NOT restated here — owned by
+-- 20261221000000 + restated in 20261222000000 per lead binding evidence.
+-- ============================================================================

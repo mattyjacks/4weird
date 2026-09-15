@@ -1,0 +1,94 @@
+-- ============================================================================
+-- DS-SECFIX2-12: lint 0029 vendor-meter RPC reconciliation.
+--
+-- VERDICT: NO DELTA — 20261220000016_sqlint_revoke_ledger_meter.sql already
+-- covers all 11 in-scope functions identically and correctly. This file
+-- intentionally contains ZERO executable statements (doc-comment only),
+-- per precedent 20261220000011_sqlint_pgcrypto_schema.sql. REVOKE/GRANT
+-- statements are idempotent, but re-issuing identical grants would add
+-- churn with no hardening value; re-verification below is the deliverable.
+--
+-- Scope (11): meter_fal_usage, meter_meshy_usage, meter_openrouter_usage,
+-- meter_outscraper_usage, meter_vcw_usage, meter_game_ai_usage,
+-- my_fal_usage, my_meshy_spend, my_openrouter_usage, my_outscraper_usage,
+-- refund_vendor_usage.
+--
+-- Existing coverage in 20261220000016 (all: revoke public+anon, keep
+-- authenticated; service_role bypasses grants so it is unaffected):
+--   meter_fal_usage(text,text,numeric,text)              lines 62-63
+--   meter_meshy_usage(text,numeric,uuid)                 lines 53-54
+--   meter_openrouter_usage(text,text,text,numeric,text)  lines 71-72
+--   meter_outscraper_usage(text,text,text,numeric,text,text) lines 74-75
+--   meter_vcw_usage(text,numeric,uuid,text)              lines 77-78
+--   meter_game_ai_usage(text,text,numeric,uuid,text)     lines 65-66
+--   my_fal_usage()                                       lines 102-103
+--   my_meshy_spend()                                     lines 111-112
+--   my_openrouter_usage()                                lines 105-106
+--   my_outscraper_usage()                                lines 108-109
+--   refund_vendor_usage(text,uuid)                       lines 84-85
+--
+-- Signatures verified against shipped definitions (canonical, unchanged):
+--   meter_fal_usage(text,text,numeric,text): 20260920000000_fal_media_compute.sql:62
+--     (+ re-affirmed 20260924000000_fal_30_ops.sql:18)
+--   meter_meshy_usage(text,numeric,uuid): 20261013000000_zip_vault_meshy.sql:314
+--   meter_openrouter_usage(text,text,text,numeric,text):
+--     20261201000000_openrouter_metering.sql:84 (= 20261202000000_vendor_usage_refunds.sql:37)
+--   meter_outscraper_usage(text,text,text,numeric,text,text):
+--     20261201000001_outscraper_metering.sql:90 (= 20261202000000_vendor_usage_refunds.sql:168)
+--   meter_vcw_usage(text,numeric,uuid,text): 20261020000000_vcw_gateway_byok.sql:147
+--   meter_game_ai_usage(text,text,numeric,uuid,text): 20261018000000_ledger_pairing_hardening.sql:498
+--     (= 20260910160000_game_ai_compute.sql:145, 20260918010000_buddy_presence_kinds.sql:19)
+--   my_fal_usage(): 20260920000000_fal_media_compute.sql:147
+--   my_meshy_spend(): 20261013000000_zip_vault_meshy.sql:430
+--   my_openrouter_usage(): 20261202000000_vendor_usage_refunds.sql:335
+--     (= 20261201000000_openrouter_metering.sql:212)
+--   my_outscraper_usage(): 20261202000000_vendor_usage_refunds.sql:392
+--     (= 20261201000001_outscraper_metering.sql:197)
+--   refund_vendor_usage(text,uuid): 20261202000000_vendor_usage_refunds.sql:283
+-- No overload ambiguity: no second signature for any of the 11 exists in
+-- shipped migrations, so no DO $$ pg_proc guard is needed.
+--
+-- Caller evidence (grep `\.rpc("name"` across v2/vcw4w app/lib/components,
+-- verified 2026-09-15; every meter path uses the user-scoped createClient()
+-- from @/lib/supabase/server + auth.getUser(), never anon):
+--   meter_fal_usage        KEEP authenticated — app/api/fal/generate/route.ts:115
+--                          via createClient (route.ts:40) + getUser (:41).
+--   meter_meshy_usage      KEEP authenticated — app/api/meshy/generate/route.ts:143
+--                          via createClient (:32) + getUser (:33); the _for
+--                          sibling at :132 uses svc/serviceClient (server-only,
+--                          out of scope).
+--   meter_openrouter_usage KEEP authenticated — app/api/openrouter-vendor/generate/route.ts:291
+--                          via createClient (:202) + getUser (:203).
+--   meter_outscraper_usage KEEP authenticated — app/api/outscraper/search/route.ts:287
+--                          via createClient (:202) + getUser (:203).
+--   meter_vcw_usage        KEEP authenticated — 12 user-JWT call sites, e.g.
+--                          app/api/vcw/runs/route.ts:106, actions/route.ts:74,
+--                          handoff/route.ts:78, bugs/route.ts:124, all via
+--                          createClient; recordings/:113 + gateway/dispatch:124
+--                          + debug-play:103 use meterClient=createClient while
+--                          the _for overloads (:130/:141/:120) use
+--                          serviceClient (server-only, out of scope).
+--   meter_game_ai_usage    KEEP authenticated — 7 user-JWT call sites, e.g.
+--                          app/api/game-ai/meter/route.ts:50 (createClient :21),
+--                          buddy/tts:124, buddy/presence:60, buddy/chat:360+569,
+--                          openrouter-plays:133, swarm chat:303.
+--   my_fal_usage           KEEP authenticated (self-read) — app/api/my/usage/route.ts:344
+--                          via createClient (:63) + getUser (:64).
+--   my_meshy_spend         KEEP authenticated (self-read) — no direct .rpc in
+--                          app; served via spendRollup() in app/api/my/usage
+--                          with the user client (see 00016 lines 33-34); revoking
+--                          authenticated would break the user usage page.
+--   my_openrouter_usage    KEEP authenticated (self-read) — same spendRollup()
+--                          user-client path; no direct .rpc.
+--   my_outscraper_usage    KEEP authenticated (self-read) — same spendRollup()
+--                          user-client path; no direct .rpc.
+--   refund_vendor_usage    KEEP authenticated — outscraper/search/route.ts:180 +
+--                          openrouter-vendor/generate/route.ts:180, both via the
+--                          user createClient paths above (failure-path refunds).
+--
+-- Therefore the envelope's default (revoke anon+authenticated for meter_*
+-- unless a user-JWT route proves .rpc) resolves to KEEP authenticated for
+-- all six meter_* here: each has a proven user-JWT caller. my_*/refund
+-- posture (authenticated-only, revoke anon) likewise already holds. No
+-- statement in this file; no anon grant anywhere; no CREATE OR REPLACE.
+-- ============================================================================

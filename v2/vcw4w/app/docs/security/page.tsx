@@ -120,6 +120,35 @@ export default function SecurityPage() {
         ]}
       />
 
+      <SectionHead
+        index="7"
+        kicker="2026-09-15 linter response"
+        title="Supabase linter wave: revokes + accepted risks"
+        body="On 2026-09-15 the Supabase security linter raised function_search_path_mutable, extension_in_public, and overly-permissive RPC grants. The DS-SECWARN-01 through 08 wave answers with eight migrations (20261219000000-00007 scope): pin search_path on trigger helpers, decide pgcrypto, and revoke anon/authenticated on internal, money-write, clan-write, org/mmo, social, and self-read RPCs. Server routes keep working because they use the service_role key server-side; browser and anon callers lose direct RPC access."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {[
+          ["01 · search_path (blocked)", "Pins SET search_path = public on handle_updated_at, touch_game_save_updated_at, vcw_runs_touch_updated_at. Blocked on duplicate migration version 20261219000000 (sibling linter file) — steward to pick winner and rename loser."],
+          ["02 · pgcrypto (blocked, KEEP-IN-PUBLIC)", "pgcrypto stays in public: create_lobby, get_or_create_referral_code, bot-identity helpers, push_file digest, token/gen_random_uuid defaults all run with search_path=public. Moving to extensions would re-42883 callers. Rerunnable conditional DO-block, no table/index/policy/trigger changes."],
+          ["03 · internals (17 revoked)", "Revoke all on 17 trigger helpers and internal routines (enforce_*, maintain_*, guard_*, handle_new_user, rls_auto_enable, strip_slot_zero_cheat_marker, trg_init_*, backfill/bump counters). None are legitimately RPC-called."],
+          ["04 · money writes (44 covered)", "35 keep authenticated (user-JWT via server routes confirmed), 9 fully revoked (apply_coin_lot, 5-arg meter overload, meter_usage, charge_mmo_minutes, record_platform_cut, convert/payout, fund_org, accrue base). Convention: revoke all from public, anon, authenticated; server uses service_role."],
+          ["05 · clan writes (39 covered)", "Only new revoke is clan_member_cap (internal helper, no app caller). Roster/scale/supporter/tribute keep anon for public clan pages; prune_settings keeps authenticated; mark_channel_read already revoked elsewhere."],
+          ["06 · org/mmo/match (54 covered)", "32 keep authenticated, 22 revoke authenticated. Full per-signature verdicts live in the migration header; version collision escalated to steward."],
+          ["07 · social (accepted-risk anon keeps)", "Accepted risk: community_stat_averages stays anon-callable (read-only aggregate, no PII) and game_chart_summary keeps its pre-existing anon grant (public analytics page). my_friends, friend requests, and cheat settings are login-gated (anon revoked, auth kept)."],
+          ["08 · self-reads (23 kept, 1 bug fixed)", "23 my_*/get_my_*/love_me/vocrehab_*/update_bot_key_policy functions verified to scope by auth.uid() and stay authenticated-callable with anon revoked. kid_wallet_balance does NOT scope by caller (filters only by kid id) so authenticated is revoked too — service_role only. Filed as a real bug."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="amber" title="Manual step — leaked password protection (not fixable by migration).">
+        In the Supabase dashboard go to Authentication &gt; Password protection and enable the HaveIBeenPwned
+        leaked-password check. The linter flag for weak/leaked passwords has no SQL fix — a human must flip this
+        switch. Until then it is a knowingly accepted risk; after enabling, re-run the linter to confirm it clears.
+      </Callout>
+
       <Pager current="/docs/security" />
     </article>
   );

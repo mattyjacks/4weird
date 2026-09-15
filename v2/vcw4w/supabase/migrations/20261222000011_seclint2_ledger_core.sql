@@ -1,0 +1,59 @@
+-- ============================================================================
+-- DS-SECFIX2-11 ledger-core reconcile (lint-0029): NO-OP, verification only.
+--
+-- VERDICT: zero-statement doc-comment file. Prior migration
+-- 20261220000016_sqlint_revoke_ledger_meter.sql already covers every
+-- in-scope signature identically (REVOKE ALL FROM public, anon + GRANT
+-- EXECUTE TO authenticated; service_role bypasses grants), and the residual
+-- 5-arg overload is already locked server-only by
+-- 20261222000000_linter_residual_anon_lockdown.sql (DO-guard). Emitting the
+-- same REVOKEs again would be dead duplication, so per the envelope rule
+-- this file lands as documentation only (precedent:
+-- 20261220000011_sqlint_pgcrypto_schema.sql). No CREATE OR REPLACE, no
+-- GRANT to anon, no body changes, no weakening.
+--
+-- Reconciliation (verified 2026-09-15; .rpc grep under v2/vcw4w/app, lib,
+-- components + signature grep in shipped migrations):
+--
+--   meter_submission_charge(uuid,text,numeric,numeric) 4-arg -> authenticated
+--     KEPT. Callers: app/api/code/[id]/audit/route.ts:75 + app/api/code/zip/
+--     route.ts:159 via user-JWT supabase.rpc. Covered 20261220000016:56-57.
+--     Never revoke authenticated (binding evidence).
+--   meter_submission_charge(uuid,uuid,text,numeric,numeric) 5-arg base ->
+--     SKIPPED by envelope order; locked server-only by 20261222000000 DO-guard
+--     (revoke public, anon, authenticated). Not restated here.
+--   meter_vault_storage(uuid,numeric,numeric) -> authenticated KEPT. Caller:
+--     app/api/vault/blobs/[id]/route.ts:334 supabase.rpc (user client; svc
+--     only for viaBot _for variant). Covered 20261220000016:59-60. Sig from
+--     20261013000000_zip_vault_meshy.sql:342 / 20261205000001_vault_meter_cents.
+--   meter_newgameplus_build(uuid,text,text,integer,integer,numeric,text) ->
+--     authenticated KEPT. Caller: app/api/newgameplus/build/route.ts:279
+--     supabase.rpc. Covered 20261220000016:68-69. Sig from
+--     20261022000000_newgameplus_metering.sql:47.
+--   my_submission_spend() -> authenticated KEPT. Caller: app/api/my/usage/
+--     route.ts:383 via spendRollup(fn) -> supabase.rpc (user createClient).
+--     Covered 20261220000016:114-115. Sig from 20261013000000_zip_vault_meshy.
+--   my_vault_spend() -> authenticated KEPT. Caller: app/api/my/usage/
+--     route.ts:385 via spendRollup -> supabase.rpc. Covered
+--     20261220000016:117-118. Sig from 20261013000000_zip_vault_meshy:442.
+--   my_newgameplus_spend() -> authenticated KEPT. Caller: app/api/my/usage/
+--     route.ts:386 via spendRollup -> supabase.rpc. Covered
+--     20261220000016:120-121. Sig from 20261022000000_newgameplus_metering:118.
+--   set_creator_monetization(uuid,boolean) -> authenticated KEPT. Caller:
+--     app/api/code/[id]/monetization/route.ts:32 supabase.rpc behind
+--     createClient + 401 gate. Covered 20261220000018:116-117. Sig from
+--     20260910040000_account_preferences_and_creator_monetization.sql:13.
+--   tip_creator(uuid,uuid,numeric) -> authenticated KEPT. Caller:
+--     app/api/support/tip/route.ts:70 supabase.rpc. Covered
+--     20261220000016:141-142. Sig from 20260922000000_support_launch_
+--     fundraisers.sql:249 / 20261018000000_ledger_pairing_hardening.sql:145.
+--   process_easydnc_batch_payment(uuid,integer,text,boolean,uuid) ->
+--     authenticated KEPT. Callers: app/api/easydnc/check/route.ts:175
+--     supabaseClient.rpc (createClient + 401 coin path) +
+--     app/api/crm/contacts/scrub-dnc/route.ts:121 supabase.rpc. Covered
+--     20261220000016:159-160. Sig from 20261117000000_easydnc_compliance_
+--     ledger.sql:91.
+--
+-- This file intentionally contains ZERO executable statements: it is a
+-- valid, rerunnable migration whose only content is this justification.
+-- ============================================================================
