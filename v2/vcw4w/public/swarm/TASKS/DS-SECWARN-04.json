@@ -1,0 +1,24 @@
+{
+  "created": "2026-09-15T03:45:00.000Z",
+  "gates": [
+    "node scripts/verify-migration-versions.mjs",
+    "self-grep: every listed signature has a REVOKE line; .rpc usage verdicts in log"
+  ],
+  "goal": "Revoke anon (and authenticated where no legit user-JWT call exists; check app .rpc('name') usage first) on money-write functions: apply_coin_lot_to_ledger(), meter_meshy_usage(text,numeric,uuid), meter_submission_charge(uuid,text,numeric,numeric), meter_submission_charge(uuid,uuid,text,numeric,numeric), meter_vault_storage(uuid,numeric,numeric), meter_fal_usage(text,text,numeric,text), meter_game_ai_usage(text,text,numeric,uuid,text), meter_newgameplus_build(uuid,text,text,integer,integer,numeric,text), meter_openrouter_usage(text,text,text,numeric,text), meter_outscraper_usage(text,text,text,numeric,text,text), meter_usage(uuid,integer), meter_vcw_usage(text,numeric,uuid,text), meter_clan_posting_fee(uuid,text,integer,boolean), charge_mmo_minutes(uuid,uuid,timestamptz,integer), charge_dev_action(text,text,numeric,text,text,text,text), process_easydnc_batch_payment(uuid,integer,text,boolean,uuid), refund_coin_lot(uuid,numeric), refund_vendor_usage(text,uuid), record_platform_cut(text,numeric,numeric,text,uuid), claim_daily_bonus(), claim_alpha_tester_bonus(), apply_referral(text), convert_crown_to_coins(numeric), request_crown_payout(numeric), fund_clan_wallet(uuid,numeric), fund_kid_wallet(uuid,numeric), fund_org_wallet(uuid,integer), tip_creator(uuid,uuid,numeric), contribute_launch_campaign(uuid,numeric), donate_clan_upkeep(uuid,numeric), accrue_clan_upkeep(uuid), accrue_clan_minute_upkeep(uuid), credit_clan_channel_revenue(uuid,text), award_clan_xp(uuid,text,integer), award_love_letter(uuid,text), give_love_letter(uuid), settle_booking_escrow(uuid), purchase_cosmetic_item(text,text,numeric), subscribe_to_tier(uuid), create_listing(text,text,text,text,integer), book_listing(uuid,integer), end_booking(uuid), heartbeat_usage(uuid,integer), set_creator_monetization(uuid,boolean). Repo convention: `revoke all on function <sig> from public, anon, authenticated;` (server uses service_role). Skip already-revoked (grep first). Done = migration 20261219000003_security_revoke_money.sql + green gate.",
+  "id": "DS-SECWARN-04",
+  "lane": "infra",
+  "log": [
+    "2026-09-15T03:45:00.000Z secwarn-lead: envelope created, awaiting claim.",
+    "2026-09-15T04:00:00.000Z secwarn-04: claimed, starting revoke sweep.",
+    "2026-09-15T04:20:00.000Z secwarn-04: migration grep done. Identical full revokes already present for 27 sigs (fal/game_ai/openrouter/outscraper/usage/vcw/clan_posting/charge_dev/refund_vendor/record_cut/apply_referral/fund_clan/fund_org/tip/contribute/donate/accrue*/credit/award*/give/settle/purchase/subscribe/set_creator + claim_daily/alpha); partial (public+anon, missing authenticated) for newgameplus/refund_coin/convert/payout/fund_kid; anon-only gaps for meshy/submission/vault/easydnc/listing/booking/heartbeat; NONE for apply_coin_lot/charge_mmo/5-arg-overload. All 44 restated idempotently in-file for the self-grep gate.",
+    "2026-09-15T04:25:00.000Z secwarn-04: .rpc usage grep done (app/lib/components/programs/scripts). User-JWT via createClient() confirmed for 35 sigs (routes: meshy, code audit/zip, vault blobs, fal, game-ai/buddy/swarm, newgameplus/build, openrouter-vendor, outscraper, vcw/*, clans post/comment/channels/economy, dev-charges, easydnc/check, coins refund/daily/alpha, referrals, family/fund, support tip/subscribe, fundraisers, love give/award, agents + bookings, cosmetics, code monetization) -> keep authenticated. Zero user-JWT for 9 (apply_coin_lot trigger-only, 5-arg overload absent, meter_usage, charge_mmo_minutes, record_platform_cut svc-only, convert/payout, fund_org, accrue base) -> full revoke.",
+    "2026-09-15T04:30:00.000Z secwarn-04: LANDED v2/vcw4w/supabase/migrations/20261219000003_security_revoke_money.sql (REVOKE-only, no DDL). Gates: self-grep GREEN 44/44 + no anon/public grants; verify-migration-versions RED EXTRINSIC (pre-existing: gate failed identically BEFORE my write; census 11 dup groups 0000-0011, mine is third 0003 by envelope contract; my file name-valid + guard-clean). QUEUE lines filed (file-landed + gate-blocker + charge_mmo re-grant flag). Envelope stays in_progress per never-done-on-red; no old-v1 writes; no secrets."
+  ],
+  "owner": "secwarn-04",
+  "scope": [
+    "v2/vcw4w/supabase/migrations/20261219000003_security_revoke_money.sql"
+  ],
+  "status": "in_progress",
+  "title": "Secwarn 04: revoke money-write RPCs",
+  "updated": "2026-09-15T04:30:00.000Z"
+}

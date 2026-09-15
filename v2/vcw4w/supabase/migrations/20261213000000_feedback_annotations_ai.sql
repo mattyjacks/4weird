@@ -115,6 +115,10 @@ create table if not exists public.feedback_ai_logs (
   created_at timestamptz not null default now()
 );
 
+-- Order-independence is handled by the Convergence guards section below
+-- (covers the 20261212000001_feedback_admin.sql dual shape + the FBOV-09
+-- contract columns) — every column is ensured BEFORE the indexes.
+
 alter table public.feedback_events enable row level security;
 alter table public.feedback_ai_logs enable row level security;
 

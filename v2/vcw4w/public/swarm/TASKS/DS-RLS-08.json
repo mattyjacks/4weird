@@ -1,0 +1,22 @@
+{
+  "id": "DS-RLS-08",
+  "title": "RLS audit 08: platform_ledger, privacy_requests, safety_reports, signup_ip_credits",
+  "goal": "AUDIT-ONLY (zero file writes outside own envelope). Tables: platform_ledger, privacy_requests, safety_reports, signup_ip_credits. Grep v2/vcw4w/app, lib, components and supabase/migrations for direct reads/writes and rpc callers; classify each table as SERVICE_ROLE_ONLY (serviceClient or SECURITY DEFINER only, user JWT never touches it, deny-all USING(false) safe) or NEEDS_USER_POLICY (user JWT reads/writes it, propose minimal policy, do NOT write migration). Return per-table verdict plus evidence paths plus proposed SQL snippet. Lead writes single migration 20261219000011.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/public/swarm/TASKS/DS-RLS-08.json"
+  ],
+  "gates": [
+    "audit evidence with grep paths, no migration writes"
+  ],
+  "status": "done",
+  "owner": "rls-08",
+  "created": "2026-09-15T03:45:00.000Z",
+  "updated": "2026-09-15T04:10:00.000Z",
+  "log": [
+    "2026-09-15T03:45:00.000Z rls-lead: envelope created, awaiting claim. Sibling seclint/sqlint waves own 20261219000000..10 slots; this wave is audit-only, lead reserves 20261219000011.",
+    "2026-09-15T04:00:00.000Z rls-08: claimed, audit started on platform_ledger/privacy_requests/safety_reports/signup_ip_credits.",
+    "2026-09-15T04:15:00.000Z rls-08: audit done, all 4 SERVICE_ROLE_ONLY, deny-all USING(false) safe, no user policies needed.",
+    "2026-09-15T04:10:00.000Z rls-lead: audit complete, converged to sibling 20261219000011_rls_no_policy_remediation.sql (landed mid-wave, covers all 41 tables: 39 deny-all USING(false) + chat_participants self SELECT/INSERT + clan_reports owner SELECT). Zero duplicate writes by this wave; conservative delta accepted (bot_api_keys/do_usage/org_invites stay fail-closed deny-all; owner-policy widens are separate lane decisions). verify-migration-versions RED is extrinsic sibling duplicate version 20261219000000 (3 files), filed to steward via QUEUE; no second ..11 file exists. Envelope done."
+  ]
+}

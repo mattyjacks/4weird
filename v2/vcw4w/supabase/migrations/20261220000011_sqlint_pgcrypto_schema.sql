@@ -1,0 +1,42 @@
+-- ============================================================================
+-- DS-SQLINT-02 (sqlint-02): Supabase lint 0014 — extension pgcrypto in public.
+--
+-- DECISION: KEEP pgcrypto IN public. DO NOT MOVE to extensions.
+--
+-- WHY (safety analysis, verified 2026-09-15 against shipped migrations):
+-- Shipped, immutable migration files contain functions pinned to
+-- `SET search_path = public` whose bodies call pgcrypto routines
+-- UNQUALIFIED. Relocating the extension to `extensions` would make those
+-- calls unresolvable (42883) at runtime, reintroducing the exact outage
+-- that 20261102000000_bot_runtime_repairs.sql repaired:
+--
+--   * 20260910130000_teams_enterprise_bundle.sql:1008
+--     public.push_file(...) pinned search_path=public calls digest(...,'sha1')
+--   * 20260910030000_lobbies_analytics_and_trial_credit.sql:25
+--     lobby-create fn (pinned line 22) calls gen_random_bytes(8)
+--   * 20260910090000_bot_platform.sql:168,209,254
+--     ensure_bot_identity / issue flows (pinned lines 154,195,238)
+--     call gen_random_bytes(6)
+--   * 20260910070000_daily_and_referrals.sql:63
+--     referral-code fn (pinned lines 37/57/75/95) calls gen_random_bytes(6)
+--   * 20260910120000_reconcile_clans_bots.sql:90,112,140
+--     fns pinned lines 83/105/132 call gen_random_bytes(6)
+--   * 20260910180100_profile_provisioning_and_clans_hardening.sql:94,147
+--     provisioning fns (set search_path=public lines 65/122)
+--     call gen_random_bytes(6)
+--   * 100+ column defaults `DEFAULT gen_random_uuid()` across shipped
+--     migrations, plus gen_random_bytes(24) token defaults
+--     (teams bundle lines 87/118, zip_vault_meshy line 95).
+--
+-- The safe fixes (per-function `SET search_path = public, extensions`, or
+-- schema-qualifying the calls) would require editing shipped migrations,
+-- which is forbidden; `ALTER DATABASE ... SET search_path` is unreliable
+-- on managed Supabase. So the lint is accepted as a documented,
+-- deliberate placement — matching the rationale already recorded in
+-- 20261102000000_bot_runtime_repairs.sql lines 13-19.
+--
+-- This file intentionally contains ZERO executable statements: it is a
+-- valid, rerunnable migration whose only content is this justification.
+-- A future lane may revisit the move ONLY together with a coordinated
+-- repair of every call site above in NEW (non-shipped) migration files.
+-- ============================================================================

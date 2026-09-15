@@ -28,7 +28,7 @@ export const GAMES_COLUMN: FooterDataColumn = {
     { href: '/games/overtake', label: '🏁 Overtake', blurb: 'Racing' },
     { href: '/games/assassinanimals', label: '🕶️ AssassinAnimals', blurb: 'Rogue-like' },
     { href: '/games/battlesharks2', label: '🦈 Battlesharks 2', blurb: 'Action' },
-    { href: '/games/gravegain2d', label: '⚔️ GraveGain2D', blurb: 'RPG' },
+    { href: '/games/gravegain2dA', label: '⚔️ GraveGain2DA', blurb: 'RPG' },
     { href: '/games/gravegain3d', label: '🏰 GraveGain3D', blurb: 'RPG' },
     { href: '/games/orbitaldrift', label: '🛸 Orbital Drift', blurb: 'Arcade' },
     { href: '/games/soundpainter2', label: '🎹 Sound Painter 2', blurb: 'Creative' },

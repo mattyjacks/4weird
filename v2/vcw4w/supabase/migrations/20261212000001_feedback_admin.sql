@@ -34,6 +34,18 @@ create table if not exists public.feedback_events (
   created_at timestamptz not null default now()
 );
 
+-- Order-independence: 20261213000000_feedback_annotations_ai.sql creates
+-- feedback_events in a different shape (report_id/event/meta) under
+-- CREATE TABLE IF NOT EXISTS. If it landed first, this file's table create
+-- no-ops and the columns below would be missing — ensure every column this
+-- file references exists BEFORE the index (nullable: safe on tables that
+-- already hold rows).
+alter table public.feedback_events add column if not exists feedback_id uuid;
+alter table public.feedback_events add column if not exists actor text;
+alter table public.feedback_events add column if not exists from_status text;
+alter table public.feedback_events add column if not exists to_status text;
+alter table public.feedback_events add column if not exists note text;
+
 create index if not exists idx_feedback_events_feedback_created
   on public.feedback_events (feedback_id, created_at desc);
 

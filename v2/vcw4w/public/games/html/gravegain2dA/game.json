@@ -1,0 +1,55 @@
+{
+    "title": "GraveGain2DA",
+    "slug": "gravegain2dA",
+    "description": "A dark fantasy 2D action RPG with emoji visuals, procedural dungeons, a 10-mission campaign, and a starship hub. BIG upgrade: 2.5D lighting/shadows + 20 weapon icons + emergent quests with wanderers and random events.",
+    "genre": "RPG",
+    "tags": ["HTML5", "Action", "RPG", "Rogue-like"],
+    "maker": {
+        "name": "Antigravity Dev",
+        "bio": "Specializing in high-fidelity HTML5 game experiences with immersive systems and rich game-feel.",
+        "url": "https://4weird.com",
+        "urlLabel": "4weird"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Lead Architect",
+            "avatar": "🧙",
+            "primary": true,
+            "url": "https://4weird.com",
+            "urlLabel": "4weird"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "WASD / Arrow Keys": "Move through the dungeon",
+            "Space": "Dodge roll / wait a turn in Turn-Based mode",
+            "Left-Click": "Melee attack",
+            "Right-Click": "Timed block",
+            "F": "Use your race ability",
+            "Shift": "Sprint while moving; use race ability while standing still",
+            "1 / 2 / 3": "Select Realtime, Chrono-Lock, or Turn-Based play from the game interface",
+            "Escape / P": "Pause Game"
+        },
+        "touch": {
+            "left side": "Movement joystick and facing direction",
+            "right side": "Attack, block, class ability, and turn wait buttons"
+        },
+        "mouse": true
+    },
+    "instructions": "Choose a race, class, and temporal mode: Realtime, Chrono-Lock, or Turn-Based. Play a 10-mission campaign or endless procedural runs, collect Gold, and develop your LuckyStarShip through botany, exchange, repairs, and lore.",
+    "technical": {
+        "canvasSize": {"width": 1000, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "aaa/00-aaa-boot.js", "aaa/10-fx-film.js", "aaa/20-fx-titlecard.js", "aaa/30-fx-announcer.js", "aaa/40-fx-boss.js", "aaa/50-hud-objectives.js", "aaa/60-hud-tutorial.js", "aaa/70-hud-runstats.js", "aaa/80-audio-director.js", "aaa/90-menu-upgrade.js", "game.css", "aaa/css/10-film.css", "aaa/css/20-titlecard.css", "aaa/css/30-announcer-combo.css", "aaa/css/40-boss.css", "aaa/css/50-hud.css", "aaa/css/60-menu.css"]
+    },
+    "meta": {
+        "version": "2.0.0",
+        "created": "2026-06-08",
+        "license": "MIT"
+    }
+}

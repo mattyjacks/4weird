@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   },
 };
 
-const PICKER_SLUGS = ["lobby", "gravegain2d", "gravegain3d", "lastwordszombies", "assassinanimals", "battlesharks2", "platform-wars", "overtake", "serversavershield"] as const;
+const PICKER_SLUGS = ["lobby", "gravegain2dA", "gravegain3d", "lastwordszombies", "assassinanimals", "battlesharks2", "platform-wars", "overtake", "serversavershield"] as const;
 
 function pickerGames() {
   const out: { slug: string; title: string; emoji: string }[] = [{ slug: "lobby", title: "4weird lobby", emoji: "🎧" }];

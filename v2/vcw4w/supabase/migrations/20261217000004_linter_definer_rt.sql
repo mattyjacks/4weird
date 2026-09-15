@@ -1,0 +1,216 @@
+-- ============================================================================
+-- 4WEIRD LINTER DEFINER TRIAGE, R-T SLICE (linter_definer_rt)
+--
+-- Scope: every public function whose name starts with R, S, or T (59
+-- unique names from a CREATE FUNCTION scan over
+-- v2/vcw4w/supabase/migrations), plus the prompt-named out-of-slice
+-- helpers rate/leaderboard (leaderboard_top, clan_leaderboard,
+-- clan_minute_rate) and rls_auto_enable, claimed here as already-covered
+-- notes. For EACH function the defining migration was read for SECURITY
+-- DEFINER status, auth.uid() guards, and existing REVOKE/GRANT coverage.
+--
+-- Outcome: ALL triaged (a) INTENTIONAL-public-or-already-locked -- ZERO
+-- new REVOKEs. This file is intentionally statement-free so the slice is
+-- recorded append-only without duplicating sibling revokes (dedupe rule:
+-- never revoke twice; same-fn-revoked-twice is harmless but noisy).
+--
+-- Auth-guarded RPCs, anon already revoked at creation or by a landed
+-- hardening slice (each hard-errors 'login required' / 'authentication
+-- required' on null auth.uid() unless noted; anon has no legit path):
+--   * read_mp_events(uuid, timestamptz, integer) -- DEFINER, null-uid
+--     raise via `mine := auth.uid()` (20261110000000:83-90); anon revoked
+--     in 20261219000004_seclint_anon_writes + 20261219000005 revokes. (a).
+--   * read_room_messages(uuid, integer, timestamptz) -- DEFINER + null-uid
+--     raise (20260929000000:93); revoked public/anon/authenticated,
+--     granted authenticated at creation. (a).
+--   * record_platform_cut(text, numeric, numeric, text, uuid) -- DEFINER
+--     (20261018000000:75); revoked public/anon/authenticated, granted
+--     authenticated + service_role. NOTE: no auth.uid() check in body --
+--     authenticated callers can insert arbitrary platform_ledger rows
+--     (audit-log pollution only, no fund movement); flagged as a
+--     hardening follow-up, NOT class (c) per the conservative rule. (a).
+--   * redact_room_message(uuid) -- DEFINER + null-uid raise
+--     (20260910130000:1057); authenticated-only at creation. (a).
+--   * redeem_org_invite(text) -- DEFINER + null-uid raise
+--     (20260928000000:313); revoked public/anon, granted authenticated. (a).
+--   * refund_coin_lot(uuid, numeric) -- DEFINER + null-uid raise
+--     (20261012000000:157, re-affirmed 20261025000007:58); revoked
+--     public/anon, granted authenticated. (a).
+--   * refund_vendor_usage(text, uuid) -- DEFINER + null-uid raise
+--     (20261202000000:283); authenticated-only at creation. (a).
+--   * remove_clan_bot(uuid, uuid) -- DEFINER + null-uid raise
+--     (20260912000000:610); authenticated-only at creation. (a).
+--   * request_crown_payout(numeric) -- DEFINER + null-uid raise
+--     (20261019000000:185); revoked public/anon, granted authenticated. (a).
+--   * request_verification(text) -- DEFINER + null-uid raise
+--     (20260922000000:231); authenticated-only at creation + anon revoked
+--     again in 20261219000007_sqlint_revoke_social. (a).
+--   * revoke_bot_key(uuid) -- DEFINER + null-uid raise
+--     (20260910090000:269, 20260910120000:152); authenticated-only +
+--     anon revoked again in sqlint_revoke_social. (a).
+--   * revoke_org_invite(uuid) -- DEFINER + null-uid raise
+--     (20260928000000:343); revoked public/anon, granted authenticated. (a).
+--   * send_room_packet(uuid, text, text, text) -- DEFINER + null-uid raise
+--     (20260910130000:1036, 20260929000000:37); authenticated-only. (a).
+--   * send_room_packet_as_bot(uuid, text, text) -- DEFINER + null-uid raise
+--     (20260929000000:61); authenticated-only at creation. (a).
+--   * set_bot_username(text) -- DEFINER + null-uid raise (20260910090000:191
+--     + 3 re-defs incl. 20261103000000:19); authenticated-only + anon
+--     revoked again in sqlint_revoke_social. (a).
+--   * set_clan_member_role(uuid, uuid, text) -- DEFINER + null-uid raise
+--     (20260916000000:911); authenticated-only at creation. (a).
+--   * set_clan_message_pin(uuid, boolean) -- DEFINER + null-uid raise
+--     (20260916000000:781); authenticated-only at creation. (a).
+--   * set_clan_prune_settings(uuid, boolean, integer, integer, text) --
+--     DEFINER + null-uid raise (20261015000100:375); revoked public/anon,
+--     granted authenticated. (a).
+--   * set_clan_type(uuid, text) -- DEFINER + null-uid raise
+--     (20260912000000:235); authenticated-only at creation. (a).
+--   * set_game_rate(text, integer, integer) -- DEFINER, owner/admin-gated
+--     (20260910170000:143); authenticated-only + anon revoked again in
+--     20261219000005_sqlint_revoke_game_match. (a).
+--   * set_kid_controls(uuid, integer, time, time, text, numeric, boolean,
+--     text, text) -- DEFINER + null-uid raise (20260924000002:190,
+--     20261025000004:11); authenticated-only + re-revoked in
+--     20261219000004_sqlint_revoke_kid_family. (a).
+--   * set_kid_password(uuid, text) -- DEFINER + null-uid raise
+--     (20260924000002:240); authenticated-only + re-revoked in
+--     sqlint_revoke_kid_family. (a).
+--   * set_member_role(text, uuid, uuid, text, uuid) -- DEFINER + null-uid
+--     raise (20260910130000:891); authenticated-only + re-revoked in
+--     20261219000003_sqlint_revoke_org_team. (a).
+--   * set_member_roles(uuid, uuid, text[]) -- DEFINER + null-uid raise
+--     (20260925000100:149); revoked public/anon, granted authenticated. (a).
+--   * set_mmo_server_status(uuid, text) -- DEFINER, host/owner-gated
+--     (20261203000000:113); anon revoked in seclint_anon_writes
+--     (authenticated + service_role). (a).
+--   * set_my_budget(numeric, integer, boolean) -- DEFINER + null-uid raise
+--     (20260911000000:131); revoked public/anon, granted authenticated
+--     (joint line with set_org_budget). (a).
+--   * set_org_prune_settings(uuid, boolean, integer, integer, text) --
+--     DEFINER + null-uid raise (20261015000100:347); revoked public/anon,
+--     granted authenticated. (a).
+--   * set_post_board(uuid, text) -- DEFINER + null-uid raise
+--     (20261017000100:263); authenticated-only at creation. (a).
+--   * set_post_flair(uuid, text) -- DEFINER + null-uid raise
+--     (20261016000000:336, 20261017000100:226); authenticated-only. (a).
+--   * set_watch_scope(uuid, uuid, uuid[]) -- DEFINER + null-uid raise
+--     (20260925000100:175); revoked public/anon, granted authenticated. (a).
+--   * settle_booking_escrow(uuid) -- DEFINER + 'authentication required' on
+--     null uid (20261018000000:378, 20261019000000:343);
+--     authenticated-only at creation. (a).
+--   * start_buddy_session(text, text) -- DEFINER + null-uid raise
+--     (20260910160000:124); authenticated-only + anon revoked again in
+--     sqlint_revoke_social. (a).
+--   * start_game_session(text, text, integer) -- DEFINER + null-uid raise
+--     (20260910170000:184 + 3 re-defs incl. 20261207000000:70);
+--     authenticated-only + anon revoked again in
+--     sqlint_revoke_game_match. (a).
+--   * subscribe_to_tier(uuid) -- DEFINER + null-uid raise
+--     (20260922000000:306, 20261018000000:173 + 2 re-defs);
+--     authenticated-only at creation. (a).
+--   * tip_creator(uuid, uuid, numeric) -- DEFINER + null-uid raise
+--     (20260922000000:249, 20261018000000:145 + 1 re-def);
+--     authenticated-only at creation. (a).
+--   * toggle_clan_reaction(uuid, text) -- DEFINER + null-uid raise
+--     (20260916000000:750, 20261116000004:154); authenticated-only. (a).
+--
+-- Fail-closed without an explicit null-uid raise (WHERE binds a
+-- non-nullable column to auth.uid(), so anon calls are guaranteed
+-- no-ops / FK violations); anon already revoked, no anon-legit path:
+--   * request_friend_by_handle(text) -- DEFINER one-liner inserting
+--     requester_id = auth.uid() (20260910020000:55, hardened re-def
+--     20260910040000:18); granted authenticated at creation
+--     (20260910020000:58); anon revoked in sqlint_revoke_social. (a).
+--   * respond_friend_request(uuid, boolean) -- DEFINER one-liner updating
+--     WHERE addressee_id = auth.uid() (20260910020000:54); anon matches
+--     zero rows (returns false); granted authenticated at creation;
+--     anon revoked in sqlint_revoke_social. (a).
+--   * set_creator_monetization(uuid, boolean) -- DEFINER one-liner
+--     updating WHERE owner_id = auth.uid() (20260910040000:13);
+--     authenticated-only at creation. (a).
+--   * set_org_budget(uuid, numeric, integer, boolean) -- DEFINER gated by
+--     has_org_perm (false for anon) (20260911000000:142); revoked
+--     public/anon, granted authenticated (joint line). (a).
+--   * start_timer(uuid, uuid, text, boolean, boolean, text, boolean) --
+--     DEFINER scoping every write by v_uid := auth.uid()
+--     (20261113000000:25); revoked public/anon, granted authenticated
+--     (:101-102) + re-affirmed in 20261211000000_ghost_rename. (a).
+--   * stop_timer(uuid, text, uuid, boolean, integer) -- DEFINER, same
+--     user_id scoping (20261113000000:108); revoked public/anon, granted
+--     authenticated + re-affirmed in ghost_rename. (a).
+--
+-- Service/cron-only (no client grant; service_role bypasses grants):
+--   * renew_support_subscriptions() -- DEFINER (20260922000000:363,
+--     20261018000000:446, 20261207000000:567); revoked public/anon/
+--     authenticated, granted service_role in all three. (a).
+--   * run_clan_auto_prune() -- DEFINER (20261015000100:772); revoked all
+--     three, granted service_role. (a).
+--   * run_clan_tribute_sweep() -- DEFINER (20261015000100:1337); revoked
+--     all three, granted service_role. (a).
+--   * run_org_auto_prune() -- DEFINER (20261015000100:673); revoked all
+--     three, granted service_role. (a).
+--   * settle_mmo_minute(text, integer, uuid, numeric, uuid) -- DEFINER
+--     (20261203000003:85); revoked all three, granted service_role
+--     (:200-201). (a).
+--   * support_credit(uuid, uuid, uuid, numeric, text, text) -- DEFINER
+--     (20260922000000:193, 20261019000000:253); locked to service_role in
+--     20261112000000_security_lockdown (revoked authenticated). (a).
+--   * team_org(uuid) -- SQL DEFINER helper (20260910130000:551,
+--     20260910190000:45); revoked from all client roles, granted
+--     service_role (20261219000003_sqlint_revoke_org_team:53,
+--     20261219000007_seclint_auth_internal:126-127). (a).
+--   * touch_bot_key(text) -- DEFINER (20260910120000:163); revoked all
+--     three, granted service_role. (a).
+--
+-- Non-DEFINER or trigger-only (linter WARN not applicable; no EXECUTE
+-- exposure to revoke):
+--   * touch_game_save_updated_at() -- plain plpgsql trigger callback, NO
+--     SECURITY DEFINER (202609100001:23); fires on game_saves update. (a).
+--   * touch_vault_files_updated_at() -- plain plpgsql trigger callback, NO
+--     SECURITY DEFINER (20261107000000:63); fires on vault_files update. (a).
+--   * trg_init_org_on_use() -- DEFINER trigger helper
+--     (20260928000000:199); revoked public/anon/authenticated
+--     (20261219000002_security_revoke_internals) + anon revoked /
+--     service_role granted (20261219000003_seclint_anon_triggers). (a).
+--   * trg_init_team_org_on_use() -- DEFINER trigger helper
+--     (20260929000000:303); same double revokes as above. (a).
+--   * strip_slot_zero_cheat_marker() -- DEFINER trigger helper
+--     (20261026000000:32); revoked in security_revoke_internals +
+--     seclint_anon_triggers (service_role) + sqlint_revoke_game_match. (a).
+--
+-- Special cases:
+--   * set_cheat_setting(text, smallint, boolean) -- DEFINER
+--     (20260910010000:48, 20261026000000:23); granted authenticated only
+--     at both creations; anon revoked in
+--     20261219000005_sqlint_revoke_game_match. (a).
+--   * set_self_host_seats(uuid, integer) -- DEFINER with an explicit
+--     service_role null-uid path in body (20261015000100:110); revoked
+--     public/anon, granted authenticated + service_role; re-revoked in
+--     sqlint_revoke_org_team. (a).
+--   * start_kid_session(uuid, char(64), text, text, integer, integer) --
+--     DEFINER token-hash session RPC (20260924000002:306,
+--     20261022000000:226); anon grant intentionally granted then REMOVED
+--     by 20261219000005_seclint_anon_kids (now authenticated +
+--     service_role only). (a).
+--   * support_split(numeric) -- DEFINER pure-math split
+--     (20260922000000:178); revoked public/anon/authenticated, granted
+--     authenticated + service_role. (a).
+--
+-- Prompt-named out-of-slice notes (already covered elsewhere, no action):
+--   * leaderboard_top(text, text) -- INTENTIONAL-public (anon leaderboard
+--     reads; 20260910070000:94, re-affirmed 20261207000000:487; anon grant
+--     deliberate). (a).
+--   * clan_leaderboard(uuid) -- INTENTIONAL-public (20260912000000:548,
+--     re-affirmed 20261207000000:523 + 20261219000002_sqlint_revoke_clan;
+--     anon grant deliberate). (a).
+--   * clan_minute_rate(uuid) -- INTENTIONAL-public (20260916000000:285;
+--     anon + service_role grant deliberate, re-affirmed in
+--     sqlint_revoke_clan). (a).
+--   * rls_auto_enable() -- DEFINER trigger helper; revoked public/anon/
+--     authenticated (20261219000002) + anon revoked / service_role
+--     granted (20261219000003_seclint_anon_triggers). (a).
+--
+-- Class (c) GENUINE-VULN: none found.
+-- Fully rerunnable: no statements. Append-only: repairs go in a NEW file.
+-- ============================================================================

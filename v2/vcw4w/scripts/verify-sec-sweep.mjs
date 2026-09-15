@@ -132,9 +132,8 @@ for (const key of ["CRON_SECRET", "SUPABASE_SERVICE_ROLE_KEY", "BOT_KEY_PEPPER",
 // until pushed) then lands 12 least-privilege policies. Locked now means:
 // RLS on, no GRANTs to anon/authenticated anywhere, and the 0003 set keeps
 // its invariants (no self-verify, auth-gated discovery, no ledger hooks, no
-// ghost squads). chat_participants (Wave-1 comms) is still policy-free ->
-// QUEUE.md DS-SEC-INFRA-01 requests its policy in a NEW migration; §5 flips
-// deliberately when that migration lands.
+// ghost squads). chat_participants (Wave-1 comms) carries self-membership
+// policies since 20261219000011 (§5 below).
 const allMigFiles = fs.readdirSync(migDir).filter((f) => f.endsWith(".sql")).sort();
 const allMig = allMigFiles.map((f) => read(path.join(migDir, f))).join("\n");
 const stripSqlComments = (src) =>
@@ -178,14 +177,23 @@ must(
   "dps node discovery must stay authenticated-only (anon sees nothing).",
 );
 
-// 5. chat_participants: RLS on, policy-free (queued gap) ------------------------
+// 5. chat_participants: RLS on + self-membership policies (landed gap) -----
+// QUEUE.md DS-SEC-INFRA-01 requested its policy in a NEW migration; landed in
+// 20261219000011_rls_enabled_no_policy_fix.sql as chat_participants_*_own
+// (self-membership: SELECT/INSERT/UPDATE/DELETE own rows). Neighbor policies
+// (chat_threads_read, chat_messages_read/insert) gate on EXISTS over this
+// table, so self-readable membership is what makes them true for members.
 must(
   /alter\s+table\s+public\.chat_participants\s+enable\s+row\s+level\s+security/i.test(allMig),
   "ROW LEVEL SECURITY not enabled on public.chat_participants.",
 );
 must(
-  !new RegExp(`create\\s+policy\\s+\\S+\\s+on\\s+public\\.chat_participants\\b`, "i").test(allMig),
-  "public.chat_participants must stay policy-free until the queued policy migration lands (QUEUE.md DS-SEC-INFRA-01 line); update this pin when it does.",
+  /create\s+policy\s+chat_participants_select_own\s+on\s+public\.chat_participants\b/i.test(allMig),
+  "public.chat_participants missing chat_participants_select_own (self-membership SELECT; see 20261219000011).",
+);
+must(
+  /create\s+policy\s+chat_participants_insert_own\s+on\s+public\.chat_participants\b/i.test(allMig),
+  "public.chat_participants missing chat_participants_insert_own (self-membership INSERT; see 20261219000011).",
 );
 
 // 6. clan_wallets floor pin (regression guard, not the tighten) ----------------
@@ -201,5 +209,5 @@ console.log(
   `sec-sweep OK: ${DENY_TABLES.length} deny-by-default tables + 2 service_role-only mint paths pinned in ${LOCKDOWN}; ` +
     `${crons.length} cron routes Bearer-gated + fail-closed; ${clientFiles.length} client files secret-free; ` +
     `${SWEEP_TABLES.length} remastery tables RLS-enabled with no anon/authenticated GRANTs + 0003 invariants pinned; ` +
-    `chat_participants RLS-on + policy-free (queued); clan_wallets floor pinned.`,
+    `chat_participants RLS-on + self-membership policies; clan_wallets floor pinned.`,
 );

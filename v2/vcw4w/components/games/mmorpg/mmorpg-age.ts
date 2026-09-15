@@ -96,7 +96,7 @@ export function formatCostPerMin(value: unknown, hostFree?: boolean): string {
 /** Default game-page slug per game kind (Join link fallback). */
 export const MMORPG_DEFAULT_SLUG: Record<MmorpgGameKind, string> = {
   "1d": "gravegain1d",
-  "2d": "gravegain2d",
+  "2d": "gravegain2dA",
   "3d": "gravegain3d",
   "4d": "gravegain4d",
   "5d": "gravegain5d",
@@ -107,7 +107,7 @@ export function serverSlug(server: Pick<MmorpgServer, "game" | "slug">): string 
   const raw = typeof server?.slug === "string" ? server.slug.trim() : "";
   if (/^[a-z0-9-]+$/.test(raw)) return raw;
   if (isMmorpgGameKind(server?.game)) return MMORPG_DEFAULT_SLUG[server.game];
-  return "gravegain2d";
+  return "gravegain2dA";
 }
 
 /** Join href for a server card: /games/<slug>?mmorpg=<id>. */

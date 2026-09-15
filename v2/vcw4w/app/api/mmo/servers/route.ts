@@ -28,7 +28,7 @@ export type AgeBand = "kids" | "teens" | "adults";
 // spellings are accepted and normalized to the dimension for storage.
 const DIMENSION_OF_SLUG: Record<string, string> = {
   gravegain1d: "1d",
-  gravegain2d: "2d",
+  gravegain2dA: "2d",
   gravegain3d: "3d",
   gravegain4d: "4d",
   gravegain5d: "5d",
@@ -41,7 +41,7 @@ const DIMENSION_OF_SLUG: Record<string, string> = {
 
 const SLUG_OF_DIMENSION: Record<string, MmorpgGameKind> = {
   "1d": "gravegain1d",
-  "2d": "gravegain2d",
+  "2d": "gravegain2dA",
   "3d": "gravegain3d",
   "4d": "gravegain4d",
   "5d": "gravegain5d",

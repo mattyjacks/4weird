@@ -163,12 +163,31 @@ function field(form: FormData, name: string): string | null {
 
 function isMissingTable(error: { code?: unknown; message?: unknown }): boolean {
   const code = String(error?.code ?? "");
+  if (code === "42P01" || code === "PGRST205") return true; // undefined_table / schema cache
+  // Constraint/RLS/grant failures name the table but prove the OPPOSITE: the
+  // table EXISTS and refused the write (e.g. a critique check predating
+  // 'neutral', or an RLS/permission denial). Misreporting those as a missing
+  // store sends a 503 that no migration can fix and hides the real error.
+  if (code === "23514" || code === "23503" || code === "23502" || code === "42501") return false;
   const message = String(error?.message ?? "").toLowerCase();
+  if (
+    message.includes("violates check constraint") ||
+    message.includes("violates foreign key") ||
+    message.includes("violates not-null") ||
+    message.includes("null value in column") ||
+    message.includes("row-level-security") ||
+    message.includes("row-level security") ||
+    message.includes("permission denied")
+  ) {
+    return false;
+  }
   return (
-    code === "42P01" || // undefined_table
-    code === "PGRST205" || // table not in schema cache
-    message.includes("feedback_reports") ||
-    message.includes("schema cache")
+    (message.includes("feedback_reports") ||
+      message.includes("feedback_events") ||
+      message.includes("feedback_ai_logs")) &&
+    (message.includes("does not exist") ||
+      message.includes("schema cache") ||
+      message.includes("could not find"))
   );
 }
 

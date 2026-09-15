@@ -12,7 +12,7 @@ import { debounce, filterGamesAsync } from "@/lib/perf-client";
 import styles from "./game-catalog.module.css";
 
 const PAGE_SIZE = 24;
-const picks = ["overtake", "lastwordszombies", "gravegain2d", "gravegain3d", "battlesharks2", "serversavershield", "assassinanimals"];
+const picks = ["overtake", "lastwordszombies", "gravegain2dA", "gravegain3d", "battlesharks2", "serversavershield", "assassinanimals"];
 
 function a11yBadgesFor(slug: string) {
   const a11y = getGameA11y(slug);

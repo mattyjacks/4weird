@@ -1,0 +1,44 @@
+-- ============================================================================
+-- 4WEIRD SECLINT SWEEP (DS-SECLINT-10, seclint-10)
+-- ============================================================================
+-- 1. auth_leaked_password_protection is a DASHBOARD setting, NOT SQL-fixable.
+--    No migration can enable it. A human must toggle it in the Supabase
+--    Dashboard -> Authentication -> Sign in / Providers -> Password
+--    protection -> enable the leaked-password (HaveIBeenPwned) check.
+--    Until that toggle is on, the linter WARN for leaked password protection
+--    stays open by design; nothing in supabase/migrations can close it.
+--
+-- 2. Sweep cross-check (2026-09-15): sibling seclint files 01..09 re-read
+--    from disk immediately before this write. LANDED and verified in scope:
+--      20261219000001_seclint_search_path.sql  (01: 3x search_path pins)
+--      20261219000002_seclint_pgcrypto.sql     (02: pgcrypto -> extensions)
+--      20261219000003_seclint_anon_triggers.sql (03: 18 anon trigger revokes,
+--        incl. apply_coin_lot_to_ledger gap vs _security_revoke_internals)
+--      20261219000004_seclint_anon_writes.sql  (04: 15 anon write revokes)
+--      20261219000005_seclint_anon_kids.sql    (05: 7 kid-session revokes)
+--    Every REVOKE in the linter finding list covered by a LANDED sibling is
+--    intentionally NOT restated here (dedupe: never revoke twice).
+--
+-- 3. OPEN at sweep time (missing on disk; owned by sibling envelopes, so NOT
+--    claimed here per one-owner-per-fileset — landing them closes the gaps):
+--      06 seclint_anon_reads    (read/helper anon revokes)
+--      07 seclint_auth_internal (auth revoke on trigger-only/internal RPCs;
+--        note version 07 is currently occupied by the sqlint wave's
+--        20261219000007_sqlint_revoke_social.sql — steward must reconcile
+--        the version collision before either 07 lands cleanly)
+--      08 seclint_auth_money    (money/metering grant hardening)
+--      09 seclint_auth_social   (remaining social/clan/org/lobby RPCs)
+--
+-- 4. Cross-wave version collisions observed (NOT mine to fix; steward-owned):
+--    versions 01, 02, 04, 05 currently have 2-3 files each (seclint + sqlint
+--    + security_* variants sharing one 14-digit prefix), which trips
+--    scripts/verify-migration-versions.mjs duplicate-version check.
+--
+-- Sweep verdict: no orphan REVOKEs found — everything uncovered belongs to
+-- an owned-but-unlanded sibling scope. Sweep clean; guard notice below is
+-- the file's single idempotent statement (valid SQL, zero side effects).
+-- ============================================================================
+
+do $$ begin
+  raise notice 'seclint sweep 10: clean — no orphan revokes; open slots 06/07/08/09 remain sibling-owned';
+end $$;

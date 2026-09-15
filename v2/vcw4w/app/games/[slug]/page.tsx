@@ -118,17 +118,17 @@ async function CachedGameDetail({ slug }: { slug: string }) {
             </p>
           </section>
         )}
-        {["gravegain1d", "gravegain2d", "gravegain3d"].includes(g.slug) && (
+        {["gravegain1d", "gravegain2dA", "gravegain3d"].includes(g.slug) && (
           <section aria-label="Multiplayer" className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
             <h2 className="text-lg font-bold sm:text-xl">Multiplayer</h2>
             <p className="mt-2 text-sm text-slate-300">
               Multiplayer:{" "}
               {g.slug === "gravegain1d"
                 ? "Ley-Line Race"
-                : g.slug === "gravegain2d"
+                : g.slug === "gravegain2dA"
                   ? "Dungeon Duel"
                   : "Spire Siege"}{" "}
-              — party {g.slug === "gravegain2d" ? "duels" : "races"} with a live feed. Sign in, then
+              — party {g.slug === "gravegain2dA" ? "duels" : "races"} with a live feed. Sign in, then
               quick-match or share a party lobby code.
             </p>
             <Link

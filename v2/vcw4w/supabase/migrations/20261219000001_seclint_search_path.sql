@@ -1,0 +1,42 @@
+-- ============================================================================
+-- 4WEIRD SECLINT SEARCH_PATH PIN (DS-SECLINT-01, seclint-01)
+--
+-- Silences the 3 function_search_path_mutable WARNs (lint 0011) on the
+-- trigger helpers:
+--   * public.handle_updated_at()
+--   * public.touch_game_save_updated_at()
+--   * public.vcw_runs_touch_updated_at()
+--
+-- Grep evidence (supabase/migrations, real definitions):
+--   * public.handle_updated_at() returns trigger language plpgsql
+--     (20260910000000_vibe_coins_init.sql:27; bodies set NEW.updated_at
+--     via now() only — re-declared in 20260910130000,
+--     20261104000000_business_crm.sql:14, 20261106000000_business_crm_v2.sql:22)
+--   * public.touch_game_save_updated_at() returns trigger language plpgsql
+--     (202609100001_game_saves.sql:23; re-declared in
+--     20260911010000_game_saves_repair.sql:37 — same zero-arg signature,
+--     body touches NEW.updated_at via now() only)
+--   * public.vcw_runs_touch_updated_at() returns trigger language plpgsql
+--     (20260918000000_vcw_runs.sql:58; body touches NEW.updated_at
+--     via now() only)
+-- All three are zero-arg: the exact signature below needs no argument list.
+--
+-- Design: ALTER FUNCTION <exact-signature> SET search_path = public, pg_temp.
+-- Any explicit SET silences lint 0011; public, pg_temp (never '') keeps
+-- unqualified refs resolving if a body ever gains one. This supersedes
+-- 20261219000000_linter_search_path.sql, which pinned search_path = ''.
+--
+-- Explicitly SCOPED OUT (do NOT add here):
+--   * No CREATE TABLE, no coin/ledger columns (economy-lane owned).
+--   * No squads/squad_members refs (ghost tables — teams/team_members only).
+--   * No other functions, policies, triggers, or indexes.
+--
+-- Fully rerunnable: ALTER FUNCTION ... SET is idempotent, so the file stays
+-- safe to re-push against dashboard-built databases. Append-only: never edit
+-- a shipped migration, including this one once pushed — repairs go in a NEW
+-- timestamped file.
+-- ============================================================================
+
+alter function public.handle_updated_at() set search_path = public, pg_temp;
+alter function public.touch_game_save_updated_at() set search_path = public, pg_temp;
+alter function public.vcw_runs_touch_updated_at() set search_path = public, pg_temp;

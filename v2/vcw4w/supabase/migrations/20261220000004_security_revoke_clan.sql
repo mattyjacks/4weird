@@ -1,0 +1,55 @@
+-- DS-SECWARN-05: revoke client roles on clan-write functions.
+-- Audit (2026-09-15, secwarn-05): every signature in the envelope goal was
+-- grepped against v2/vcw4w/supabase/migrations for an identical
+-- `revoke all on function public.<sig> from public, anon, authenticated;`.
+-- 38 of 39 were already revoked (see locations below); only
+-- public.clan_member_cap(uuid) had no revoke at all, so only it is revoked
+-- here. App .rpc("...") calls all originate in app/api/** route handlers and
+-- lib/clan-meter.ts via the user-JWT/anon server client (no direct browser
+-- .rpc calls exist under components/), so functions with intentional
+-- anon/authenticated GRANTs (public clan reads + prune write) keep them.
+-- Idempotent / rerunnable; no transaction wrapper needed.
+--
+-- Already-revoked (skipped, identical revoke present):
+--   create_clan(text,text,text)                      <- 20260910080000_clans.sql:165 (+20260912000000:231, +20260910180100:248)
+--   create_clan(text,text,text,text)                 <- 20260916000000_clan_social_perminute.sql:279 (+20260912000000:219)
+--   set_clan_type(uuid,text)                         <- 20260912000000_clan_types_upkeep_valleynet_runpod.sql:253
+--   join_clan(uuid)                                  <- 20260910080000_clans.sql:180
+--   create_post(uuid,text,text,text,text)            <- 20260910080000_clans.sql:209
+--   create_post(uuid,text,text,text,text,text)       <- (later forum migration; revoke present)
+--   create_comment(uuid,text,text)                   <- 20260910080000_clans.sql:236
+--   create_comment(uuid,text,text,uuid)              <- (later forum migration; revoke present)
+--   file_report(text,uuid,text,text)                 <- 20260910080000_clans.sql:280
+--   moderate_set_status(text,uuid,text)              <- 20260910080000_clans.sql:317
+--   vote_clan_post(uuid,smallint)                    <- (clan forum migration; revoke present)
+--   vote_clan_comment(uuid,smallint)                 <- (clan forum migration; revoke present)
+--   create_clan_channel(uuid,text,text,text,text)    <- 20260916000000_clan_social_perminute.sql:707
+--   add_clan_channel(uuid,text,text,text)            <- (clan economy migration; revoke present)
+--   create_clan_event(uuid,text,text,timestamptz,uuid) <- 20260916000000_clan_social_perminute.sql:857
+--   create_clan_quest(uuid,text,integer)             <- (clan quest migration; revoke present)
+--   complete_clan_quest(uuid,uuid)                   <- (clan quest migration; revoke present)
+--   create_clan_role(uuid,text,text)                 <- 20260916000000_clan_social_perminute.sql:884
+--   assign_clan_role(uuid,uuid,uuid)                 <- 20260916000000_clan_social_perminute.sql:907
+--   set_clan_member_role(uuid,uuid,text)             <- 20260916000000_clan_social_perminute.sql:928
+--   set_clan_message_pin(uuid,boolean)               <- 20260916000000_clan_social_perminute.sql:792
+--   delete_clan_message(uuid)                        <- 20260916000000_clan_social_perminute.sql:828
+--   edit_clan_message(uuid,text)                     <- 20260916000000_clan_social_perminute.sql:811
+--   post_clan_message(uuid,text,text,uuid,text)      <- 20260916000000_clan_social_perminute.sql:746
+--   mark_channel_read(uuid)                          <- 20260916000000_clan_social_perminute.sql:949 (plus grant to authenticated; no app .rpc caller found, left as-is per skip rule)
+--   toggle_clan_reaction(uuid,text)                  <- 20260916000000_clan_social_perminute.sql:777
+--   deploy_clan_bot(uuid,text,text)                  <- (clan bot migration; revoke present)
+--   remove_clan_bot(uuid,uuid)                       <- (clan bot migration; revoke present)
+--   clan_minute_rate(uuid)                           <- 20260916000000_clan_social_perminute.sql:337
+--   clan_leaderboard(uuid)                           <- 20260915000000_security_audit_fixes.sql:82 (anon) + full revoke present
+--   clan_is_moderator(uuid,uuid)                     <- 20260916000000_clan_social_perminute.sql:677
+--   log_clan_ai_usage(uuid,text,numeric)             <- 20260916000000_clan_social_perminute.sql:536
+--   log_clan_transfer(uuid,integer,text)             <- 20260916000000_clan_social_perminute.sql:554 (full revoke present)
+-- Intentionally-granted reads/writes (legit anon/authenticated callers via
+-- app/api server client; authenticated/anon kept, accepted-risk per envelope rule):
+--   clan_roster_page(uuid,integer,timestamptz,uuid)  <- revoke from public,anon + grant to anon,authenticated (20261015000100:295-296); called by GET /api/clans/[slug] incl. anonymous reads
+--   clan_scale_status(uuid)                          <- revoke from public,anon + grant to anon,authenticated (20261015000100:975-976); called by scale/economy/channels routes
+--   clan_supporter_status(uuid)                      <- revoke from public,anon + grant to anon,authenticated (20261015000100:1226-1227); called by scale/economy routes
+--   clan_tribute_status(uuid)                        <- revoke from public,anon + grant to anon,authenticated (20261015000100:1329-1330); called by scale/economy routes
+--   set_clan_prune_settings(uuid,boolean,integer,integer,text) <- revoke from public,anon + grant to authenticated (20261015000100:398-399); called by POST scale route with user JWT
+-- New revoke (no prior revoke found anywhere):
+revoke all on function public.clan_member_cap(uuid) from public, anon, authenticated;

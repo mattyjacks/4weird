@@ -1,0 +1,27 @@
+{
+    "created":  "2026-09-15T03:35:00.000Z",
+    "gates":  [
+                  "node scripts/verify-migration-versions.mjs"
+              ],
+    "goal":  "DONE = NEW append-only migration v2/vcw4w/supabase/migrations/20261219000001_seclint_search_path.sql that silences the 3 function_search_path_mutable WARNs: public.handle_updated_at, public.touch_game_save_updated_at, public.vcw_runs_touch_updated_at. For each: look up its real signature/body in supabase/migrations (grep), then ALTER FUNCTION \u003cexact-signature\u003e SET search_path = public, pg_temp (any explicit SET silences lint 0011; use public,pg_temp so unqualified table refs keep working Ã¢â‚¬â€ never SET to \u0027\u0027). Rerunnable (ALTER ... SET is idempotent). No other files touched. Reviewer runs node scripts/verify-migration-versions.mjs from v2/vcw4w/.",
+    "id":  "DS-SECLINT-01",
+    "lane":  "infra",
+    "log":  [
+                "2026-09-15T03:35:00.000Z seclint-lead: envelope created, awaiting claim.",
+                "2026-09-15T03:33:32.046Z secdb-lead: adopted open envelope for SECDB wave (sibling-minted triage, zero bytes touched); dispatching seclint-01 agent.",
+                "opencode: claimed, in-progress.",
+                "2026-09-15T04:00:00.000Z seclint-01: claimed, in-progress.",
+                "opencode: wrote supabase/migrations/20261219000001_seclint_search_path.sql (ALTER ... SET search_path = public, pg_temp on handle_updated_at(), touch_game_save_updated_at(), vcw_runs_touch_updated_at()); gate node scripts/verify-migration-versions.mjs green (132 files).",
+                "2026-09-15T04:05:00.000Z seclint-01: scope file v2/vcw4w/supabase/migrations/20261219000001_seclint_search_path.sql verified present, unique version, BOM-less, 3x ALTER FUNCTION \u003cname\u003e() SET search_path = public, pg_temp. Gate RED (not my file): node scripts/verify-migration-versions.mjs throws \u0027Duplicate migration version 20261219000000: 20261219000000_linter_search_path.sql vs 20261219000000_security_search_path.sql (rename the later file)\u0027. Sibling-version collision outside DS-SECLINT-01 scope; leaving both untouched. Status=blocked.",
+                "2026-09-15T03:51:00.000Z seclint-01: claimed, in-progress. Re-read envelope + BRAIN/LANES/MEMORY + header model 20261116000003_security_sweep.sql from disk.",
+                "2026-09-15T03:51:00.000Z seclint-01: grep evidence: handle_updated_at() returns trigger plpgsql at 20260910000000_vibe_coins_init.sql:27 (re-declared 20260910130000, 20261104000000:14, 20261106000000:22); touch_game_save_updated_at() at 202609100001_game_saves.sql:23 (re-declared 20260911010000:37, same zero-arg sig); vcw_runs_touch_updated_at() at 20260918000000_vcw_runs.sql:58. All bodies NEW.updated_at=now() only. Owned file verified absent (Test-Path False, no *seclint* migrations), then created 20261219000001_seclint_search_path.sql: 3x ALTER FUNCTION <name>() SET search_path = public, pg_temp, header mirrors security_sweep banner, BOM-less (2339 bytes, no BOM), no CREATE TABLE / coin / squad refs, ALTER..SET idempotent.",
+                "2026-09-15T03:51:00.000Z seclint-01: gate evidence: node scripts/verify-migration-versions.mjs RED, throws 'Duplicate migration version 20261219000000: 20261219000000_linter_search_path.sql vs 20261219000000_security_search_path.sql'. Extrinsic: both 0000 files pre-date my write (mteg 03:38:23Z / 03:43:35Z vs mine 03:44:04Z); third 0000 file (sqlint_search_path_pins, 03:48:42Z) + same-version 0001 sibling (sqlint_pgcrypto_schema, 03:46:58Z, landed after mine when 0001 was free) also collide. Fixing any = touching non-scope files, forbidden. Status=blocked; steward ask: re-stamp 0000x3 + 0001x2 collisions, then re-run gate."
+            ],
+    "owner":  "seclint-01",
+    "scope":  [
+                  "v2/vcw4w/supabase/migrations/20261219000001_seclint_search_path.sql"
+              ],
+    "status":  "blocked",
+    "title":  "SECLINT-01 search_path pin on 3 trigger functions",
+    "updated":  "2026-09-15T03:51:00.000Z"
+}

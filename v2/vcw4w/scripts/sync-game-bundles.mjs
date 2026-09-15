@@ -21,7 +21,7 @@ const bundles = [
   ["overtake", "overtake"],
   ["assassinanimals", "assassinanimals"],
   ["battlesharks2", "battlesharks2"],
-  ["gravegain2d", "gravegain2d"],
+  ["gravegain2dA", "gravegain2dA"],
   ["gravegain3d", "gravegain3d"],
   ["gravegain4d", "gravegain4d"],
   ["gravegain1d", "gravegain1d"],

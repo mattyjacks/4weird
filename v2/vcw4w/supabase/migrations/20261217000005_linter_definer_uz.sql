@@ -1,0 +1,67 @@
+-- ============================================================================
+-- 4WEIRD LINTER DEFINER TRIAGE, U–Z SLICE (linter_definer_uz)
+--
+-- Scope: every public function whose name starts with U–Z, plus 5
+-- underscore-prefixed internal stragglers claimed from the full
+-- CREATE FUNCTION scan (no linter CSV exists on disk; slice derived from
+-- grep over v2/vcw4w/supabase/migrations). For EACH function the defining
+-- migration was read for SECURITY DEFINER status, auth.uid() guards, and
+-- existing REVOKE/GRANT coverage.
+--
+-- Outcome: ALL THIRTEEN triaged (a) INTENTIONAL-public-or-already-locked —
+-- ZERO new REVOKEs. This file is intentionally statement-free so the slice
+-- is recorded append-only without duplicating sibling revokes
+-- (dedupe rule: never revoke twice).
+--
+-- U–Z slice (8):
+--   * update_bot_key_policy(uuid, text, timestamptz, boolean, integer,
+--     numeric, numeric, integer, boolean, numeric, numeric, text, text[],
+--     text[], text[], text, integer, text) — SECURITY DEFINER, hard-errors
+--     'login required' on null auth.uid() (20260929000100:130); revoked from
+--     public, anon, authenticated + granted to authenticated at creation
+--     (:212-215); revoked AGAIN in 20261219000007_sqlint_revoke_social.sql:111.
+--     No app/lib RPC caller exists today. (a).
+--   * update_match_state(uuid, jsonb) — SECURITY DEFINER (20260910020000:44);
+--     anon execution is a guaranteed no-op (WHERE binds phone/desktop_id to
+--     auth.uid()); sole caller app/api/matches/[id]/route.ts requires login +
+--     participant check. Revoked from anon in BOTH
+--     20261219000004_seclint_anon_writes.sql:109 and
+--     20261219000005_sqlint_revoke_game_match.sql:75. (a).
+--   * vcw_runs_touch_updated_at() — NOT security definer (SECURITY INVOKER
+--     trigger callback, 20260918000000:58); direct calls error outside trigger
+--     context; no privilege escalation possible. (a).
+--   * vocrehab_export_snapshot() — SECURITY DEFINER, hard-errors 'login
+--     required' (20261208000000:371); revoked from public, anon + granted to
+--     authenticated (:410,412). Caller-id only via auth.uid(). (a).
+--   * vocrehab_log_export(text, integer) — SECURITY DEFINER, hard-errors
+--     'login required' (:400); revoked from public, anon + granted to
+--     authenticated (:411,413). (a).
+--   * vote_clan_post(uuid, smallint) — SECURITY DEFINER, hard-errors 'login
+--     required' (20261017000100:139); revoked from public, anon,
+--     authenticated + granted to authenticated (:172-173). Caller:
+--     app/api/clans/post/[id]/vote/route.ts (authed). (a).
+--   * vote_clan_comment(uuid, smallint) — same, (:185, :220-221). Caller:
+--     app/api/clans/comment/[id]/vote/route.ts (authed). (a).
+--   * workspace_compute_split(integer) — NOT security definer (immutable pure
+--     math, 20260910140000:52-61); revoked from public, anon, authenticated +
+--     granted to authenticated (:62-63). (a).
+--
+-- Stragglers claimed (5 underscore-prefixed internals, outside A–T):
+--   * _audit(uuid, uuid, text, text) — DEFINER; revoked all three at creation
+--     (20260910130000:810). (a).
+--   * _agent_perms_for(uuid, uuid) — DEFINER; revoked all three at creation
+--     (20260929000000:177). (a).
+--   * _auto_prune_org(uuid, text, integer) — DEFINER; revoked all three at
+--     creation (20261015000100:770). (a).
+--   * _meter_submission_for(uuid, uuid, text, numeric) — DEFINER, hard-errors
+--     on null p_user; revoked all three at creation (20261013000000:303). (a).
+--   * _party_invite_apply(text, uuid, text, uuid) — DEFINER; revoked all three
+--     at creation (20261014000000:470). (a).
+--
+-- Explicitly NOT in this slice: no function named usage_* exists in
+-- migrations (usage metering RPCs are meter_*/my_* M-names, owned by the
+-- DS-SECLINT-08 money slice); no X/Y/Z-named functions exist.
+--
+-- Class (c) GENUINE-VULN: none found.
+-- Fully rerunnable: no statements. Append-only: repairs go in a NEW file.
+-- ============================================================================

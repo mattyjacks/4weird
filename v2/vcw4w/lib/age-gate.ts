@@ -41,7 +41,7 @@ export const DEFAULT_DOB_ISO = "1970-04-20";
 export const GAME_RATINGS: Record<string, AgeRating> = {
   // Intense violence / horror themes - 18+.
   assassinanimals: "adults",
-  gravegain2d: "adults",
+  gravegain2dA: "adults",
   gravegain3d: "adults",
   gravegain4d: "adults",
   demolichdom: "adults",

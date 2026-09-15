@@ -119,7 +119,7 @@ export default function GettingStartedPage() {
         items={[
           ["Teen or Adult - your call", <>The form at <Link className="font-bold underline" href="/auth/sign-up">/auth/sign-up</Link> asks for email, password, and one choice: <strong>Teen (13-17)</strong> or <strong>Adult (18+)</strong>. It travels with the signup request alongside your email and a local consent flag - and lying about it violates the Terms.</>],
           ["Under 13? Bring a grown-up", <>Picking the under-13 option stops the form cold and points you the right way: a parent or guardian signs up as <strong>Adult (18+)</strong>, then creates your Child account under Account → Family. Only Adult accounts can create Child sub-accounts or make purchases.</>],
-          ["Passwords with opinions", <>New passwords need <strong>8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols</strong> - so &ldquo;password&rdquo; and &ldquo;aaaaaaaa&rdquo; never make it. Login never re-judges an old password; the strength rule only applies when a password is chosen.</>],
+          ["Passwords with opinions", <>New passwords need <strong>8+ characters with 3 of: lowercase, UPPERCASE, digits, symbols</strong> - so &ldquo;password&rdquo; and &ldquo;aaaaaaaa&rdquo; never make it. Login never re-judges an old password; the strength rule only applies when a password is chosen. Leaked passwords are additionally rejected by Supabase&apos;s leaked-password protection (HaveIBeenPwned check), a dashboard-only setting no SQL migration can enable.</>],
         ]}
       />
       <Callout tone="cyan" title="No band yet? Rated games wait.">

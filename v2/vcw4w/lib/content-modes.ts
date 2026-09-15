@@ -25,7 +25,7 @@ import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
 
 export type ContentMode = "kid" | "teen" | "all";
 
-export const CONTENT_MODE_GAMES = ["gravegain2d", "gravegain3d", "lastwordszombies"] as const;
+export const CONTENT_MODE_GAMES = ["gravegain2dA", "gravegain3d", "lastwordszombies"] as const;
 export type ContentModeGameSlug = (typeof CONTENT_MODE_GAMES)[number];
 
 export const CONTENT_MODE_QUERY_PARAM = "content" as const;

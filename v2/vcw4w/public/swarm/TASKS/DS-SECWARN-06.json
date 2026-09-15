@@ -1,0 +1,22 @@
+{
+  "created": "2026-09-15T03:45:00.000Z",
+  "gates": [
+    "node scripts/verify-migration-versions.mjs",
+    "self-grep: every listed signature has a REVOKE line; .rpc usage verdicts in log"
+  ],
+  "goal": "Revoke anon (and authenticated where no legit user-JWT call; check app .rpc usage) on org/team/room/mmo/match functions: create_org(text,text), create_team(uuid,text,text), create_project(uuid,text,text,text), open_issue(uuid,text,text), comment_issue(uuid,text), close_issue(uuid,boolean), push_file(uuid,text,text,text,text), create_room(uuid,text,text,boolean), send_room_packet(uuid,text,text,text), send_room_packet_as_bot(uuid,text,text), read_room_messages(uuid,integer,timestamptz), redact_room_message(uuid), list_unitunite_rooms(uuid), provision_service(uuid,uuid,text,text), org_member_cap(uuid), org_roster(uuid), org_roster_page(uuid,integer,timestamptz,uuid,text), list_org_invites(uuid), create_org_invite_link(uuid,text,integer,timestamptz,text,uuid), redeem_org_invite(text), revoke_org_invite(uuid), prune_clan_members(uuid,text,integer,uuid[],boolean), prune_org_members(uuid,text,integer,uuid[],boolean), set_org_prune_settings(uuid,boolean,integer,integer,text), create_custom_role(uuid,uuid,text,text[]), set_member_role(text,uuid,uuid,text,uuid), set_member_roles(uuid,uuid,text[]), effective_perms(text,uuid), has_org_perm(uuid,text), has_project_perm(uuid,text), has_team_perm(uuid,text), is_org_member(uuid), org_roles_of(uuid,uuid), org_watch_visible(uuid,uuid), project_team(uuid), team_org(uuid), create_mmo_server(text,text,uuid,text,integer,text,integer), set_mmo_server_status(uuid,text), join_mmo_server(uuid), leave_mmo_server(uuid), heartbeat_mmo_presence(uuid), post_mp_event(uuid,text,text), read_mp_events(uuid,timestamptz,integer), update_match_state(uuid,jsonb), quick_match(text,text), gravegain_quick_match(text,text), create_lobby(text,text,text,text), join_lobby(uuid,text), list_joinable_lobbies(text), list_all_open_lobbies(text), set_my_budget(numeric,integer,boolean), set_org_budget(uuid,numeric,integer,boolean), start_timer(uuid,uuid,text,boolean,boolean,text,text), stop_timer(uuid,text,uuid,boolean,integer). Skip already-revoked. Done = migration 20261219000005_security_revoke_orgs_mmo.sql + green gate.",
+  "id": "DS-SECWARN-06",
+  "lane": "infra",
+  "log": [
+    "2026-09-15T03:45:00.000Z secwarn-lead: envelope created, awaiting claim.",
+    "2026-09-15T04:00:00.000Z secwarn-06: claimed (in_progress, owner=secwarn-06). Grep plan: already-revoked check + app .rpc usage audit before writing.",
+    "2026-09-15T04:20:00.000Z secwarn-06: landed migration 20261219000005_security_revoke_orgs_mmo.sql (54/54 REVOKE coverage, signatures verified vs CREATE FUNCTION defs, .rpc verdicts: 32 keep-auth/22 revoke-auth). verify-migration-versions RED on pre-existing sibling dupes (escalated to steward via QUEUE); envelope stays in_progress per red-gates-not-done."
+  ],
+  "owner": "secwarn-06",
+  "scope": [
+    "v2/vcw4w/supabase/migrations/20261219000005_security_revoke_orgs_mmo.sql"
+  ],
+  "status": "in_progress",
+  "title": "Secwarn 06: revoke org/mmo/match RPCs",
+  "updated": "2026-09-15T04:20:00.000Z"
+}
