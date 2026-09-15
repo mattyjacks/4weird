@@ -150,6 +150,27 @@ export default function FeedbackPage() {
     setError("");
   }, []);
 
+  const handleClear = useCallback(() => {
+    setRating("okay");
+    setCritique("negative");
+    setText("");
+    setLabelsRaw("");
+    setContactName("");
+    setContactEmail("");
+    setScreenshot(null);
+    setAnnotations([]);
+    setError("");
+    setNotice("");
+    setReportId(null);
+    setVisibility(signedIn ? "tracked" : "guest");
+    setVisibilityTouched(false);
+    try {
+      window.localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* best-effort */
+    }
+  }, [signedIn]);
+
   const handleCapture = useCallback(async () => {
     setError("");
     setCapturing(true);
@@ -542,6 +563,16 @@ export default function FeedbackPage() {
             className="w-full rounded-xl bg-cyan-300 px-4 py-2.5 text-sm font-black text-slate-950 hover:bg-cyan-200 disabled:opacity-50"
           >
             {busy ? "Sending…" : "Send feedback"}
+          </button>
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={busy || capturing}
+            aria-label="Clear feedback data"
+            title="Clear all feedback fields and saved draft"
+            className="w-full rounded-xl border border-white/15 px-4 py-2.5 text-sm font-bold text-slate-300 hover:bg-white/10 disabled:opacity-50"
+          >
+            Clear feedback data
           </button>
           <p className="text-xs text-slate-500">
             Please don&apos;t include passwords, keys, or payment details. Bots can post programmatically to the same

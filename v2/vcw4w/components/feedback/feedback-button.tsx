@@ -495,6 +495,11 @@ export function FeedbackButton({ className }: FeedbackButtonProps) {
     setOpen(false);
   }, [submitting, submitSuccess, resetForm]);
 
+  const handleClear = useCallback(() => {
+    if (submitting) return;
+    resetForm();
+  }, [submitting, resetForm]);
+
   const handleSubmit = useCallback(async () => {
     if (submitting) return;
 
@@ -808,6 +813,7 @@ export function FeedbackButton({ className }: FeedbackButtonProps) {
           error={submitError}
           success={submitSuccess}
           onSubmit={() => void handleSubmit()}
+          onClear={handleClear}
         />
       ) : null}
     </>

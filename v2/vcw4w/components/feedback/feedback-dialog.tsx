@@ -33,6 +33,8 @@ export interface FeedbackDialogProps {
   text: string;
   onTextChange: (next: string) => void;
   onSubmit: () => void;
+  /** Optional clear handler — when provided, footer shows a Clear button. */
+  onClear?: () => void;
   /** True while the POST is in flight — all inputs + Cancel/Submit lock. */
   submitting?: boolean;
   /** Verbatim API error text (body.error) or client validation message. */
@@ -147,6 +149,7 @@ export function FeedbackDialog({
   text,
   onTextChange,
   onSubmit,
+  onClear,
   submitting = false,
   error = null,
   success = null,
@@ -783,6 +786,19 @@ export function FeedbackDialog({
               >
                 Cancel
               </Button>
+              {onClear ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={onClear}
+                  disabled={submitting}
+                  aria-label="Clear feedback data"
+                  title="Clear all feedback fields and saved draft"
+                  className="min-h-[44px]"
+                >
+                  Clear
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 onClick={onSubmit}
