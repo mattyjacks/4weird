@@ -1,4 +1,3 @@
-import { cacheLife, cacheTag } from "next/cache";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -106,10 +105,6 @@ export default async function Page({
 }: {
   searchParams?: Promise<{ q?: string; f?: string }>;
 }) {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("search");
-
   const sp = (await searchParams) ?? {};
   const q = String(sp.q ?? "");
   const f = String(sp.f ?? "all").toLowerCase();
