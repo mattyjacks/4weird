@@ -10,6 +10,9 @@ const docs = read("../app/docs/feedback/page.tsx");
 const route = read("../app/api/feedback/route.ts");
 const admin = read("../app/feedback/admin/page.tsx");
 const dropzone = read("../components/feedback/screenshot-dropzone.tsx");
+const dialog = read("../components/feedback/feedback-dialog.tsx");
+const snapBtn = read("../components/feedback/feedback-button.tsx");
+const capture = read("../components/feedback/screenshot-capture.ts");
 
 // --- Route: tracked/anonymous/guest identity model ---------------------------
 if (!route.includes('"tracked", "anonymous", "guest"')) {
@@ -48,7 +51,7 @@ if (!route.includes("Invalid annotations (array, <=20).")) {
 for (const token of [
   '"human", "bot"',
   "Invalid rating (good|okay|bad).",
-  "Invalid critique (positive|negative).",
+  "Invalid critique (positive|neutral|negative).",
   "Invalid text (1..4000 chars).",
   "Method not allowed.",
 ]) {
@@ -100,4 +103,96 @@ for (const token of ["login required.", "restricted to site admins", "Admin only
   if (!admin.includes(token)) fail(`Admin page must deny non-admins: missing "${token}".`);
 }
 
+// --- FB2: single-screen form (no wizard steps) ------------------------------
+// The dialog is one scrolling screen: screenshot first, then rating. Any
+// wizard/step paging UI ("Go to step", "step N of 2", step state) regresses
+// the snap flow and must fail here.
+for (const token of [
+  "Go to step",
+  "step ${",
+  "step 1",
+  "step 2",
+  "Step 1",
+  "Step 2",
+  "step1Valid",
+  "setStep",
+  "of 2",
+]) {
+  if (dialog.includes(token)) fail(`Dialog must be single-screen (no wizard): found "${token}".`);
+}
+if (!dialog.includes('"Submit feedback"')) {
+  fail('Dialog must label the single-screen form "Submit feedback" (not "step N of 2").');
+}
+
+// --- FB2: screenshot section precedes rating in DOM order -------------------
+if (!dialog.includes('aria-label="Screenshot (optional)"')) {
+  fail("Dialog must render the screenshot section first (aria-label Screenshot (optional)).");
+}
+if (!dialog.includes('aria-label="Feeling rating"')) {
+  fail("Dialog must render the rating group (aria-label Feeling rating).");
+}
+if (
+  dialog.indexOf('aria-label="Screenshot (optional)"') >
+  dialog.indexOf('aria-label="Feeling rating"')
+) {
+  fail("Dialog must order the screenshot section before the rating group in DOM order.");
+}
+
+// --- FB2: snap button attached to the feedback button ----------------------
+if (!snapBtn.includes('aria-label="Take screenshot and give feedback"')) {
+  fail("Snap button must be attached with aria-label 'Take screenshot and give feedback'.");
+}
+if (!snapBtn.includes('"Take screenshot and give feedback"')) {
+  fail("Snap button must carry the 'Take screenshot and give feedback' title.");
+}
+
+// --- FB2: capture flash (fw:feedback-flash + 0.5s vignette) ----------------
+if (!capture.includes('FEEDBACK_FLASH_EVENT = "fw:feedback-flash"')) {
+  fail("Capture must define FEEDBACK_FLASH_EVENT as 'fw:feedback-flash'.");
+}
+if (!snapBtn.includes("fw:feedback-flash")) {
+  fail("Snap flow must dispatch the 'fw:feedback-flash' event.");
+}
+if (!capture.includes("FEEDBACK_FLASH_DURATION_MS = 500")) {
+  fail("Capture flash must freeze for exactly 0.5s (FEEDBACK_FLASH_DURATION_MS = 500).");
+}
+if (!capture.includes("radial-gradient")) {
+  fail("Capture flash must render a white vignette (radial-gradient overlay).");
+}
+if (!capture.includes("flashFreeze")) {
+  fail("Capture must export flashFreeze for the 0.5s freeze.");
+}
+if (!capture.includes("(prefers-reduced-motion")) {
+  fail("Capture flash must guard with a prefers-reduced-motion check.");
+}
+
+// --- FB2: glow keyframes (10s loop / 2s sweep + reduced-motion guard) ------
+if (!snapBtn.includes("fw-feedback-shine-sweep")) {
+  fail("Snap flow must define the fw-feedback-shine-sweep glow keyframes.");
+}
+if (!snapBtn.includes("10s")) {
+  fail("Glow shine must loop on a 10s cycle.");
+}
+if (!snapBtn.includes("20%")) {
+  fail("Glow shine must sweep in the first 20% of the loop (2s sweep).");
+}
+if (!snapBtn.includes("prefers-reduced-motion")) {
+  fail("Glow shine must include a reduced-motion guard.");
+}
+
+// --- FB2: screenshot-into-form handoff ------------------------------------
+if (!dialog.includes("initialScreenshot")) {
+  fail("Dialog must accept the initialScreenshot prop for the snap handoff.");
+}
+if (!dialog.includes("effectiveScreenshotFile")) {
+  fail("Dialog must resolve the handoff image into the submit path (effectiveScreenshotFile).");
+}
+for (const token of ["Edit", "Mark", "Remove"]) {
+  if (!dropzone.includes(token)) fail(`Dropzone handoff must offer the ${token} action.`);
+}
+if (!dropzone.toLowerCase().includes("label")) {
+  fail("Dropzone handoff must offer the Label action (mark/label regions).");
+}
+
 console.log("Feedback FBOV slice OK (page + docs + route + admin).");
+console.log("Feedback FB2 snap-flow slice OK (single-screen + snap + flash + glow + handoff).");

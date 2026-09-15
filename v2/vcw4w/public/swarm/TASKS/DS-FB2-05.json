@@ -1,0 +1,22 @@
+{
+  "id": "DS-FB2-05",
+  "title": "Verify + docs for single-screen snap flow",
+  "goal": "FB2 snap-flow slice DS-FB2-05: Verify + docs for single-screen snap flow. Scope-only, gates green, evidence in log.",
+  "lane": "docs",
+  "scope": [
+    "v2/vcw4w/scripts/verify-feedback-fbov.mjs"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fb2-05",
+  "created": "2026-09-15T02:10:40.040Z",
+  "updated": "2026-09-15T02:18:00.000Z",
+  "log": [
+    "2026-09-15T02:10:40.040Z lead: envelope minted for FB2 snap-flow wave, awaiting claim.",
+    "2026-09-15T02:12:00.000Z fb2-05: claimed (in_progress, owner fb2-05). Extending verify-feedback-fbov.mjs with FB2 assertions only.",
+    "2026-09-15T02:18:00.000Z fb2-05: done. Extended scripts/verify-feedback-fbov.mjs only (+3 reads dialog/snapBtn/capture, +FB2 block: no-wizard tokens, screenshot-before-rating DOM order, snap aria-label, fw:feedback-flash + 500ms + vignette + flashFreeze + reduced-motion, glow 10s/20%/reduced-motion, initialScreenshot + Edit/Mark/Label/Remove). Gates: node scripts/verify-feedback-fbov.mjs GREEN (FBOV OK + FB2 OK), npx eslint scripts/verify-feedback-fbov.mjs GREEN (zero output), npx tsc --noEmit GREEN (exit 0). All 30 pre-existing assertions kept passing. No other files, no old-v1, docs read-only."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "DS-FB2-01",
+  "title": "Single-screen feedback form starting with screenshot",
+  "goal": "FB2 snap-flow slice DS-FB2-01: Single-screen feedback form starting with screenshot. Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/feedback-dialog.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fb2-01",
+  "created": "2026-09-15T02:10:40.040Z",
+  "updated": "2026-09-15T03:15:00.000Z",
+  "log": [
+    "2026-09-15T02:10:40.040Z lead: envelope minted for FB2 snap-flow wave, awaiting claim.",
+    "2026-09-15T03:00:00.000Z fb2-01: claimed, rebuilding feedback-dialog.tsx as one single screen starting with screenshot.",
+    "2026-09-15T03:15:00.000Z fb2-01: done. Single-screen rewrite landed (screenshot section on top, then rating/critique/text/reporter/identity/labels/review, no wizard). Added optional initialScreenshot + children only; all existing props kept. Gates: npx tsc --noEmit exit 0 (0 lines mention feedback-dialog); npx eslint components/feedback/feedback-dialog.tsx exit 0, zero output. Only file written: v2/vcw4w/components/feedback/feedback-dialog.tsx."
+  ]
+}

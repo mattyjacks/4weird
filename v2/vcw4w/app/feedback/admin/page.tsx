@@ -362,8 +362,9 @@ function FilterFields({ f }: { f: FeedbackFilters }) {
         Critique
         <select name="critique" defaultValue={f.critique} className={inputCls}>
           <option value="">all</option>
-          <option value="positive">positive</option>
-          <option value="negative">negative</option>
+          <option value="positive">😄 positive</option>
+          <option value="neutral">😐 neutral</option>
+          <option value="negative">😭 negative</option>
         </select>
       </label>
       <label className={labelCls}>

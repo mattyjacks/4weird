@@ -1,0 +1,22 @@
+{
+  "id": "DS-FB2-02",
+  "title": "Snap button attached to feedback button + 10s glow shine",
+  "goal": "FB2 snap-flow slice DS-FB2-02: Snap button attached to feedback button + 10s glow shine. Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/feedback-button.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fb2-02",
+  "created": "2026-09-15T02:10:40.040Z",
+  "updated": "2026-09-15T03:12:00.000Z",
+  "log": [
+    "2026-09-15T02:10:40.040Z lead: envelope minted for FB2 snap-flow wave, awaiting claim.",
+    "2026-09-15T03:00:00.000Z fb2-02: claimed, implementing snap button + glow in feedback-button.tsx only.",
+    "2026-09-15T03:12:00.000Z fb2-02: done. Gates green: `npx tsc --noEmit` (no output) + `npx eslint components/feedback/feedback-button.tsx` (no output) in v2/vcw4w. Change: joined flex control (rounded-r-none/border-r-0 + rounded-l-none), aria-labels Give Feedback / Take screenshot and give feedback, snap dispatches fw:feedback-flash + preloads File fail-open, shine keyframes 10s loop/2s sweep with reduced-motion off."
+  ]
+}

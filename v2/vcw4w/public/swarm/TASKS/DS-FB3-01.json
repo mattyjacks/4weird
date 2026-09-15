@@ -1,0 +1,22 @@
+{
+  "id": "DS-FB3-01",
+  "title": "Annotator initialTool prop so Mark preselect works",
+  "goal": "FB3 follow-up DS-FB3-01: Annotator initialTool prop so Mark preselect works. Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/screenshot-annotator.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fb3-01",
+  "created": "2026-09-15T02:19:26.788Z",
+  "updated": "2026-09-15T02:20:53.814Z",
+  "log": [
+    "2026-09-15T02:19:26.788Z lead: envelope minted for FB3 follow-up wave, awaiting claim.",
+    "2026-09-15T02:20:02.611Z fb3-01: claimed, scoping to components/feedback/screenshot-annotator.tsx only.",
+    "2026-09-15T02:20:53.814Z fb3-01: done. screenshot-annotator.tsx only: ScreenshotAnnotatorProps.initialTool?: AnnotationTool (default arrow), useState seeded from it, draftRef-guarded reseed effect on initialTool change (never mid-stroke), draftToolRef seeded from initialTool. Dropzone untouched (read-only). Gates: npx tsc --noEmit SCOPED_MENTIONS=0 TSC_EXIT=0; npx eslint components/feedback/screenshot-annotator.tsx ESLINT_EXIT=0."
+  ]
+}

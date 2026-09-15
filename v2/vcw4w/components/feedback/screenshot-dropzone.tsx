@@ -1,11 +1,47 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   SCREENSHOT_COMPRESS_ABOVE_BYTES,
   capturePageForFeedback,
   compressImageFile,
 } from "./screenshot-capture";
+import type {
+  Annotation,
+  AnnotationTool,
+  ScreenshotAnnotatorProps,
+} from "./screenshot-annotator";
+
+/**
+ * Inline screenshot editor (DS-FB2-04, owned here in the dropzone only —
+ * `screenshot-annotator.tsx` is never edited from this lane).
+ *
+ * Lazy-mounted via next/dynamic (client-only) the first time Edit/Mark is
+ * pressed, so the feedback form never pays for the canvas editor until the
+ * user asks for it. `initialTool` is a forward-compatible passthrough: the
+ * annotator does not declare it yet, so it is accepted here as an optional
+ * type-only widening (extra prop is ignored at runtime) and will take effect
+ * once the annotator lane adds support. Mark/Label requests the region
+ * ("box"/Highlight) tool — the mark-a-region + per-shape comment (label)
+ * tool — while Edit requests the default "arrow" tool.
+ */
+type AnnotatorWithInitialTool = React.ComponentType<
+  ScreenshotAnnotatorProps & { initialTool?: AnnotationTool }
+>;
+
+const ScreenshotAnnotatorLazy = dynamic(
+  () =>
+    import("./screenshot-annotator").then((mod) => mod.ScreenshotAnnotator),
+  {
+    ssr: false,
+    loading: () => (
+      <p role="status" className="p-4 text-sm text-muted-foreground">
+        Loading editor…
+      </p>
+    ),
+  },
+) as unknown as AnnotatorWithInitialTool;
 
 export interface ScreenshotDropzoneProps {
   value: File | null;
@@ -36,8 +72,13 @@ export function ScreenshotDropzone({ value, onChange, disabled = false }: Screen
   const [working, setWorking] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editorTool, setEditorTool] = useState<AnnotationTool>("arrow");
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [applying, setApplying] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
   const dragDepth = useRef(0);
-  const busy = disabled || working || capturing;
+  const busy = disabled || working || capturing || applying;
 
   // Thumbnail via object URL, memoized per File; the effect only revokes
   // on change/unmount so we never leak URLs (no setState-in-effect).
@@ -50,6 +91,11 @@ export function ScreenshotDropzone({ value, onChange, disabled = false }: Screen
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  // Move focus into the inline editor when it opens (keyboard entry point).
+  useEffect(() => {
+    if (editorOpen) editorRef.current?.focus({ preventScroll: true });
+  }, [editorOpen]);
 
   const acceptFile = async (file: File | null) => {
     if (busy) return;
@@ -71,6 +117,11 @@ export function ScreenshotDropzone({ value, onChange, disabled = false }: Screen
     }
     setError(null);
     setNote(null);
+    // A fresh file starts with fresh markings: close the inline editor and
+    // drop any annotations drawn on the previous shot (all in handlers,
+    // never in effects).
+    setAnnotations([]);
+    setEditorOpen(false);
     // Client compress: files over 2MB are downscaled via canvas to JPG 0.85
     // (max 1600px longest edge) before attach; smaller files pass through.
     if (file.size > SCREENSHOT_COMPRESS_ABOVE_BYTES) {
@@ -94,6 +145,8 @@ export function ScreenshotDropzone({ value, onChange, disabled = false }: Screen
     setError(null);
     setNote(null);
     setPreviewOpen(false);
+    setEditorOpen(false);
+    setAnnotations([]);
     setDragging(false);
     dragDepth.current = 0;
     if (inputRef.current) inputRef.current.value = "";
@@ -129,6 +182,61 @@ export function ScreenshotDropzone({ value, onChange, disabled = false }: Screen
   const openPicker = () => {
     if (disabled) return;
     inputRef.current?.click();
+  };
+
+  const openEditor = (tool: AnnotationTool) => {
+    if (disabled || !value) return;
+    // Edit → default arrow tool; Mark/Label → region (box/Highlight) tool
+    // with per-shape comments as labels. Passed as initialTool (see the
+    // forward-compatible note on ScreenshotAnnotatorLazy above).
+    setEditorTool(tool);
+    setEditorOpen(true);
+  };
+
+  const closeEditor = () => {
+    setEditorOpen(false);
+  };
+
+  const handleEditorKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    // The annotator cancels its own in-flight stroke on Escape (capture
+    // phase + stopPropagation), so reaching here means no stroke is active
+    // and Escape can safely collapse the editor.
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeEditor();
+    }
+  };
+
+  const handleClearMarkings = () => {
+    if (disabled) return;
+    setAnnotations([]);
+  };
+
+  const handleApplyMarkings = async () => {
+    if (disabled || !value || annotations.length === 0 || applying) return;
+    // Burn the annotations into a fresh JPEG and hand it back to the form
+    // as the new File (dynamic import keeps the editor chunk lazy).
+    setApplying(true);
+    setError(null);
+    try {
+      const { flattenAnnotations } = await import("./screenshot-annotator");
+      const blob = await flattenAnnotations(value, annotations);
+      const base = value.name.replace(/\.(png|jpe?g|webp)$/i, "") || "screenshot";
+      const marked = new File([blob], `${base}-marked.jpg`, {
+        type: "image/jpeg",
+      });
+      if (marked.size > SCREENSHOT_MAX_BYTES) {
+        setError(`Marked screenshot must be ≤ 8MB (got ${formatSize(marked.size)}).`);
+        return;
+      }
+      // Markings are now pixels: reset so a second Apply cannot double-burn.
+      setAnnotations([]);
+      onChange(marked);
+    } catch {
+      setError("Could not apply markings. Try again.");
+    } finally {
+      setApplying(false);
+    }
   };
 
   const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
@@ -224,6 +332,27 @@ export function ScreenshotDropzone({ value, onChange, disabled = false }: Screen
             </button>
             <button
               type="button"
+              onClick={() => openEditor("arrow")}
+              disabled={disabled}
+              aria-expanded={editorOpen && editorTool === "arrow"}
+              aria-controls="screenshot-inline-editor"
+              className="min-h-[44px] min-w-[44px] rounded-md border border-input px-3 text-sm underline-offset-2 hover:underline disabled:opacity-50"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={() => openEditor("box")}
+              disabled={disabled}
+              aria-expanded={editorOpen && editorTool === "box"}
+              aria-controls="screenshot-inline-editor"
+              aria-label="Mark or label regions on the screenshot"
+              className="min-h-[44px] min-w-[44px] rounded-md border border-input px-3 text-sm underline-offset-2 hover:underline disabled:opacity-50"
+            >
+              Mark
+            </button>
+            <button
+              type="button"
               onClick={() => void handleRetake()}
               disabled={busy}
               className="min-h-[44px] min-w-[44px] rounded-md border border-input px-3 text-sm underline-offset-2 hover:underline disabled:opacity-50"
@@ -240,6 +369,62 @@ export function ScreenshotDropzone({ value, onChange, disabled = false }: Screen
               Remove
             </button>
           </div>
+          {editorOpen ? (
+            <div
+              ref={editorRef}
+              id="screenshot-inline-editor"
+              role="region"
+              aria-label={
+                editorTool === "box"
+                  ? "Mark or label regions on the screenshot"
+                  : "Edit the screenshot"
+              }
+              tabIndex={-1}
+              onKeyDown={handleEditorKeyDown}
+              className="mt-2 rounded-md border bg-background p-2 text-left"
+            >
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-sm font-medium">
+                  {editorTool === "box"
+                    ? "Mark / label — drag a region, add a note"
+                    : "Edit — draw on the screenshot"}
+                </p>
+                <button
+                  type="button"
+                  onClick={closeEditor}
+                  className="min-h-[44px] min-w-[44px] rounded-md border border-input px-3 text-sm underline-offset-2 hover:underline"
+                >
+                  Close editor
+                </button>
+              </div>
+              <ScreenshotAnnotatorLazy
+                key={`${value.name}-${value.size}-${value.lastModified}`}
+                image={previewUrl}
+                annotations={annotations}
+                onChange={setAnnotations}
+                disabled={disabled}
+                initialTool={editorTool}
+              />
+              <div className="mt-2 flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleClearMarkings}
+                  disabled={disabled || annotations.length === 0}
+                  className="min-h-[44px] rounded-md border border-input px-3 text-sm underline-offset-2 hover:underline disabled:opacity-50"
+                >
+                  Clear markings
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleApplyMarkings()}
+                  disabled={disabled || annotations.length === 0 || applying}
+                  className="min-h-[44px] rounded-md bg-primary px-3 text-sm text-primary-foreground disabled:opacity-50"
+                >
+                  {applying ? "Applying…" : "Apply to screenshot"}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center gap-1">

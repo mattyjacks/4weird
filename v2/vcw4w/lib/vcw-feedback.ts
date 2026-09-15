@@ -171,7 +171,7 @@ export function validateBotExtras(input: unknown): ValidateBotExtrasResult {
 export const BOT_FEEDBACK_RATINGS = ["good", "okay", "bad"] as const;
 export type BotFeedbackRating = (typeof BOT_FEEDBACK_RATINGS)[number];
 
-export const BOT_FEEDBACK_CRITIQUES = ["positive", "negative"] as const;
+export const BOT_FEEDBACK_CRITIQUES = ["positive", "neutral", "negative"] as const;
 export type BotFeedbackCritique = (typeof BOT_FEEDBACK_CRITIQUES)[number];
 
 export interface SubmitBotFeedbackArgs {
@@ -237,9 +237,9 @@ export async function submitBotFeedback(args: SubmitBotFeedbackArgs): Promise<Su
   if (!(BOT_FEEDBACK_RATINGS as readonly string[]).includes(rating)) {
     return { ok: false, status: 0, error: "rating must be good|okay|bad" };
   }
-  const critique: BotFeedbackCritique = args?.critique ?? "negative";
+  const critique: BotFeedbackCritique = args?.critique ?? "neutral";
   if (!(BOT_FEEDBACK_CRITIQUES as readonly string[]).includes(critique)) {
-    return { ok: false, status: 0, error: "critique must be positive|negative" };
+    return { ok: false, status: 0, error: "critique must be positive|neutral|negative" };
   }
 
   const checked = validateBotExtras(args?.extras);

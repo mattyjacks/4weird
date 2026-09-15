@@ -491,3 +491,162 @@ async function encodeSourceToJpeg(
   }
   return blob;
 }
+
+/* ------------------------------------------------------------------ */
+/* DS-FB2-03: capture flash — white vignette 0.5s freeze + camera      */
+/* states. Dialog-agnostic: no imports from dialog/button; FB2-02      */
+/* triggers this either by dispatching `fw:feedback-flash` on window   */
+/* (detail = the captured Blob, or `{ blob }`) or by calling           */
+/* `flashFreeze(blob)` directly. Zero new deps, DOM-only.              */
+/* ------------------------------------------------------------------ */
+
+/** Window event FB2-02 dispatches with the captured frame. */
+export const FEEDBACK_FLASH_EVENT = "fw:feedback-flash";
+
+/** Freeze/flash length in ms — exactly one camera-flash beat. */
+export const FEEDBACK_FLASH_DURATION_MS = 500;
+
+/** Camera button state: idle (ready) or active (capturing). */
+export type SnapState = "idle" | "active";
+
+/**
+ * Glyph for the camera button per state — mirrors the strings the button
+ * itself renders (`📷 Capture this page` idle in screenshot-dropzone.tsx,
+ * `⏳` while the capture promise is in flight).
+ */
+export function snapIcon(state: SnapState): string {
+  return state === "active" ? "⏳" : "📷";
+}
+
+let activeFreezes = 0;
+let savedBodyOverflow: string | null = null;
+
+function prefersReducedMotion(): boolean {
+  try {
+    return (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  } catch {
+    return false;
+  }
+}
+
+function eventBlob(detail: unknown): Blob | null {
+  if (typeof Blob !== "undefined" && detail instanceof Blob) return detail;
+  if (detail && typeof detail === "object") {
+    const candidate = (detail as Record<string, unknown>)["blob"];
+    if (typeof Blob !== "undefined" && candidate instanceof Blob) return candidate;
+  }
+  return null;
+}
+
+/**
+ * Freeze the screen on the captured frame for exactly
+ * `FEEDBACK_FLASH_DURATION_MS` (0.5s): render the captured Blob as a
+ * fullscreen img with a transparent-white vignette overlay on top
+ * (radial-gradient, transparent center → white edges), lock body scroll
+ * for the beat, then release everything. `prefers-reduced-motion`
+ * shortens the effect to instant (no overlay, resolves immediately).
+ */
+export async function flashFreeze(blob: Blob): Promise<void> {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  if (prefersReducedMotion()) return;
+  if (!document.body) return;
+
+  const url = URL.createObjectURL(blob);
+
+  activeFreezes += 1;
+  if (activeFreezes === 1) {
+    savedBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+  }
+
+  const holder = document.createElement("div");
+  holder.setAttribute("aria-hidden", "true");
+  // Never leak the flash frame into a later capture of this tab.
+  holder.setAttribute("data-screenshot-exclude", "true");
+  holder.style.position = "fixed";
+  holder.style.inset = "0";
+  holder.style.zIndex = "2147483647";
+  holder.style.pointerEvents = "none";
+  holder.style.margin = "0";
+  holder.style.padding = "0";
+
+  const frame = document.createElement("img");
+  frame.src = url;
+  frame.alt = "";
+  frame.style.position = "absolute";
+  frame.style.inset = "0";
+  frame.style.width = "100vw";
+  frame.style.height = "100vh";
+  frame.style.objectFit = "cover";
+  frame.style.objectPosition = "center";
+  frame.style.display = "block";
+
+  const flash = document.createElement("div");
+  flash.style.position = "absolute";
+  flash.style.inset = "0";
+  flash.style.background =
+    "radial-gradient(ellipse at center, rgba(255,255,255,0) 35%, rgba(255,255,255,0.92) 100%)";
+  flash.style.opacity = "1";
+  flash.style.transition = `opacity ${FEEDBACK_FLASH_DURATION_MS}ms ease-out`;
+
+  holder.appendChild(frame);
+  holder.appendChild(flash);
+  document.body.appendChild(holder);
+
+  // Kick the decay on the next frame so the transition actually runs.
+  try {
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+  } catch {
+    // requestAnimationFrame unavailable — the timeout below still releases.
+  }
+  flash.style.opacity = "0";
+
+  try {
+    await new Promise<void>((resolve) =>
+      window.setTimeout(() => resolve(), FEEDBACK_FLASH_DURATION_MS),
+    );
+  } finally {
+    try {
+      holder.remove();
+    } catch {
+      // Already detached — nothing to release.
+    }
+    try {
+      URL.revokeObjectURL(url);
+    } catch {
+      // Best-effort URL cleanup.
+    }
+    activeFreezes = Math.max(0, activeFreezes - 1);
+    if (activeFreezes === 0 && document.body) {
+      try {
+        document.body.style.overflow = savedBodyOverflow ?? "";
+      } catch {
+        // Best-effort scroll restore.
+      }
+      savedBodyOverflow = null;
+    }
+  }
+}
+
+const FLASH_LISTENER_FLAG = "__fwFeedbackFlashListening";
+
+function ensureFeedbackFlashListener(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const w = window as unknown as Record<string, unknown>;
+    if (w[FLASH_LISTENER_FLAG]) return;
+    w[FLASH_LISTENER_FLAG] = true;
+    window.addEventListener(FEEDBACK_FLASH_EVENT, (event) => {
+      const blob = eventBlob((event as CustomEvent<unknown>).detail);
+      if (blob) void flashFreeze(blob);
+    });
+  } catch {
+    // Listener install is best-effort; direct flashFreeze calls still work.
+  }
+}
+
+ensureFeedbackFlashListener();

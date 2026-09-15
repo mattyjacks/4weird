@@ -16,6 +16,7 @@ import {
   SCREENSHOT_ANNOTATION_MAX,
   type Annotation as ScreenshotAnnotation,
 } from "./screenshot-annotator";
+import { capturePageForFeedback } from "../feedback/screenshot-capture";
 
 /**
  * Top-bar "Give Feedback" entry point (humans + bots).
@@ -91,7 +92,7 @@ function sanitizeDraft(d: Partial<FeedbackDraft>): Partial<FeedbackDraft> {
   const out: Partial<FeedbackDraft> = {};
   if (d.reporterType === "human" || d.reporterType === "bot") out.reporterType = d.reporterType;
   if (d.rating === "good" || d.rating === "okay" || d.rating === "bad") out.rating = d.rating;
-  if (d.critique === "positive" || d.critique === "negative") out.critique = d.critique;
+  if (d.critique === "positive" || d.critique === "neutral" || d.critique === "negative") out.critique = d.critique;
   if (typeof d.text === "string") out.text = d.text.slice(0, FEEDBACK_MAX_TEXT);
   if (Array.isArray(d.labels)) {
     out.labels = d.labels
@@ -140,7 +141,7 @@ function isFeedbackRating(value: unknown): value is FeedbackRating {
 }
 
 function isFeedbackCritique(value: unknown): value is FeedbackCritique {
-  return value === "positive" || value === "negative";
+  return value === "positive" || value === "neutral" || value === "negative";
 }
 
 function isFeedbackVisibility(value: unknown): value is FeedbackVisibility {
@@ -402,6 +403,88 @@ export function FeedbackButton({ className }: FeedbackButtonProps) {
     setOpen(true);
   }, []);
 
+  // DS-FB2-02 snap slice: attached screenshot button state. snapActive is
+  // the ~3s "just snapped" glyph; snapBusy locks the snap button mid-capture.
+  const [snapActive, setSnapActive] = useState(false);
+  const [snapBusy, setSnapBusy] = useState(false);
+  const snapTimerRef = useRef<number | null>(null);
+
+  // Clear the ~3s active window on unmount so no timer fires post-unmount.
+  useEffect(() => {
+    return () => {
+      if (snapTimerRef.current !== null) {
+        window.clearTimeout(snapTimerRef.current);
+        snapTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleSnap = useCallback(() => {
+    if (snapBusy || submitting) return;
+    setSnapBusy(true);
+    void (async () => {
+      let captureError: string | null = null;
+      let capturedBlob: Blob | null = null;
+      try {
+        const blob = await capturePageForFeedback();
+        capturedBlob = blob;
+        const file = new File(
+          [blob],
+          `feedback-screenshot-${Date.now()}.jpg`,
+          { type: blob.type || "image/jpeg" },
+        );
+        setScreenshot(file);
+        setAnnotations([]);
+        setSubmitError(null);
+      } catch (err) {
+        // Fail-open: still open the dialog with no image + an error hint.
+        captureError =
+          err instanceof Error && err.message
+            ? err.message
+            : "Could not capture a screenshot. Attach a file instead.";
+        setScreenshot(null);
+        setAnnotations([]);
+        setSubmitError(captureError);
+      } finally {
+        setSnapBusy(false);
+      }
+      // Active glyph for ~3s (CSS class + aria-pressed only, no JS shine).
+      setSnapActive(true);
+      if (snapTimerRef.current !== null) {
+        window.clearTimeout(snapTimerRef.current);
+      }
+      snapTimerRef.current = window.setTimeout(() => {
+        setSnapActive(false);
+        snapTimerRef.current = null;
+      }, 3000);
+      // Flash/freeze overlay hook (FB2-03 owns the listener): dispatch with
+      // the captured blob so the frozen frame shows; fail-open with no
+      // dispatch when capture failed (no-blink path). Listener-optional.
+      try {
+        if (typeof window !== "undefined" && capturedBlob) {
+          window.dispatchEvent(
+            new CustomEvent("fw:feedback-flash", { detail: capturedBlob }),
+          );
+        }
+      } catch {
+        /* listener-optional; dialog still opens */
+      }
+      try {
+        if (typeof window !== "undefined" && window.location?.href) {
+          setStartedUrl(window.location.href.slice(0, 2048));
+        }
+      } catch {
+        /* best-effort; empty stays empty */
+      }
+      // Open with the capture preloaded; on failure the error hint above
+      // survives (unlike handleOpen, which clears it). Clear a stale
+      // success message so a fresh snap never shows the old panel.
+      if (captureError === null) setSubmitError(null);
+      setSubmitSuccess(null);
+      setOpen(true);
+    })();
+  }, [snapBusy, submitting]);
+
   const handleClose = useCallback(() => {
     if (submitting) return;
     // Reset only after a successful submit; a cancel keeps the draft, a
@@ -423,7 +506,7 @@ export function FeedbackButton({ className }: FeedbackButtonProps) {
       return;
     }
     if (critique === null) {
-      setSubmitError("Invalid critique (positive|negative).");
+      setSubmitError("Invalid critique (positive|neutral|negative).");
       return;
     }
     if (trimmed.length < 1 || trimmed.length > FEEDBACK_MAX_TEXT) {
@@ -633,16 +716,37 @@ export function FeedbackButton({ className }: FeedbackButtonProps) {
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className={className}
-        onClick={handleOpen}
-        aria-haspopup="dialog"
-      >
-        💬 Give Feedback
-      </Button>
+      {/* DS-FB2-02 glow: gradient shine sweep across the feedback button once
+          every 10s (2s sweep = first 20% of the 10s loop, idle the rest),
+          CSS keyframes only — no JS timers. Reduced-motion disables it. */}
+      <style>{`@keyframes fw-feedback-shine-sweep{0%{transform:translateX(-150%)}20%{transform:translateX(150%)}100%{transform:translateX(150%)}}.fw-feedback-shine{position:relative;overflow:hidden}.fw-feedback-shine::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.55) 50%,transparent 58%);transform:translateX(-150%);animation:fw-feedback-shine-sweep 10s linear infinite;pointer-events:none}@media (prefers-reduced-motion:reduce){.fw-feedback-shine::after{animation:none;display:none}}`}</style>
+      <div className={`flex items-stretch ${className ?? ""}`} role="group" aria-label="Feedback actions">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="fw-feedback-shine rounded-r-none border-r-0"
+          onClick={handleOpen}
+          aria-haspopup="dialog"
+          aria-label="Give Feedback"
+        >
+          💬 Give Feedback
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className={`rounded-l-none px-2 ${snapActive ? "fw-snap-active bg-muted" : ""}`}
+          onClick={handleSnap}
+          disabled={snapBusy || submitting}
+          aria-label="Take screenshot and give feedback"
+          aria-pressed={snapActive}
+          title={snapBusy ? "Capturing screenshot…" : "Take screenshot and give feedback"}
+        >
+          <span aria-hidden="true">{snapActive ? "🖥️📸" : "🖥️📷"}</span>
+          <span className="sr-only">Take screenshot</span>
+        </Button>
+      </div>
       {open ? (
         <FeedbackDialogLazy
           open={open}

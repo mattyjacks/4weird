@@ -136,6 +136,48 @@ create policy feedback_ai_logs_admin_read on public.feedback_ai_logs
   for select to authenticated
   using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
 
+-- -- Convergence guards ---------------------------------------------------------
+-- Sibling 20261212000001_feedback_admin.sql creates feedback_events with
+-- (feedback_id, actor, from_status, to_status, note) while this file creates
+-- (report_id, event, actor, meta). Both use CREATE TABLE IF NOT EXISTS, so
+-- whichever lands first wins and the other no-ops — then the index on the
+-- missing column fails with 42703. Add the missing columns idempotently so
+-- either order converges before indexing.
+alter table public.feedback_events
+  add column if not exists feedback_id uuid;
+alter table public.feedback_events
+  add column if not exists report_id uuid;
+alter table public.feedback_events
+  add column if not exists event text;
+alter table public.feedback_events
+  add column if not exists actor text;
+alter table public.feedback_events
+  add column if not exists from_status text;
+alter table public.feedback_events
+  add column if not exists to_status text;
+alter table public.feedback_events
+  add column if not exists note text;
+alter table public.feedback_events
+  add column if not exists meta jsonb not null default '{}'::jsonb;
+
+-- Same dual-shape guard for the AI logs (FBOV-09 contract uses feedback_id,
+-- prompt_version, raw, cost; this file's shape uses report_id, prompt_kind,
+-- output, error).
+alter table public.feedback_ai_logs
+  add column if not exists feedback_id uuid;
+alter table public.feedback_ai_logs
+  add column if not exists prompt_version text not null default '';
+alter table public.feedback_ai_logs
+  add column if not exists raw jsonb not null default '{}'::jsonb;
+alter table public.feedback_ai_logs
+  add column if not exists cost numeric;
+alter table public.feedback_ai_logs
+  add column if not exists prompt_kind text;
+alter table public.feedback_ai_logs
+  add column if not exists output jsonb;
+alter table public.feedback_ai_logs
+  add column if not exists error text;
+
 -- -- Indexes -------------------------------------------------------------------
 -- NOTE: idx_feedback_reports_status_created already ships in the base file;
 -- it is intentionally not recreated here.
@@ -144,8 +186,14 @@ create policy feedback_ai_logs_admin_read on public.feedback_ai_logs
 create index if not exists idx_feedback_reports_visibility_created
   on public.feedback_reports (visibility, created_at desc);
 
+create index if not exists idx_feedback_events_feedback_created
+  on public.feedback_events (feedback_id, created_at desc);
+
 create index if not exists idx_feedback_events_report_created
   on public.feedback_events (report_id, created_at desc);
+
+create index if not exists idx_feedback_ai_logs_feedback_created
+  on public.feedback_ai_logs (feedback_id, created_at desc);
 
 create index if not exists idx_feedback_ai_logs_report_created
   on public.feedback_ai_logs (report_id, created_at desc);

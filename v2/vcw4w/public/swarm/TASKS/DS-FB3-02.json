@@ -1,0 +1,22 @@
+{
+  "id": "DS-FB3-02",
+  "title": "Snap dispatch carries blob in flash event detail",
+  "goal": "FB3 follow-up DS-FB3-02: Snap dispatch carries blob in flash event detail. Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/feedback-button.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fb3-02",
+  "created": "2026-09-15T02:19:26.788Z",
+  "updated": "2026-09-15T02:20:08.000Z",
+  "log": [
+    "2026-09-15T02:19:26.788Z lead: envelope minted for FB3 follow-up wave, awaiting claim.",
+    "2026-09-15T02:20:08.000Z fb3-02: claimed (in_progress, owner fb3-02). Will dispatch fw:feedback-flash with blob detail in handleSnap.",
+    "2026-09-15T02:20:08.000Z fb3-02: done. handleSnap stores captured blob in capturedBlob, dispatches new CustomEvent('fw:feedback-flash',{detail:capturedBlob}) only on success (fail-open no-dispatch on failure). 3s snapActive + submit/draft logic untouched. screenshot-capture.ts read-only. Gates: npx tsc --noEmit clean (no output, exit True), npx eslint components/feedback/feedback-button.tsx clean (no output, exit True). Scope: only feedback-button.tsx + envelope."
+  ]
+}

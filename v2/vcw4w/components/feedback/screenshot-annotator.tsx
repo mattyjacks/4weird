@@ -41,6 +41,12 @@ export interface ScreenshotAnnotatorProps {
   annotations: Annotation[];
   onChange: (next: Annotation[]) => void;
   disabled?: boolean;
+  /**
+   * Tool selected on initial mount / editor reopen (dropzone lazy-mounts
+   * with a file key, so each open remounts and re-seeds). Defaults to
+   * "arrow". Mid-stroke changes never apply to the stroke in flight.
+   */
+  initialTool?: AnnotationTool;
 }
 
 /** Hard cap on shapes per screenshot. */
@@ -358,10 +364,11 @@ export function ScreenshotAnnotator({
   annotations,
   onChange,
   disabled = false,
+  initialTool = "arrow",
 }: ScreenshotAnnotatorProps) {
   const [src, setSrc] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [tool, setTool] = useState<AnnotationTool>("arrow");
+  const [tool, setTool] = useState<AnnotationTool>(initialTool);
   const [draft, setDraft] = useState<Draft | null>(null);
 
   const baseRef = useRef<HTMLImageElement | null>(null);
@@ -543,7 +550,7 @@ export function ScreenshotAnnotator({
 
   // Tool active when the current stroke started (mid-stroke switches apply
   // to the *next* stroke, never the one in flight).
-  const draftToolRef = useRef<AnnotationTool>("arrow");
+  const draftToolRef = useRef<AnnotationTool>(initialTool);
 
   // Synced in an effect (never during render) so the stable finishStroke
   // below always commits against the latest annotations/onChange.
@@ -551,6 +558,20 @@ export function ScreenshotAnnotator({
   useEffect(() => {
     latestRef.current = { annotations, onChange };
   }, [annotations, onChange]);
+
+  // Re-seed the selected tool when `initialTool` itself changes (initial
+  // mount seeds via useState; the dropzone lazy-mounts per open with a file
+  // key so each reopen remounts). Guarded by draftRef so a prop change never
+  // overrides a mid-stroke — it applies to the next stroke instead.
+  const initialToolRef = useRef<AnnotationTool>(initialTool);
+  useEffect(() => {
+    if (initialTool !== initialToolRef.current) {
+      initialToolRef.current = initialTool;
+      if (!draftRef.current) {
+        setTool(initialTool);
+      }
+    }
+  }, [initialTool]);
 
   const finishStroke = useCallback(() => {
     const d = draftRef.current;

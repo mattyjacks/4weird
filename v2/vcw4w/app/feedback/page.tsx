@@ -33,7 +33,7 @@ import type { FeedbackVisibility } from "@/components/feedback/feedback-dialog";
 import { createClient } from "@/lib/supabase/client";
 
 type Rating = "good" | "okay" | "bad";
-type Critique = "positive" | "negative";
+  type Critique = "positive" | "neutral" | "negative";
 
 const MAX_TEXT = 4000;
 const MAX_SCREENSHOT_BYTES = 8 * 1024 * 1024;
@@ -63,7 +63,7 @@ function readDraft(): {
     return {
       text: typeof parsed["text"] === "string" ? parsed["text"].slice(0, MAX_TEXT) : "",
       rating: rating === "good" || rating === "okay" || rating === "bad" ? rating : null,
-      critique: critique === "positive" || critique === "negative" ? critique : null,
+      critique: critique === "positive" || critique === "neutral" || critique === "negative" ? critique : null,
       visibility: isFeedbackVisibility(visibility) ? visibility : null,
     };
   } catch {
@@ -186,8 +186,8 @@ export default function FeedbackPage() {
         setBusy(false);
         return;
       }
-      if (critique !== "positive" && critique !== "negative") {
-        setError("Invalid critique (positive|negative).");
+      if (critique !== "positive" && critique !== "neutral" && critique !== "negative") {
+        setError("Invalid critique (positive|neutral|negative).");
         setBusy(false);
         return;
       }
@@ -461,7 +461,7 @@ export default function FeedbackPage() {
           <div>
             <p className="text-sm font-bold text-slate-200">What kind of note?</p>
             <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Critique">
-              {(["positive", "negative"] as Critique[]).map((c) => (
+              {(["positive", "neutral", "negative"] as Critique[]).map((c) => (
                 <button
                   key={c}
                   type="button"
@@ -469,7 +469,7 @@ export default function FeedbackPage() {
                   onClick={() => setCritique(c)}
                   className={pill(critique === c)}
                 >
-                  {c === "positive" ? "💚 praise" : "🔧 problem"}
+                  {c === "positive" ? "😄 praise" : c === "neutral" ? "😐 meh" : "😭 problem"}
                 </button>
               ))}
             </div>

@@ -1,0 +1,22 @@
+{
+  "id": "DS-FB2-03",
+  "title": "Capture flash: white vignette 0.5s freeze + camera states",
+  "goal": "FB2 snap-flow slice DS-FB2-03: Capture flash: white vignette 0.5s freeze + camera states. Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/screenshot-capture.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fb2-03",
+  "created": "2026-09-15T02:10:40.040Z",
+  "updated": "2026-09-15T03:10:00.000Z",
+  "log": [
+    "2026-09-15T02:10:40.040Z lead: envelope minted for FB2 snap-flow wave, awaiting claim.",
+    "2026-09-15T03:00:00.000Z fb2-03: claimed (in_progress, owner fb2-03). Implementing flashFreeze + snapIcon inside screenshot-capture.ts.",
+    "2026-09-15T03:10:00.000Z fb2-03: done. Gates green: npx tsc --noEmit (zero output, 0 errors) + npx eslint components/feedback/screenshot-capture.ts (zero output, clean). Kept animation helper inside capture.ts — no second file needed. No other files touched, no old-v1, zero new deps."
+  ]
+}

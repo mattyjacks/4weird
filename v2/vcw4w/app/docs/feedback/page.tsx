@@ -75,7 +75,7 @@ export default function FeedbackPage() {
         index="3"
         kicker="Signal"
         title="Rating Good / Okay / Bad + critique that helps"
-        body="The rating sorts; the critique fixes. Positive critique tells us what to protect, negative critique tells us what to repair - both need one concrete detail."
+        body="The rating sorts; the critique fixes. 😄 Positive tells us what to protect, 😐 Neutral notes something in between, 😭 Negative tells us what to repair - all need one concrete detail."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[

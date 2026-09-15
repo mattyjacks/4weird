@@ -1,0 +1,22 @@
+{
+  "id": "DS-FB2-04",
+  "title": "Screenshot-into-form handoff + edit/mark/label entry",
+  "goal": "FB2 snap-flow slice DS-FB2-04: Screenshot-into-form handoff + edit/mark/label entry. Scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/screenshot-dropzone.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fb2-04",
+  "created": "2026-09-15T02:10:40.040Z",
+  "updated": "2026-09-15T03:05:00.000Z",
+  "log": [
+    "2026-09-15T02:10:40.040Z lead: envelope minted for FB2 snap-flow wave, awaiting claim.",
+    "2026-09-15T03:00:00.000Z fb2-04: claimed (in_progress, owner fb2-04). Read screenshot-dropzone.tsx (owner file) + screenshot-annotator.tsx read-only.",
+    "2026-09-15T03:05:00.000Z fb2-04: done. screenshot-dropzone.tsx ONLY: File arrival (snap/paste/drop/picker) still shows instant thumbnail via object-URL memo; attached Edit (initialTool arrow) + Mark (initialTool box/Highlight, per-shape comments as labels) buttons with aria-expanded/aria-controls opening the annotator inline below the thumbnail via next/dynamic ssr:false; kept Preview/Retake/Remove, 8MB guard (incl. post-flatten check), png/jpeg/webp accept, 44px targets, focus-into-editor + Escape-to-close (no conflict: annotator consumes Escape mid-stroke). initialTool is a type-only optional widening (import type only, annotator untouched — extra prop inert until annotator lane declares it). Apply-to-screenshot burns markings via lazy flattenAnnotations into a -marked.jpg File with 8MB re-guard. Gates: npx tsc --noEmit clean (no output), npx eslint components/feedback/screenshot-dropzone.tsx clean (no output). Follow-up for steward: annotator lane to declare optional initialTool prop (arrow default today) so Mark preselect lands at runtime; no other files touched."
+  ]
+}
