@@ -9,6 +9,8 @@ import { FeedbackButton } from "@/components/feedback/feedback-button";
  *
  * Mobile top of screen ALWAYS (except in-game) shows one row:
  *   Menu 2 | Give Feedback | Menu 1 | X
+ * (Menu 1 hides on desktop (lg+), where the header's full nav bar serves
+ * that lane — the sheet it opens renders below lg only.)
  * - Menu 2 / Menu 1 buttons are the SINGLE entry points for their lanes:
  *   they dispatch "fw:open-menu2" / "fw:open-menu1" to open the existing
  *   MenuSidebar drawer / SiteHeader sheet — no duplicate nav trees here,
@@ -151,13 +153,17 @@ export function FeedbackBar() {
             className={`${TOUCH} w-full min-w-0 justify-center truncate motion-reduce:transition-none sm:w-auto`}
           />
         </div>
+        {/* Menu 1 opens the header sheet, which renders below lg only
+            (lg:hidden): on desktop the full nav bar already serves this lane,
+            so the button hides there — otherwise the click locked body scroll
+            with no visible sheet and no close affordance. */}
         <button
           type="button"
           onClick={openMenu1}
           aria-label="Open menu 1"
           title="Open menu 1"
           style={{ borderRadius: MENU1_RADIUS }}
-          className={`${TOUCH} inline-flex shrink-0 items-center justify-center gap-1 border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none`}
+          className={`${TOUCH} inline-flex shrink-0 items-center justify-center gap-1 border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none lg:hidden`}
         >
           <span aria-hidden="true">☰</span>
           menu&nbsp;1

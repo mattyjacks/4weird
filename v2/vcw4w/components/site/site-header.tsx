@@ -644,10 +644,14 @@ export function SiteHeader() {
 
   // Mobile sheet: lock background scroll while open so the panel owns the
   // gesture, and close on Escape. The sheet itself stays inner-scrollable.
+  // Lock below lg only: the sheet renders lg:hidden, so locking on desktop
+  // traps the page behind an invisible panel (Menu 2's drawer follows the
+  // same mobile-only lock in menu-sidebar.tsx).
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const mq = window.matchMedia("(max-width: 1023px)");
+    if (mq.matches) document.body.style.overflow = "hidden";
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
