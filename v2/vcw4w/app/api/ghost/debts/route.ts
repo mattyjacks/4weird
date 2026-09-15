@@ -12,7 +12,7 @@ function isUuid(v: unknown): string {
 }
 
 /**
- * POST /api/ghost/debts - Ghost Cash IOUs (hypothetical, never money).
+ * POST /api/ghost/debts - Ghost records (hypothetical, never money).
  *   {action:"mark", org_id, debtor_id, creditor_id, amount_ghost, reason}
  *   {action:"settle", debt_id, status: settled|void}
  * Anyone in the org may record; only the two parties (or finance power:

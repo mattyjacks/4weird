@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { SectionErrorBoundary } from "@/components/clans/section-error-boundary";
 import { ReportButton } from "@/components/clans/report-button";
 import { VoteButtons } from "@/components/clans/forum-vote";
 import { CommentSection } from "@/components/clans/forum-comments";
@@ -159,20 +160,20 @@ export function ClanPage({ slug }: { slug: string }) {
         error?: string;
       };
       if (!data.success) throw new Error(data.error ?? "Load failed.");
-      setPosts(data.posts ?? []);
+      setPosts(Array.isArray(data.posts) ? data.posts : []);
       setMyVotes(data.myPostVotes ?? {});
       setClan(data.clan ?? {});
       if (data.clan?.name) setClanName(data.clan.name);
       setWallet(data.wallet ?? { balance: 0 });
-      setBots(data.bots ?? []);
-      setChannels(data.channels ?? []);
-      setLedger(data.ledger ?? []);
-      setLeaders(data.leaders ?? []);
+      setBots(Array.isArray(data.bots) ? data.bots : []);
+      setChannels(Array.isArray(data.channels) ? data.channels : []);
+      setLedger(Array.isArray(data.ledger) ? data.ledger : []);
+      setLeaders(Array.isArray(data.leaders) ? data.leaders : []);
       setMinuteRate(data.minuteRate ?? null);
       setMyXp(Number(data.myXp) || 0);
       // House-ad revenue: one credited view per active house-ad channel per
       // page load (server IP-throttles to 10/hr; revenue offsets upkeep).
-      for (const c of data.channels ?? []) {
+      for (const c of Array.isArray(data.channels) ? data.channels : []) {
         if (c.kind === "house-ad" && c.active) {
           void fetch(`/api/clans/${slug}/economy`, {
             method: "POST",
@@ -548,11 +549,19 @@ export function ClanPage({ slug }: { slug: string }) {
         <p className="text-slate-600 dark:text-slate-400">No posts yet; be the first.</p>
       )}
 
-      <ClanChat slug={slug} />
+      <SectionErrorBoundary>
+        <Suspense fallback={<p className="text-slate-600 dark:text-slate-400">Loading chat…</p>}>
+          <ClanChat slug={slug} />
+        </Suspense>
+      </SectionErrorBoundary>
 
       <LoveQuests clanId={clan.id} clanSlug={slug} />
 
-      <ClanSupport slug={slug} />
+      <SectionErrorBoundary>
+        <Suspense fallback={<p className="text-slate-600 dark:text-slate-400">Loading support…</p>}>
+          <ClanSupport slug={slug} />
+        </Suspense>
+      </SectionErrorBoundary>
 
       <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
         <h2 className="font-bold text-cyan-300">🪙 Clan upkeep + wallet</h2>
@@ -641,11 +650,11 @@ export function ClanPage({ slug }: { slug: string }) {
           </div>
         </div>
         {econNote && <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{econNote}</p>}
-        {channels.length > 0 && (
+        {(channels ?? []).length > 0 && (
           <div className="mt-4">
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">Revenue channels</h3>
             <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-              {channels.map((c) => (
+              {(Array.isArray(channels) ? channels : []).map((c) => (
                 <li key={c.id} className="flex flex-wrap items-center gap-2">
                   <span className="rounded bg-black/40 px-2 py-1">{c.kind}</span>
                   <span>{c.label}</span>
@@ -657,11 +666,11 @@ export function ClanPage({ slug }: { slug: string }) {
             </ul>
           </div>
         )}
-        {ledger.length > 0 && (
+        {(ledger ?? []).length > 0 && (
           <div className="mt-4">
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">Recent ledger <InfoTip text="Latest coin moves. Shows what came in, what the 25% cut took, and what reached the wallet." label="Clan ledger: coin moves and cuts" /></h3>
             <ul className="mt-2 space-y-1 text-xs text-slate-600 dark:text-slate-400">
-              {ledger.slice(0, 10).map((r, i) => (
+              {(Array.isArray(ledger) ? ledger : []).slice(0, 10).map((r, i) => (
                 <li key={i} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1">
                   <span>{r.kind} · {r.note}</span>
                   <span>+{r.provider} wallet · {r.cut} cut · gross {r.gross}</span>
@@ -673,15 +682,15 @@ export function ClanPage({ slug }: { slug: string }) {
       </section>
 
       <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
-        <h2 className="font-bold text-cyan-300">🤖 Deployed bots {clanType === "hclan" ? "(disabled; hclan)" : `(${bots.length})`}</h2>
+        <h2 className="font-bold text-cyan-300">🤖 Deployed bots {clanType === "hclan" ? "(disabled; hclan)" : `(${(bots ?? []).length})`}</h2>
         <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           {clanType === "hclan"
             ? "hclans are hardened against bots: no bot reads, joins, posts, or deploys."
             : "Owners/mods can deploy their own bots here by bot username (+ optional https webhook)."}
         </p>
-        {bots.length > 0 && (
+        {(bots ?? []).length > 0 && (
             <ul className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-              {bots.map((b) => (
+              {(Array.isArray(bots) ? bots : []).map((b) => (
               <li key={b.id} className="flex flex-wrap items-center gap-2">
                 <span className="font-bold text-slate-900 dark:text-white">🤖 {b.name}</span>
                 <button onClick={() => void removeBot(b.id)} className="text-xs text-red-300 hover:underline">remove</button>
@@ -698,22 +707,26 @@ export function ClanPage({ slug }: { slug: string }) {
         )}
       </section>
 
-      <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
-        <h2 className="font-bold text-cyan-300">🏆 Clan leaderboard (XP)</h2>
-        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Posts +10 · comments +3 · bot deploys +15 · funding upkeep +20. Daily cap 100 XP.</p>
-        {leaders.length > 0 ? (
-            <ol className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-              {leaders.map((l, i) => (
-              <li key={l.user_id} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1">
-                <span>#{i + 1} <span className="font-mono text-xs">{l.user_id.slice(0, 8)}…</span></span>
-                <span><b className="text-slate-900 dark:text-white">{l.xp}</b> XP · {l.events} events</span>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-500">No XP yet; post something.</p>
-        )}
-      </section>
+      <SectionErrorBoundary>
+        <Suspense fallback={<p className="text-slate-600 dark:text-slate-400">Loading leaderboard…</p>}>
+          <section className="rounded-xl border border-white/10 bg-slate-900 p-5">
+            <h2 className="font-bold text-cyan-300">🏆 Clan leaderboard (XP)</h2>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Posts +10 · comments +3 · bot deploys +15 · funding upkeep +20. Daily cap 100 XP.</p>
+            {(leaders ?? []).length > 0 ? (
+              <ol className="mt-3 space-y-1 text-sm text-slate-600 dark:text-slate-300">
+                {(Array.isArray(leaders) ? leaders : []).map((l, i) => (
+                  <li key={l.user_id} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1">
+                    <span>#{i + 1} <span className="font-mono text-xs">{String(l?.user_id ?? "").slice(0, 8)}…</span></span>
+                    <span><b className="text-slate-900 dark:text-white">{l.xp}</b> XP · {l.events} events</span>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-500">No XP yet; post something.</p>
+            )}
+          </section>
+        </Suspense>
+      </SectionErrorBoundary>
     </div>
   );
 }

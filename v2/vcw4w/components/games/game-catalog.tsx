@@ -107,13 +107,13 @@ function GameDrawer({ game, onClose }: { game: Game; onClose: () => void }) {
         </div>
         <p className={styles.drawerDesc}>{game.description}</p>
         <div className={styles.tags}>
-          {game.tags.slice(0, 3).map((tag) => (
-            <span key={tag}>{tag}</span>
+          {(game.tags ?? []).slice(0, 3).map((tag, index) => (
+            <span key={String(tag ?? "") || index}>{String(tag ?? "")}</span>
           ))}
         </div>
         <div className={styles.tags} aria-label={`Accessibility: ${badges.join(", ")}`}>
-          {badges.map((b) => (
-            <span key={b}>{b}</span>
+          {(badges ?? []).map((b, index) => (
+            <span key={String(b ?? "") || index}>{String(b ?? "")}</span>
           ))}
           <InfoTip
             side="bottom"
@@ -209,9 +209,9 @@ export function GameCatalog({ games }: { games: Game[] }) {
       })
       .catch(() => undefined);
   }
-  const genres = useMemo(() => ["All", ...Array.from(new Set(games.map(g => g.genre))).sort()], [games]);
+  const genres = useMemo(() => ["All", ...Array.from(new Set((Array.isArray(games) ? games : []).map(g => g.genre))).sort()], [games]);
   const items = useMemo(
-    () => games.map((g) => ({ slug: g.slug, genre: g.genre, haystack: `${g.title} ${g.description} ${g.tags.join(" ")}` })),
+    () => (Array.isArray(games) ? games : []).map((g) => ({ slug: g.slug, genre: g.genre, haystack: `${g.title} ${g.description} ${(g.tags ?? []).join(" ")}` })),
     [games],
   );
   // Debounce keystrokes so filtering runs at most ~7x/sec while typing.
@@ -226,24 +226,24 @@ export function GameCatalog({ games }: { games: Game[] }) {
   const filtered = useMemo(() => {
     // Kids Mode hides Adults; a live child session additionally caps by
     // parent-attested band (kid band hides Teens too).
-    const visible = games.filter((g) => {
+    const visible = (Array.isArray(games) ? games : []).filter((g) => {
       const minAge = requiredAgeFor(g.rating ?? "kids");
       if (minAge > kidMaxAge) return false;
       if (kids && (g.rating ?? "kids") === "adults") return false;
       return true;
     });
     if (!workerSlugs) {
-      const q = debouncedQuery.toLowerCase();
-      return visible.filter(g => `${g.title} ${g.description} ${g.tags.join(" ")}`.toLowerCase().includes(q) && (genre === "All" || g.genre === genre));
+      const q = String(debouncedQuery ?? "").toLowerCase();
+      return visible.filter(g => `${g.title} ${g.description} ${(g.tags ?? []).join(" ")}`.toLowerCase().includes(q) && (genre === "All" || g.genre === genre));
     }
-    const order = new Map(workerSlugs.map((s, i) => [s, i]));
+    const order = new Map((workerSlugs ?? []).map((s, i) => [s, i]));
     return visible.filter(g => order.has(g.slug)).sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
   }, [games, workerSlugs, debouncedQuery, genre, kids, kidMaxAge]);
   // Reset the window whenever the result set identity changes.
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [debouncedQuery, genre, kids, kidMaxAge, games]);
-  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
-  const showMore = useCallback(() => { setVisibleCount((n) => Math.min(n + PAGE_SIZE, filtered.length)); }, [filtered.length]);
-  const hiddenAdults = kids ? games.filter((g) => (g.rating ?? "kids") === "adults").length : 0;
+  const visible = useMemo(() => (filtered ?? []).slice(0, visibleCount), [filtered, visibleCount]);
+  const showMore = useCallback(() => { setVisibleCount((n) => Math.min(n + PAGE_SIZE, (filtered ?? []).length)); }, [filtered.length]);
+  const hiddenAdults = kids ? (Array.isArray(games) ? games : []).filter((g) => (g.rating ?? "kids") === "adults").length : 0;
   const openInfo = useCallback((slug: string) => { setDrawerSlug(slug); }, []);
   const closeInfo = useCallback(() => { setDrawerSlug(null); }, []);
   // Escape closes the drawer; body scroll locks while it is open.
@@ -259,20 +259,22 @@ export function GameCatalog({ games }: { games: Game[] }) {
     };
   }, [drawerSlug]);
   const surprise = () => {
-    const pool = filtered.length ? filtered : games.filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge);
+    const pool = (filtered ?? []).length ? (filtered ?? []) : (Array.isArray(games) ? games : []).filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge);
+    if ((pool ?? []).length === 0) return;
     const game = pool[Math.floor(Math.random() * pool.length)];
+    if (!game?.slug) return;
     window.location.assign(`/games/${game.slug}/play`);
   };
   const recommended = picks
-    .map(slug => games.find(g => g.slug === slug))
+    .map(slug => (Array.isArray(games) ? games : []).find(g => g.slug === slug))
     .filter((g): g is Game => Boolean(g))
     .filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge && (!kids || (g.rating ?? "kids") !== "adults"));
-  const drawerGame = drawerSlug ? (games.find((g) => g.slug === drawerSlug) ?? null) : null;
+  const drawerGame = drawerSlug ? ((Array.isArray(games) ? games : []).find((g) => g.slug === drawerSlug) ?? null) : null;
   return (
     <div className={styles.wrap}>
       {/* Sticky 48px filter bar: title + search + category pills + kids + surprise */}
       <div className={styles.bar} role="search">
-        <h1 className={styles.barTitle}>Arcade ({filtered.length})</h1>
+        <h1 className={styles.barTitle}>Arcade ({(filtered ?? []).length})</h1>
         <label className={styles.search}>
           <span aria-hidden="true">🔍</span>
           <input
@@ -287,10 +289,10 @@ export function GameCatalog({ games }: { games: Game[] }) {
           />
         </label>
         <div className={styles.pills} role="group" aria-label="Filter by category">
-          {genres.map(item => (
+          {(genres ?? []).map(item => (
             <button
               type="button"
-              key={item}
+              key={String(item ?? "")}
               aria-pressed={genre === item}
               className={genre === item ? styles.active : ""}
               onClick={() => setGenre(item)}
@@ -325,8 +327,8 @@ export function GameCatalog({ games }: { games: Game[] }) {
           <span>racers, RPGs + money sims</span>
         </header>
         <div className={`${styles.grid} perf-list`}>
-          {recommended.map(g => (
-            <Card key={g.slug} game={g} recommended onInfo={openInfo} />
+          {(recommended ?? []).map((g, index) => (
+            <Card key={g?.slug ?? index} game={g} recommended onInfo={openInfo} />
           ))}
         </div>
       </section>
@@ -337,22 +339,22 @@ export function GameCatalog({ games }: { games: Game[] }) {
             <h2>Choose your portal</h2>
           </div>
           <span role="status">
-            {filtered.length} games online · showing {visible.length}
+            {(filtered ?? []).length} games online · showing {(visible ?? []).length}
           </span>
         </header>
         <div className={`${styles.grid} perf-list`}>
-          {visible.map(g => (
-            <Card key={g.slug} game={g} onInfo={openInfo} />
+          {(visible ?? []).map((g, index) => (
+            <Card key={g?.slug ?? index} game={g} onInfo={openInfo} />
           ))}
         </div>
-        {visible.length < filtered.length && (
+        {(visible ?? []).length < (filtered ?? []).length && (
           <div className={styles.moreWrap}>
             <button type="button" className={styles.moreBtn} onClick={showMore}>
-              Show more ({filtered.length - visible.length} remaining)
+              Show more ({(filtered ?? []).length - (visible ?? []).length} remaining)
             </button>
           </div>
         )}
-        {!filtered.length && <p className={styles.empty}>No games found. Clear the signal and try again.</p>}
+        {!(filtered ?? []).length && <p className={styles.empty}>No games found. Clear the signal and try again.</p>}
       </section>
       <p className={styles.footLinks}>
         <span>

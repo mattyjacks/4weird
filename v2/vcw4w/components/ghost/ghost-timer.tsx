@@ -27,8 +27,8 @@ function nameOf(members: Member[], id: string): string {
 /**
  * GhostTimer; the /timer/ work clock for orgs. Clock in on a contract, beat
  * every 60s with visible-tab seconds (activity % = active beats / total),
- * clock out, invoice tracked seconds into Ghost Cash debts. Debts are
- * hypothetical IOUs (👻 has no value); mark/settle/void from the book.
+ * clock out, invoice tracked seconds into Ghost debts. Debts are
+ * hypothetical records (👻 has no monetary value); mark/settle/void from the book.
  * Screen proof is worker-attached (manual screenshot upload), never captured.
  */
 export function GhostTimer() {
@@ -180,7 +180,7 @@ export function GhostTimer() {
   return (
     <div className="space-y-6">
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
-        <h2 className="text-xl font-bold">👻 Ghost Cash timer</h2>
+        <h2 className="text-xl font-bold">👻 Ghost timer</h2>
         <p className="mt-2 text-sm text-slate-300">
           Hypothetical IOUs for org work - <b>not money, no value, no cash-out</b>, just a ruler for who owes whom.
           Clock in, work with this tab visible (activity % proves presence), clock out, invoice tracked seconds.

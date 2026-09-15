@@ -63,7 +63,7 @@ export function FalStudio() {
     void load();
   }, [load]);
 
-  const ops = catalog?.ops ?? FAL_OPS;
+  const ops = Array.isArray(catalog?.ops) ? catalog.ops : FAL_OPS;
   const active = ops.find((o) => o.op === op) ?? ops[0];
   const configured = catalog?.configured ?? true;
 
@@ -129,9 +129,9 @@ export function FalStudio() {
       </CompactDetails>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {ops.map((o) => (
+        {ops.map((o, oi) => (
           <button
-            key={o.op}
+            key={o.op ?? oi}
             type="button"
             onClick={() => setOp(o.op as FalOp)}
             aria-pressed={op === o.op}

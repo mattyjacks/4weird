@@ -62,7 +62,7 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
       const res = await fetch(`/api/clans/post/${postId}/comment`);
       const data = await res.json().catch(() => ({}));
       if (!data.success) throw new Error(data.error ?? "Comments failed to load.");
-      setComments((data.comments ?? []) as ForumComment[]);
+      setComments(Array.isArray((data as { comments?: unknown }).comments) ? (data as { comments: ForumComment[] }).comments : []);
       setMyVotes((data.myVotes ?? {}) as Record<string, number>);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Comments failed to load.");
@@ -114,7 +114,7 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
           <div className="flex flex-wrap items-center gap-2">
             <VoteButtons kind="comment" id={node.id} score={node.score} myVote={node.myVote} />
             <span className="font-mono text-[11px] text-slate-600 dark:text-slate-500">
-              {node.author_id.slice(0, 8)}… · {new Date(node.created_at).toLocaleString()}
+              {String(node?.author_id ?? "").slice(0, 8)}… · {new Date(node.created_at).toLocaleString()}
             </span>
             <ReportButton targetType="comment" targetId={node.id} />
           </div>
@@ -156,7 +156,7 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
             </div>
           )}
         </div>
-        {node.children.length > 0 && <ul>{node.children.map((c) => renderNode(c, depth + 1))}</ul>}
+        {(node.children ?? []).length > 0 && <ul>{(Array.isArray(node.children) ? node.children : []).map((c) => renderNode(c, depth + 1))}</ul>}
       </li>
     );
   }
@@ -165,7 +165,7 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
     <div className="mt-3 rounded-lg bg-black/30 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200">
-          💬 {comments.length} {comments.length === 1 ? "comment" : "comments"}
+          💬 {(comments ?? []).length} {(comments ?? []).length === 1 ? "comment" : "comments"}
         </h4>
         {readOnly ? (
           <span className="text-[11px] text-slate-600 dark:text-slate-500" title="Bots and agents only">
@@ -207,10 +207,10 @@ export function CommentSection({ postId, slug, board }: { postId: string; slug: 
       {notice && <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">{notice}</p>}
       {loading && <p className="mt-2 text-xs text-slate-600 dark:text-slate-500">Loading comments…</p>}
       {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
-      {!loading && !error && threads.length > 0 && (
-        <ul className="mt-1 divide-y divide-white/5">{threads.map((n) => renderNode(n, 0))}</ul>
+      {!loading && !error && (threads ?? []).length > 0 && (
+        <ul className="mt-1 divide-y divide-white/5">{(Array.isArray(threads) ? threads : []).map((n) => renderNode(n, 0))}</ul>
       )}
-      {!loading && !error && threads.length === 0 && (
+      {!loading && !error && (threads ?? []).length === 0 && (
         <p className="mt-2 text-xs text-slate-600 dark:text-slate-500">
           {readOnly ? "No comments yet." : "No comments yet; start the thread."}
         </p>

@@ -49,7 +49,7 @@ export function csvCell(v: unknown): string {
 }
 
 export function toCsv(rows: string[][]): string {
-  return rows.map((r) => r.map(csvCell).join(",")).join("\n");
+  return (Array.isArray(rows) ? rows : []).map((r) => (Array.isArray(r) ? r : []).map(csvCell).join(",")).join("\n");
 }
 
 // Neutralize a TXT summary line the same way. Static "- " bullets are
@@ -85,5 +85,6 @@ export function slugForFilename(raw: string, fallback: string): string {
 
 // Strip a UTF-8 BOM so it never becomes part of the first header name.
 export function stripBom(text: string): string {
-  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  const s = String(text ?? "");
+  return s.charCodeAt(0) === 0xfeff ? s.slice(1) : s;
 }

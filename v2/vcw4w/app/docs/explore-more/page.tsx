@@ -166,8 +166,8 @@ export default function ExploreMorePage() {
           ["/runpods", "Every RunPod you created - desktops, remotes, servers, render workers - with Stop / Start / Terminate."],
           ["/fal", "The art vending machine: 30 one-click art, voice, and video tools, pay per run, 25% cut already inside every price."],
           ["/desktop", "A whole cloud computer in your browser for building or homework. Warns, then stops when idle so the meter ends."],
-          ["/squads", "Work teams with a shared wallet - roles (Lord / Captain / Banker / Watcher), rooms, and a Ghost Cash timer."],
-          ["/timer", "Focus timer plus auto work diary, clocked to the second with screenshot proofs. Ghost Cash IOUs measure debts - no cash value."],
+          ["/squads", "Work teams with a shared wallet - roles (Lord / Captain / Banker / Watcher), rooms, and a Ghost timer."],
+          ["/timer", "Focus timer plus auto work diary, clocked to the second with screenshot proofs. Ghost records measure debts - no monetary value."],
         ].map(([href, b]) => (
           <Link key={href} href={href} className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-400/50">
             <p className="font-black group-hover:underline">{href}</p>

@@ -3,7 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { isUuid } from "@/lib/validate";
-import { calculateGhostCashOwed } from "@/lib/ghost-cash";
+import { calculateGhostOwed } from "@/types/time";
 
 
 // Ownership is enforced by the user_id predicate on every query; the route
@@ -47,9 +47,9 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (dur !== undefined && rate !== undefined && bill !== undefined) {
       const durNum = Number(dur);
       const rateNum = Number(rate);
-      // Canonical Ghost Cash quoter (returns 0 for non-positive inputs);
+      // Canonical Ghost quoter (returns 0 for non-positive inputs);
       // non-billable entries always owe 0.
-      updates.ghost_cash_owed = bill ? calculateGhostCashOwed(durNum, rateNum) : 0;
+      updates.ghost_owed = bill ? calculateGhostOwed(durNum, rateNum) : 0;
     }
   }
 

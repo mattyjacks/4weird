@@ -14,15 +14,16 @@ export async function BusinessCrosslinks({ exclude = [] }: { exclude?: string[] 
   "use cache";
   cacheLife("hours");
   cacheTag("business-crosslinks");
-  const apps = BUSINESS_APPS.filter((a) => !exclude.includes(a.href));
+  const safeExclude = Array.isArray(exclude) ? exclude : [];
+  const apps = BUSINESS_APPS.filter((a) => !safeExclude.includes(a.href));
   return (
     <nav
       aria-label="Business suite"
       className="grid grid-cols-2 gap-2 sm:grid-cols-4"
     >
-      {apps.map((a) => (
+      {(Array.isArray(apps) ? apps : []).map((a, i) => (
         <Link
-          key={`${a.href}-${a.label}`}
+          key={`${String(a.href ?? "")}-${String(a.label ?? "")}` || i}
           href={a.href}
           className="rounded-xl border border-white/10 bg-white/[.04] px-3 py-2 transition hover:border-cyan-300/40 hover:bg-white/[.07]"
         >

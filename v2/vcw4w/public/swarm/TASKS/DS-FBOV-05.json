@@ -1,0 +1,22 @@
+{
+  "id": "DS-FBOV-05",
+  "title": "Canvas annotator: arrow/circle/highlight/blur + comments (NEW)",
+  "goal": "FBOV overhaul slice DS-FBOV-05: Canvas annotator: arrow/circle/highlight/blur + comments (NEW). Owner works scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/screenshot-annotator.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fbov-05",
+  "created": "2026-09-15T01:24:04.761Z",
+  "updated": "2026-09-15T03:15:00.000Z",
+  "log": [
+    "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+    "2026-09-15T03:00:00.000Z fbov-05: claimed (in_progress, owner fbov-05); creating components/feedback/screenshot-annotator.tsx only.",
+    "2026-09-15T03:15:00.000Z fbov-05: CREATED v2/vcw4w/components/feedback/screenshot-annotator.tsx (NEW, scope-only; feedback-dialog read-only, never edited). Props {image:Blob|string,annotations,onChange,disabled?}; Annotation {id,tool arrow|circle|box|blur,x,y,w,h %0..100,comment 0..280}; pointer-draw canvas overlay, Undo/Clear, per-shape comment inputs (280), cap 20, Esc cancels stroke (capture+stopPropagation), ol[aria-label=Annotations] SR list, flattenAnnotations(image,annotations)=>Promise<Blob> JPG. Gates: eslint components/feedback/screenshot-annotator.tsx => CLEAN (no output); tsc --noEmit => ZERO errors in screenshot-annotator.tsx (verified via Select-String, no matches). Repo-wide tsc still red on PRE-EXISTING parse error in v2/vcw4w/app/docs/feedback/page.tsx(146,67/85) TS1005/TS1381 (other-lane dirty file, untouched by this envelope). Status done."
+  ]
+}

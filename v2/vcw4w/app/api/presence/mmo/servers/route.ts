@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { clientIp, clampLimit, isSlug, isUuid } from "@/lib/validate";
-import { dbFail, fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, isMissingSchemaError, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import {
@@ -80,7 +80,22 @@ export async function GET(req: Request) {
     .limit(limit);
   if (game) query = query.eq("game", game);
   const { data, error } = await query;
-  if (error) return dbFail("mmo-servers-list", error);
+  if (error) {
+    // Fail-open on missing table (migration not yet applied): empty server
+    // list, not a 500 that blanks the server browser. (DS-PAGEFIX-07)
+    if (isMissingSchemaError(error)) {
+      console.error("[api] mmo-servers-list mmo_servers table missing, returning empty list", {
+        code: String((error as { code?: unknown }).code ?? "").slice(0, 16),
+      });
+      return ok({
+        servers: [],
+        swept: 0,
+        unavailable: true,
+        realtime: realtimeHintsFor(game || "4weird", "lobby"),
+      });
+    }
+    return dbFail("mmo-servers-list", error);
+  }
 
   const servers = (Array.isArray(data) ? data : [])
     .map((entry) => normalizeServerSummary(entry))

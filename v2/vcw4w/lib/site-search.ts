@@ -183,8 +183,8 @@ export function rankEntries(
  *       quick: "Run and jump", tags: ["platformer"], kind: "game" },
  *     { id: "b", href: "/games/mario-kart", title: "Mario Kart",
  *       quick: "Race your friends", tags: ["racing"], kind: "game" },
- *     { id: "c", href: "/docs/cooking", title: "Cooking Guide",
- *       quick: "Recipes", tags: ["mario"], kind: "docs" },
+ *     { id: "c", href: "/docs/faq", title: "FAQ",
+ *       quick: "Answers", tags: ["mario"], kind: "docs" },
  *   ];
  *
  *   rankEntries(entries, "mario").map((r) => r.entry.id);

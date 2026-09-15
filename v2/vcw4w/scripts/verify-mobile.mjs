@@ -191,6 +191,79 @@ const resolveIcon = (src) => {
   else ok(`secrets: clean across ${scanFiles.filter((f) => read(f) !== null).length} scanned file(s).`);
 }
 
+// 7. Standardized header/nav (new reality): All Games lives inside the Play
+// group (no standalone AllGamesLink), desktop dropdowns use .nav-std-panel
+// (no nav-swirl), the FeedbackBar Menu 2 button is the single menu2 entry
+// point (no floating reveal pill), and the drawer hides via "<- Hide".
+{
+  const header = read("components/site/site-header.tsx");
+  const sidebar = read("components/site/menu-sidebar.tsx");
+  const css = read("app/globals.css");
+  const feedback = read("components/feedback/feedback-bar.tsx");
+  if (header === null) {
+    violation("components/site/site-header.tsx: MISSING (nav taxonomy unreadable).");
+  } else {
+    // All Games inside Play: a /games "All Games" entry must exist in the
+    // NAV_GROUPS table (matched without emoji so encoding never matters).
+    if (!/href:\s*"\/games",\s*label:\s*"[^"]*All Games"/.test(header)) {
+      violation("site-header: Play group must contain the /games All Games link.");
+    } else {
+      ok("site-header: All Games lives inside the Play group.");
+    }
+    // ... and no standalone AllGamesLink usage may remain.
+    if (/<AllGamesLink/.test(header)) {
+      violation("site-header: standalone <AllGamesLink/> must be gone (All Games is inside Play).");
+    } else {
+      ok("site-header: no standalone AllGamesLink.");
+    }
+    // Standard dropdown classes, not nav-swirl.
+    if (/nav-swirl/.test(header)) {
+      violation("site-header: nav-swirl classes must be gone (standard .nav-std-panel only).");
+    } else if (!header.includes("nav-std-panel")) {
+      violation("site-header: standard .nav-std-panel dropdown missing.");
+    } else {
+      ok("site-header: standard .nav-std-panel dropdown (no nav-swirl).");
+    }
+  }
+  if (css === null) {
+    violation("app/globals.css: MISSING (nav classes unreadable).");
+  } else if (/\.nav-swirl/.test(css)) {
+    violation("app/globals.css: .nav-swirl rules must be gone (standard .nav-std-panel only).");
+  } else if (!css.includes(".nav-std-panel")) {
+    violation("app/globals.css: .nav-std-panel rules missing.");
+  } else {
+    ok("app/globals.css: .nav-std-panel only (no .nav-swirl).");
+  }
+  if (sidebar === null) {
+    violation("components/site/menu-sidebar.tsx: MISSING (menu2 unreadable).");
+  } else {
+    // Single menu2 entry point: the floating reveal pill is gone.
+    if (/Open menu 2 sidebar/.test(sidebar)) {
+      violation("menu-sidebar: floating reveal pill must be gone (FeedbackBar owns the single menu2 entry point).");
+    } else {
+      ok("menu-sidebar: no floating reveal pill (single menu2 entry point).");
+    }
+    // "<- Hide" label on the drawer close affordances; legacy glyph gone.
+    if (!/<- Hide/.test(sidebar)) {
+      violation('menu-sidebar: "<- Hide" label missing from drawer close affordances.');
+    } else {
+      ok('menu-sidebar: "<- Hide" close label present.');
+    }
+    if (/\u27E8\u27E9/.test(sidebar)) {
+      violation("menu-sidebar: legacy Hide glyph must be gone.");
+    } else {
+      ok("menu-sidebar: no legacy Hide glyph.");
+    }
+  }
+  if (feedback === null) {
+    advisory("components/feedback/feedback-bar.tsx: ABSENT — single menu2 entry check SKIP.");
+  } else if (!feedback.includes("fw:open-menu2")) {
+    violation("feedback-bar: must dispatch fw:open-menu2 (the single menu2 entry point).");
+  } else {
+    ok("feedback-bar: dispatches fw:open-menu2 (single menu2 entry point).");
+  }
+}
+
 for (const m of pass) console.log(`PASS: ${m}`);
 for (const m of warn) console.log(`WARN: ${m}`);
 for (const m of fail) console.log(`FAIL: ${m}`);

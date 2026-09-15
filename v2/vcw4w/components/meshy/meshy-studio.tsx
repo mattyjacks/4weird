@@ -121,9 +121,9 @@ export function MeshyStudio() {
         </p>
       )}
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {ops.map((o) => (
+        {(Array.isArray(ops) ? ops : []).map((o, index) => (
           <button
-            key={o.op}
+            key={o?.op ?? index}
             type="button"
             onClick={() => setOp(o.op)}
             className={`rounded-xl border p-3.5 text-left transition ${op === o.op ? "border-cyan-500 bg-cyan-500/10" : "border-border bg-card hover:bg-accent"}`}
@@ -174,10 +174,10 @@ export function MeshyStudio() {
           {status && <p className="font-mono text-xs">status: {status}{" "}
             <InfoTip side="bottom" text="Status refreshes on its own every few seconds. Keep this open until it says done." label="About auto-polling" />
           </p>}
-          {advice.length > 0 && (
+          {(advice ?? []).length > 0 && (
             <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-              {advice.map((a, i) => (
-                <li key={i}>{a}</li>
+              {(Array.isArray(advice) ? advice : []).map((a, i) => (
+                <li key={i}>{String(a ?? "")}</li>
               ))}
             </ul>
           )}

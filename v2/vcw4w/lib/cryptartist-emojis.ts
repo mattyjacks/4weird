@@ -232,7 +232,7 @@ export const FOURWEIRD_PROGRAMMATIC_THINGS: Array<{
   { name: "Virtual Desktop", emoji: "💻", route: "/desktop", sourceCryptArtistProgram: "Donate Computer", blurb: "Real cloud computer in your browser, metered per second." },
   { name: "My RunPods", emoji: "⚡", route: "/runpods", sourceCryptArtistProgram: "CryptArt Commander", blurb: "Dedicated RTX 4090 GPU pods and remote servers." },
   { name: "DonatePersonalSeconds", emoji: "⏱️", route: "/compute/p2p", sourceCryptArtistProgram: "DonatePersonalSeconds", blurb: "P2P WebGPU compute resource sharing network." },
-  { name: "Timer & Work Diary", emoji: "⏱️", route: "/timer", sourceCryptArtistProgram: "DonatePersonalSeconds", blurb: "Second-by-second focus clock with Ghost Cash books." },
+  { name: "Timer & Work Diary", emoji: "⏱️", route: "/timer", sourceCryptArtistProgram: "DonatePersonalSeconds", blurb: "Second-by-second focus clock with Ghost books." },
   { name: "CryptArt Commander", emoji: "⚡", route: "/commander", sourceCryptArtistProgram: "CryptArt Commander", blurb: "Quake-style dropdown CLI terminal and scripting engine." },
 
   // Business & Productivity

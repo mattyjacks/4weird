@@ -37,8 +37,8 @@ type ClanEvent = {
 
 const QUICK_EMOJI = ["👍", "❤️", "😂", "🔥", "👾"];
 
-function shortId(id: string): string {
-  return `${id.slice(0, 8)}…`;
+function shortId(id: string | null | undefined): string {
+  return `${String(id ?? "").slice(0, 8)}…`;
 }
 
 export function ClanChat({ slug }: { slug: string }) {
@@ -82,10 +82,10 @@ export function ClanChat({ slug }: { slug: string }) {
         events?: ClanEvent[];
       };
       if (!data.success) return;
-      setChannels(data.channels ?? []);
-      setMembers(data.members ?? []);
-      setMemberTotal(Number(data.member_total) || (data.members ?? []).length);
-      setEvents(data.events ?? []);
+      setChannels(Array.isArray(data.channels) ? data.channels : []);
+      setMembers(Array.isArray(data.members) ? data.members : []);
+      setMemberTotal(Number(data.member_total) || (Array.isArray(data.members) ? data.members : []).length);
+      setEvents(Array.isArray(data.events) ? data.events : []);
     } catch {
       // Sidebar stays as-is on failure; polling retries.
     }
@@ -102,8 +102,8 @@ export function ClanChat({ slug }: { slug: string }) {
           reactions?: Reaction[];
         };
         if (!data.success) return;
-        setMessages(data.messages ?? []);
-        setReactions(data.reactions ?? []);
+        setMessages(Array.isArray(data.messages) ? data.messages : []);
+        setReactions(Array.isArray(data.reactions) ? data.reactions : []);
       } catch {
         // Keep the last good snapshot.
       }
@@ -210,9 +210,9 @@ export function ClanChat({ slug }: { slug: string }) {
     }
   }
 
-  const owners = members.filter((m) => m.role === "owner");
-  const mods = members.filter((m) => m.role === "mod");
-  const regulars = members.filter((m) => m.role === "member");
+  const owners = (Array.isArray(members) ? members : []).filter((m) => m.role === "owner");
+  const mods = (Array.isArray(members) ? members : []).filter((m) => m.role === "mod");
+  const regulars = (Array.isArray(members) ? members : []).filter((m) => m.role === "member");
 
   return (
     <section className="overflow-hidden rounded-xl border border-white/10 bg-slate-900">
@@ -228,7 +228,7 @@ export function ClanChat({ slug }: { slug: string }) {
         <div className="border-b border-white/10 p-3 md:border-b-0 md:border-r">
           <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">Channels</p>
           <ul className="mt-1 space-y-1">
-            {channels.map((c) => (
+            {(Array.isArray(channels) ? channels : []).map((c) => (
               <li key={c.id}>
                 <button
                   onClick={() => setActiveId(c.id)}
@@ -243,7 +243,7 @@ export function ClanChat({ slug }: { slug: string }) {
                 </button>
               </li>
             ))}
-            {channels.length === 0 && (
+            {(channels ?? []).length === 0 && (
               <li className="px-2 text-xs text-slate-600 dark:text-slate-500">No channels yet; check back soon.</li>
             )}
           </ul>
@@ -262,11 +262,11 @@ export function ClanChat({ slug }: { slug: string }) {
               Add
             </button>
           </form>
-          {events.length > 0 && (
+          {(events ?? []).length > 0 && (
             <div className="mt-4">
               <p className="px-2 text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-500">Events</p>
               <ul className="mt-1 space-y-1 text-xs text-slate-600 dark:text-slate-300">
-                {events.map((ev) => (
+                {(Array.isArray(events) ? events : []).map((ev) => (
                     <li key={ev.id} className="rounded-lg bg-black/30 px-2 py-1.5">
                       <span className="font-bold text-slate-900 dark:text-white">📅 {ev.title}</span>
                       <br />
@@ -285,7 +285,7 @@ export function ClanChat({ slug }: { slug: string }) {
             {active?.topic && <span className="ml-2 text-xs text-slate-600 dark:text-slate-400">- {active.topic}</span>}
           </div>
           <div className="perf-list flex-1 space-y-3 overflow-y-auto p-4" style={{ maxHeight: "420px" }}>
-            {messages.map((m) => {
+            {(Array.isArray(messages) ? messages : []).map((m) => {
               const myReactions = reactionsByMessage.get(m.id) ?? [];
               return (
                 <div key={m.id} className="group rounded-lg p-2 transition hover:bg-white/5">
@@ -328,7 +328,7 @@ export function ClanChat({ slug }: { slug: string }) {
                 </div>
               );
             })}
-            {messages.length === 0 && (
+            {(messages ?? []).length === 0 && (
               <p className="text-sm text-slate-600 dark:text-slate-500">No messages yet; say hi.</p>
             )}
             <div ref={bottomRef} />
@@ -375,14 +375,14 @@ export function ClanChat({ slug }: { slug: string }) {
             ["🛡️ Mods", mods],
             ["👾 Members", regulars],
           ].map(([label, list]) => {
-            const rows = list as Member[];
+            const rows = (Array.isArray(list) ? list : []) as Member[];
             if (rows.length === 0) return null;
             return (
               <div key={label as string} className="mt-2">
                 <p className="px-2 text-xs font-bold text-slate-600 dark:text-slate-400">{label as string}</p>
                 <ul className="mt-1 space-y-1">
-                  {rows.slice(0, 30).map((m) => (
-                    <li key={m.user_id} className="truncate px-2 font-mono text-xs text-slate-600 dark:text-slate-300">
+                  {rows.slice(0, 30).map((m, i) => (
+                    <li key={m.user_id ?? `m-${i}`} className="truncate px-2 font-mono text-xs text-slate-600 dark:text-slate-300">
                       {shortId(m.user_id)}
                     </li>
                   ))}
@@ -390,7 +390,7 @@ export function ClanChat({ slug }: { slug: string }) {
               </div>
             );
           })}
-          {members.length === 0 && <p className="px-2 text-xs text-slate-600 dark:text-slate-500">Just you (so far).</p>}
+          {(members ?? []).length === 0 && <p className="px-2 text-xs text-slate-600 dark:text-slate-500">Just you (so far).</p>}
         </div>
       </div>
     </section>

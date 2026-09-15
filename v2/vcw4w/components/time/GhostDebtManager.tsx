@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GhostDebt, formatGhostCash } from "@/types/time";
+import { GhostDebt, formatGhostAmount } from "@/types/time";
 import { CheckCircle2, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
 
   const handleAction = async (debtId: string, action: "settle" | "forgive") => {
     const actionLabel = action === "settle" ? "settled" : "forgiven";
-    if (!confirm(`Mark this Ghost Cash debt as ${actionLabel}?`)) return;
+    if (!confirm(`Mark this Ghost debt as ${actionLabel}?`)) return;
 
     await fetch("/api/time/debts", {
       method: "POST",
@@ -42,7 +42,7 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           debtorId,
-          amountGhostCash: parseFloat(amount),
+          amountGhost: parseFloat(amount),
           memo,
         }),
       });
@@ -58,16 +58,17 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
     }
   };
 
-  const pendingDebts = debts.filter((d) => d.status === "pending");
-  const settledDebts = debts.filter((d) => d.status !== "pending");
+  const safeDebts = Array.isArray(debts) ? debts : [];
+  const pendingDebts = safeDebts.filter((d) => d.status === "pending");
+  const settledDebts = safeDebts.filter((d) => d.status !== "pending");
 
-  const totalPendingOwed = pendingDebts.reduce((sum, d) => sum + d.amountGhostCash, 0);
+  const totalPendingOwed = pendingDebts.reduce((sum, d) => sum + d.amountGhost, 0);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white">Ghost Cash (👻) Debt Ledger</h2>
+          <h2 className="text-xl font-bold text-white">Ghost (👻) Debt Ledger</h2>
           <p className="text-sm text-zinc-400">
             Track debts owed between org leaders, social media marketers, and freelancers.
           </p>
@@ -75,7 +76,7 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
 
         <div className="flex items-center gap-3">
           <div className="px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono font-bold">
-            Total Outstanding: {formatGhostCash(totalPendingOwed)}
+            Total Outstanding: {formatGhostAmount(totalPendingOwed)}
           </div>
           <Button
             size="sm"
@@ -96,7 +97,7 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
             <div className="space-y-1">
               <label className="text-xs text-zinc-400">Debtor Profile UUID</label>
               <Input
-                placeholder="User UUID of person who owes Ghost Cash"
+                placeholder="User UUID of person who owes Ghosts"
                 value={debtorId}
                 onChange={(e) => setDebtorId(e.target.value)}
                 className="bg-black/50 border-white/10 text-white font-mono text-xs"
@@ -105,7 +106,7 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-zinc-400">Amount in Ghost Cash (👻)</label>
+              <label className="text-xs text-zinc-400">Amount in Ghosts (👻)</label>
               <Input
                 type="number"
                 step="0.01"
@@ -154,18 +155,18 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
         <h3 className="text-sm font-semibold text-zinc-300">Pending Debts</h3>
         {pendingDebts.length === 0 ? (
           <div className="p-6 rounded-xl border border-white/10 bg-zinc-950/40 text-center text-xs text-zinc-500">
-            No outstanding Ghost Cash debts. All balances are settled!
+            No outstanding Ghost debts. All balances are settled!
           </div>
         ) : (
-          pendingDebts.map((d) => (
+          pendingDebts.map((d, di) => (
             <div
-              key={d.id}
+              key={d.id ?? di}
               className="p-4 rounded-xl border border-white/10 bg-zinc-950/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-emerald-400 font-mono">
-                    {formatGhostCash(d.amountGhostCash)}
+                    {formatGhostAmount(d.amountGhost)}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30">
                     Pending
@@ -175,7 +176,7 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
                 <div className="text-xs text-zinc-400 flex items-center gap-2">
                   <span>Creditor: <strong className="text-zinc-200">{d.creditor?.displayName || d.creditor?.username || "You"}</strong></span>
                   <span>•</span>
-                  <span>Debtor: <strong className="text-zinc-200">{d.debtor?.displayName || d.debtor?.username || d.debtorId}</strong></span>
+                  <span>Debtor: <strong className="text-zinc-200">{d.debtor?.displayName || d.debtor?.username || d.debtorId || "—"}</strong></span>
                 </div>
               </div>
 
@@ -204,13 +205,13 @@ export function GhostDebtManager({ debts, onRefresh }: GhostDebtManagerProps) {
         {settledDebts.length > 0 && (
           <div className="pt-4 space-y-3">
             <h3 className="text-sm font-semibold text-zinc-400">Settled & Forgiven History</h3>
-            {settledDebts.slice(0, 10).map((d) => (
+            {settledDebts.slice(0, 10).map((d, di) => (
               <div
-                key={d.id}
+                key={d.id ?? di}
                 className="p-3 rounded-lg border border-white/5 bg-zinc-950/30 flex items-center justify-between text-xs text-zinc-400"
               >
                 <div>
-                  <span className="font-mono text-zinc-300 mr-2">{formatGhostCash(d.amountGhostCash)}</span>
+                  <span className="font-mono text-zinc-300 mr-2">{formatGhostAmount(d.amountGhost)}</span>
                   <span>{d.memo}</span>
                 </div>
                 <span className="capitalize px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">

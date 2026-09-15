@@ -38,7 +38,11 @@ export function ForgotPasswordForm({
       if (error) throw error;
       setSuccess(true);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      // Generic copy only: Supabase/Auth provider strings can leak
+      // account-enumeration or provider details, so never surface them
+      // (mirrors update-password-form).
+      if (error instanceof Error) console.error("[forgot-password-form] reset request failed");
+      setError("Unable to send the reset email. Try again shortly.");
     } finally {
       setIsLoading(false);
     }

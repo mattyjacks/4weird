@@ -219,11 +219,11 @@ async function logDealStageActivity(orgId: string, deal: Deal, from: string, to:
   } catch { /* fail-open: the stage move itself already succeeded */ }
 }
 
-function GhostCashDisclaimer() {
+function GhostDisclaimer() {
   return (
     <p className="rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-xs text-amber-200">
-      👻💵 Ghost Cash does not apply here — invoices are <b>real coin accounting</b> (100 coins = $1.00),
-      not hypothetical org IOUs. For time-based Ghost Cash books, see <a className="font-bold underline" href="/timer">/timer</a>.
+      👻 Ghosts do not apply here — invoices are <b>real coin accounting</b> (100 coins = $1.00),
+      not hypothetical org IOUs. For time-based Ghost books, see <a className="font-bold underline" href="/timer">/timer</a>.
     </p>
   );
 }
@@ -1162,7 +1162,7 @@ export function CrmWorkspace() {
           await request(`/api/crm/contacts`, { method: "DELETE", body: JSON.stringify({ id, org_id: orgId }) });
           deleted++;
         } catch (err) {
-          errors.push(`${id.slice(0, 8)}: ${err instanceof Error ? err.message : "failed"}`);
+          errors.push(`${String(id ?? "").slice(0, 8)}: ${err instanceof Error ? err.message : "failed"}`);
           break; // early abort: first failure stops the loop, rest stay put
         }
       }
@@ -1275,7 +1275,7 @@ export function CrmWorkspace() {
           await request(`/api/crm/companies`, { method: "DELETE", body: JSON.stringify({ id, org_id: orgId }) });
           deleted++;
         } catch (err) {
-          errors.push(`${id.slice(0, 8)}: ${err instanceof Error ? err.message : "failed"}`);
+          errors.push(`${String(id ?? "").slice(0, 8)}: ${err instanceof Error ? err.message : "failed"}`);
           break; // early abort: first failure stops the loop, rest stay put
         }
       }
@@ -1512,7 +1512,7 @@ export function CrmWorkspace() {
   // String-splitting only — never eval. A UTF-8 BOM is stripped so it never
   // becomes part of the first header name.
   function parseCsv(text: string): string[][] {
-    const src = stripBom(text);
+    const src = stripBom(String(text ?? ""));
     const rows: string[][] = [];
     let row: string[] = [];
     let field = "";
@@ -1570,7 +1570,7 @@ export function CrmWorkspace() {
       const iNotes = idx(["notes"]);
       const iCompany = idx(["company", "company_name"]);
       if (iName === -1) { setNotice("CSV needs a full_name (or name) column."); return; }
-      const byCompany = new Map(companies.map((c) => [c.name.trim().toLowerCase(), c.id]));
+      const byCompany = new Map(companies.map((c) => [String(c.name ?? "").trim().toLowerCase(), c.id]));
       let created = 0;
       let consecutiveErrors = 0;
       let aborted = false;
@@ -1578,7 +1578,7 @@ export function CrmWorkspace() {
       // Sequential on purpose: never Promise.all an unbounded fan-out; each
       // row is one rate-limited POST and the loop aborts on repeated failure.
       for (let r = 0; r < work.length; r++) {
-        const cols = work[r];
+        const cols = work[r] ?? [];
         // Malformed rows (unbalanced quotes shifting the column count) are
         // skipped with a count instead of being imported half-mapped.
         if (cols.length !== header.length) { errors.push(`row ${r + 2}: expected ${header.length} columns, got ${cols.length} — skipped`); continue; }
@@ -1706,11 +1706,11 @@ export function CrmWorkspace() {
           <label className="text-sm font-semibold text-slate-300" htmlFor="crm-org">Org</label>
           <select id="crm-org" aria-label="Select organization" value={orgId} onChange={(e) => setOrgId(e.target.value)} className={`${inputCls} max-w-xs`}>
             <option value="">Select org…</option>
-            {orgs.map((o) => {
+            {orgs.map((o, oi) => {
               const count = memberCounts[o.id];
               const countSuffix = count == null ? "" : ` · ${count} member${count === 1 ? "" : "s"}`;
               return (
-                <option key={o.id} value={o.id}>{o.name} (@{o.slug}{countSuffix})</option>
+                <option key={o.id ?? oi} value={o.id}>{o.name} (@{o.slug}{countSuffix})</option>
               );
             })}
           </select>
@@ -1759,9 +1759,9 @@ export function CrmWorkspace() {
             {recentSearches.length > 0 && (
               <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs" aria-label="Recent searches">
                 <span className="text-slate-400">Recent:</span>
-                {recentSearches.map((r) => (
+                {recentSearches.map((r, rsi) => (
                   <button
-                    key={r}
+                    key={r ?? rsi}
                     type="button"
                     aria-label={`Search again for ${r}`}
                     title={`Search again for ${r}`}
@@ -1778,12 +1778,12 @@ export function CrmWorkspace() {
         {recentOrgs.length > 0 && orgs.length > 0 && (
           <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs">
             <span className="text-slate-400">Recent:</span>
-            {recentOrgs.filter((id) => orgs.some((o) => o.id === id)).slice(0, RECENT_ORGS_MAX).map((id) => {
+            {recentOrgs.filter((id) => orgs.some((o) => o.id === id)).slice(0, RECENT_ORGS_MAX).map((id, roi) => {
               const o = orgs.find((x) => x.id === id);
               if (!o) return null;
               return (
                 <button
-                  key={id}
+                  key={id ?? roi}
                   type="button"
                   className={`${ghostBtnCls} ${id === orgId ? "border-cyan-300/50 text-cyan-200" : ""}`}
                   onClick={() => setOrgId(id)}
@@ -2483,13 +2483,14 @@ export function CrmWorkspace() {
                   <h4 className="text-sm font-bold text-slate-200">Linked contacts ({selectedStats.contactsCount})</h4>
                   {selectedStats.coContacts.length === 0
                     ? <p className="mt-1 text-xs text-slate-400">No contacts linked yet.</p>
-                    : <ul className="mt-1 space-y-1 text-sm">{selectedStats.coContacts.slice(0, 8).map((ct) => (<li key={ct.id} className="text-slate-300">{contactName(ct)}{ct.email ? <span className="text-slate-400"> · {ct.email}</span> : null}</li>))}</ul>}
+                    : <ul className="mt-1 space-y-1 text-sm">{selectedStats.coContacts.slice(0, 8).map((ct, cti) => (<li key={ct.id ?? cti} className="text-slate-300">{contactName(ct)}{ct.email ? <span className="text-slate-400"> · {ct.email}</span> : null}</li>))}</ul>}
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-200">Recent activities</h4>
                   {selectedStats.recent.length === 0
                     ? <p className="mt-1 text-xs text-slate-400">No recent activity for this company.</p>
-                    : <ul className="mt-1 space-y-1 text-sm">{selectedStats.recent.map((a) => (<li key={a.id} className="flex items-center gap-2 text-slate-300"><span className={a.done ? "text-slate-400 line-through" : ""}>{activityTitle(a)}</span><span className="ml-auto text-xs text-slate-400">{a.created_at ? new Date(a.created_at).toLocaleDateString() : ""}</span></li>))}</ul>}
+                    : <ul className="mt-1 space-y-1 text-sm">{selectedStats.recent.map((a, rai) => (<li
+           key={a.id ?? rai} className="flex items-center gap-2 text-slate-300"><span className={a.done ? "text-slate-400 line-through" : ""}>{activityTitle(a)}</span><span className="ml-auto text-xs text-slate-400">{a.created_at ? new Date(a.created_at).toLocaleDateString() : ""}</span></li>))}</ul>}
                 </div>
               </div>
             </div>
@@ -2650,7 +2651,7 @@ export function CrmWorkspace() {
 
       {orgId && tab === "invoices" && (
         <section className={`${cardCls} space-y-4`} aria-label="Invoices">
-          <GhostCashDisclaimer />
+          <GhostDisclaimer />
           <form onSubmit={(e) => void createInvoice(e)} aria-label="Create invoice" className="space-y-3">
             <div className="flex flex-wrap gap-2">
               <input value={invNumber} onChange={(e) => setInvNumber(e.target.value)} placeholder="INV-001" aria-label="Invoice number" maxLength={60} className={`${inputCls} min-h-[44px] w-40`} />
@@ -2720,7 +2721,7 @@ export function CrmWorkspace() {
       )}
 
       {/* Read-only note: v1 untouched; coin movement stays in guarded RPCs — this UI only reads/writes CRM rows. */}
-      <p className="text-xs text-slate-600">CRM rows are org-scoped memoranda. Coins move only in guarded flows; invoices here never mint, hold, or convert Ghost Cash.</p>
+      <p className="text-xs text-slate-600">CRM rows are org-scoped memoranda. Coins move only in guarded flows; invoices here never mint, hold, or convert Ghosts.</p>
     </div>
   );
 }

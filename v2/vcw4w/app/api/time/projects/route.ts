@@ -72,7 +72,7 @@ export async function GET() {
   });
 }
 
-// POST /api/time/projects - Create a timer project with Ghost Cash rate
+// POST /api/time/projects - Create a timer project with Ghost rate
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);

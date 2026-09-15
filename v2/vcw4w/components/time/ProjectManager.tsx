@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TimerProject, formatGhostCash, TIMER_PROJECT_COLORS } from "@/types/time";
+import { TimerProject, formatGhostAmount, TIMER_PROJECT_COLORS } from "@/types/time";
 import { Plus, Trash2, Loader2, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,7 @@ export function ProjectManager({ projects, onRefresh }: ProjectManagerProps) {
         <div>
           <h2 className="text-xl font-bold text-white">Timer Projects & Ghost Rates</h2>
           <p className="text-sm text-zinc-400">
-            Set hourly rates in Ghost Cash (👻) for client work, contractors, or marketing roles.
+            Set hourly rates in Ghosts (👻) for client work, contractors, or marketing roles.
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export function ProjectManager({ projects, onRefresh }: ProjectManagerProps) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-zinc-400">Ghost Cash Hourly Rate (👻/hr)</label>
+              <label className="text-xs text-zinc-400">Ghost rate (👻/hr)</label>
               <Input
                 type="number"
                 step="0.5"
@@ -154,9 +154,9 @@ export function ProjectManager({ projects, onRefresh }: ProjectManagerProps) {
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {projects.map((p) => (
+        {(Array.isArray(projects) ? projects : []).map((p, pi) => (
           <div
-            key={p.id}
+            key={p.id ?? pi}
             className="p-4 rounded-xl border border-white/10 bg-zinc-950/60 flex flex-col justify-between space-y-3"
           >
             <div className="space-y-2">
@@ -179,7 +179,7 @@ export function ProjectManager({ projects, onRefresh }: ProjectManagerProps) {
 
               <div className="flex items-center gap-1.5 text-sm font-semibold text-emerald-400 font-mono">
                 <Coins className="h-4 w-4" />
-                {formatGhostCash(p.ghostRate)} / hr
+                {formatGhostAmount(p.ghostRate)} / hr
               </div>
 
               {p.budgetHours && (
@@ -190,7 +190,7 @@ export function ProjectManager({ projects, onRefresh }: ProjectManagerProps) {
             </div>
 
             <div className="text-xs text-zinc-500 border-t border-white/5 pt-2">
-              Created {new Date(p.createdAt).toLocaleDateString()}
+              Created {p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "—"}
             </div>
           </div>
         ))}

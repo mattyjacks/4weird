@@ -9,6 +9,16 @@
 // 500 for the whole route.
 import { ok } from "@/lib/api-respond";
 
+// Hidden from static analysis on purpose: Turbopack treats even a variable
+// `await import(specifier)` as a resolvable dependency and fails the build
+// while a sibling vendor module is absent. `new Function` keeps the
+// specifier opaque while the try/catch below preserves fail-soft.
+type DynamicImporter = (spec: string) => Promise<unknown>;
+const dynImport: DynamicImporter = new Function(
+  "s",
+  "return import(s)",
+) as DynamicImporter;
+
 type OpEntry = {
   op: string;
   name: string;
@@ -83,9 +93,7 @@ function opsFromModule(mod: Record<string, unknown>): OpEntry[] {
 
 async function loadVendor(specifier: string, vendor: string): Promise<VendorResult> {
   try {
-    const mod = (await import(
-      /* webpackIgnore: false */ specifier
-    )) as Record<string, unknown>;
+    const mod = (await dynImport(specifier)) as Record<string, unknown>;
     const ops = opsFromModule(mod);
     if (ops.length === 0) return { vendor, ok: false, error: "catalog unavailable" };
     return { vendor, ops, ok: true, count: ops.length };

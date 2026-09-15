@@ -74,7 +74,11 @@ const SWARM = "public/swarm";
 const patterns = [
   /(?<![A-Za-z0-9_-])sk-[A-Za-z0-9-_]{20,}/,
   /bot4weird_[A-Za-z0-9]{16,}/,
-  /BEGIN (RSA )?PRIVATE KEY/,
+  // PEM-anchored: real key blocks always carry the dash-delimited header
+  // (-----BEGIN [RSA ]PRIVATE KEY-----). Bare "BEGIN PRIVATE KEY" prose
+  // (e.g. QUEUE.md describing a BEGIN PRIVATE KEY -> BEGIN-PRIVATE-KEY
+  // reword) must not trip the scanner. Never weaken to bare words.
+  /-----BEGIN (RSA )?PRIVATE KEY-----/,
   /client_secret\s*[:=]\s*['"][^'"]{4,}/i,
 ];
 const walk = (dir) => {

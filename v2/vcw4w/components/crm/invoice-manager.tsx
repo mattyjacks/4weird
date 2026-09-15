@@ -248,7 +248,7 @@ export function InvoiceManager() {
   async function advance(id: string, status: string) {
     if (status === "void") {
       const target = invoices.find((i) => i.id === id);
-      const label = target?.number || id.slice(0, 8);
+      const label = target?.number || String(id ?? "").slice(0, 8);
       const okVoid = window.confirm(
         `Void invoice ${label}? Void is terminal and voided invoices stay excluded from unpaid totals.`,
       );
@@ -437,7 +437,7 @@ export function InvoiceManager() {
     const a = document.createElement("a");
     a.href = url;
     // inv.number is user input — slug-scrub it so the filename stays safe.
-    a.download = `invoice-${slugForFilename(inv.number, inv.id.slice(0, 8))}.csv`;
+    a.download = `invoice-${slugForFilename(inv.number, String(inv.id ?? "").slice(0, 8))}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -457,8 +457,8 @@ export function InvoiceManager() {
         </p>
         <p className="mt-1 text-xs leading-relaxed text-amber-100/80">
           Coin memoranda in Vibe Coins (100 coins = $1.00). Not VAT/GST invoices, payroll
-          records, or receipts — marking one paid moves no coins by itself. Ghost Cash has
-          no cash value and can never settle an invoice.
+          records, or receipts — marking one paid moves no coins by itself. Ghosts have
+          no monetary value and can never settle an invoice.
         </p>
       </section>
       {/* Print header: org name + print date + invoice numbers (print only). */}
@@ -469,7 +469,7 @@ export function InvoiceManager() {
         <p className="text-xs text-black">
           Printed {new Date().toISOString().slice(0, 10)}
           {visible.length
-            ? ` · ${visible.length} invoice${visible.length === 1 ? "" : "s"}: ${visible.map((i) => i.number || i.id.slice(0, 8)).join(", ")}`
+            ? ` · ${visible.length} invoice${visible.length === 1 ? "" : "s"}: ${visible.map((i) => i.number || String(i.id ?? "").slice(0, 8)).join(", ")}`
             : ""}
         </p>
       </div>
@@ -486,8 +486,8 @@ export function InvoiceManager() {
             className={`${inputCls} min-h-[44px] max-w-xs`}
           >
             <option value="">Select org…</option>
-            {orgs.map((o) => (
-              <option key={o.id} value={o.id}>
+            {orgs.map((o, oi) => (
+              <option key={o.id ?? oi} value={o.id}>
                 {o.name} ({o.slug})
               </option>
             ))}
@@ -594,8 +594,8 @@ export function InvoiceManager() {
               Company (select)
               <select value={companyId} onChange={(e) => setCompanyId(e.target.value)} aria-label="Invoice company select" className={`${inputCls} min-h-[44px] w-full`}>
                 <option value="">None — use free text</option>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>
+                {companies.map((c, ci) => (
+                  <option key={c.id ?? ci} value={c.id}>
                     {c.name}
                   </option>
                 ))}
@@ -617,8 +617,8 @@ export function InvoiceManager() {
               Contact (select)
               <select value={contactId} onChange={(e) => setContactId(e.target.value)} aria-label="Invoice contact select" className={`${inputCls} min-h-[44px] w-full`}>
                 <option value="">None — use free text</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
+                {contacts.map((c, ci) => (
+                  <option key={c.id ?? ci} value={c.id}>
                     {c.full_name}
                   </option>
                 ))}
@@ -791,10 +791,10 @@ export function InvoiceManager() {
             </p>
           </div>
         ) : (
-          visible.map((inv) => (
-            <article key={inv.id} className={cardCls}>
+          visible.map((inv, vi) => (
+            <article key={inv.id ?? vi} className={cardCls}>
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="font-mono text-sm font-bold text-white">{inv.number || inv.id.slice(0, 8)}</h3>
+                <h3 className="font-mono text-sm font-bold text-white">{inv.number || String(inv.id ?? "").slice(0, 8)}</h3>
                 <span
                   className={`rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide ${BADGE[inv.status] ?? BADGE.draft}`}
                 >
@@ -814,7 +814,7 @@ export function InvoiceManager() {
               </p>
               {(inv.items?.length ?? 0) > 0 && (
                 <ul className="mt-2 space-y-1 text-sm text-slate-300">
-                  {inv.items!.map((it, k) => (
+                  {(inv.items ?? []).map((it, k) => (
                     <li key={it.id ?? k} className="flex justify-between gap-3">
                       <span>
                         {it.label} × {it.qty} @ {coins(Number(it.unit_coins ?? 0))}
@@ -845,11 +845,11 @@ export function InvoiceManager() {
               ) : null}
               {(NEXT[inv.status]?.length ?? 0) > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {NEXT[inv.status].map((next) => (
+                  {(NEXT[inv.status] ?? []).map((next) => (
                     <button
                       key={next}
                       type="button"
-                      aria-label={`${next === "void" ? "Void" : `Mark ${inv.number || inv.id.slice(0, 8)} ${next}`} invoice`}
+                      aria-label={`${next === "void" ? "Void" : `Mark ${inv.number || String(inv.id ?? "").slice(0, 8)} ${next}`} invoice`}
                       className={next === "void" ? ghostBtnCls : btnCls}
                       onClick={() => advance(inv.id, next)}
                       disabled={busy}
@@ -869,7 +869,7 @@ export function InvoiceManager() {
                     }
                     placeholder="e.g. paid via checkout #123, awaiting wire…"
                     className={`${inputCls} min-h-[44px] flex-1`}
-                    aria-label={`Payment note for ${inv.number || inv.id.slice(0, 8)}`}
+                    aria-label={`Payment note for ${inv.number || String(inv.id ?? "").slice(0, 8)}`}
                     maxLength={2000}
                   />
                   <button type="button" className={ghostBtnCls} onClick={() => void saveNote(inv.id)} disabled={busy}>
@@ -880,7 +880,7 @@ export function InvoiceManager() {
               <div className="mt-3 flex flex-wrap gap-2 print:hidden">
                 <button
                   type="button"
-                  aria-label={`Duplicate ${inv.number || inv.id.slice(0, 8)} invoice`}
+                  aria-label={`Duplicate ${inv.number || String(inv.id ?? "").slice(0, 8)} invoice`}
                   className={ghostBtnCls}
                   onClick={() => void duplicateInvoice(inv)}
                   disabled={busy}
@@ -889,7 +889,7 @@ export function InvoiceManager() {
                 </button>
                 <button
                   type="button"
-                  aria-label={`Export ${inv.number || inv.id.slice(0, 8)} lines as CSV`}
+                  aria-label={`Export ${inv.number || String(inv.id ?? "").slice(0, 8)} lines as CSV`}
                   className={ghostBtnCls}
                   onClick={() => exportInvoiceCsv(inv)}
                 >
@@ -897,7 +897,7 @@ export function InvoiceManager() {
                 </button>
                 <button
                   type="button"
-                  aria-label={`Print ${inv.number || inv.id.slice(0, 8)} invoice`}
+                  aria-label={`Print ${inv.number || String(inv.id ?? "").slice(0, 8)} invoice`}
                   className={ghostBtnCls}
                   onClick={() => setPrintId(inv.id)}
                 >
@@ -914,7 +914,7 @@ export function InvoiceManager() {
         // only — never URL params — all as React text nodes, so query-string
         // markup cannot reflect into window.print output.
         <section className="invoice-print-sheet hidden rounded-2xl border border-black bg-white p-6 text-black print:block" aria-label="Print invoice">
-          <h2 className="font-mono text-xl font-black">Invoice {printInv.number || printInv.id.slice(0, 8)}</h2>
+          <h2 className="font-mono text-xl font-black">Invoice {printInv.number || String(printInv.id ?? "").slice(0, 8)}</h2>
           <p className="mt-1 text-sm">
             Status: {printInv.status}
             {isOverdue(printInv) ? " · OVERDUE" : ""}
@@ -949,7 +949,7 @@ export function InvoiceManager() {
           clients. They are NOT tax invoices, VAT/GST invoices, payroll records, or receipts.
           Coin settlement happens only via the existing guarded checkout and ledger flows;
           marking an invoice paid records the memorandum, it never moves coins by itself.
-          Ghost Cash (👻) has no cash value and can never settle an invoice.
+          Ghosts (👻) have no monetary value and can never settle an invoice.
         </p>
       </footer>
     </div>

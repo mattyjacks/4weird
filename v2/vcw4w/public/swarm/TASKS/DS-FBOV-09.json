@@ -1,0 +1,22 @@
+{
+  "id": "DS-FBOV-09",
+  "title": "AI enrichment stub + logs table + enrich route (NEW)",
+  "goal": "FBOV overhaul slice DS-FBOV-09: AI enrichment stub + logs table + enrich route (NEW). Owner works scope-only, gates green, evidence in log.",
+  "lane": "vcw",
+  "scope": [
+    "v2/vcw4w/lib/feedback/enrich.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fbov-09",
+  "created": "2026-09-15T01:24:04.761Z",
+  "updated": "2026-09-15T01:36:24.092Z",
+  "log": [
+    "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+    "2026-09-15T01:31:26.534Z fbov-09: claimed. Plan: extend lib/feedback/enrich.ts additively (keep stubEnrichFeedback; add buildEnrichmentPrompt + parseEnrichmentResult) + NEW app/api/feedback/[id]/enrich/route.ts (admin/bot-key POST, OPENAI_API_KEY vision LLM else stub fail-open, ai_* + feedback_ai_logs writes only). Migration 20261212000000_feedback_ai.sql already on disk (sibling, read-only).",
+    "2026-09-15T01:36:24.092Z fbov-09: DONE (in_progress->done). (1) lib/feedback/enrich.ts EXTENDED additively only — sibling stubEnrichFeedback/ENRICH_MODEL_STUB/ENRICH_PROMPT_VERSION/AiCategory/AiSeverity untouched; added buildEnrichmentPrompt(report)->string (bounded prompt demanding strict {summary,category,severity,cluster} JSON), parseEnrichmentResult(json)->{summary,category,severity,cluster} (fail-open: JSON-string/object/anything, unknown enums fall back other/medium, never throws), toParsedEnrichment + ENRICH_PROMPT_VERSION_LLM + EnrichmentReport/ParsedEnrichment types. (2) NEW app/api/feedback/[id]/enrich/route.ts: POST admin-session (app_metadata admin, screenshot-route pattern) OR resolveBotKey; 401 anon / 403 non-admin; GET 405; rateLimit 30/min; loads report (404), mints 300s signed screenshot URL (fail-open text-only); no OPENAI_API_KEY -> stub path returns {processed:false,reason:'no-key'}; LLM path (gpt-4o-mini default via FEEDBACK_ENRICH_MODEL, response_format json_object, 25s abort, image_url when attached) with stub fallback {processed:false,reason:'llm-failed'}; writes ONLY ai_summary/ai_category/ai_severity/ai_cluster/ai_processed_at + feedback_ai_logs {feedback_id,model,prompt_version,raw,cost} (cost estimated for gpt-4o-mini, else NULL); human fields never written. GATES: npx eslint lib/feedback/enrich.ts 'app/api/feedback/[id]/enrich/route.ts' => exit 0, zero output; npx tsc --noEmit => zero errors mentioning enrich (only repo errors are pre-existing app/docs/feedback/page.tsx(146,67) TS1005 + (146,85) TS1381, another lane's file, same as fbov-08 documented — out of scope); secret scan (sk-/bot4weird_/PRIVATE KEY) clean — key read from env server-side only, never logged. Conventions read-only: app/api/feedback/route.ts, lib/vcw-feedback.ts, [id]/screenshot/route.ts, lib/bot-auth resolveBotKey, migration 20261212000000_feedback_ai.sql (ai_* + feedback_ai_logs column authority). STATUS.json/QUEUE/supabase/migrations untouched (steward-owned)."
+  ]
+}

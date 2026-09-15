@@ -74,7 +74,10 @@ export async function POST(req: Request) {
   }
   if (action === "complete") {
     const questId = String(input.quest_id ?? "").trim();
-    const userId = String(input.user_id ?? "").trim();
+    // Canonicalize case BEFORE the self-mint check: member ids are UUIDs and
+    // Postgres casts them case-insensitively, so an uppercased self id would
+    // sail past a raw string comparison straight into the mint RPC.
+    const userId = String(input.user_id ?? "").trim().toLowerCase();
     if (!questId || !userId) return fail("quest_id + user_id required.", 400);
     // No self-mint: owners/mods complete quests for OTHER members only.
     // (Two-account collusion still needs velocity monitoring; this kills the

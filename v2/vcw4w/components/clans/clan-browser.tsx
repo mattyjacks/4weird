@@ -40,7 +40,7 @@ export function ClanBrowser() {
       const res = await fetch(`/api/clans${params}`);
       const body = (await res.json()) as { success?: boolean; clans?: Clan[]; error?: string };
       if (!body.success) throw new Error(body.error ?? "Load failed.");
-      setClans(body.clans ?? []);
+      setClans(Array.isArray(body.clans) ? body.clans : []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed.");
     } finally {
@@ -153,7 +153,7 @@ export function ClanBrowser() {
         ))}
       </div>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {clans.map((c) => (
+        {(Array.isArray(clans) ? clans : []).map((c) => (
           <li key={c.id} className="rounded-lg border border-white/10 bg-slate-900 p-3.5">
             <div className="flex flex-wrap items-center gap-2">
               <Link href={`/clans/${c.slug}`} className="text-lg font-bold text-cyan-300 hover:underline">
@@ -174,7 +174,7 @@ export function ClanBrowser() {
           </li>
         ))}
       </ul>
-      {!loading && !error && clans.length === 0 && (
+      {!loading && !error && (clans ?? []).length === 0 && (
         <p className="text-slate-600 dark:text-slate-400">No clans yet; start the first one above.</p>
       )}
     </div>

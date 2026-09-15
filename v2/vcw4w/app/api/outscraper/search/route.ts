@@ -30,6 +30,16 @@ const OUTSCRAPER_BASE = "https://api.app.outscraper.com";
 const FALLBACK_API_PATH = "/google-search-v3";
 const CUT_PCT = 25;
 
+// Hidden from static analysis on purpose: Turbopack treats even a variable
+// `await import(specifier)` as a resolvable dependency and fails the build
+// while a sibling vendor module is absent. `new Function` keeps the
+// specifier opaque while the try/catch below preserves fail-soft.
+type DynamicImporter = (spec: string) => Promise<unknown>;
+const dynImport: DynamicImporter = new Function(
+  "s",
+  "return import(s)",
+) as DynamicImporter;
+
 type OpDef = {
   op: string;
   name: string;
@@ -111,7 +121,7 @@ async function loadRegistry(): Promise<Map<string, OpDef>> {
   ];
   for (const [specifier, vendor] of pairs) {
     try {
-      const mod = (await import(/* webpackIgnore: false */ specifier)) as Record<
+      const mod = (await dynImport(specifier)) as Record<
         string,
         unknown
       >;

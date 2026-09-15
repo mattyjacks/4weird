@@ -6,7 +6,7 @@ const fail = (msg) => {
 };
 
 const mig = read("../supabase/migrations/20260926000000_timer_ghost_cash.sql");
-const ghostCash = read("../lib/ghost-cash.ts");
+const ghostLib = read("../lib/ghost.ts");
 const timerWidget = read("../components/time/TimerWidget.tsx");
 const screenTracker = read("../components/time/ScreenTracker.tsx");
 const terms = read("../app/terms/page.tsx");
@@ -32,10 +32,11 @@ for (const rpc of ["start_timer", "stop_timer"]) {
   }
 }
 
-// 3. Ghost Cash currency symbol & calculations (ghost emoji ONLY; never paired with a cash emoji)
-if (!ghostCash.includes("👻")) fail("Ghost cash lib must define 👻 symbol.");
-if (!ghostCash.includes("calculateGhostCashOwed")) fail("Ghost cash lib must calculate owed amount down to the second.");
-if (!ghostCash.includes("GHOST_CASH_DISCLAIMER")) fail("Ghost cash lib must export legal disclaimer.");
+// 3. Ghost tracking-unit symbol & calculations (ghost emoji ONLY; never paired with a cash emoji)
+if (!ghostLib.includes("👻")) fail("Ghost lib must define 👻 symbol.");
+if (ghostLib.includes("Ghost Cash")) fail("Ghost lib must not use the retired 'Ghost Cash' name.");
+if (!ghostLib.includes("calculateGhostOwed")) fail("Ghost lib must calculate owed amount down to the second.");
+if (!ghostLib.includes("GHOST_DISCLAIMER")) fail("Ghost lib must export legal disclaimer.");
 
 // 4. Timer Widget & Screen Tracker
 if (!timerWidget.includes("ScreenTracker")) fail("TimerWidget must integrate work-diary ScreenTracker.");
@@ -44,11 +45,12 @@ if (!screenTracker.includes("getDisplayMedia")) fail("ScreenTracker must use get
 if (!screenTracker.includes("blurSensitive")) fail("ScreenTracker must support privacy blur.");
 
 // 5. Legal Terms
-if (!terms.includes("8C. Timer, Work Diary, and Ghost Cash")) fail("Terms must include Section 8C covering Ghost Cash.");
-if (!terms.includes("NO CASH VALUE OR LEGAL TENDER")) fail("Terms must explicitly state Ghost Cash has no cash value.");
+if (!terms.includes("8C. Timer, Work Diary, and Ghosts")) fail("Terms must include Section 8C covering Ghosts.");
+if (terms.includes("Ghost Cash")) fail("Terms must not use the retired 'Ghost Cash' name.");
+if (!terms.includes("NO MONETARY VALUE OR LEGAL TENDER")) fail("Terms must explicitly state Ghosts have no monetary value.");
 
 // 6. Navigation and Sitemap
 if (!header.includes('href: "/timer"')) fail("SiteHeader must include link to /timer.");
 if (!sitemap.includes('path: "/timer"')) fail("Sitemap must list /timer.");
 
-console.log("Timer, external companion mode, and Ghost Cash (👻) verification passed successfully!");
+console.log("Timer, external companion mode, and Ghost (👻) verification passed successfully!");

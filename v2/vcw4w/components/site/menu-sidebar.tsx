@@ -204,12 +204,7 @@ export function MenuSidebar() {
   const [hydrated, setHydrated] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const pillRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  // True when the drawer was opened via keyboard (click event.detail === 0),
-  // so focus is only stolen for keyboard users, never mouse users.
-  const keyboardOpenRef = useRef(false);
-  const prevOpenRef = useRef(false);
   const panelId = useId();
   const { favorites, hydrated: favsHydrated, toggle, isFav, notice } = useFavorites();
   const favsHeadingRef = useRef<HTMLParagraphElement>(null);
@@ -236,11 +231,6 @@ export function MenuSidebar() {
   const focusSearch = useCallback(() => searchRef.current?.focus(), []);
   const hideSidebar = useCallback(() => setOpen(false), []);
   const toggleQuick = useCallback(() => setQuick((v) => !v), []);
-  const openSidebar = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    // event.detail === 0 means keyboard-activated: only then steal focus on open.
-    keyboardOpenRef.current = event.detail === 0;
-    setOpen(true);
-  }, []);
 
   // Restore prefs (closed by default = cleaner interface).
   useEffect(() => {
@@ -278,10 +268,10 @@ export function MenuSidebar() {
     }
   }, [quick, hydrated]);
 
-  // FeedbackBar bridge (layout lane): the bar's Menu 2 button dispatches
-  // "fw:open-menu2" — open the existing drawer, no duplicate nav tree.
-  // Mouse users keep pointer context (no focus steal); keyboard users land
-  // on the drawer via the existing Escape/backdrop + pill focus paths.
+  // FeedbackBar bridge (layout lane): the bar's Menu 2 button is the single
+  // menu2 entry point — it dispatches "fw:open-menu2" to open the existing
+  // drawer, no duplicate nav tree. Focus stays on the invoking button
+  // (no focus steal); keyboard users Tab into the drawer as needed.
   useEffect(() => {
     const onOpen = () => setOpen(true);
     window.addEventListener("fw:open-menu2", onOpen);
@@ -318,26 +308,11 @@ export function MenuSidebar() {
     const prev = document.body.style.overflow;
     const mq = window.matchMedia("(max-width: 1023px)");
     if (mq.matches) document.body.style.overflow = "hidden";
-    // Focus the panel, but only when a keyboard user opened it - mouse
-    // users keep their pointer context (event.detail === 0 means keyboard).
-    if (keyboardOpenRef.current) {
-      closeRef.current?.focus({ preventScroll: true });
-    }
-    keyboardOpenRef.current = false;
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
   }, [open ]);
-
-  // Return focus to the ☰ menu 2 reveal pill whenever the drawer closes,
-  // so keyboard users don't lose their place when the panel unmounts.
-  useEffect(() => {
-    if (prevOpenRef.current && !open && hydrated) {
-      pillRef.current?.focus({ preventScroll: true });
-    }
-    prevOpenRef.current = open;
-  }, [open, hydrated]);
 
   // Close drawer on navigation (mobile only; desktop stays docked).
   useEffect(() => {
@@ -359,11 +334,6 @@ export function MenuSidebar() {
     })).filter((g) => g.links.length > 0);
   }, [query]);
 
-  const totalLinks = useMemo(
-    () => SITE_NAV_GROUPS.reduce((n, g) => n + g.links.length, 0),
-    [],
-  );
-
   const favoriteLinks = useMemo(() => {
     const q = query.trim().toLowerCase();
     const metas = favorites.map(favMetaFor);
@@ -378,27 +348,9 @@ export function MenuSidebar() {
 
   return (
     <>
-      {/* Reveal pill when hidden: stick-to-screen pill pinned to the top of
-          the left side, just below the header (header is min-h-14, so top-16
-          clears it on every breakpoint). */}
-      {!open && (
-        <button
-          ref={pillRef}
-          type="button"
-          onClick={openSidebar}
-          aria-label="Open menu 2 sidebar"
-          aria-expanded={false}
-          aria-controls={panelId}
-          title="Open menu 2 - every link explained"
-          className="fixed left-3 top-16 z-40 inline-flex max-w-[calc(100vw-1.5rem)] items-center gap-2 truncate rounded-full border border-border bg-background/90 py-2 pl-3 pr-4 text-sm font-black shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 max-lg:min-h-[44px]"
-        >
-          <span aria-hidden="true" className="shrink-0 text-base leading-none">☰</span>
-          <span className="truncate">menu 2</span>
-          <span aria-hidden="true" className="shrink-0 rounded-full bg-cyan-600/15 px-1.5 text-[11px] font-bold text-cyan-700 dark:text-cyan-300">
-            {totalLinks}
-          </span>
-        </button>
-      )}
+      {/* Reveal pill removed (was lines ~384-401): FeedbackBar top-bar Menu 2
+          button is the single menu2 entry point (dispatches "fw:open-menu2").
+          Keeping the floating pill rendered a duplicate "menu 2 (72)" pill. */}
 
       {/* Mobile backdrop */}
       {open && (
@@ -438,7 +390,7 @@ export function MenuSidebar() {
             title="Hide sidebar (it stays one click away, top-left)"
             className="rounded-lg border border-border px-2.5 py-1.5 text-sm font-bold transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:min-h-[44px] max-lg:px-3"
           >
-            <span aria-hidden="true">⟨⟩</span> Hide
+            <span aria-hidden="true">{"<- Hide"}</span>
           </button>
         </div>
 
@@ -593,9 +545,10 @@ export function MenuSidebar() {
             <button
               type="button"
               onClick={hideSidebar}
+              aria-label="Hide menu sidebar"
               className="flex-1 rounded-full border border-border px-3 py-1.5 text-xs font-bold transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:min-h-[44px] max-lg:py-2"
             >
-              Hide sidebar
+              {"<- Hide"}
             </button>
           </div>
         </div>

@@ -231,14 +231,14 @@ export default function VibeCoinsPage() {
       <SectionHead
         index="9"
         kicker="Three currencies"
-        title="Coins, Crowns, Ghost Cash - zero confusion"
-        body="One emoji, one meaning, everywhere: 🪙 Coins are closed-loop spend credits, 👑 Crowns are creator earnings with two exits, 👻 Ghost Cash is an org-work IOU with no value at all. 💸 means real fiat, and 💌 Love Letters are clan applause you can never buy."
+        title="Coins, Crowns, Ghosts - zero confusion"
+        body="One emoji, one meaning, everywhere: 🪙 Coins are closed-loop spend credits, 👑 Crowns are creator earnings with two exits, 👻 Ghost is an org-work record with no value at all. 💸 means real fiat, and 💌 Love Letters are clan applause you can never buy."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         {[
           ["🪙 Coins (spend)", "Bought, granted, or metered. Spend on-site only - never payout-eligible, never cash-out. 100 coins = $1.00 of platform credit."],
           ["👑 Crowns (earn)", "Minted only from gifted net (tips, subs, launch backing, provider shares). Locked 30 days, expire after a year. Then convert 1:1 to your own Coins (1 minimum, no fee, fresh 1-year expiry) or cash out in fiat (5,000 minimum - 100 Crowns = $1.00 payout value)."],
-          ["👻 Ghost Cash (track)", "Measures org hours down to the second: (seconds / 3600) × hourly rate. No cash value, no redemption, ghost emoji only - never paired with cash."],
+          ["👻 Ghost (track)", "Measures org hours down to the second: (seconds / 3600) × hourly rate. No monetary value, no redemption, ghost emoji only - never paired with cash."],
         ].map(([t, b]) => (
           <div key={t} className="rounded-2xl border border-border bg-card p-4">
             <p className="font-black">{t}</p>

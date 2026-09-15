@@ -139,7 +139,7 @@ type KeyHealth =
 
 function keyHealth(k: KeyRow): KeyHealth {
   if (k.revoked) return { state: "revoked" };
-  if (k.expires_at && Date.parse(k.expires_at) <= Date.now()) return { state: "expired" };
+  if (k?.expires_at && Date.parse(String(k.expires_at)) <= Date.now()) return { state: "expired" };
   if (num(k.max_uses) > 0 && num(k.use_count) >= num(k.max_uses)) {
     return { state: "exhausted" };
   }
@@ -223,8 +223,9 @@ const EMPTY_FORM: PolicyForm = {
 };
 
 function formFromKey(k: KeyRow): PolicyForm {
+  const expiryMs = Date.parse(String(k?.expires_at ?? ""));
   return {
-    expiresAt: k.expires_at ? new Date(k.expires_at).toISOString().slice(0, 16) : "",
+    expiresAt: Number.isFinite(expiryMs) ? new Date(expiryMs).toISOString().slice(0, 16) : "",
     clearExpiry: false,
     maxUses: num(k.max_uses) > 0 ? String(k.max_uses) : "",
     lifetimeBudget: num(k.lifetime_budget) > 0 ? String(k.lifetime_budget) : "",
@@ -234,12 +235,12 @@ function formFromKey(k: KeyRow): PolicyForm {
     floor: num(k.low_balance_floor) > 0 ? String(k.low_balance_floor) : "",
     floorPct: String(num(k.low_balance_pct, 10)),
     ipMode: k.ip_mode ?? "disabled",
-    allowlist: (k.ip_allowlist ?? []).join("\n"),
-    blocklist: (k.ip_blocklist ?? []).join("\n"),
+    allowlist: (Array.isArray(k.ip_allowlist) ? k.ip_allowlist : []).join("\n"),
+    blocklist: (Array.isArray(k.ip_blocklist) ? k.ip_blocklist : []).join("\n"),
     scopes: Array.isArray(k.scopes) ? k.scopes : [],
     loggingMode: (k.logging_mode === "full" || k.logging_mode === "none" ? k.logging_mode : "half") as LoggingMode,
     retention: String(num(k.log_retention_days, 90)),
-    note: k.note ?? "",
+    note: String(k.note ?? ""),
   };
 }
 
@@ -255,29 +256,29 @@ function formToPayload(f: PolicyForm, isCreate: boolean): Record<string, unknown
   };
   if (f.clearExpiry) {
     payload.clear_expiry = true;
-  } else if (f.expiresAt.trim()) {
-    const t = Date.parse(f.expiresAt);
+  } else if (String(f.expiresAt ?? "").trim()) {
+    const t = Date.parse(String(f.expiresAt ?? ""));
     if (Number.isFinite(t)) payload.expires_at = new Date(t).toISOString();
   } else if (isCreate) {
     payload.expires_at = null;
   }
-  set("max_uses", f.maxUses.trim() === "" ? "" : Number(f.maxUses));
-  set("lifetime_budget", f.lifetimeBudget.trim() === "" ? "" : Number(f.lifetimeBudget));
-  set("daily_budget", f.dailyBudget.trim() === "" ? "" : Number(f.dailyBudget));
-  if (f.warnPct.trim() !== "") payload.spend_warn_at_pct = Number(f.warnPct);
+  set("max_uses", String(f.maxUses ?? "").trim() === "" ? "" : Number(f.maxUses));
+  set("lifetime_budget", String(f.lifetimeBudget ?? "").trim() === "" ? "" : Number(f.lifetimeBudget));
+  set("daily_budget", String(f.dailyBudget ?? "").trim() === "" ? "" : Number(f.dailyBudget));
+  if (String(f.warnPct ?? "").trim() !== "") payload.spend_warn_at_pct = Number(f.warnPct);
   else if (isCreate) payload.spend_warn_at_pct = 80;
   payload.hard_stop_enabled = f.hardStop;
-  set("low_balance_floor", f.floor.trim() === "" ? "" : Number(f.floor));
-  if (f.floorPct.trim() !== "") payload.low_balance_pct = Number(f.floorPct);
+  set("low_balance_floor", String(f.floor ?? "").trim() === "" ? "" : Number(f.floor));
+  if (String(f.floorPct ?? "").trim() !== "") payload.low_balance_pct = Number(f.floorPct);
   else if (isCreate) payload.low_balance_pct = 10;
   payload.ip_mode = f.ipMode;
-  payload.ip_allowlist = f.allowlist.split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean);
-  payload.ip_blocklist = f.blocklist.split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean);
+  payload.ip_allowlist = String(f.allowlist ?? "").split(/[\s,;]+/).map((s) => String(s ?? "").trim()).filter(Boolean);
+  payload.ip_blocklist = String(f.blocklist ?? "").split(/[\s,;]+/).map((s) => String(s ?? "").trim()).filter(Boolean);
   payload.scopes = f.scopes;
   payload.logging_mode = f.loggingMode;
-  if (f.retention.trim() !== "") payload.log_retention_days = Number(f.retention);
+  if (String(f.retention ?? "").trim() !== "") payload.log_retention_days = Number(f.retention);
   else if (isCreate) payload.log_retention_days = 90;
-  if (f.note.trim() || isCreate) payload.note = f.note.trim().slice(0, 280);
+  if (String(f.note ?? "").trim() || isCreate) payload.note = String(f.note ?? "").trim().slice(0, 280);
   return payload;
 }
 
@@ -540,7 +541,7 @@ function PolicyFields({
             e.currentTarget.readOnly = false;
           }}
           value={form.note}
-          onChange={(e) => set({ note: e.target.value.slice(0, 280) })}
+          onChange={(e) => set({ note: String(e.target.value ?? "").slice(0, 280) })}
           placeholder="What is this key for?"
           className={`mt-1 ${inputCls}`}
         />
@@ -693,10 +694,10 @@ function KeyCard({
           </span>
           {k.note ? <span className="block text-xs italic text-slate-500">{k.note}</span> : null}
           <span className="block text-xs text-slate-500">
-            scopes: {(k.scopes ?? []).length ? (k.scopes as string[]).join(", ") : "all"} · IP:{" "}
+            scopes: {Array.isArray(k.scopes) && k.scopes.length ? k.scopes.join(", ") : "all"} · IP:{" "}
             {k.ip_mode ?? "disabled"}
-            {(k.ip_mode === "allowlist" ? ` (${(k.ip_allowlist ?? []).length} allowed)` : "") ||
-              (k.ip_mode === "blocklist" ? ` (${(k.ip_blocklist ?? []).length} blocked)` : "")}
+            {(k.ip_mode === "allowlist" ? ` (${(Array.isArray(k.ip_allowlist) ? k.ip_allowlist : []).length} allowed)` : "") ||
+              (k.ip_mode === "blocklist" ? ` (${(Array.isArray(k.ip_blocklist) ? k.ip_blocklist : []).length} blocked)` : "")}
             {k.hard_stop_enabled ? (
               <> · hard stop ≤ {lowBalanceTripLine(num(k.low_balance_floor), num(k.low_balance_pct, 10))} coins</>
             ) : null}
@@ -782,10 +783,10 @@ function KeyCard({
             </p>
           ) : null}
           {loadingLogs && logs === null ? <p className="mt-2 text-xs text-slate-500">Loading…</p> : null}
-          {(logs ?? []).length ? (
+          {(Array.isArray(logs) ? logs : []).length ? (
             <ul className="mt-2 max-h-96 space-y-2 overflow-auto">
-              {(logs ?? []).map((l) => (
-                <li key={l.id} className="rounded-lg bg-black/40 p-3 font-mono text-[11px] text-slate-300">
+              {(Array.isArray(logs) ? logs : []).map((l, index) => (
+                <li key={String(l?.id ?? index)} className="rounded-lg bg-black/40 p-3 font-mono text-[11px] text-slate-300">
                   <p>
                     <span className={l.status >= 400 ? "text-red-300" : "text-emerald-300"}>{l.status}</span>{" "}
                     {l.method} {l.path} <span className="text-slate-500">{fmtDate(l.created_at)}</span>
@@ -1103,7 +1104,7 @@ export function BotSetupClient() {
               }}
               value={nameInput}
               onChange={(e) =>
-                setNameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 24))
+                setNameInput(String(e.target.value ?? "").toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 24))
               }
               placeholder="my_cool_bot"
               className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2 font-mono"
@@ -1138,7 +1139,7 @@ export function BotSetupClient() {
               e.currentTarget.readOnly = false;
             }}
             value={labelInput}
-            onChange={(e) => setLabelInput(e.target.value.slice(0, 40))}
+            onChange={(e) => setLabelInput(String(e.target.value ?? "").slice(0, 40))}
             placeholder="Label, e.g. ci-runner"
             className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/30 px-3 py-2"
           />
@@ -1190,10 +1191,10 @@ export function BotSetupClient() {
           </div>
         ) : null}
         <ul className="mt-4 space-y-3">
-          {keys.map((k) => (
-            <KeyCard key={k.id} k={k} onChanged={load} setStatus={setStatus} />
+          {(Array.isArray(keys) ? keys : []).map((k, index) => (
+            <KeyCard key={String(k?.id ?? index)} k={k} onChanged={load} setStatus={setStatus} />
           ))}
-          {keys.length === 0 ? (
+          {(Array.isArray(keys) ? keys : []).length === 0 ? (
             <li className="text-sm text-slate-500">No keys yet; issue one above.</li>
           ) : null}
         </ul>
@@ -1373,7 +1374,7 @@ export function BotSetupClient() {
             aria-label="Bot key for playground"
             type="password"
             value={playKey}
-            onChange={(e) => { setPlayKey(e.target.value.slice(0, 128)); setPlayOut(""); }}
+            onChange={(e) => { setPlayKey(String(e.target.value ?? "").slice(0, 128)); setPlayOut(""); }}
             placeholder="bot4weird_…"
             autoComplete="off"
             spellCheck={false}

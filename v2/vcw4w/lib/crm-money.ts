@@ -4,7 +4,7 @@
  * Invoices and deals here are org memoranda for internal coin accounting
  * only (100 coins = $1.00). They NEVER touch coin tables: marking an
  * invoice paid moves no coins; settlement happens only in the guarded
- * checkout and ledger flows. Ghost Cash has no cash value and can never
+ * checkout and ledger flows. Ghosts have no monetary value and can never
  * settle an invoice.
  *
  * Why a separate module from lib/economy: player-purchase cleaners

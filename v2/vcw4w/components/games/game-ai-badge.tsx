@@ -7,8 +7,8 @@ import { featuresForGame, gameRequiresAi } from "@/lib/game-ai";
  * (toggleable dialogue/director/TTS); both metered with the same 25% cut.
  */
 export function GameAiBadge({ slug }: { slug: string }) {
-  const features = featuresForGame(slug);
-  if (!features.length)
+  const features = featuresForGame(slug) ?? [];
+  if ((features ?? []).length === 0)
     return (
       <section aria-label="Game AI features" className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-4">
         <p className="text-sm font-black text-slate-200">🤖 No AI compute — play metering only</p>
@@ -27,8 +27,8 @@ export function GameAiBadge({ slug }: { slug: string }) {
         {required ? "🤖 This game requires AI compute" : "🤖 Optional AI features available"}
       </p>
       <ul className="mt-2 space-y-1 text-sm text-slate-300">
-        {features.map((f) => (
-          <li key={`${f.kind}-${f.mode}`}>
+        {(Array.isArray(features) ? features : []).map((f, index) => (
+          <li key={`${String(f?.kind ?? "")}-${String(f?.mode ?? "")}-${index}`}>
             <b className="text-white">{f.label}</b>{" "}
             <span className="rounded-full border border-white/15 px-2 py-0.5 text-xs">
               {f.mode} · {f.provider} · {f.kind}

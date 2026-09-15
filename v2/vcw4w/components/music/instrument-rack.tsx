@@ -58,6 +58,16 @@ function midiToFreq(midi: number): number {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
+// Hidden from static analysis on purpose: Turbopack treats even a variable
+// `await import(spec)` as a resolvable dependency and fails the build while
+// the engine is mid-flight. `new Function` keeps the specifier opaque while
+// the surrounding try/catch preserves fail-soft (null while voices load).
+type DynamicImporter = (spec: string) => Promise<unknown>;
+const dynImport: DynamicImporter = new Function(
+  "s",
+  "return import(s)",
+) as DynamicImporter;
+
 function prettyName(id: string): string {
   return id
     .split("-")
@@ -71,7 +81,7 @@ async function loadEngine(): Promise<EngineApi | null> {
     // Family modules register via side effect when present; import them first.
     for (const mod of ["melodic", "wind", "electronic", "drums", "percussion"]) {
       try {
-        await import(`@/lib/music/instruments/${mod}`);
+        await dynImport(`@/lib/music/instruments/${mod}`);
       } catch {
         /* family not landed yet — skip */
       }
@@ -87,7 +97,7 @@ async function loadEngine(): Promise<EngineApi | null> {
     try {
       // Built dynamically so tsc/build pass while the engine is still in flight.
       const spec = "@/lib/music/instruments/" + "electronic";
-      const electronic = (await import(spec)) as unknown as Record<string, unknown>;
+      const electronic = (await dynImport(spec)) as unknown as Record<string, unknown>;
       if (typeof electronic["startTheremin"] === "function") {
         api.startTheremin = electronic["startTheremin"] as EngineApi["startTheremin"];
       }

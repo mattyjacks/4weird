@@ -139,16 +139,16 @@ export function ZipSubmitForm() {
           </p>
           {result.submission?.id && (
             <p className="mt-2">
-              <a className="font-bold underline" href={`/code/${result.submission.id}`}>
+              <a className="font-bold underline" href={`/code/${String(result.submission.id ?? "")}`}>
                 Open the beautiful code view →
               </a>
             </p>
           )}
-          {result.findings.length > 0 && (
+          {(result.findings ?? []).length > 0 && (
             <ul className="mt-2 list-disc space-y-1 pl-5 text-xs">
-              {result.findings.map((f, i) => (
-                <li key={i}>
-                  <span className="font-mono font-bold">[{f.code}]</span> {f.detail}
+              {(Array.isArray(result.findings) ? result.findings : []).map((f, i) => (
+                <li key={`${String(f?.code ?? "x")}-${i}`}>
+                  <span className="font-mono font-bold">[{String(f?.code ?? "?")}]</span> {String(f?.detail ?? "")}
                 </li>
               ))}
             </ul>

@@ -1,0 +1,24 @@
+{
+  "id": "DS-FBOV-07",
+  "title": "Migration: identity + annotations + AI columns (NEW)",
+  "goal": "FBOV overhaul slice DS-FBOV-07: Migration: identity + annotations + AI columns (NEW). Owner works scope-only, gates green, evidence in log.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/supabase/migrations/20261201000000_feedback_identity.sql"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "blocked",
+  "owner": "fbov-07",
+  "created": "2026-09-15T01:24:04.761Z",
+  "updated": "2026-09-15T03:15:00.000Z",
+  "log": [
+    "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+    "2026-09-15T03:00:00.000Z fbov-07: claimed (in_progress, owner fbov-07). Will create NEW migration 20261201000000_feedback_identity.sql only, per spec.",
+    "2026-09-15T03:10:00.000Z fbov-07: column authority read from 20261120000000_feedback.sql (feedback_reports cols + status check + idx status/created + service-write/admin-read RLS pattern). Collision found: brief version 20261201000000 is SHIPPED by committed 20261201000000_openrouter_metering.sql, and 20261212000000_feedback_identity.sql (untracked fellow lane) already covers identity basics. Grep confirms none of my spec objects exist anywhere (feedback_events/feedback_ai_logs/annotations/ai_summary/ai_cluster/screenshot_mime/admin_note: zero hits) so content is genuinely new.",
+    "2026-09-15T03:12:00.000Z fbov-07: LANDED NEW v2/vcw4w/supabase/migrations/20261213000000_feedback_annotations_ai.sql (free version; no shipped file touched). Contents: user_id/visibility(default guest, check tracked|anonymous|guest)/contact_name/contact_email/source(default dialog, check dialog|page|bot-api)/annotations(jsonb default [])/screenshot_mime/ai_summary/ai_category/ai_severity/ai_cluster/ai_processed_at/admin_note (all ADD COLUMN IF NOT EXISTS, NULL-only backfills); checks via drop+recreate DO block; NEW feedback_events + feedback_ai_logs tables (IF NOT EXISTS, FK cascade, RLS + service-write/admin-read policies with DROP IF EXISTS); indexes idx_feedback_reports_visibility_created (reuses sibling name) + idx_feedback_events_report_created + idx_feedback_ai_logs_report_created (all IF NOT EXISTS). No TS changes: eslint N/A.",
+    "2026-09-15T03:14:00.000Z fbov-07: GATE node scripts/verify-migration-versions.mjs on full tree = RED, EXTRINSIC: Duplicate migration version 20261212000000: 20261212000000_feedback_admin.sql vs 20261212000000_feedback_ai.sql (plus third untracked 20261212000000_feedback_identity.sql at same version; all fellow-lane working files, none touched per one-owner rule). Scoped re-run of the EXACT verifier logic over (all git-tracked migrations + my new file) = SCOPED-OK: 121 files, unique versions, rerunnable guards present. QUEUE line filed for steward ruling (rename two of the three 20261212000000_* files; confirm my 20261213000000 name). Envelope set blocked-honest pending that ruling; my file itself is gate-clean."
+  ]
+}

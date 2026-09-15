@@ -33,7 +33,7 @@ must(mig.includes("array(select distinct unnest(v_perms || public.effective_perm
 must(mig.includes("enforce_org_count") && mig.includes("100 per user"), "migration must cap orgs at 100/user");
 must(mig.includes("trg_org_members_count"), "org-count trigger must exist");
 
-// 4. Ghost Cash: separate tables, no money-path contact.
+// 4. Ghosts: separate tables, no money-path contact.
 for (const token of ["ghost_contracts", "ghost_timers", "ghost_proofs", "ghost_debts", "ghost-proofs", "ghost_create_contract", "ghost_clock_in", "ghost_beat", "ghost_clock_out", "ghost_invoice_timer", "ghost_mark_debt", "ghost_settle_debt", "ghost_org_summary", "org_roster", "NO legal value"]) {
   must(mig.includes(token), `migration must include ${token}`);
 }
@@ -74,7 +74,7 @@ must(orgRoles.includes("role_templates"), "roles catalog must list templates");
 const page = read("app/timer/page.tsx");
 must(page.includes("GhostTimer") && page.includes("no legal value"), "timer page must render the clock + disclaimer");
 const clock = read("components/ghost/ghost-timer.tsx");
-for (const token of ["Clock in", "Clock out", "Invoice", "Mark owed", "Settle", "activity", "BEAT_SECONDS", "document.hidden", "Proof", "no value, no cash-out"]) {
+for (const token of ["Clock in", "Clock out", "Invoice", "Mark owed", "Settle", "activity", "BEAT_SECONDS", "document.hidden", "Proof", "no monetary value"]) {
   must(clock.includes(token), `ghost-timer must include ${token}`);
 }
 const ranks = read("components/teams/org-ranks.tsx");
@@ -88,11 +88,11 @@ must(lib.includes("👻") && lib.includes("fmtGhost") && lib.includes("fmtGhostT
 
 // 7. Legal: ghost no-value clause in terms + privacy; ranks in terms.
 const terms = read("app/terms/page.tsx");
-for (const token of ["Ghost Cash (👻) is not currency at all", "no legal value", "not a money-transmission", "never captured by us", "Watcher (sees everything", "several presets at once", "100 orgs"]) {
+for (const token of ["Ghosts (👻) are not currency at all", "no legal value", "not a money-transmission", "never captured by us", "Watcher (sees everything", "several presets at once", "100 orgs"]) {
   must(terms.includes(token), `terms must include ${token}`);
 }
 const privacy = read("app/privacy/page.tsx");
-for (const token of ["Ghost Cash and timer.", "never screen contents", "supplied by the worker"]) {
+for (const token of ["Ghosts and timer.", "never screen contents", "supplied by the worker"]) {
   must(privacy.includes(token), `privacy policy must include ${token}`);
 }
 

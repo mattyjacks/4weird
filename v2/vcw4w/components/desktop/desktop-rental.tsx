@@ -355,8 +355,8 @@ export function DesktopRental() {
           <p className="font-bold text-slate-700 dark:text-slate-200">Selected plan</p>
           <p className="mt-1 text-slate-600 dark:text-slate-400">{plan.blurb}</p>
           <ul className="mt-2 flex flex-wrap gap-1">
-            {plan.bestFor.map((b) => (
-              <li key={b} className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-300">
+            {(plan.bestFor ?? []).map((b, bi) => (
+              <li key={b ?? bi} className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-600 dark:text-slate-300">
                 {b}
               </li>
             ))}

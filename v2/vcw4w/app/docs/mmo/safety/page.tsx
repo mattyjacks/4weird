@@ -65,7 +65,7 @@ export default function MmoSafetyPage() {
       <SectionHead
         index="2"
         kicker="How the check works"
-        title="DOB in memory only — never stored, never sent"
+        title="DOB in memory only — never stored, sent once to mint your pass"
         body="Age checks run as a pure function on your own device: you type a date of birth, the page derives your age fresh against today's date, compares it to the band minimum (13 for teens, 18 for adults), and keeps only the pass/fail for this page load."
       />
       <Steps
@@ -76,7 +76,7 @@ export default function MmoSafetyPage() {
           ],
           [
             "Age is derived fresh, in memory",
-            <>No fetch, no database, no cookies, no localStorage — the input is used for this call and never stored.</>,
+            <>Sent once to same-origin POST /api/age-verify to mint a signed band pass — used in memory to derive the band, then dropped: never written to any table, never logged, never forwarded, never echoed back. Only the band attestation cookie is kept.</>,
           ],
           [
             "Only the verdict lives on — briefly",
@@ -89,7 +89,7 @@ export default function MmoSafetyPage() {
         ]}
       />
       <Callout tone="emerald" title="Privacy is the feature, not the footnote.">
-        Date of birth is never sent to any API, never written to any table, and never persisted anywhere — the same guarantee as every other age gate on the site. The shard gate itself never reads a birthday at all: it compares bands only.
+        Your date of birth travels exactly once — inside a same-origin POST to /api/age-verify, used in memory to derive your band and then dropped. It is never written to any table, never logged, never forwarded, and never echoed back; only the signed band attestation is kept. The shard gate itself never reads a birthday at all: it compares bands only.
       </Callout>
 
       <SectionHead

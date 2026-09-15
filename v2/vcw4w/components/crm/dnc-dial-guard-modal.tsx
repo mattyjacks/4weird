@@ -28,7 +28,7 @@ export function DncDialGuardModal({
   onProceedAnyway,
 }: DncDialGuardModalProps) {
   const [scrubbing, setScrubbing] = useState(false);
-  const isRegisteredDnc = dncStatus.toLowerCase() === "dnc";
+  const isRegisteredDnc = String(dncStatus ?? "").toLowerCase() === "dnc";
 
   async function handleScrub() {
     if (!onScrubNow) return;

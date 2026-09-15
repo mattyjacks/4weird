@@ -96,12 +96,14 @@ export function ClanSupport({ slug }: { slug: string }) {
 
   const load = useCallback(async () => {
     try {
-      const r = await request<{ scale: Scale; supporters: Supporters; tribute: Tribute }>(`/api/clans/${slug}/scale`);
-      setScale(r.scale);
-      setSupporters(r.supporters);
-      setTribute(r.tribute);
-      setAuto(r.scale.prune.auto_enabled);
-      setStrategy(r.scale.prune.strategy);
+      const r = await request<{ scale: Scale | null; supporters: Supporters | null; tribute: Tribute | null }>(`/api/clans/${slug}/scale`);
+      setScale(r.scale ?? null);
+      setSupporters(r.supporters ?? null);
+      setTribute(r.tribute ?? null);
+      if (r.scale?.prune) {
+        setAuto(r.scale.prune.auto_enabled);
+        setStrategy(r.scale.prune.strategy);
+      }
     } catch {
       // Pre-migration DBs have no scale surface; the upkeep panel above
       // still renders. This panel simply stays empty.
@@ -190,9 +192,9 @@ export function ClanSupport({ slug }: { slug: string }) {
               </span>
             )}
           </p>
-          {supporters.supporters.length > 0 && (
+          {(supporters.supporters ?? []).length > 0 && (
             <ol className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-              {supporters.supporters.slice(0, 10).map((s) => (
+              {(Array.isArray(supporters.supporters) ? supporters.supporters : []).slice(0, 10).map((s) => (
                 <li key={s.user_id} className="flex flex-wrap justify-between gap-2 border-t border-white/5 pt-1">
                   <span>{TIER_BADGE[s.tier] ?? ""} {s.handle} <span className="text-xs text-slate-600 dark:text-slate-500">· {s.tier} · {s.gifts} gift(s)</span></span>
                   <span className="font-bold text-slate-900 dark:text-white">{Number(s.coins).toLocaleString()}</span>
@@ -264,11 +266,11 @@ export function ClanSupport({ slug }: { slug: string }) {
             </label>
             <button onClick={buyHeadroom} className="rounded-lg bg-emerald-400 px-3 py-1 text-xs font-bold text-slate-950">Buy slots</button>
           </div>
-          {preview.length > 0 && (
+          {(preview ?? []).length > 0 && (
             <ul className="mt-2 max-h-32 space-y-1 overflow-y-auto text-xs text-slate-600 dark:text-slate-400">
               <li>Showing {preview.length} of {victimCount}:</li>
-              {preview.map((v) => (
-                <li key={v.user_id}>{v.display_name} · joined {new Date(v.joined_at).toLocaleDateString()} · last active {v.last_active ? new Date(v.last_active).toLocaleDateString() : "never"}{v.xp != null ? ` · ${v.xp} XP` : ""}</li>
+              {(Array.isArray(preview) ? preview : []).map((v, index) => (
+                <li key={v.user_id ?? index}>{v.display_name} · joined {new Date(v.joined_at).toLocaleDateString()} · last active {v.last_active ? new Date(v.last_active).toLocaleDateString() : "never"}{v.xp != null ? ` · ${v.xp} XP` : ""}</li>
               ))}
             </ul>
           )}

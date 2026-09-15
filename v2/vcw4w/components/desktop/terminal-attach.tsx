@@ -197,10 +197,10 @@ export function TerminalAttach({ initialPodId }: { initialPodId?: string }) {
               className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2 py-1.5 text-white disabled:opacity-60"
             >
               <option value="">Select a pod…</option>
-              {pods.map((p) => {
+              {pods.map((p, pi) => {
                 const key = p.podId ?? p.id;
                 return (
-                  <option key={p.id} value={key}>
+                  <option key={p.id ?? pi} value={key}>
                     {podLabel(p)}
                   </option>
                 );

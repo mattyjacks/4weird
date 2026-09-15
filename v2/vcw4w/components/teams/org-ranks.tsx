@@ -74,7 +74,7 @@ export function OrgRanks() {
   useEffect(() => { void load(orgId); }, [orgId, load]);
 
   const labelOf = (key: string) => catalog.find((r) => r.key === key)?.label ?? key;
-  const nameOf = (id: string) => members.find((m) => m.id === id)?.display_name ?? `${id.slice(0, 8)}…`;
+  const nameOf = (id: string) => members.find((m) => m.id === id)?.display_name ?? `${String(id ?? "").slice(0, 8)}…`;
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
@@ -89,7 +89,7 @@ export function OrgRanks() {
           Org
           <select id="ranks-org" name="org" value={orgId} onChange={(e) => { setOrgId(e.target.value); setSearch(""); }} className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2">
             <option value="">Pick an org…</option>
-            {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+            {orgs.map((o, oi) => <option key={o.id ?? oi} value={o.id}>{o.name}</option>)}
           </select>
         </label>
         <label className="block text-sm" htmlFor="ranks-search">
@@ -110,9 +110,9 @@ export function OrgRanks() {
         {message || (total > 0 ? `Showing ${members.length} of ${total.toLocaleString()} members (100/page).` : "No members loaded.")}
       </p>
       <div className="mt-4 space-y-3">
-        {members.map((m) => (
+        {members.map((m, mi) => (
           <MemberRanks
-            key={m.id}
+            key={m.id ?? mi}
             orgId={orgId}
             member={m}
             scopes={scopes.find((s) => s.watcher_id === m.id)?.targets ?? null}
@@ -141,11 +141,11 @@ function MemberRanks({ orgId, member, scopes, members, labelOf, nameOf, refresh 
   nameOf: (id: string) => string;
   refresh: () => void;
 }) {
-  const [picked, setPicked] = useState<string[]>(member.roles);
+  const [picked, setPicked] = useState<string[]>(member.roles ?? []);
   const [targets, setTargets] = useState<string[]>(scopes ?? []);
   const [message, setMessage] = useState("");
   const scopesKey = (scopes ?? []).join(",");
-  useEffect(() => { setPicked(member.roles); }, [member.roles]);
+  useEffect(() => { setPicked(member.roles ?? []); }, [member.roles]);
   useEffect(() => { setTargets(scopesKey ? scopesKey.split(",") : []); }, [scopesKey]);
 
   function toggle(list: string[], v: string, set: (n: string[]) => void) {
@@ -178,11 +178,11 @@ function MemberRanks({ orgId, member, scopes, members, labelOf, nameOf, refresh 
     }
   }
 
-  const isWatcher = picked.includes("watcher") || member.roles.includes("watcher");
+  const isWatcher = picked.includes("watcher") || (member.roles ?? []).includes("watcher");
 
   return (
     <div className="rounded-xl border border-white/10 p-4">
-      <p className="font-semibold">{member.display_name} <small className="text-slate-500">{member.roles.join(", ") || "viewer"}</small></p>
+      <p className="font-semibold">{member.display_name} <small className="text-slate-500">{(member.roles ?? []).join(", ") || "viewer"}</small></p>
       <div className="mt-2 flex flex-wrap gap-2">
         {PRESETS.map((p) => (
           <label key={p} className={`cursor-pointer rounded-full border px-3 py-1 text-xs ${picked.includes(p) ? "border-cyan-300 bg-cyan-300/15 text-cyan-200" : "border-white/15 text-slate-400"}`}>
@@ -196,8 +196,8 @@ function MemberRanks({ orgId, member, scopes, members, labelOf, nameOf, refresh 
         <div className="mt-3 border-t border-white/10 pt-3">
           <p className="text-xs text-slate-400">👁️ Watch scope (none checked = whole org):</p>
           <div className="mt-2 flex max-h-32 flex-wrap gap-2 overflow-y-auto">
-            {members.filter((m) => m.id !== member.id).map((m) => (
-              <label key={m.id} className="cursor-pointer rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300">
+            {members.filter((m) => m.id !== member.id).map((m, mi) => (
+              <label key={m.id ?? mi} className="cursor-pointer rounded-full border border-white/15 px-3 py-1 text-xs text-slate-300">
                 <input type="checkbox" className="mr-1" checked={targets.includes(m.id)} onChange={() => toggle(targets, m.id, setTargets)} />
                 {m.display_name}
               </label>

@@ -46,12 +46,13 @@ const KIND_OPTIONS = [
 ];
 
 function basename(p: string): string {
-  return p.split("/").pop() ?? p;
+  return String(p ?? "").split("/").pop() ?? String(p ?? "");
 }
 
 function dirname(p: string): string {
-  const i = p.lastIndexOf("/");
-  return i < 0 ? "" : p.slice(0, i);
+  const safe = String(p ?? "");
+  const i = safe.lastIndexOf("/");
+  return i < 0 ? "" : safe.slice(0, i);
 }
 
 function formatBytes(n: number): string {
@@ -62,7 +63,7 @@ function formatBytes(n: number): string {
 }
 
 function sanitizeName(raw: string): string {
-  const base = (raw.split(/[\\/]/).pop() ?? "file").trim() || "file";
+  const base = (String(raw ?? "").split(/[\\/]/).pop() ?? "file").trim() || "file";
   return (
     base
       .replace(/[^A-Za-z0-9._/@:+() \-]/g, "_")
@@ -234,18 +235,18 @@ export function VaultBrowser() {
   const folders = useMemo(
     () =>
       [...new Set(
-        files
-          .filter((f) => f.path.startsWith(cwdPrefix))
-          .map((f) => f.path.slice(cwdPrefix.length).split("/")[0])
-          .filter((seg) => seg && files.some((g) => g.path === `${cwdPrefix}${seg}/` || g.path.startsWith(`${cwdPrefix}${seg}/`))),
+        (Array.isArray(files) ? files : [])
+          .filter((f) => String(f?.path ?? "").startsWith(cwdPrefix))
+          .map((f) => String(f?.path ?? "").slice(cwdPrefix.length).split("/")[0])
+          .filter((seg) => seg && (Array.isArray(files) ? files : []).some((g) => String(g?.path ?? "") === `${cwdPrefix}${seg}/` || String(g?.path ?? "").startsWith(`${cwdPrefix}${seg}/`))),
       )].sort(),
     [files, cwdPrefix],
   );
   const filesHere = useMemo(
     () =>
-      files
-        .filter((f) => f.path.startsWith(cwdPrefix) && !f.path.slice(cwdPrefix.length).includes("/"))
-        .sort((a, b) => a.path.localeCompare(b.path)),
+      (Array.isArray(files) ? files : [])
+        .filter((f) => String(f?.path ?? "").startsWith(cwdPrefix) && !String(f?.path ?? "").slice(cwdPrefix.length).includes("/"))
+        .sort((a, b) => String(a?.path ?? "").localeCompare(String(b?.path ?? ""))),
     [files, cwdPrefix],
   );
   const crumbs = cwd ? cwd.split("/") : [];
@@ -414,7 +415,7 @@ export function VaultBrowser() {
         return;
       }
       const mime = (b.file?.provenance?.mime ?? "").toLowerCase();
-      const ext = f.path.split(".").pop()?.toLowerCase() ?? "";
+      const ext = String(f?.path ?? "").split(".").pop()?.toLowerCase() ?? "";
       const asText = mime.startsWith("text/") || mime === "application/json" || ["txt", "md", "json", "css", "csv", "log", "js"].includes(ext);
       if (mime.startsWith("image/") || ["png", "jpg", "jpeg", "gif", "webp", "avif"].includes(ext)) {
         if (f.bytes > 10 * 1024 * 1024) return;
@@ -439,9 +440,9 @@ export function VaultBrowser() {
         setPreviewKind("html");
       } else if (asText && f.bytes < 200_000) {
         const t = await (await fetch(url)).text();
-        const slice = t.slice(0, 50_000);
+        const slice = String(t ?? "").slice(0, 50_000);
         if (ext === "md" || mime === "text/markdown") {
-          setPreviewText(renderMarkdownSafe(slice.slice(0, 8000)));
+          setPreviewText(renderMarkdownSafe(String(slice ?? "").slice(0, 8000)));
           setPreviewKind("markdown");
         } else {
           setPreviewText(slice);
@@ -541,7 +542,7 @@ export function VaultBrowser() {
   async function batchDelete() {
     if (selected.length === 0) return;
     const verb = showTrash ? "purge forever" : "move to trash";
-    if (!window.confirm(`${verb.charAt(0).toUpperCase() + verb.slice(1)} ${selected.length} file${selected.length === 1 ? "" : "s"}?`)) return;
+    if (!window.confirm(`${String(verb ?? "").charAt(0).toUpperCase() + String(verb ?? "").slice(1)} ${(selected ?? []).length} file${(selected ?? []).length === 1 ? "" : "s"}?`)) return;
     setBatchBusy(true);
     let okCount = 0;
     let failCount = 0;
@@ -564,9 +565,9 @@ export function VaultBrowser() {
 
   async function batchDownload() {
     if (selected.length === 0) return;
-    if (selected.length > 20) say("Large batch: downloading first 20.", true);
+    if ((selected ?? []).length > 20) say("Large batch: downloading first 20.", true);
     setBatchBusy(true);
-    for (const id of selected.slice(0, 20)) {
+    for (const id of (selected ?? []).slice(0, 20)) {
       try {
         const r = await fetch(`/api/vault/blobs/${id}`, { credentials: "include" });
         const b = (await r.json()) as { success: boolean; file?: { download?: string | null; path?: string } };
@@ -747,9 +748,9 @@ export function VaultBrowser() {
               className="min-h-[44px] max-w-64 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
             >
               <option value="">Pick an org…</option>
-              {orgs.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.name || o.slug || o.id}
+              {(Array.isArray(orgs) ? orgs : []).map((o, index) => (
+                <option key={o?.id ?? index} value={String(o?.id ?? "")}>
+                  {String(o?.name || o?.slug || o?.id || "—")}
                 </option>
               ))}
             </select>
@@ -765,9 +766,9 @@ export function VaultBrowser() {
               className="min-h-[44px] max-w-64 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-foreground"
             >
               <option value="">Pick a squad…</option>
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name || t.slug || t.id}
+              {(Array.isArray(teams) ? teams : []).map((t, index) => (
+                <option key={t?.id ?? index} value={String(t?.id ?? "")}>
+                  {String(t?.name || t?.slug || t?.id || "—")}
                 </option>
               ))}
             </select>
@@ -900,8 +901,8 @@ export function VaultBrowser() {
           </div>
           <progress value={overall} max={1} aria-label="Overall upload progress" className="h-2 w-full" />
           <ul className="space-y-2">
-            {queue.map((it) => (
-              <li key={it.key} className="rounded-xl border border-border p-2 text-xs" role="status" aria-label={`${basename(it.safePath)}: ${it.status}`}>
+            {(Array.isArray(queue) ? queue : []).map((it, index) => (
+              <li key={it?.key ?? index} className="rounded-xl border border-border p-2 text-xs" role="status" aria-label={`${basename(String(it?.safePath ?? ""))}: ${String(it?.status ?? "")}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="truncate font-mono font-bold" title={it.safePath}>
                     {basename(it.safePath)}
@@ -930,21 +931,21 @@ export function VaultBrowser() {
       )}
 
       <ul className="divide-y divide-white/5 overflow-hidden rounded-xl border border-border bg-card" aria-busy={busy}>
-        {(cwd || folders.length > 0) && (
+        {(cwd || (folders ?? []).length > 0) && (
           <li className="px-3 py-1.5 text-sm">
             <nav aria-label="Vault folders" className="flex flex-wrap items-center gap-1 text-xs">
               <button type="button" onClick={() => setCwd("")} className={`min-h-[44px] font-mono font-bold underline ${!cwd ? "text-foreground" : "text-cyan-600 dark:text-cyan-300"}`}>
                 Vault
               </button>
-              {crumbs.map((seg, i) => (
+              {(crumbs ?? []).map((seg, i) => (
                 <span key={i} className="flex items-center gap-1">
                   <span className="text-muted-foreground">/</span>
                   <button
                     type="button"
-                    onClick={() => setCwd(crumbs.slice(0, i + 1).join("/"))}
-                    className={`min-h-[44px] font-mono font-bold underline ${i === crumbs.length - 1 ? "text-foreground" : "text-cyan-600 dark:text-cyan-300"}`}
+                    onClick={() => setCwd((crumbs ?? []).slice(0, i + 1).join("/"))}
+                    className={`min-h-[44px] font-mono font-bold underline ${i === (crumbs ?? []).length - 1 ? "text-foreground" : "text-cyan-600 dark:text-cyan-300"}`}
                   >
-                    {seg}
+                    {String(seg ?? "")}
                   </button>
                 </span>
               ))}
@@ -958,8 +959,8 @@ export function VaultBrowser() {
               >
                 <span aria-hidden="true">🎮 </span>newgameplus
               </button>
-              {folders.map((name) => (
-                <span key={name} className="flex items-center gap-1 rounded-full border border-border py-1 pl-3 pr-1 text-xs font-bold">
+              {(Array.isArray(folders) ? folders : []).map((name, index) => (
+                <span key={String(name ?? "") || index} className="flex items-center gap-1 rounded-full border border-border py-1 pl-3 pr-1 text-xs font-bold">
                   <button type="button" onClick={() => setCwd(cwd ? `${cwd}/${name}` : name)} className="min-h-[36px]" aria-label={`Open folder ${name}`}>
                     <span aria-hidden="true">📁 </span>{name}
                   </button>
@@ -988,43 +989,43 @@ export function VaultBrowser() {
             </button>
           </li>
         )}
-        {filesHere.map((f) => (
-          <li key={f.id} className="flex min-h-9 flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 text-sm">
+        {(Array.isArray(filesHere) ? filesHere : []).map((f, index) => (
+          <li key={f?.id ?? index} className="flex min-h-9 flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 text-sm">
             <p className="flex min-w-44 flex-1 items-center gap-2">
-              {!f.quarantined && (
+              {!f?.quarantined && (
                 <input
                   type="checkbox"
-                  checked={selected.includes(f.id)}
-                  onChange={() => toggleSelect(f.id)}
-                  aria-label={`Select ${basename(f.path)}`}
+                  checked={(selected ?? []).includes(String(f?.id ?? ""))}
+                  onChange={() => toggleSelect(String(f?.id ?? ""))}
+                  aria-label={`Select ${basename(String(f?.path ?? ""))}`}
                   className="h-5 w-5"
                 />
               )}
-              <span className="truncate font-mono font-bold" title={f.path}>{basename(f.path)}</span>
+              <span className="truncate font-mono font-bold" title={String(f?.path ?? "")}>{basename(String(f?.path ?? ""))}</span>
             </p>
-            <p className="hidden truncate font-mono text-[11px] text-muted-foreground xl:block xl:max-w-64">{f.path}</p>
+            <p className="hidden truncate font-mono text-[11px] text-muted-foreground xl:block xl:max-w-64">{String(f?.path ?? "")}</p>
             <p className="shrink-0 text-xs text-muted-foreground">
-              {f.kind} · {formatBytes(f.bytes)} · {new Date(f.updated_at).toLocaleString()}
-              {f.quarantined ? " · 🛡️ quarantined (hidden)" : ""}
+              {String(f?.kind ?? "—")} · {formatBytes(Number(f?.bytes ?? 0))} · {f?.updated_at ? new Date(f.updated_at).toLocaleString() : "—"}
+              {f?.quarantined ? " · 🛡️ quarantined (hidden)" : ""}
             </p>
             {showTrash ? (
               <span className="mt-0.5 flex min-h-9 flex-wrap items-center gap-3">
-                <button type="button" onClick={() => void restoreFile(f.id)} className="min-h-[44px] text-xs font-bold text-cyan-600 underline dark:text-cyan-300">
+                <button type="button" onClick={() => void restoreFile(String(f?.id ?? ""))} className="min-h-[44px] text-xs font-bold text-cyan-600 underline dark:text-cyan-300">
                   Restore
                 </button>
-                <button type="button" onClick={() => void purgeFile(f.id)} className="min-h-[44px] text-xs font-bold text-red-500 underline">
+                <button type="button" onClick={() => void purgeFile(String(f?.id ?? ""))} className="min-h-[44px] text-xs font-bold text-red-500 underline">
                   Delete forever
                 </button>
               </span>
-            ) : !f.quarantined ? (
+            ) : !f?.quarantined ? (
               <span className="mt-0.5 flex min-h-9 flex-wrap items-center gap-3">
                 <button type="button" onClick={(e) => void openPreview(f, e.currentTarget)} className="min-h-[44px] text-xs font-bold text-cyan-600 underline dark:text-cyan-300">
                   Preview
                 </button>
-                <a className="flex min-h-[44px] items-center text-xs font-bold text-cyan-600 underline dark:text-cyan-300" href={`/api/vault/blobs/${f.id}`}>
+                <a className="flex min-h-[44px] items-center text-xs font-bold text-cyan-600 underline dark:text-cyan-300" href={`/api/vault/blobs/${String(f?.id ?? "")}`}>
                   Open →
                 </a>
-                <a className="flex min-h-[44px] items-center text-xs font-bold text-cyan-600 underline dark:text-cyan-300" href={`/api/vault/blobs/${f.id}`} download={basename(f.path)}>
+                <a className="flex min-h-[44px] items-center text-xs font-bold text-cyan-600 underline dark:text-cyan-300" href={`/api/vault/blobs/${String(f?.id ?? "")}`} download={basename(String(f?.path ?? ""))}>
                   Download
                 </a>
                 <button type="button" onClick={() => void openShares(f)} className="min-h-[44px] text-xs font-bold text-cyan-600 underline dark:text-cyan-300">
@@ -1099,26 +1100,26 @@ export function VaultBrowser() {
             </button>
           </div>
           <ul className="mt-2 space-y-2">
-            {shares.map((s) => {
-              const url = `${window.location.origin}/api/vault/s/${s.token}`;
+            {(Array.isArray(shares) ? shares : []).map((s, index) => {
+              const url = `${window.location.origin}/api/vault/s/${String(s?.token ?? "")}`;
               return (
-                <li key={s.id} className="rounded-xl border border-border p-2 text-xs">
+                <li key={s?.id ?? index} className="rounded-xl border border-border p-2 text-xs">
                   <p className="truncate font-mono" title={url}>{url}</p>
                   <p className="mt-1 text-muted-foreground">
-                    Expires {s.expires_at ? new Date(s.expires_at).toLocaleString() : "never"}
+                    Expires {s?.expires_at ? new Date(s.expires_at).toLocaleString() : "never"}
                   </p>
                   <div className="mt-1 flex gap-2">
                     <button type="button" onClick={() => void copyText(url, "Link copied.")} className="min-h-[44px] rounded-full border border-border px-3 py-1 font-bold">
                       Copy
                     </button>
-                    <button type="button" onClick={() => void revokeShare(s.id)} className="min-h-[44px] rounded-full border border-border px-3 py-1 font-bold text-red-500">
+                    <button type="button" onClick={() => void revokeShare(String(s?.id ?? ""))} className="min-h-[44px] rounded-full border border-border px-3 py-1 font-bold text-red-500">
                       Revoke
                     </button>
                   </div>
                 </li>
               );
             })}
-            {shares.length === 0 && !shareBusy && <li className="text-xs text-muted-foreground">No active links.</li>}
+            {(shares ?? []).length === 0 && !shareBusy && <li className="text-xs text-muted-foreground">No active links.</li>}
           </ul>
         </div>
       )}
@@ -1135,7 +1136,7 @@ export function VaultBrowser() {
         </ul>
       </details>
 
-      {filesHere.length === 0 && folders.length === 0 && !busy && (
+      {(filesHere ?? []).length === 0 && (folders ?? []).length === 0 && !busy && (
         <p className="text-sm text-muted-foreground">
           {showTrash ? "Trash is empty." : "Nothing here yet; store your first file above."}
           {cwd === "newgameplus" && !showTrash && (

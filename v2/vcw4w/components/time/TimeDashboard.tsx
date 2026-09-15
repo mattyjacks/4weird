@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { TimerEntry, TimerProject, formatGhostCash, formatDurationShort } from "@/types/time";
+import { TimerEntry, TimerProject, formatGhostAmount, formatDurationShort } from "@/types/time";
 import { TimerWidget } from "./TimerWidget";
 
 interface TimerStartData {
@@ -42,11 +42,12 @@ export function TimeDashboard({
   onRefresh,
 }: TimeDashboardProps) {
   const stats = useMemo(() => {
-    const totalSecs = entries.reduce((acc, e) => acc + (e.duration || 0), 0);
-    const totalGhost = entries.reduce((acc, e) => acc + (e.ghostCashOwed || 0), 0);
-    const billableSecs = entries.filter((e) => e.isBillable).reduce((acc, e) => acc + (e.duration || 0), 0);
-    const avgScore = entries.length > 0
-      ? Math.round(entries.reduce((acc, e) => acc + (e.activityScore || 100), 0) / entries.length)
+    const safe = Array.isArray(entries) ? entries : [];
+    const totalSecs = safe.reduce((acc, e) => acc + (e.duration || 0), 0);
+    const totalGhost = safe.reduce((acc, e) => acc + (e.ghostOwed || 0), 0);
+    const billableSecs = safe.filter((e) => e.isBillable).reduce((acc, e) => acc + (e.duration || 0), 0);
+    const avgScore = safe.length > 0
+      ? Math.round(safe.reduce((acc, e) => acc + (e.activityScore || 100), 0) / safe.length)
       : 100;
 
     return {
@@ -54,7 +55,7 @@ export function TimeDashboard({
       totalGhost,
       billableSecs,
       avgScore,
-      recent: entries.slice(0, 5),
+      recent: safe.slice(0, 5),
     };
   }, [entries]);
 
@@ -78,8 +79,8 @@ export function TimeDashboard({
         </div>
 
         <div className="p-4 rounded-xl border border-white/10 bg-zinc-950/60 space-y-1">
-          <p className="text-xs text-zinc-400">Ghost Cash Accrued</p>
-          <p className="text-2xl font-bold font-mono text-emerald-400">{formatGhostCash(stats.totalGhost)}</p>
+          <p className="text-xs text-zinc-400">Ghosts accrued</p>
+          <p className="text-2xl font-bold font-mono text-emerald-400">{formatGhostAmount(stats.totalGhost)}</p>
         </div>
 
         <div className="p-4 rounded-xl border border-white/10 bg-zinc-950/60 space-y-1">
@@ -109,17 +110,17 @@ export function TimeDashboard({
           {stats.recent.length === 0 ? (
             <div className="p-6 text-center text-xs text-zinc-500">No recent sessions logged yet.</div>
           ) : (
-            stats.recent.map((e) => (
-              <div key={e.id} className="p-3.5 flex items-center justify-between text-xs">
+            stats.recent.map((e, ei) => (
+              <div key={e.id ?? ei} className="p-3.5 flex items-center justify-between text-xs">
                 <div className="space-y-0.5">
                   <p className="text-white font-medium">{e.description || "Work session"}</p>
                   <p className="text-zinc-500">
-                    {new Date(e.startTime).toLocaleDateString()} • {e.project?.name || "No project"}
+                    {e.startTime ? new Date(e.startTime).toLocaleDateString() : "—"} • {e.project?.name || "No project"}
                   </p>
                 </div>
                 <div className="text-right font-mono">
                   <div className="text-white font-bold">{formatDurationShort(e.duration || 0)}</div>
-                  <div className="text-emerald-400 font-semibold">{formatGhostCash(e.ghostCashOwed)}</div>
+                  <div className="text-emerald-400 font-semibold">{formatGhostAmount(e.ghostOwed)}</div>
                 </div>
               </div>
             ))

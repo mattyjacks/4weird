@@ -66,7 +66,7 @@ const CLASSICS = [
     href: "/timer",
     emoji: "⏱️",
     title: "Timer + Work Diary",
-    body: "Second-by-second tracking with Ghost Cash books for teams.",
+    body: "Second-by-second tracking with Ghost books for teams.",
   },
 ];
 
@@ -580,7 +580,7 @@ export default function Home() {
             <p className="text-3xl" aria-hidden="true">⏱️</p>
             <h3 className="mt-3 text-lg font-bold">Timer</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Second-by-second tracking with Ghost Cash books for teams.
+              Second-by-second tracking with Ghost books for teams.
             </p>
             <p className="mt-3 font-mono text-xs font-bold text-amber-600 dark:text-amber-300">/timer →</p>
           </Link>
@@ -1261,7 +1261,7 @@ export default function Home() {
                 href="/timer"
                 label="⏱️ Timer"
                 head="Track time."
-                more="With diary proofs and Ghost Cash books."
+                more="With diary proofs and Ghost books."
               />
               <DirItem
                 href="/docs"

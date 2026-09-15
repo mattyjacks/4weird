@@ -591,7 +591,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     } catch {
       /* clock is best-effort */
     }
-    return cur.text.slice(0, Math.max(10, Math.floor(cur.text.length * frac)));
+    return String(cur.text ?? "").slice(0, Math.max(10, Math.floor(String(cur.text ?? "").length * frac)));
   }, []);
 
   const markSpeaking = useCallback((text: string) => {
@@ -599,7 +599,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     setSpeaking(true);
     if (speakTimerRef.current) clearTimeout(speakTimerRef.current);
     // Safety: clear the flag even if an audio event is missed.
-    const ms = Math.min(60_000, Math.max(4_000, (text.length / 13) * 1000));
+    const ms = Math.min(60_000, Math.max(4_000, (String(text ?? "").length / 13) * 1000));
     speakTimerRef.current = setTimeout(() => {
       speakingRef.current = false;
       setSpeaking(false);
@@ -611,7 +611,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     try {
       if (!("speechSynthesis" in window)) return;
       window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text.slice(0, 400));
+      const utter = new SpeechSynthesisUtterance(String(text ?? "").slice(0, 400));
       utter.rate = 1.0;
       utter.pitch = voice === "echo" || voice === "onyx" ? 0.7 : voice === "nova" || voice === "shimmer" ? 1.3 : 1.0;
       utter.onend = () => {
@@ -841,7 +841,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
 
   /** Barge-in: user cut in; stop Buddy, snapshot both sides, resume next turn. */
   const handleBargeIn = useCallback(() => {
-    const partial = interimRef.current.trim();
+    const partial = String(interimRef.current ?? "").trim();
     const soFar = replyProgress();
     stopVoice();
     replyRef.current = null;
@@ -849,7 +849,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     pendingRef.current = snap;
     setStatus(
       partial
-        ? `Heard you cut in (“${partial.slice(0, 60)}${partial.length > 60 ? "…" : ""}”); finishing your sentence, then Buddy resumes from it.`
+        ? `Heard you cut in (“${String(partial ?? "").slice(0, 60)}${partial.length > 60 ? "…" : ""}”); finishing your sentence, then Buddy resumes from it.`
         : "Heard you cut in; finishing your sentence, then Buddy resumes from it.",
     );
   }, [gameTitle, replyProgress, stopVoice]);
@@ -1303,7 +1303,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       window.location.href = a.href(gameSlug);
       return;
     }
-    const payload = falPayloadFor(a, gameSlug, `${a.label} for ${gameTitle}: ${lastReplyRef.current.slice(0, 200)}`.trim());
+    const payload = falPayloadFor(a, gameSlug, `${a.label} for ${gameTitle}: ${String(lastReplyRef.current ?? "").slice(0, 200)}`.trim());
     if (!payload) {
       setActMsg("That action is unavailable right now.");
       return;
@@ -1341,7 +1341,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
 
   /** Replay the last reply: cached audio replays free, else browser speech. */
   const replayVoice = useCallback(async () => {
-    const text = lastReplyRef.current.trim();
+    const text = String(lastReplyRef.current ?? "").trim();
     if (!text) {
       setStatus("Nothing to replay yet; send Buddy a message first.");
       return;
@@ -1396,7 +1396,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     setDraft("");
     const history = messagesRef.current.slice(-8).map((m) => ({
       role: m.role === "buddy" ? ("buddy" as const) : ("user" as const),
-      text: m.text.slice(0, 300),
+      text: String(m.text ?? "").slice(0, 300),
       ...(m.interrupted ? { interrupted: true as const } : {}),
     }));
     const ctrl = new AbortController();
@@ -1576,7 +1576,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     setPack(null);
     try {
       const result = await runOrchestrator(
-        goal.slice(0, 500),
+        String(goal ?? "").slice(0, 500),
         { gameTitle, screenText: observeScreenText(), score },
         playRunner,
         { timeoutMs: 20_000, concurrency: 3 },
@@ -1599,7 +1599,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
     try {
       const r = await post<{ started?: boolean; configured?: boolean }>("/api/fal/generate", {
         op,
-        prompt: prompt.slice(0, 1000),
+        prompt: String(prompt ?? "").slice(0, 1000),
         game_slug: gameSlug,
         source: "manual",
       });
@@ -1636,7 +1636,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   /** Download the visible transcript (local only, never leaves the device). */
   const downloadTranscript = (format: "txt" | "json") => {
     try {
-      const turns = messagesRef.current.map((m) => ({ role: m.role, text: m.text, at: m.at }));
+      const turns = messagesRef.current.map((m) => ({ role: m.role, text: String(m.text ?? ""), at: m.at }));
       const blob = format === "txt"
         ? new Blob([transcriptToText(turns)], { type: "text/plain" })
         : new Blob([JSON.stringify({ gameSlug, gameTitle, sessionId, exportedAt: new Date().toISOString(), turns }, null, 2)], { type: "application/json" });
@@ -1687,7 +1687,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
   const visibleMessages = useMemo(() => {
     const f = filter.trim().toLowerCase();
     if (!f) return messages;
-    return messages.filter((m) => m.text.toLowerCase().includes(f) || m.role.includes(f));
+    return messages.filter((m) => String(m.text ?? "").toLowerCase().includes(f) || String(m.role ?? "").includes(f));
   }, [messages, filter]);
   const turnCount = spend?.session.turns ?? messagesRef.current.filter((m) => m.role === "you").length;
   const rateWait = rateLimitedUntil && rateLimitedUntil > Date.now() ? Math.ceil((rateLimitedUntil - Date.now()) / 1000) : 0;
@@ -1714,7 +1714,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
                 </span>
               )}
               <button type="button" onClick={() => void copyText(sessionId, -1)} className="rounded-full border border-white/15 px-3 py-1 hover:bg-white/10" title="Copy session id">
-                {copiedIdx === -1 ? "Copied id ✓" : `Session ${sessionId.slice(0, 8)}… (copy)`}
+                {copiedIdx === -1 ? "Copied id ✓" : `Session ${String(sessionId ?? "").slice(0, 8)}… (copy)`}
               </button>
             </p>
           )}
@@ -1739,15 +1739,15 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
         <div className="mt-3 rounded-xl border border-amber-300/30 bg-amber-300/[.05] p-3 text-xs text-slate-600 dark:text-slate-300">
           <p className="font-bold text-amber-100">↩️ You have {openSessions.length} open session{openSessions.length === 1 ? "" : "s"} from before - resume instead of starting fresh:</p>
           <div className="mt-2 flex flex-wrap gap-2">
-            {openSessions.slice(0, 3).map((s) => (
+            {(Array.isArray(openSessions) ? openSessions : []).slice(0, 3).map((s, si) => (
               <button
-                key={s.id}
+                key={s.id ?? si}
                 type="button"
                 disabled={busy}
                 onClick={() => void resumeSession(s)}
                 className="rounded-lg border border-amber-300/40 px-3 py-1.5 font-semibold text-amber-100 hover:bg-amber-300/10 disabled:opacity-50"
               >
-                Resume {s.game_slug} · {new Date(s.started_at).toLocaleDateString()}
+                Resume {s.game_slug} · {s.started_at ? new Date(s.started_at).toLocaleDateString() : "—"}
               </button>
             ))}
           </div>
@@ -1989,12 +1989,12 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             <div key={slot} className="mt-2">
               <p className="text-xs font-bold uppercase tracking-wide text-slate-600 dark:text-slate-400">{slot}</p>
               <div className="mt-1 flex flex-wrap gap-1.5">
-                {catalog.filter((c) => c.slot === slot && c.kinds.includes(avatarType)).map((c) => {
-                  const have = owned.includes(c.id);
+                {(Array.isArray(catalog) ? catalog : []).filter((c) => c.slot === slot && c.kinds.includes(avatarType)).map((c, ci) => {
+                  const have = (Array.isArray(owned) ? owned : []).includes(c.id);
                   const worn = loadout[slot] === c.id;
                   return (
                     <button
-                      key={c.id}
+                      key={c.id ?? ci}
                       type="button"
                       disabled={!sessionId || busy}
                       title={c.blurb}
@@ -2043,7 +2043,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
       {falHint && (
         <div className="mt-2 rounded-xl border border-fuchsia-300/30 bg-fuchsia-300/[.05] p-3 text-xs text-slate-700 dark:text-slate-200">
           <p className="font-bold text-fuchsia-100">🎬 Buddy suggests media <span className="font-normal text-slate-600 dark:text-slate-400">({falHint.op} · ~{falHint.coins} coins · costs nothing until you fire it)</span></p>
-          <p className="mt-1 text-slate-600 dark:text-slate-300">“{falHint.prompt.slice(0, 180)}{falHint.prompt.length > 180 ? "…" : ""}”</p>
+          <p className="mt-1 text-slate-600 dark:text-slate-300">“{String(falHint.prompt ?? "").slice(0, 180)}{String(falHint.prompt ?? "").length > 180 ? "…" : ""}”</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <button type="button" disabled={falBusy || !sessionId} onClick={() => void fireFalHint()} className="rounded-lg bg-fuchsia-300 px-3 py-1.5 font-bold text-slate-950 disabled:opacity-50">
               {falBusy ? "Queueing…" : "Generate it"}
@@ -2180,13 +2180,13 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
           <div className="rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-slate-600 dark:text-slate-300">
             <p className="font-bold text-slate-900 dark:text-white">⚡ One-click delegations <span className="font-normal text-slate-600 dark:text-slate-400">(chat fires a buddy turn; media quotes before it meters)</span></p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {buddyActs.map((a) => a.kind === "link" && a.href ? (
-                <a key={a.id} href={a.href(gameSlug)} title={a.blurb} className="rounded-lg border border-white/20 px-3 py-1.5 hover:bg-white/10">
+              {(Array.isArray(buddyActs) ? buddyActs : []).map((a, ai) => a.kind === "link" && a.href ? (
+                <a key={a.id ?? ai} href={a.href(gameSlug)} title={a.blurb} className="rounded-lg border border-white/20 px-3 py-1.5 hover:bg-white/10">
                   {a.label}
                 </a>
               ) : (
                 <button
-                  key={a.id}
+                  key={a.id ?? ai}
                   type="button"
                   disabled={busy || !sessionId || actBusy}
                   onClick={() => void fireBuddyAction(a)}
@@ -2234,8 +2234,8 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
             {pack && (
               <div className="mt-2 space-y-2 rounded-lg border border-white/10 bg-black/30 p-2.5">
                 <div className="flex flex-wrap gap-1.5" aria-label="Specialists">
-                  {pack.specialists.map((s) => (
-                    <span key={s.specialist} title={s.fallback ? "Offline reply (free)" : "Live reply (~1 centicentcoin)"} className={`rounded-full px-2 py-0.5 font-bold ${s.fallback ? "bg-white/10 text-slate-600 dark:text-slate-400" : "bg-emerald-400/15 text-emerald-200"}`}>
+                  {(Array.isArray(pack.specialists) ? pack.specialists : []).map((s, spi) => (
+                    <span key={s.specialist ?? spi} title={s.fallback ? "Offline reply (free)" : "Live reply (~1 centicentcoin)"} className={`rounded-full px-2 py-0.5 font-bold ${s.fallback ? "bg-white/10 text-slate-600 dark:text-slate-400" : "bg-emerald-400/15 text-emerald-200"}`}>
                       {s.specialist}{s.fallback ? " · offline" : " · live"}
                     </span>
                   ))}
@@ -2251,7 +2251,7 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
                 </div>
                 {pack.voiceLines && (
                   <div className="rounded-lg border border-white/10 p-2">
-                    <p><b className="text-slate-900 dark:text-white">Voice lines:</b> {pack.voiceLines.slice(0, 300)}</p>
+                    <p><b className="text-slate-900 dark:text-white">Voice lines:</b> {String(pack.voiceLines ?? "").slice(0, 300)}</p>
                     <button type="button" disabled={actBusy || packBusy} onClick={() => void firePackMedia("npc-voice", pack.voiceLines, "Voice line")} className="mt-1 rounded-lg border border-fuchsia-300/40 px-2.5 py-1 text-fuchsia-100 hover:bg-fuchsia-300/10 disabled:opacity-50">
                       🎙 Voice it on Fal
                     </button>
@@ -2259,14 +2259,14 @@ export function GamingBuddy({ gameSlug, gameTitle }: { gameSlug: string; gameTit
                 )}
                 {pack.sfxPrompts && (
                   <div className="rounded-lg border border-white/10 p-2">
-                    <p><b className="text-slate-900 dark:text-white">SFX:</b> {pack.sfxPrompts.slice(0, 300)}</p>
+                    <p><b className="text-slate-900 dark:text-white">SFX:</b> {String(pack.sfxPrompts ?? "").slice(0, 300)}</p>
                     <button type="button" disabled={actBusy || packBusy} onClick={() => void firePackMedia("sfx-burst", pack.sfxPrompts, "SFX")} className="mt-1 rounded-lg border border-fuchsia-300/40 px-2.5 py-1 text-fuchsia-100 hover:bg-fuchsia-300/10 disabled:opacity-50">
                       🔊 Make the SFX
                     </button>
                   </div>
                 )}
                 {pack.loreNote && (
-                  <p className="rounded-lg border border-white/10 p-2"><b className="text-slate-900 dark:text-white">Lore:</b> {pack.loreNote.slice(0, 300)}</p>
+                  <p className="rounded-lg border border-white/10 p-2"><b className="text-slate-900 dark:text-white">Lore:</b> {String(pack.loreNote ?? "").slice(0, 300)}</p>
                 )}
               </div>
             )}

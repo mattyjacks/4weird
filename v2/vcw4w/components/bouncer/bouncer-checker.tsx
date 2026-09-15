@@ -167,7 +167,8 @@ export function BouncerChecker() {
       const single = body.result !== undefined ? body.result : body;
       const next = normalizeResult(email, single);
       setResults((prev) => {
-        const idx = prev.findIndex((r) => r.email.toLowerCase() === email.toLowerCase());
+        const safePrev = Array.isArray(prev) ? prev : [];
+        const idx = safePrev.findIndex((r) => String(r?.email ?? "").toLowerCase() === String(email ?? "").toLowerCase());
         if (idx === -1) return [...prev, next];
         const copy = [...prev];
         copy[idx] = next;
@@ -305,7 +306,7 @@ export function BouncerChecker() {
             <span className="rounded-full border border-red-300/30 bg-red-300/10 px-2 py-0.5 text-red-200">Trap {counts.trap}</span>
           </div>
           <p className="ml-auto text-[10px] text-slate-500">
-            {checkedAt ? `Checked ${checkedAt.slice(0, 19).replace("T", " ")} UTC` : busy ? `Checking ${parsed.length}…` : results.length ? `${results.length} results` : "No results yet"}
+            {checkedAt ? `Checked ${String(checkedAt ?? "").slice(0, 19).replace("T", " ")} UTC` : busy ? `Checking ${(parsed ?? []).length}…` : (results ?? []).length ? `${(results ?? []).length} results` : "No results yet"}
           </p>
         </div>
 
@@ -332,28 +333,28 @@ export function BouncerChecker() {
                 </tr>
               </thead>
               <tbody>
-                {results.map((r) => {
+                {(Array.isArray(results) ? results : []).map((r, index) => {
                   const chip = chipFor(r);
                   return (
-                    <tr key={r.email.toLowerCase()} className="border-b border-white/5 text-slate-200">
-                      <td className="max-w-[180px] truncate px-1.5 py-1 font-medium text-white">{r.email}</td>
+                    <tr key={String(r?.email ?? "").toLowerCase() || index} className="border-b border-white/5 text-slate-200">
+                      <td className="max-w-[180px] truncate px-1.5 py-1 font-medium text-white">{String(r?.email ?? "—")}</td>
                       <td className="px-1.5 py-1">
                         <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${chip.cls}`}>{chip.label}</span>
                       </td>
-                      <td className="px-1.5 py-1">{r.score}</td>
-                      <td className="max-w-[90px] truncate px-1.5 py-1" title={r.risk}>{r.risk}</td>
-                      <td className="max-w-[70px] truncate px-1.5 py-1" title={r.trap}>{r.trap}</td>
-                      <td className="max-w-[70px] truncate px-1.5 py-1" title={r.toxicity}>{r.toxicity}</td>
-                      <td className="max-w-[160px] truncate px-1.5 py-1 text-slate-300" title={r.reason}>{r.reason || "—"}</td>
+                      <td className="px-1.5 py-1">{String(r?.score ?? "—")}</td>
+                      <td className="max-w-[90px] truncate px-1.5 py-1" title={String(r?.risk ?? "")}>{String(r?.risk ?? "—")}</td>
+                      <td className="max-w-[70px] truncate px-1.5 py-1" title={String(r?.trap ?? "")}>{String(r?.trap ?? "—")}</td>
+                      <td className="max-w-[70px] truncate px-1.5 py-1" title={String(r?.toxicity ?? "")}>{String(r?.toxicity ?? "—")}</td>
+                      <td className="max-w-[160px] truncate px-1.5 py-1 text-slate-300" title={String(r?.reason ?? "")}>{String(r?.reason ?? "") || "—"}</td>
                       <td className="px-1.5 py-1">
                         <button
                           type="button"
-                          onClick={() => void retryOne(r.email)}
-                          disabled={busy || retryEmail === r.email}
+                          onClick={() => void retryOne(String(r?.email ?? ""))}
+                          disabled={busy || retryEmail === String(r?.email ?? "")}
                           className={ghostBtnCls}
-                          aria-label={`Retry ${r.email}`}
+                          aria-label={`Retry ${String(r?.email ?? "")}`}
                         >
-                          {retryEmail === r.email ? "…" : "Retry"}
+                          {retryEmail === String(r?.email ?? "") ? "…" : "Retry"}
                         </button>
                       </td>
                     </tr>

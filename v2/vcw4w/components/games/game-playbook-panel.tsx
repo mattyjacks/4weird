@@ -17,16 +17,16 @@ export function GamePlaybookPanel({ slug, compact = false }: { slug: string; com
       <p className="mt-1 font-semibold text-cyan-200">{playbook.controls}</p>
       <p className="mt-2 text-slate-300">🎯 {playbook.goal}</p>
       <ol className="mt-3 list-decimal space-y-1 pl-5 text-slate-300">
-        {playbook.boot.map((step) => (
-          <li key={step}>{step}</li>
+        {(playbook.boot ?? []).map((step, index) => (
+          <li key={String(step ?? "") || index}>{String(step ?? "")}</li>
         ))}
       </ol>
       {!compact && (
         <>
           <h3 className="mt-4 text-sm font-bold uppercase tracking-wider text-slate-400">Tips</h3>
           <ul className="mt-1 list-disc space-y-1 pl-5 text-slate-300">
-            {playbook.tips.map((tip) => (
-              <li key={tip}>{tip}</li>
+            {(playbook.tips ?? []).map((tip, index) => (
+              <li key={String(tip ?? "") || index}>{String(tip ?? "")}</li>
             ))}
           </ul>
         </>

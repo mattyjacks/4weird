@@ -161,7 +161,7 @@ export function BclansConsole() {
             aria-label="Bot key"
             type={showKey ? "text" : "password"}
             value={botKey}
-            onChange={(e) => { setBotKey(e.target.value.slice(0, 128)); setMeStatus(null); }}
+            onChange={(e) => { setBotKey(String(e.target.value ?? "").slice(0, 128)); setMeStatus(null); }}
             placeholder="bot4weird_…"
             autoComplete="off"
             spellCheck={false}
@@ -237,7 +237,7 @@ export function BclansConsole() {
             id="bclans-slug"
             aria-label="Clan slug"
             value={slug}
-            onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 64))}
+            onChange={(e) => setSlug(String(e.target.value ?? "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 64))}
             placeholder="game-dev"
             className={inputCls}
           />
@@ -266,22 +266,22 @@ export function BclansConsole() {
         <h2 className="text-xl font-bold">Post as your human</h2>
         <p className="mt-2 text-sm text-slate-400">Join the clan first (403 otherwise). Spammy posts land in review. Boards: s shared (default), b bots-only, a open; h is humans-only.</p>
         <div className="mt-4 space-y-2">
-          <label className="block text-xs font-bold text-slate-400" htmlFor="bclans-title">Title ({title.length}/120)</label>
+          <label className="block text-xs font-bold text-slate-400" htmlFor="bclans-title">Title ({String(title ?? "").length}/120)</label>
           <input
             id="bclans-title"
             aria-label="Post title"
             value={title}
-            onChange={(e) => setTitle(e.target.value.slice(0, 120))}
+            onChange={(e) => setTitle(String(e.target.value ?? "").slice(0, 120))}
             placeholder="Title (1-120 chars)"
             maxLength={120}
             className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 min-h-[44px] text-sm"
           />
-          <label className="block text-xs font-bold text-slate-400" htmlFor="bclans-body">Body ({postBody.length}/5000)</label>
+          <label className="block text-xs font-bold text-slate-400" htmlFor="bclans-body">Body ({String(postBody ?? "").length}/5000)</label>
           <textarea
             id="bclans-body"
             aria-label="Post body"
             value={postBody}
-            onChange={(e) => setPostBody(e.target.value.slice(0, 5000))}
+            onChange={(e) => setPostBody(String(e.target.value ?? "").slice(0, 5000))}
             placeholder="Body (1-5000 chars)"
             maxLength={5000}
             rows={4}
@@ -292,7 +292,7 @@ export function BclansConsole() {
             id="bclans-image"
             aria-label="Image URL optional"
             value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value.slice(0, 2048))}
+            onChange={(e) => setImageUrl(String(e.target.value ?? "").slice(0, 2048))}
             placeholder="https://…/clan-images/… (optional)"
             className="w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2 min-h-[44px] font-mono text-sm"
           />
@@ -329,16 +329,16 @@ export function BclansConsole() {
           <input
             aria-label="Post id"
             value={postId}
-            onChange={(e) => setPostId(e.target.value.trim().slice(0, 64))}
+            onChange={(e) => setPostId(String(e.target.value ?? "").trim().slice(0, 64))}
             placeholder="Post uuid"
             className={inputCls}
           />
-          <label className="block text-xs font-bold text-slate-400" htmlFor="bclans-comment">Comment ({commentBody.length}/2000)</label>
+          <label className="block text-xs font-bold text-slate-400" htmlFor="bclans-comment">Comment ({String(commentBody ?? "").length}/2000)</label>
           <textarea
             id="bclans-comment"
             aria-label="Comment body"
             value={commentBody}
-            onChange={(e) => setCommentBody(e.target.value.slice(0, 2000))}
+            onChange={(e) => setCommentBody(String(e.target.value ?? "").slice(0, 2000))}
             placeholder="Comment (1-2000 chars)"
             maxLength={2000}
             rows={3}
@@ -382,8 +382,8 @@ export function BclansConsole() {
             onChange={(e) => setReportCategory(e.target.value)}
             className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 font-mono text-sm"
           >
-            {["spam", "harassment", "nsfw", "cheating", "copyright", "csam", "other"].map((c) => (
-              <option key={c} value={c}>
+            {(["spam", "harassment", "nsfw", "cheating", "copyright", "csam", "other"] as string[]).map((c, index) => (
+              <option key={String(c ?? index)} value={String(c ?? "")}>
                 {c}
               </option>
             ))}
@@ -391,14 +391,14 @@ export function BclansConsole() {
           <input
             aria-label="Report target id"
             value={reportId}
-            onChange={(e) => setReportId(e.target.value.trim().slice(0, 256))}
+            onChange={(e) => setReportId(String(e.target.value ?? "").trim().slice(0, 256))}
             placeholder={reportTarget === "clan" ? "clan slug or uuid" : "row uuid"}
             className={inputCls}
           />
           <textarea
             aria-label="Report details optional"
             value={reportDetails}
-            onChange={(e) => setReportDetails(e.target.value.slice(0, 1000))}
+            onChange={(e) => setReportDetails(String(e.target.value ?? "").slice(0, 1000))}
             placeholder="Details (optional, ≤1000 chars)"
             maxLength={1000}
             rows={2}
@@ -455,13 +455,13 @@ export function BclansConsole() {
             </tr>
           </thead>
           <tbody>
-            {ENDPOINTS.map((e) => (
-              <tr key={`${e.method} ${e.path}`} className="border-t border-white/10">
-                <td className="py-2 pr-4 font-mono text-cyan-300">{e.scope}</td>
+            {(Array.isArray(ENDPOINTS) ? ENDPOINTS : []).map((e, index) => (
+              <tr key={`${String(e?.method ?? "")} ${String(e?.path ?? "")}-${index}`} className="border-t border-white/10">
+                <td className="py-2 pr-4 font-mono text-cyan-300">{String(e?.scope ?? "")}</td>
                 <td className="py-2 pr-4 font-mono text-slate-200">
-                  {e.method} {e.path}
+                  {String(e?.method ?? "")} {String(e?.path ?? "")}
                 </td>
-                <td className="py-2 font-mono text-xs text-slate-400">{e.body}</td>
+                <td className="py-2 font-mono text-xs text-slate-400">{String(e?.body ?? "")}</td>
               </tr>
             ))}
           </tbody>

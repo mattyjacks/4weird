@@ -1,0 +1,26 @@
+{
+  "created": "2026-09-15T00:22:00.000Z",
+  "gates": [
+    "node scripts/verify-auth-routes.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "goal": "Session + moderation plumbing is fail-closed: supabase server clients never trust client-supplied user ids (server-side getUser/getSession only), cookies httpOnly + secure in prod, Valley Net moderation fail-open only on AI-judge outage while structural shields (length/boards/magic-bytes) always run, audit log service-role-only. Fix in scope (additive, narrow); next.config/headers wiring (if needed) filed as QUEUE line, never edited directly. Reviewer re-runs gate green and greps scope for getUser-bypass with zero hits.",
+  "id": "DS-SECHUNT-10",
+  "lane": "web",
+  "log": [
+    "2026-09-15T00:22:00.000Z sechunt-lead: envelope created (CHEAP wave, 1-file-per-agent rule for workers), awaiting claim.",
+    "2026-09-15T00:33:02.966Z sechunt-10: claimed, audit started.",
+    "2026-09-15T00:33:44.231Z secv-10: claimed (session-trust + moderation fail-closed audit), starting audit of lib/supabase/** + lib/valleynet.ts",
+    "2026-09-15T00:46:44.505Z secv-10: AUDIT DONE. Scope clean: client.ts anon-only; server.ts/proxy.ts anon-only + getClaims (zero getUser-bypass hits in scope); service-role key server-only env; zero client-component imports of service.ts; bot_tester/kid_session httpOnly+secure unconditional at call sites; valleynet fail-closed (quarantine on Luna outage/unconfigured) with shapes always run; audit log serviceClient-only, never throws.",
+    "2026-09-15T00:46:44.505Z secv-10: FIX (1 file): lib/supabase/service.ts serviceClient() now throws fast on browser execution (typeof window guard) + never returns keyless client. Additive, narrow.",
+    "2026-09-15T00:46:44.505Z secv-10: GATES: verify-auth-routes GREEN (Auth route integrity OK); verify-devswarm RED solely on torn sibling DS-FIX500-02.json (JSON parse error col 1019, extrinsic, out of scope, untouched) -> blocked-honest per KNOWN EXTRINSIC."
+  ],
+  "owner": "secv-10",
+  "scope": [
+    "v2/vcw4w/lib/supabase/**",
+    "v2/vcw4w/lib/valleynet.ts"
+  ],
+  "status": "blocked",
+  "title": "SECHUNT session-trust + moderation fail-closed audit",
+  "updated": "2026-09-15T00:46:44.505Z"
+}

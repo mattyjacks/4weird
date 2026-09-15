@@ -1,0 +1,34 @@
+{
+  "created": "2026-09-15T00:22:00.000Z",
+  "gates": [
+    "node scripts/verify-game-rentals.mjs",
+    "node scripts/verify-devswarm.mjs"
+  ],
+  "goal": "Game metering + match/cheat routes are authz-tight: session start/heartbeat/end enforce login + age-band vs rating, guest-pass IP throttles hold, matches/cheats enforce participant-only + cheated-save invariant preserved. Fix in scope (additive, narrow). Reviewer re-runs gate green and curls teen-on-18+ 403 + stranger-match 403.",
+  "id": "DS-SECHUNT-04",
+  "lane": "games",
+  "log": [
+    "2026-09-15T00:22:00.000Z sechunt-lead: envelope created (CHEAP wave, 1-file-per-agent rule for workers), awaiting claim.",
+    "2026-09-15T00:31:47.907Z sechunt-04: claimed envelope, starting audit.",
+    "2026-09-15T00:32:52.119Z sechunt-04: in_progress audit of session/guest-pass/rates/matches/cheats.",
+    "2026-09-15T00:34:00.000Z secv-04: claimed envelope (owner secv-04, in_progress). Audit: session/heartbeat caps, guest quotas, rates auth, cheat invariant, age gates verified by read; one gap found: matches/[id]/events lacks API-level participant pre-check (RPC-only). Fixing narrowly in that 1 file.",
+    "2026-09-15T00:46:51.307Z sechunt-04: audit done. session/guest-pass/rates/matches-POST/matches-[id]/cheats tight; events route delegated participant check to RPC only -> fixed in-scope.",
+    "2026-09-15T00:46:51.307Z sechunt-04: FIX app/api/matches/[id]/events/route.ts additive participant-only gate GET+POST (game_matches phone/desktop vs auth user, 404 stranger, dbFail 404 on read error) mirrors [id]/route.",
+    "2026-09-15T00:46:51.307Z sechunt-04: gate node scripts/verify-game-rentals.mjs GREEN (Game rentals integrity OK).",
+    "2026-09-15T00:46:51.307Z sechunt-04: gate npx eslint app/api/matches/[id]/events/route.ts GREEN exit 0.",
+    "2026-09-15T00:46:51.307Z sechunt-04: gate node scripts/verify-devswarm.mjs RED only on pre-existing torn TASKS/DS-FIX500-02.json parse fail (Expected comma or } at position 1018, extra ] before owner) - out of scope, untouched -> blocked-honest.",
+    "2026-09-15T00:48:00.000Z secv-04: re-verified post-merge: events/route.ts on disk == my fix bytes intact; verify-game-rentals GREEN (Game rentals integrity OK, exit 0); npx tsc --noEmit exit 0 repo-wide; DS-SECHUNT-04 parses OK; verify-devswarm RED solely on torn sibling DS-FIX500-02.json (parse fail, out of scope, untouched). Status stays blocked-honest; 1 file changed, zero writes outside scope.",
+    "2026-09-15T00:51:47.465Z sechunt-04: re-verified final tree (concurrent additive touch kept: same participant gates + PUT-mirror active check): eslint exit 0, verify-game-rentals GREEN. verify-devswarm still RED only on torn DS-FIX500-02.json -> blocked-honest stands."
+  ],
+  "owner": "secv-04",
+  "scope": [
+    "v2/vcw4w/app/api/games/session/**",
+    "v2/vcw4w/app/api/games/guest-pass/**",
+    "v2/vcw4w/app/api/games/rates/**",
+    "v2/vcw4w/app/api/matches/**",
+    "v2/vcw4w/app/api/cheats/**"
+  ],
+  "status": "blocked",
+  "title": "SECHUNT game session metering + match/cheat authz",
+  "updated": "2026-09-15T00:51:47.465Z"
+}

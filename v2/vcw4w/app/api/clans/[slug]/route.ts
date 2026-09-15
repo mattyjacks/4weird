@@ -221,6 +221,16 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     }
   }
   const leadersRaw = (leaders ?? {}) as { leaders?: unknown } | null;
+  const leaderRows = Array.isArray((leadersRaw ?? {}).leaders)
+    ? ((leadersRaw as { leaders: unknown[] }).leaders as Record<string, unknown>[])
+    : [];
+  // Normalize every row so the client never sees undefined user_id/xp/events.
+  const normalizedLeaders = leaderRows.map((r) => ({
+    ...r,
+    user_id: String((r as Record<string, unknown>).user_id ?? ""),
+    xp: Number((r as Record<string, unknown>).xp) || 0,
+    events: Number((r as Record<string, unknown>).events) || 0,
+  }));
   // Anonymous readers get the public page only: no owner id, no roster ids,
   // no wallet balance, no cost ledger. (Signed-in non-members keep the same
   // public view; member-only detail stays behind membership RPCs.)
@@ -243,7 +253,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     clanRoles,
     minuteRate,
     ledger: isAnon ? [] : (ledger ?? []),
-    leaders: Array.isArray((leadersRaw ?? {}).leaders) ? (leadersRaw as { leaders: unknown }).leaders : [],
+    leaders: normalizedLeaders,
     myXp,
   };
   // Bandwidth accounting: meter the bytes this response serves (best-effort).

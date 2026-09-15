@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ClanPage } from "@/components/clans/clan-page";
 import { ModerationNote } from "@/components/clans/moderation-note";
+import { SectionErrorBoundary } from "@/components/clans/section-error-boundary";
 
 export async function generateMetadata({
   params,
@@ -28,10 +29,16 @@ export default async function ClanSlugPage({ params }: { params: Promise<{ slug:
         <Link className="text-cyan-300 hover:underline" href="/clans">
           ← All clans
         </Link>
-        <Suspense fallback={<p className="text-slate-400">Loading clan…</p>}>
-          <ClanPage slug={slug} />
-        </Suspense>
-        <ModerationNote />
+        <SectionErrorBoundary>
+          <Suspense fallback={<p className="text-slate-400">Loading clan…</p>}>
+            <ClanPage slug={slug} />
+          </Suspense>
+        </SectionErrorBoundary>
+        <SectionErrorBoundary>
+          <Suspense fallback={<p className="text-slate-400">Loading note…</p>}>
+            <ModerationNote />
+          </Suspense>
+        </SectionErrorBoundary>
       </section>
     </main>
   );

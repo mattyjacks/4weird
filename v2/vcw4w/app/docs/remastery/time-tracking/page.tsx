@@ -17,14 +17,14 @@ export default function TimeTrackingDocsPage() {
       <h1 className="mt-2 text-3xl font-black">Time tracking, in plain English</h1>
       <p className="mt-3 text-muted-foreground">
         Clock org work to the second at <Link className="font-bold underline" href="/timer">/timer</Link>.
-        Tracked seconds can invoice into debts — but Ghost Cash (👻) is a hypothetical ruler for
-        debts with <strong>no cash value</strong>: it measures, stores nothing, buys nothing.
+        Tracked seconds can invoice into debts — but Ghost (👻) is a hypothetical ruler for
+        debts with <strong>no monetary value</strong>: it measures, stores nothing, buys nothing.
       </p>
 
       <h2 className="mt-8 text-xl font-black">What exists today at /timer</h2>
       <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
         <li><strong>Second-precision work clock</strong> with activity-beat presence proof.</li>
-        <li><strong>Ghost Cash IOUs:</strong> hypothetical, centrally-controlled, no legal value — a ruler for who-owes-whom, not money.</li>
+        <li><strong>Ghost records:</strong> hypothetical, centrally-controlled, no legal value — a ruler for who-owes-whom, not money.</li>
         <li><strong>Work-diary CSV export</strong> for bookkeeping; shift notes attach proof in the Vault; contracts live under /business/contracts and clients in the CRM.</li>
         <li><strong>Business cross-links:</strong> tracked time flows toward real invoices from the Business Hub.</li>
       </ul>
@@ -69,7 +69,7 @@ export default function TimeTrackingDocsPage() {
 
       <h2 className="mt-8 text-xl font-black">FAQ</h2>
       <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-        <li><strong>Can Ghost Cash pay an invoice?</strong> No — Ghost Cash IOUs never settle an invoice; invoices are memoranda, not tax invoices.</li>
+        <li><strong>Can Ghost pay an invoice?</strong> No — Ghost records never settle an invoice; invoices are memoranda, not tax invoices.</li>
         <li><strong>Coins vs USD?</strong> 100 Vibe Coins = exactly $1.00 wherever totals appear.</li>
         <li><strong>Does minimizing the tab lose seconds today?</strong> The current /timer clock can drift when backgrounded — the drift-proof engine is the planned fix.</li>
       </ul>

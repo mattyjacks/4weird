@@ -152,7 +152,7 @@ The primary objective of this pass is to transform 4weird from a vertically spra
 
 ---
 
-### Page 7: `/timer` (Ghost Cash Timer)
+### Page 7: `/timer` (Ghost timer)
 - **Status:** Inspected & Analyzed
 - **Screenshots:**
   - Initial Viewport: `page7_timer_top` (`page7_timer_top_1789424140343.png`)
@@ -163,7 +163,7 @@ The primary objective of this pass is to transform 4weird from a vertically spra
   - **Multi-Step Scrolling to Start Work:** A worker must scroll past 550px just to reach Org selection, Contract dropdown, Task description input, and the primary "Clock in" button.
 - **Compact & Professional Improvement Plan:**
   1. **Hero Timer Positioning:**
-     - Invert the hierarchy: place the Ghost Cash Timer widget directly at the top of the viewport (`y: 64px`).
+     - Invert the hierarchy: place the Ghost timer widget directly at the top of the viewport (`y: 64px`).
   2. **Single-Row Inline Control Strip:**
      - Combine `[Org Dropdown]` + `[Contract Dropdown]` + `[Task Input]` + `[Clock In / Out CTA]` into a unified, high-density toolbar.
   3. **Embedded Mini-Stats Ribbon:**

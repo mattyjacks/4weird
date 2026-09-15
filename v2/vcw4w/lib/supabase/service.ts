@@ -33,8 +33,14 @@ export function hasServerSupabase(): boolean {
  * Privileged client (service_role, bypasses RLS). Used ONLY for writes that
  * RLS deliberately forbids (Vibe Coins grants/ledger, signup trial credit).
  * Never for reads that a user-token client can do, never exposed to browsers.
+ *
+ * Fail-closed containment: throws when executed in a browser bundle
+ * (a mistaken client-side import fails fast with an explicit server-only
+ * error instead of attempting construction with an absent key), and throws
+ * when the server env is misconfigured. Never returns a keyless client.
  */
 export function serviceClient(): SupabaseClient {
+  if (typeof window !== "undefined") throw new Error("serviceClient() is server-only");
   const url = supabaseUrl();
   const key = supabaseServiceRoleKey();
   if (!url || !key) throw new Error("Server misconfigured (service role)");

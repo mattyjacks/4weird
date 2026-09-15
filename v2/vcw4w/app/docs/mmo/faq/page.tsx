@@ -25,7 +25,7 @@ const FAQS: [string, string, string][] = [
   ["🔁", "Why did my confirm answer 400?", "Quote mismatch: the accepted total must equal the quoted player total exactly. Prices move as players join and leave, so re-read the fresh quote and confirm that figure. Malformed input and unknown servers also answer 400 — never a charge."],
   ["🪫", "What happens when the host runs dry?", "Fail-closed, same as players: the short side answers 402 and nothing bills — nobody is half-charged and no phantom session is written. Until the guarded ledger settlement lands, both rent and billing return quotes only (charged: false), so past quotes are never back-billed."],
   ["🆓", "When is play actually free?", "Kids rooms (0 coins per player per minute) and any room whose host flips hostFree — the host pays server + load + rental, players pay 0. Your receipt is /my/usage/; your balance is always SUM(delta) over your ledger rows."],
-  ["🔞", "Do you store my birthday for the gate?", "Never. Birth dates are checked in memory on your own device for that check only — never sent, never stored, never remembered. The shard gate itself compares bands only and stores nothing either."],
+  ["🔞", "Do you store my birthday for the gate?", "Never stored. Game-play gates check it in memory on your device only. MMO shard entry sends it once to same-origin POST /api/age-verify, used in memory to mint a signed band pass and then dropped — never written, logged, forwarded, or echoed back. The shard gate itself compares bands only."],
 ];
 
 export default function MmoFaqPage() {

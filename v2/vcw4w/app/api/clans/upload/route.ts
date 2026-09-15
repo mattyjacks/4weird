@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
+import { requireHuman } from "@/lib/botid";
 import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -52,6 +53,23 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  // Member-only uploads: strangers must not burn bucket storage or mint
+  // image URLs for later injection. Per-clan membership is re-checked at
+  // post/message write time; this is the coarse upload gate.
+  {
+    const { data: membership, error: memberError } = await supabase
+      .from("clan_members")
+      .select("user_id")
+      .eq("user_id", u.id)
+      .limit(1);
+    if (memberError) return fail("Unable to verify membership.", 500);
+    if (!membership || membership.length === 0) return fail("Join a clan first.", 403);
+  }
+  // Headless automation must not mint uploads: BotID gate matching every
+  // other clan write route; logged-in bots (password session, self-test)
+  // still pass via allowAuthenticated.
+  const botBlock = await requireHuman(req, "POST /api/clans/upload", { allowAuthenticated: true });
+  if (botBlock) return botBlock;
   const throttle = rateLimit(`clan-upload:${u.id}`, 10, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429);
   // Distributed shield: at most 60 image uploads/hour per account across all

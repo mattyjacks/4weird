@@ -171,6 +171,34 @@ for (const rel of ["public/search/index.json", "app/docs/search/page.tsx"]) {
   }
 }
 
+// 8. Rotating search placeholder: the overlay exports useRotatingPlaceholder,
+// types it into the search input, and the header pills preview the live example.
+{
+  const overlay = read("components/site/search-overlay.tsx");
+  if (overlay === null) {
+    advisory("rotating placeholder: SKIP (overlay sibling not yet landed).");
+  } else {
+    if (!overlay.includes("export function useRotatingPlaceholder")) {
+      violation("search-overlay.tsx: must export useRotatingPlaceholder (rotating example-query placeholder).");
+    } else {
+      ok("search-overlay.tsx: exports useRotatingPlaceholder.");
+    }
+    if (!overlay.includes("placeholderExample")) {
+      violation("search-overlay.tsx: search input must use the rotating placeholderExample.");
+    } else {
+      ok("search-overlay.tsx: input uses the rotating placeholder.");
+    }
+  }
+  const headerS = read("components/site/site-header.tsx");
+  if (headerS === null) {
+    violation("components/site/site-header.tsx: MISSING.");
+  } else if (!headerS.includes("useRotatingPlaceholder") || !headerS.includes("pillExample")) {
+    violation("site-header: search pills must preview useRotatingPlaceholder via pillExample (rotating example).");
+  } else {
+    ok("site-header: search pills preview the rotating placeholder.");
+  }
+}
+
 console.log(`Search checks: ${pass.length} pass / ${warn.length} advisory / ${fail.length} fail.`);
 for (const m of warn) console.log(`  ADVISORY: ${m}`);
 for (const m of fail) console.log(`  FAIL: ${m}`);

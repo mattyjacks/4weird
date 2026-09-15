@@ -13,6 +13,10 @@ export async function GET(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u?.email) return fail("Login required.", 401);
+  // Per-user throttle survives IP rotation; mirrors GET /api/me/profile and
+  // GET /api/settings (IP bucket above stays the unauthenticated shield).
+  const userThrottle = rateLimit(`session-user:${u.id}`, 60, 60_000);
+  if (!userThrottle.allowed) return fail("Rate limited.", 429);
   // Minimal claims only: no app_metadata (recon surface).
   return ok({ user: { id: u.id, email: u.email } });
 }

@@ -15,8 +15,8 @@ import {
 // Compliance: invoices here are org memoranda for internal coin accounting
 // only (100 coins = $1.00). They are NOT tax invoices, VAT/GST invoices,
 // payroll records, or receipts. Marking one paid moves no coins by itself;
-// settlement happens only in the guarded checkout and ledger flows. Ghost
-// Cash has no cash value and can never settle an invoice. This route never
+// settlement happens only in the guarded checkout and ledger flows. Ghosts
+// have no monetary value and can never settle an invoice. This route never
 // touches coin tables.
 
 const STATUSES = ["draft", "sent", "paid", "void"] as const;

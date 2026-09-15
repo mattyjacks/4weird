@@ -45,10 +45,10 @@ export function TimeTracker() {
         debtsRes.ok ? debtsRes.json() : { debts: [] },
       ]);
 
-      setEntries(entriesData.entries || []);
-      setProjects(projectsData.projects || []);
-      setRunningTimer(timerData.timer || null);
-      setDebts(debtsData.debts || []);
+      setEntries(Array.isArray(entriesData?.entries) ? entriesData.entries : []);
+      setProjects(Array.isArray(projectsData?.projects) ? projectsData.projects : []);
+      setRunningTimer(timerData?.timer || null);
+      setDebts(Array.isArray(debtsData?.debts) ? debtsData.debts : []);
     } catch (e) {
       console.error("Failed to load timer data", e);
     } finally {
@@ -117,7 +117,7 @@ export function TimeTracker() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] text-zinc-400 space-y-2">
         <Loader2 className="h-8 w-8 animate-spin text-cyan-400" />
-        <p className="text-sm">Loading 4weird Time Tracker & Ghost Cash Ledger...</p>
+        <p className="text-sm">Loading 4weird Time Tracker & Ghost Ledger...</p>
       </div>
     );
   }
@@ -129,10 +129,10 @@ export function TimeTracker() {
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <span className="text-lg">👻</span>
-            <h1 className="font-bold text-white text-base">Ghost Cash Time Tracker & Work Diary</h1>
+            <h1 className="font-bold text-white text-base">Ghost Time Tracker & Work Diary</h1>
           </div>
           <p className="text-xs text-zinc-400">
-            Centrally controlled unit of account to track hours down to the second and settle intra-org debts. Zero cash value.
+            Centrally controlled unit of account to track hours down to the second and settle intra-org debts. Zero monetary value.
           </p>
         </div>
 

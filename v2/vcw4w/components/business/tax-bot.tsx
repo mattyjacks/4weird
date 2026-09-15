@@ -290,9 +290,9 @@ export function TaxBot() {
         ) : null}
         {parsedExpenses.length > 0 ? (
           <ul className="mt-4 space-y-2">
-            {parsedExpenses.map((e) => (
+            {parsedExpenses.map((e, ei) => (
               <li
-                key={e.id}
+                key={e.id ?? ei}
                 className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm"
               >
                 <span className="text-slate-200">
@@ -361,9 +361,9 @@ export function TaxBot() {
               Quarterly breakdown
             </h3>
             <ul className="mt-3 space-y-2">
-              {quarterly.map((q) => (
+              {quarterly.map((q, qi) => (
                 <li
-                  key={q.label}
+                  key={q.label ?? qi}
                   className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm"
                 >
                   <span className="text-slate-300">

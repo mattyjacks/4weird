@@ -23,6 +23,44 @@ function statusOf(message: string): number {
 
 const STRATEGIES = ["oldest_activity_first", "random_chance", "oldest_joined_first", "never_contributed"];
 
+// Pre-migration DBs lack these RPCs entirely. PostgREST surfaces that as
+// "function does not exist" / 404 / PGRST codes — fail SOFT with defaults
+// so the client (which assumes scale/supporters/tribute present) gets 200.
+function isMissingRpc(error: { code?: string; message?: string } | null): boolean {
+  const code = String(error?.code ?? "");
+  const msg = String(error?.message ?? "");
+  if (/^(404|PGRST|42P01|42703)$/i.test(code) || /^PGRST/i.test(code)) return true;
+  return /function .* does not exist|relation .* does not exist|could not find .* function|schema cache/i.test(msg);
+}
+
+const DEFAULT_SCALE = {
+  member_count: 0,
+  cap: 100000,
+  headroom_slots: 0,
+  prune: {
+    auto_enabled: false,
+    threshold: 90000,
+    batch_size: 500,
+    strategy: "oldest_activity_first",
+    last_run_at: null,
+    last_pruned: 0,
+  },
+};
+
+const DEFAULT_SUPPORTERS = { total_support: 0, donor_count: 0, supporters: [], me: null };
+
+const DEFAULT_TRIBUTE = {
+  wallet: 0,
+  daily_upkeep: 0,
+  reserve_floor: 0,
+  total_support: 0,
+  tributed_all_time: 0,
+  lifetime_cap: 1,
+  eligible_now: 0,
+  next_daily_estimate: 0,
+  reserve_balance: 0,
+};
+
 // GET /api/clans/[slug]/scale - public: member count, cap (100k + headroom),
 // prune settings, supporter status, tribute status. One round trip for the
 // clan scale + commons panel.
@@ -44,10 +82,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     supabase.rpc("clan_supporter_status", { p_clan: clanId }),
     supabase.rpc("clan_tribute_status", { p_clan: clanId }),
   ]);
-  if (scaleError) return rpcFail("api/clans/scale", scaleError, statusOf, "Unable to load scale status.");
-  if (supportersError) return rpcFail("api/clans/scale", supportersError, statusOf, "Unable to load supporters.");
-  if (tributeError) return rpcFail("api/clans/scale", tributeError, statusOf, "Unable to load tribute status.");
-  return ok({ scale, supporters, tribute });
+  if (scaleError && !isMissingRpc(scaleError)) return rpcFail("api/clans/scale", scaleError, statusOf, "Unable to load scale status.");
+  if (supportersError && !isMissingRpc(supportersError)) return rpcFail("api/clans/scale", supportersError, statusOf, "Unable to load supporters.");
+  if (tributeError && !isMissingRpc(tributeError)) return rpcFail("api/clans/scale", tributeError, statusOf, "Unable to load tribute status.");
+  return ok({
+    scale: scaleError ? DEFAULT_SCALE : scale,
+    supporters: supportersError ? DEFAULT_SUPPORTERS : supporters,
+    tribute: tributeError ? DEFAULT_TRIBUTE : tribute,
+  });
 }
 
 // POST /api/clans/[slug]/scale - owner/mod controls.

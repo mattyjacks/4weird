@@ -44,7 +44,7 @@ export function ModMount({ manifest, gameSlug, height = 320 }: ModMountProps) {
       // a same-origin sibling frame (runtime, ad slot) must not spoof it.
       if (event.source !== frameRef.current?.contentWindow) return;
       if (typeof event.data === "string" && event.data.startsWith("mod:")) {
-        setModMessage(event.data.slice("mod:".length));
+        setModMessage(String(event.data ?? "").slice("mod:".length));
       }
     };
     window.addEventListener("message", onMessage);

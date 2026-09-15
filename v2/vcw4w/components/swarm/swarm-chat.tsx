@@ -356,7 +356,7 @@ export function SwarmChat() {
     // swarm reasons with the context (the API only sees message text).
     const target = replyTo ? messages.find((m) => m.id === replyTo) : undefined;
     const quoted = target
-      ? `↩ Replying to ${target.role === "user" ? "you" : target.agent_name || "swarm"}: "${target.text.slice(0, 300)}"\n${raw}`
+      ? `↩ Replying to ${target.role === "user" ? "you" : target.agent_name || "swarm"}: "${String(target.text ?? "").slice(0, 300)}"\n${raw}`
       : raw;
     setReplyTo(null);
     setLastSent(raw);
@@ -396,7 +396,7 @@ export function SwarmChat() {
         if ((body.brain.children ?? []).length) {
           setChildSessions((c) => [
             ...c,
-            ...(body.brain?.children ?? []).map((k) => ({ id: k.id, name: k.subtask.slice(0, 60), status: "open", turns: 0 })),
+            ...(body.brain?.children ?? []).map((k) => ({ id: k.id, name: String(k.subtask ?? "").slice(0, 60), status: "open", turns: 0 })),
           ]);
           void loadSessions();
         }
@@ -404,7 +404,7 @@ export function SwarmChat() {
       }
       const at = new Date().toISOString();
       const userMsg: ChatMsg = { ...optimistic, id: `u-${Date.now()}` };
-      const full: ChatMsg[] = body.replies.map((r, i) => ({
+      const full: ChatMsg[] = (Array.isArray(body.replies) ? body.replies : []).map((r, i) => ({
         id: `r-${Date.now()}-${i}`,
         role: "swarm",
         agent_index: r.agent,
@@ -418,7 +418,7 @@ export function SwarmChat() {
         // Spark-like typewriter fan-out: reveal each agent reply progressively.
         const shells: ChatMsg[] = full.map((f) => ({ ...f, text: "" }));
         setMessages((m) => [...m.filter((x) => x.id !== optimistic.id), userMsg, ...shells]);
-        const longest = Math.max(1, ...body.replies.map((r) => r.text.length));
+        const longest = Math.max(1, ...(Array.isArray(body.replies) ? body.replies : []).map((r) => String(r.text ?? "").length));
         for (let ch = 3; ch <= longest; ch += 12) {
           await new Promise((r) => setTimeout(r, 12));
           const n = ch;
@@ -534,7 +534,7 @@ export function SwarmChat() {
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return messages;
-    return messages.filter((m) => m.text.toLowerCase().includes(q) || m.agent_name.toLowerCase().includes(q));
+    return messages.filter((m) => String(m.text ?? "").toLowerCase().includes(q) || String(m.agent_name ?? "").toLowerCase().includes(q));
   }, [messages, search]);
 
   return (
@@ -625,8 +625,8 @@ export function SwarmChat() {
             Personal notes the swarm reads automatically (internal RAG, ~300 tokens max per turn, only matching chunks).
           </p>
           <ul className="mt-2 space-y-1">
-            {brainDocs.map((d) => (
-              <li key={d.id} className="flex items-center gap-2 text-xs text-slate-300">
+            {brainDocs.map((d, di) => (
+              <li key={d.id ?? di} className="flex items-center gap-2 text-xs text-slate-300">
                 <span className="min-w-0 flex-1 truncate">{d.name} <span className="text-slate-500">({d.chars} chars)</span></span>
                 <button type="button" disabled={docsBusy} onClick={() => void deleteDoc(d.id)} className="text-red-300 hover:text-red-200 disabled:opacity-50">Forget</button>
               </li>
@@ -648,8 +648,8 @@ export function SwarmChat() {
           {loading && <p className="text-xs text-slate-400">Loading…</p>}
           {error && <p className="text-xs text-red-400">{error}</p>}
           <ul className="mt-2 space-y-1">
-            {sessions.map((s) => (
-              <li key={s.id}>
+            {sessions.map((s, si) => (
+              <li key={s.id ?? si}>
                 <button type="button" onClick={() => setActiveId(s.id)} className={`w-full rounded-md px-2 py-1 text-left text-xs ${s.id === activeId ? "bg-cyan-900 text-cyan-100" : "bg-black/30 text-slate-300 hover:bg-black/50"}`}>
                   {s.name} · {s.size} agents · {s.status} · {s.turns} turns
                 </button>
@@ -675,7 +675,7 @@ export function SwarmChat() {
             {lastBrain && (
               <p>
                 🧠 {lastBrain.execMode === "serverful" ? "serverful (heavy work → real RunPod pod/desktop)" : "serverless (this chat is the runtime)"}
-                {lastBrain.ragDocs.length > 0 && <span> · 📄 {lastBrain.ragDocs.join(", ").slice(0, 120)}</span>}
+                {(lastBrain.ragDocs ?? []).length > 0 && <span> · 📄 {(lastBrain.ragDocs ?? []).join(", ").slice(0, 120)}</span>}
                 {lastBrain.memorySaved > 0 && <span> · +{lastBrain.memorySaved} memorized</span>}
               </p>
             )}
@@ -695,10 +695,10 @@ export function SwarmChat() {
             {childSessions.length > 0 && !(lastBrain?.children ?? []).length && (
               <p className="mt-1">⚡ {childSessions.length} child instance{childSessions.length === 1 ? "" : "s"}:{" "}
                 {childSessions.slice(0, 5).map((c, i) => (
-                  <span key={c.id}>
+                  <span key={c.id ?? i}>
                     {i > 0 && " · "}
                     <button type="button" onClick={() => setActiveId(c.id)} className="text-cyan-300 hover:underline" title={c.name}>
-                      {c.name.slice(0, 28)}
+                      {String(c.name ?? "").slice(0, 28)}
                     </button>
                   </span>
                 ))}
@@ -728,13 +728,13 @@ export function SwarmChat() {
           {replyTo && <button type="button" onClick={() => setReplyTo(null)} className="text-amber-300 hover:underline">↩ replying; cancel</button>}
         </div>
         <ul className="mt-3 max-h-[52vh] space-y-3 overflow-y-auto pr-1" aria-live="polite">
-          {visible.map((m) => (
-            <li key={m.id} className={`rounded-xl border p-3 text-sm ${m.role === "user" ? "border-cyan-800 bg-cyan-950/40" : "border-white/10 bg-black/30"} ${pins.includes(m.id) ? "ring-1 ring-amber-400" : ""}`}>
+          {visible.map((m, mi) => (
+            <li key={m.id ?? mi} className={`rounded-xl border p-3 text-sm ${m.role === "user" ? "border-cyan-800 bg-cyan-950/40" : "border-white/10 bg-black/30"} ${pins.includes(m.id) ? "ring-1 ring-amber-400" : ""}`}>
               <div className="flex items-center gap-2 text-xs text-slate-400">
                 <b className={m.role === "user" ? "text-cyan-200" : AGENT_COLORS[Math.max(0, m.agent_index) % AGENT_COLORS.length]}>
                   {m.role === "user" ? "You" : `${m.agent_name || "Swarm"} · agent ${(m.agent_index ?? 0) + 1}`}
                 </b>
-                <span>{new Date(m.created_at).toLocaleTimeString()}</span>
+                <span>{m.created_at ? new Date(m.created_at).toLocaleTimeString() : "—"}</span>
                 {m.gross_coins > 0 && <span title="This reply's share of the turn gross (25% cut included)">🪙{m.gross_coins}</span>}
                 <span className="ml-auto flex gap-2">
                   <button type="button" onClick={() => setReplyTo(m.id)} className="hover:text-white">Reply</button>
@@ -748,7 +748,7 @@ export function SwarmChat() {
               <div className="mt-1 text-slate-100" dangerouslySetInnerHTML={{ __html: renderLite(m.text) }} />
               {m.tool_calls?.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {m.tool_calls.map((t, i) => (<span key={i} className="rounded bg-violet-900 px-1.5 py-0.5 text-xs text-violet-100">🛠 {t.id} - {t.args.slice(0, 60)}</span>))}
+                  {m.tool_calls.map((t, i) => (<span key={i} className="rounded bg-violet-900 px-1.5 py-0.5 text-xs text-violet-100">🛠 {t.id} - {String(t.args ?? "").slice(0, 60)}</span>))}
                 </div>
               )}
             </li>

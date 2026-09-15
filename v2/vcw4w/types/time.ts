@@ -1,10 +1,10 @@
-// Ghost Cash (👻) & Timer Types for 4weird
+// Ghost (👻) & Timer Types for 4weird
 
 export interface TimerProject {
   id: string;
   name: string;
   color: string;
-  ghostRate: number; // 👻 Ghost Cash rate per hour
+  ghostRate: number; // 👻 Ghost rate per hour
   budgetHours: number | null;
   isBillable: boolean;
   isArchived: boolean;
@@ -22,7 +22,7 @@ export interface TimerProject {
     name: string;
   } | null;
   totalSeconds?: number;
-  totalGhostCash?: number;
+  totalGhost?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,7 +46,7 @@ export interface TimerEntry {
   isBillable: boolean;
   isRunning: boolean;
   ghostRate: number; // hourly rate in 👻
-  ghostCashOwed: number; // total calculated 👻 down to the second
+  ghostOwed: number; // total calculated 👻 down to the second
   activityScore: number; // 0-100%
   upworkSyncMode?: boolean; // Dual-timer companion with an external tracker app
   upworkContractId?: string | null;
@@ -88,7 +88,7 @@ export interface GhostDebt {
     username: string;
     displayName?: string;
   };
-  amountGhostCash: number;
+  amountGhost: number;
   status: "pending" | "settled" | "forgiven";
   memo: string;
   settledAt?: string | null;
@@ -100,7 +100,7 @@ export interface TimerReport {
     totalSeconds: number;
     billableSeconds: number;
     nonBillableSeconds: number;
-    totalGhostCashOwed: number; // 👻
+    totalGhostOwed: number; // 👻
     entryCount: number;
     totalHours: number;
     billableHours: number;
@@ -111,18 +111,18 @@ export interface TimerReport {
     projectName: string;
     projectColor: string;
     totalSeconds: number;
-    totalGhostCash: number;
+    totalGhost: number;
   }>;
   byDebtor: Array<{
     debtorId: string;
     debtorName: string;
     totalSeconds: number;
-    totalGhostCash: number;
+    totalGhost: number;
   }>;
 }
 
-// Utility functions for Ghost Cash (👻)
-export function formatGhostCash(amount: number | null | undefined): string {
+// Utility functions for Ghosts (👻)
+export function formatGhostAmount(amount: number | null | undefined): string {
   if (amount === null || amount === undefined || isNaN(amount)) return "👻 0.00";
   return `👻 ${Number(amount).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -130,7 +130,7 @@ export function formatGhostCash(amount: number | null | undefined): string {
   })}`;
 }
 
-export function calcGhostCash(durationSeconds: number, hourlyRate: number): number {
+export function calculateGhostOwed(durationSeconds: number, hourlyRate: number): number {
   if (!durationSeconds || durationSeconds <= 0 || !hourlyRate || hourlyRate <= 0) return 0;
   return Number(((durationSeconds / 3600) * hourlyRate).toFixed(4));
 }

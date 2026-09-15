@@ -60,7 +60,7 @@ async function CachedTermsBody() {
             <li><a href="#terms-s8a" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8A · Support</a></li>
             <li><a href="#terms-s8a1" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8A.1 · Crowns</a></li>
             <li><a href="#terms-s8b" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8B · AI</a></li>
-            <li><a href="#terms-s8c" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8C · Ghost Cash</a></li>
+            <li><a href="#terms-s8c" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8C · Ghosts</a></li>
             <li><a href="#terms-s8d" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8D · Clans</a></li>
             <li><a href="#terms-s8e" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8E · Stock media</a></li>
             <li><a href="#terms-s8f" className="block rounded-lg px-2 py-1 text-muted-foreground transition hover:bg-white/5 hover:text-white">8F · VocRehab</a></li>
@@ -147,7 +147,7 @@ async function CachedTermsBody() {
           <li>use the Service unlawfully or in violation of any applicable law, including export-control and sanctions laws; no illegal content of any kind is allowed, anywhere on the Service; you represent you are not a sanctioned/denied person, are not located in or using the Service from a sanctioned jurisdiction (including Cuba, Iran, North Korea, Syria, Russia, Belarus, or occupied Ukraine, as updated by U.S. law), will not circumvent geo/sanctions controls with VPNs/proxies, and will not use GPU compute for military, nuclear, weapons, or surveillance purposes; violation is cause for immediate termination and referral;</li>
           <li>infringe intellectual-property, privacy, or other rights; upload malicious code; impersonate others; or harvest other users’ information;</li>
           <li>harass, threaten, defame, hate-target, or harm anyone; post sexual content involving minors in any form; this results in immediate removal, account termination, evidence preservation, and referral to authorities (see Section 5);</li>
-          <li>alternatively monetize, cash out, or extract value from Coins, Crowns, or Ghost Cash outside the expressly permitted paths in Sections 8-8A.1; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost IOUs, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
+          <li>alternatively monetize, cash out, or extract value from Coins, Crowns, or Ghosts outside the expressly permitted paths in Sections 8-8A.1; including selling, buying, trading, exchanging, gifting-for-cash, pegging to fiat or crypto, advertising exchange rates, factoring Ghost figures/records, using balances as collateral, or routing around the closed loop (see Sections 8 and 8C);</li>
           <li>gamble or operate games of chance on the Service; buy, sell, offer, or solicit loot boxes, gacha, paid random draws, prize draws, raffles, wagers, or stakes in any unit or currency; or treat Luck Factory previews - deterministic entertainment illustrations with no prize, payout, or entry fee - as gambling or as a basis for off-Service betting;</li>
           <li>abuse support, reporting, or privacy-request channels, including filing false reports or automated bulk requests.</li>
         </ul>
@@ -444,14 +444,14 @@ async function CachedTermsBody() {
           it (see Section 18).
         </p>
         <p>
-          <strong>Ghost Cash (👻) is not currency at all.</strong> The org timer tracks work to the second and
-          records who owes whom in Ghost Cash; a centrally-controlled hypothetical unit with no legal value, no cash
-          value, no cash-out, and no store-of-value function. It cannot buy anything, cannot be transferred off the
-          Service, and creates no debt enforceable anywhere but social agreement inside your org. Ghost Cash is a
-          tracking-only ruler for hypothetical payments; it is never itself a way of making payments, and any
+          <strong>Ghosts (👻) are not currency at all.</strong> The org timer tracks work to the second and
+          records who owes whom in Ghosts; Ghost is a centrally-controlled hypothetical unit with no legal value, no monetary
+          value, no redemption or exchange, and no store-of-value function. Ghosts cannot buy anything, cannot be transferred off the
+          Service, and create no debt enforceable anywhere but social agreement inside your org. Ghost is a
+          tracking-only ruler for hypothetical payments; never itself a way of making payments, and any
           real-world settlement happens entirely off the Service, between users, without us (see Section 8C). Timer
           activity scores come from visible-tab heartbeats the worker&apos;s own device reports; proof screenshots are
-          attached by the worker, never captured by us. Because no money or monetary value moves, Ghost Cash is not a
+          attached by the worker, never captured by us. Because no money or monetary value moves, Ghost is not a
           purchase, not a transfer of funds, and not a money-transmission or e-money service.
         </p>
 
@@ -645,22 +645,22 @@ async function CachedTermsBody() {
         </details>
         <details id="terms-s8c" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
-        <h2 className={h2}>8C. Timer, Work Diary, and Ghost Cash (👻) non-legal debt ledger</h2>
+        <h2 className={h2}>8C. Timer, Work Diary, and Ghosts (👻) non-legal debt ledger</h2>
             <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
           </summary>
           <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The Service provides a second-by-second time tracker and work diary (/timer) with optional work-diary screen
           capture proofs and activity monitoring. Time tracked within organizations and projects may accrue debts
-          measured in a non-monetary bookkeeping unit designated as <strong>Ghost Cash (👻)</strong>.
+          measured in a non-monetary bookkeeping unit designated as <strong>Ghost (👻)</strong>.
         </p>
         <p>
-          <strong>(a) Tracking only; never a payment method. NO CASH VALUE OR LEGAL TENDER.</strong> Ghost Cash is
+          <strong>(a) Tracking only; never a payment method. NO MONETARY VALUE OR LEGAL TENDER.</strong> Ghost is
           strictly an internal, centrally controlled bookkeeping and expense-tracking metric used <em>only</em> to keep
           track of hypothetical payments: to measure hours worked down to the exact second and to record hypothetical
-          debts between participating organization members, freelancers, and marketers. Ghost Cash is NOT legal tender,
-          currency, money, security, commodity, or cryptocurrency, has no cash value, has no exchange rate, confers no
-          equity or rights against MattyJacks LLC, and cannot be redeemed, withdrawn, or cashed out. Ghost Cash ledgers,
+          debts between participating organization members, freelancers, and marketers. Ghost is NOT legal tender,
+          currency, money, security, commodity, or cryptocurrency, has no monetary value, has no exchange rate, confers no
+          equity or rights against MattyJacks LLC, and cannot be redeemed, withdrawn, or exchanged. Ghost ledgers,
           balances, contracts, timer summaries, and debts are informal private worksheets; they do not move money, do
           not settle debts on the Service, and do not create legally enforceable obligations against any person or
           against MattyJacks. If members choose to settle anything in the real world, they do so entirely off the
@@ -669,7 +669,7 @@ async function CachedTermsBody() {
           device permission and may be blurred or deleted at any time by the user.
         </p>
         <p>
-          <strong>(b) Invoices are informal aids for org officers; not our invoices.</strong> Ghost Cash summaries and
+          <strong>(b) Invoices are informal aids for org officers; not our invoices.</strong> Ghost summaries and
           &quot;invoice&quot; actions exist solely to help an organization&apos;s <strong>Lord</strong> and{" "}
           <strong>Banker</strong>; and, at the org&apos;s option, its <strong>Captain</strong>; prepare informal
           internal memoranda of who worked how long at what hypothetical rate. These memoranda are generated by and for
@@ -681,45 +681,45 @@ async function CachedTermsBody() {
           and for determining whether any off-Service payment triggers tax, reporting, employment, or licensing duties.
         </p>
         <p>
-          <strong>(c) What Ghost Cash is not; worldwide.</strong> Because no money or monetary value moves on the
-          Service through Ghost Cash, the feature is designed to stay outside money, payments, banking, securities, and
+          <strong>(c) What Ghost is not; worldwide.</strong> Because no money or monetary value moves on the
+          Service through Ghost, the feature is designed to stay outside money, payments, banking, securities, and
           crypto-asset regimes in every jurisdiction; including, without limitation, U.S. federal and state money
           transmission and money-services-business laws (including FinCEN regulations), the EU&apos;s Payment Services
           Directive (PSD2), Electronic Money Directive (EMD2), and Markets in Crypto-Assets Regulation (MiCA), the
           UK&apos;s Payment Services Regulations, Electronic Money Regulations, and Financial Services and Markets Act,
           and equivalent e-money, payment-institution, banking/deposit-taking, stored-value, virtual-asset, and
-          securities laws elsewhere. Concretely: Ghost Cash involves no acceptance, holding, or transmission of funds;
+          securities laws elsewhere. Concretely: Ghost involves no acceptance, holding, or transmission of funds;
           no issuance of e-money, stored value, or deposits; no third-party payments; no foreign exchange; no
           redeemability into fiat, crypto, goods, or services; no interest, yield, or profit expectation; and no
-          transferability outside the closed org book in which it was recorded. Nothing in Ghost Cash is an offer or
+          transferability outside the closed org book in which it was recorded. Nothing in Ghost is an offer or
           sale of securities, and nothing is a crypto-asset, virtual asset, or stablecoin under any regime. If your
-          jurisdiction would treat any off-Service use of Ghost Cash figures (for example, pegging them to fiat or
+          jurisdiction would treat any off-Service use of Ghost figures (for example, pegging them to fiat or
           using them to demand real payment) as a regulated activity, you must not engage in that use; and any such
           use is yours alone, not the Service&apos;s.
         </p>
         <p>
           <strong>(d) Centralized, revocable display numbers; adjustable at any time with no recourse.</strong> Ghost
-          Cash exists only on our centralized systems, is wholly owned and controlled by MattyJacks, and has no legal
-          value of any kind. All Ghost Cash figures are display-only bookkeeping entries. We may, in our sole
-          discretion and at any time, create, adjust, recalculate, cap, reset, void, or delete any Ghost Cash balance,
+          exists only on our centralized systems, is wholly owned and controlled by MattyJacks, and has no legal
+          value of any kind. All Ghost figures are display-only bookkeeping entries. We may, in our sole
+          discretion and at any time, create, adjust, recalculate, cap, reset, void, or delete any Ghost balance,
           contract rate, timer record, debt, invoice memorandum, or book; in whole or in part, for any reason or no
           reason, with or without notice; and no such action gives rise to any claim, debt, compensation, refund,
           damages, or other legal ramification of any kind, in any jurisdiction, against MattyJacks. You waive, to the
-          fullest extent permitted by law, any claim that a Ghost Cash number constitutes property, funds, wages,
+          fullest extent permitted by law, any claim that a Ghost number constitutes property, funds, wages,
           consideration, or an enforceable promise.
         </p>
         <p>
           <strong>(e) No alternative monetization; discretionary ban.</strong> Coins are closed-loop licensed
-          platform features (Section 8), Crowns move only through Section 8A.1, and Ghost Cash is a no-value tracking unit; none may be monetized outside
+          platform features (Section 8), Crowns move only through Section 8A.1, and Ghost is a no-value tracking unit; none may be monetized outside
           the Service except through the expressly permitted Crown convert and provider-payout paths. You must not sell, buy, trade, exchange, auction, gift-for-cash, lend against, factor,
-          collateralize, peg, or advertise any exchange rate for Coins, Crowns, or Ghost Cash, and must not offer or accept
-          fiat, crypto, goods, or services for them, or use Ghost Cash figures to demand, invoice (in the legal sense),
+          collateralize, peg, or advertise any exchange rate for Coins, Crowns, or Ghosts, and must not offer or accept
+          fiat, crypto, goods, or services for them, or use Ghost figures to demand, invoice (in the legal sense),
           or collect real-world payment as though they were money. Attempts to &quot;get money out&quot; of Coins, Crowns, or
-          Ghost Cash outside Section 8A.1; including secondary markets, OTC deals, IOU factoring, rate-pegging, or routing around the
+          Ghosts outside Section 8A.1; including secondary markets, OTC deals, factoring of Ghost records, rate-pegging, or routing around the
           closed loop; violate these Terms. Where we suspect such conduct, we may act in our sole discretion and
-          without liability: warn, void or reset affected Coins, Crowns, or Ghost Cash figures, freeze or hide books and
+          without liability: warn, void or reset affected Coins, Crowns, or Ghost figures, freeze or hide books and
           listings, limit features, suspend or permanently ban accounts (including related or evading accounts),
-          preserve evidence, and refer matters to authorities. Our decision is final, and no violation creates any cash
+          preserve evidence, and refer matters to authorities. Our decision is final, and no violation creates any monetary
           value or redemption right in the affected figures.
         </p>
 
@@ -895,7 +895,7 @@ async function CachedTermsBody() {
           </summary>
           <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
-          4weird, VibeCodeWorker, Ghost Cash, and related names/logos are ours; do not use, copy, or challenge
+          4weird, VibeCodeWorker, Ghosts, and related names/logos are ours; do not use, copy, or challenge
           them without written permission. All other marks (including Blender® of the Blender Foundation, NVIDIA/RTX,
           RunPod, DigitalOcean, Vercel, Shopify, Stripe, Apple, Google, Steam/Microsoft marks) belong to their
           owners; nominative mentions are not sponsorship or endorsement by or of anyone. External creator

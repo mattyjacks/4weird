@@ -170,7 +170,7 @@ if (!reportHit) {
 
 // 8. Docs FAQ tokens: advisory notes only — the guide is mid-rewrite, so
 // missing FAQ tokens warn without failing.
-for (const token of ["FAQ", "Ghost Cash", "org-scoped", "100 Vibe Coins"]) {
+for (const token of ["FAQ", "Ghost", "org-scoped", "100 Vibe Coins"]) {
   if (!docs.includes(token)) {
     console.log(`Business CRM note: business docs lack FAQ token "${token}".`);
   }

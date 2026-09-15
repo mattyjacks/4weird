@@ -9,8 +9,15 @@ import { FeedbackButton } from "@/components/feedback/feedback-button";
  *
  * Mobile top of screen ALWAYS (except in-game) shows one row:
  *   Menu 2 | Give Feedback | Menu 1 | X
- * - Menu 2 / Menu 1 buttons are event-based openers for the existing
- *   MenuSidebar drawer / SiteHeader sheet — no duplicate nav trees here.
+ * - Menu 2 / Menu 1 buttons are the SINGLE entry points for their lanes:
+ *   they dispatch "fw:open-menu2" / "fw:open-menu1" to open the existing
+ *   MenuSidebar drawer / SiteHeader sheet — no duplicate nav trees here,
+ *   and no extra menu buttons (the sidebar reveal pill stays removed).
+ * - Corner contract (mirrors app/theme-css/blue-boy.css single-corner
+ *   radii, applied inline so every theme matches): Menu 2 (left) rounds
+ *   ONLY bottom-right (0 0 12px 0); Menu 1 rounds ONLY bottom-left
+ *   (0 0 0 12px). Inline style wins over the .rounded-lg blue-boy
+ *   override, so the values stay in sync by construction.
  * - Give Feedback reuses <FeedbackButton /> as-is (dialog + API untouched).
  * - X dismisses gracefully to a slim inline fallback; dismissal persists
  *   in localStorage (fail-open when storage is unavailable).
@@ -34,6 +41,13 @@ function readDismissed(): boolean {
 }
 
 const TOUCH = "min-h-[44px] min-w-[44px]";
+
+// Single-corner radii (TL TR BR BL): Menu 2 (left lane) rounds ONLY
+// bottom-right; Menu 1 (right lane) mirrors with ONLY bottom-left.
+// Values match the blue-boy.css "MENU 1 / MENU 2" overrides; inline
+// style beats the .rounded-lg override so all themes agree.
+const MENU2_RADIUS = "0 0 12px 0";
+const MENU1_RADIUS = "0 0 0 12px";
 
 export function FeedbackBar() {
   const pathname = usePathname();
@@ -126,7 +140,8 @@ export function FeedbackBar() {
           onClick={openMenu2}
           aria-label="Open menu 2"
           title="Open menu 2"
-          className={`${TOUCH} inline-flex shrink-0 items-center justify-center gap-1 rounded-lg border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none`}
+          style={{ borderRadius: MENU2_RADIUS }}
+          className={`${TOUCH} inline-flex shrink-0 items-center justify-center gap-1 border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none`}
         >
           <span aria-hidden="true">☰</span>
           menu&nbsp;2
@@ -141,7 +156,8 @@ export function FeedbackBar() {
           onClick={openMenu1}
           aria-label="Open menu 1"
           title="Open menu 1"
-          className={`${TOUCH} inline-flex shrink-0 items-center justify-center gap-1 rounded-lg border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none`}
+          style={{ borderRadius: MENU1_RADIUS }}
+          className={`${TOUCH} inline-flex shrink-0 items-center justify-center gap-1 border border-border px-2.5 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 motion-reduce:transition-none`}
         >
           <span aria-hidden="true">☰</span>
           menu&nbsp;1

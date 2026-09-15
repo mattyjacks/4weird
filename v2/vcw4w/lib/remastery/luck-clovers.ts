@@ -1,7 +1,7 @@
 /**
  * Luck Factory 🍀 Clovers — fake currency for the /luck page.
  *
- * Clovers are NOT Vibe Coins, NOT Crowns, NOT Ghost Cash. They have no USD
+ * Clovers are NOT Vibe Coins, NOT Crowns, NOT Ghosts. They have no USD
  * parity, no ledger, no persistence, no transfer, and no conversion path to
  * anything of value. The session balance lives in React state only: refresh
  * the page and it is gone. That is the point — there is nothing to steal,

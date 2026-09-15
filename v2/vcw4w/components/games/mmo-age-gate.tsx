@@ -154,7 +154,7 @@ export function MmoAgeGate({
     () =>
       filterServersForPlayer(
         viewerBand,
-        servers.filter((s) => (SERVER_AGE_BANDS as readonly string[]).includes(s.band)),
+        (Array.isArray(servers) ? servers : []).filter((s) => (SERVER_AGE_BANDS as readonly string[]).includes(s?.band)),
       ),
     [viewerBand, servers],
   );
@@ -275,9 +275,9 @@ export function MmoAgeGate({
         </button>
       </div>
       <p className="mt-2 text-sm text-slate-300">
-        Showing {visibleServers.length} of {servers.length} servers — ineligible bands are hidden
-        (adults see all {allowedServerBandsFor("adults").length}, teens see{" "}
-        {allowedServerBandsFor("teens").length}, kids see {allowedServerBandsFor("kids").length}).
+        Showing {(visibleServers ?? []).length} of {(servers ?? []).length} servers — ineligible bands are hidden
+        (adults see all {(allowedServerBandsFor("adults") ?? []).length}, teens see{" "}
+        {(allowedServerBandsFor("teens") ?? []).length}, kids see {(allowedServerBandsFor("kids") ?? []).length}).
         Entry is re-checked server-side when you join.
       </p>
 
@@ -291,32 +291,32 @@ export function MmoAgeGate({
         </ul>
         {policy.chat === "preset" && (
           <div className="mt-3 flex flex-wrap gap-1.5" data-testid="mmo-kids-phrases">
-            {KIDS_PRESET_PHRASES.map((phrase) => (
-              <span key={phrase} className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-200">
-                {phrase}
+            {(Array.isArray(KIDS_PRESET_PHRASES) ? KIDS_PRESET_PHRASES : []).map((phrase, index) => (
+              <span key={String(phrase ?? "") || index} className="rounded-full border border-white/15 px-3 py-1 text-xs text-slate-200">
+                {String(phrase ?? "")}
               </span>
             ))}
           </div>
         )}
       </div>
 
-      {visibleServers.length === 0 ? (
+      {(visibleServers ?? []).length === 0 ? (
         <p className="mt-4 text-sm text-slate-400">No servers in your band right now — check back soon.</p>
       ) : (
         <ul className="mt-4 space-y-2">
-          {visibleServers.map((server) => (
+          {(Array.isArray(visibleServers) ? visibleServers : []).map((server, index) => (
             <li
-              key={server.id}
+              key={server?.id ?? index}
               className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[.03] px-4 py-3"
-              data-testid={`mmo-server-${server.id}`}
+              data-testid={`mmo-server-${String(server?.id ?? index)}`}
             >
               <div>
-                <p className="text-sm font-bold text-white">{server.name}</p>
-                <p className="text-xs text-slate-400">{SERVER_BAND_LABEL[server.band]}</p>
+                <p className="text-sm font-bold text-white">{String(server?.name ?? "—")}</p>
+                <p className="text-xs text-slate-400">{SERVER_BAND_LABEL[server?.band as ServerAgeBand] ?? "—"}</p>
               </div>
               <button
                 type="button"
-                onClick={() => onJoin?.(server.id)}
+                onClick={() => onJoin?.(String(server?.id ?? ""))}
                 className="rounded-full bg-cyan-300 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-cyan-200"
               >
                 Join

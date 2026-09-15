@@ -5,7 +5,7 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 
 
-// GET /api/time/debts - List Ghost Cash 👻 debts
+// GET /api/time/debts - List Ghost debts 👻
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
       project_id,
       creditor_id,
       debtor_id,
-      amount_ghost_cash,
+      amount_ghost,
       status,
       memo,
       settled_at,
@@ -55,7 +55,7 @@ export async function GET(req: Request) {
   if (status) query = query.eq("status", status);
 
   const { data: debts, error } = await query;
-  if (error) return dbFail("GET /api/time/debts", error, "Failed to load Ghost Cash debts.");
+  if (error) return dbFail("GET /api/time/debts", error, "Failed to load Ghost debts.");
 
   type DebtRow = {
     id: string;
@@ -65,7 +65,7 @@ export async function GET(req: Request) {
     debtor_id: string;
     creditor: { id: string; username: string; display_name: string | null } | null;
     debtor: { id: string; username: string; display_name: string | null } | null;
-    amount_ghost_cash: number | string | null;
+    amount_ghost: number | string | null;
     status: string;
     memo: string | null;
     settled_at: string | null;
@@ -89,7 +89,7 @@ export async function GET(req: Request) {
         username: d.debtor.username,
         displayName: d.debtor.display_name,
       } : null,
-      amountGhostCash: Number(d.amount_ghost_cash || 0),
+      amountGhost: Number(d.amount_ghost || 0),
       status: d.status,
       memo: d.memo,
       settledAt: d.settled_at,
@@ -98,7 +98,7 @@ export async function GET(req: Request) {
   });
 }
 
-// POST /api/time/debts - Create or settle Ghost Cash debt
+// POST /api/time/debts - Create or settle Ghost debt
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
     return fail("Invalid JSON body.", 400);
   }
 
-  const { action = "create", debtId, debtorId, amountGhostCash, memo, orgId } = body ?? {};
+  const { action = "create", debtId, debtorId, amountGhost, memo, orgId } = body ?? {};
 
   if (action === "settle" || action === "forgive") {
     if (!debtId || !/^[0-9a-f-]{36}$/i.test(String(debtId))) return fail("debtId is required.", 400);
@@ -163,8 +163,8 @@ export async function POST(req: Request) {
   }
 
   // Create manual debt entry
-  if (!debtorId || !amountGhostCash || Number(amountGhostCash as number | string) <= 0) {
-    return fail("debtorId and positive amountGhostCash are required.", 400);
+  if (!debtorId || !amountGhost || Number(amountGhost as number | string) <= 0) {
+    return fail("debtorId and positive amountGhost are required.", 400);
   }
 
   const { data: debt, error } = await supabase
@@ -173,14 +173,14 @@ export async function POST(req: Request) {
       org_id: orgId ? String(orgId) : null,
       creditor_id: u.id,
       debtor_id: String(debtorId),
-      amount_ghost_cash: Number(amountGhostCash as number | string),
+      amount_ghost: Number(amountGhost as number | string),
       status: "pending",
       memo: String(memo || "Freelance / marketing services").slice(0, 300),
     })
     .select()
     .single();
 
-  if (error) return dbFail("POST /api/time/debts", error, "Failed to record Ghost Cash debt.");
+  if (error) return dbFail("POST /api/time/debts", error, "Failed to record Ghost debt.");
 
   return ok({ debt }, 201);
 }

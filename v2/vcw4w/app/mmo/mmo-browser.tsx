@@ -71,9 +71,14 @@ function isRealm(value: unknown): value is MmorpgRealm {
 }
 
 function validateRealmList(value: unknown): MmorpgRealm[] | null {
+  if (typeof value !== "object" || value === null) {
+    if (!Array.isArray(value)) return null;
+    const onlyList = (Array.isArray(value) ? value : []).filter(isRealm);
+    return onlyList.length > 0 ? onlyList : null;
+  }
   const list = (value as { realms?: unknown }).realms ?? value;
   if (!Array.isArray(list)) return null;
-  const valid = list.filter(isRealm);
+  const valid = (Array.isArray(list) ? list : []).filter(isRealm);
   return valid.length > 0 ? valid : null;
 }
 
@@ -121,16 +126,16 @@ export function MmoBrowser() {
   }, []);
 
   const games = useMemo(
-    () => Array.from(new Set(realms.map((realm) => realm.slug))),
+    () => Array.from(new Set((Array.isArray(realms) ? realms : []).map((realm) => String(realm?.slug ?? "")))),
     [realms],
   );
 
   const visible = useMemo(
     () =>
-      realms.filter(
+      (Array.isArray(realms) ? realms : []).filter(
         (realm) =>
-          (gameFilter === "all" || realm.slug === gameFilter) &&
-          (ageFilter === "all" || realm.ageBand === ageFilter),
+          (String(gameFilter ?? "all") === "all" || String(realm?.slug ?? "") === String(gameFilter ?? "all")) &&
+          (String(ageFilter ?? "all") === "all" || String(realm?.ageBand ?? "") === String(ageFilter ?? "all")),
       ),
     [realms, gameFilter, ageFilter],
   );
@@ -157,9 +162,9 @@ export function MmoBrowser() {
             className="ml-1 rounded-md border border-white/10 bg-slate-900 px-2 py-1 text-xs text-white"
           >
             <option value="all">All games</option>
-            {games.map((slug) => (
-              <option key={slug} value={slug}>
-                {slug}
+            {(Array.isArray(games) ? games : []).map((slug, index) => (
+              <option key={String(slug ?? index)} value={String(slug ?? "")}>
+                {String(slug ?? "")}
               </option>
             ))}
           </select>
@@ -199,11 +204,11 @@ export function MmoBrowser() {
         </div>
         <span className="ml-auto text-[11px] text-slate-400">
           {source === "live" ? "Live quotes" : "Demo quotes (offline)"} &middot;{" "}
-          {visible.length} realm{visible.length === 1 ? "" : "s"}
+          {(Array.isArray(visible) ? visible : []).length} realm{(Array.isArray(visible) ? visible : []).length === 1 ? "" : "s"}
         </span>
       </div>
 
-      {visible.length === 0 ? (
+      {(Array.isArray(visible) ? visible : []).length === 0 ? (
         <p className="mt-3 rounded-xl border border-white/10 bg-white/[.04] p-4 text-xs text-slate-300">
           No realms match these filters. Try widening the game or age band.
         </p>
@@ -221,20 +226,20 @@ export function MmoBrowser() {
               </tr>
             </thead>
             <tbody>
-              {visible.map((realm) => (
-                <tr key={realm.slug} className="border-b border-white/5 hover:bg-white/[.03]">
+              {(Array.isArray(visible) ? visible : []).map((realm, index) => (
+                <tr key={String(realm?.slug ?? index)} className="border-b border-white/5 hover:bg-white/[.03]">
                   <td className="px-2 py-1.5 font-bold text-white">
-                    {realm.name}{" "}
-                    {realm.hostFree ? (
+                    {String(realm?.name ?? "Realm")}{" "}
+                    {realm?.hostFree ? (
                       <span className="ml-1 rounded-full bg-emerald-400/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-300">Free</span>
                     ) : null}
                   </td>
-                  <td className="px-2 py-1.5 text-slate-300">{realm.dimension.toUpperCase()}</td>
-                  <td className="px-2 py-1.5 text-slate-300">{realm.ageBand}</td>
-                  <td className="px-2 py-1.5 text-slate-300">up to {realm.maxParty}</td>
-                  <td className="px-2 py-1.5 font-bold text-cyan-300">{realm.costPerMin}/min</td>
+                  <td className="px-2 py-1.5 text-slate-300">{String(realm?.dimension ?? "").toUpperCase()}</td>
+                  <td className="px-2 py-1.5 text-slate-300">{String(realm?.ageBand ?? "")}</td>
+                  <td className="px-2 py-1.5 text-slate-300">up to {Number(realm?.maxParty ?? 0)}</td>
+                  <td className="px-2 py-1.5 font-bold text-cyan-300">{Number(realm?.costPerMin ?? 0)}/min</td>
                   <td className="px-2 py-1.5 text-right">
-                    <a href={`/mmo/rent?realm=${encodeURIComponent(realm.slug)}`} className="font-bold text-cyan-300 hover:underline">Enter &rarr;</a>
+                    <a href={`/mmo/rent?realm=${encodeURIComponent(String(realm?.slug ?? ""))}`} className="font-bold text-cyan-300 hover:underline">Enter &rarr;</a>
                   </td>
                 </tr>
               ))}
@@ -243,35 +248,35 @@ export function MmoBrowser() {
         </div>
       ) : (
         <ul className="mt-2 grid grid-cols-2 gap-2 lg:grid-cols-4">
-          {visible.map((realm) => (
+          {(Array.isArray(visible) ? visible : []).map((realm, index) => (
             <li
-              key={realm.slug}
+              key={String(realm?.slug ?? index)}
               className="flex h-[160px] flex-col rounded-xl border border-white/10 bg-white/[.04] p-3"
             >
               <div className="flex items-start justify-between gap-1.5">
-                <h2 className="truncate text-sm font-black">{realm.name}</h2>
-                {realm.hostFree ? (
+                <h2 className="truncate text-sm font-black">{String(realm?.name ?? "Realm")}</h2>
+                {realm?.hostFree ? (
                   <span className="shrink-0 rounded-full bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
                     Host-free
                   </span>
                 ) : null}
               </div>
               <p className="mt-1 text-[11px] text-slate-400">
-                {realm.dimension.toUpperCase()} &middot; {realm.ageBand} &middot; up to {realm.maxParty}
+                {String(realm?.dimension ?? "").toUpperCase()} &middot; {String(realm?.ageBand ?? "")} &middot; up to {Number(realm?.maxParty ?? 0)}
               </p>
               <p className="mt-1.5 text-[11px] text-slate-200">
                 <span className="text-lg font-black text-cyan-300">
-                  {realm.costPerMin}
+                  {Number(realm?.costPerMin ?? 0)}
                 </span>{" "}
                 coins/min
               </p>
-              {realm.hostFree ? (
+              {realm?.hostFree ? (
                 <p className="text-[10px] text-emerald-300">Free to join — host covers all.</p>
               ) : (
-                <p className="text-[10px] text-slate-500">{realm.maxParty} players max</p>
+                <p className="text-[10px] text-slate-500">{Number(realm?.maxParty ?? 0)} players max</p>
               )}
               <a
-                href={`/mmo/rent?realm=${encodeURIComponent(realm.slug)}`}
+                href={`/mmo/rent?realm=${encodeURIComponent(String(realm?.slug ?? ""))}`}
                 className="mt-auto rounded-md bg-cyan-300 px-2 py-1 text-center text-[11px] font-bold text-slate-950 transition hover:bg-cyan-200"
               >
                 Enter World &rarr;

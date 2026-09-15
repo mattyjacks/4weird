@@ -182,106 +182,18 @@ html.light [class*="bg-gradient"].text-slate-400, html.light [class*="bg-gradien
 html.light [class*="bg-gradient"].text-cyan-200, html.light [class*="bg-gradient"] .text-cyan-200 { color: #a5f3fc; }
 html.light [class*="bg-gradient"].text-cyan-300, html.light [class*="bg-gradient"] .text-cyan-300 { color: #67e8f9; }
 
-/* ---- Nav fluid system: one JS-driven swirl on desktop, per-device
-   opacity choreography everywhere. Desktop keeps the 2s mouse-disturbed
-   swirl fade (JS drives --fade/--vel/--swirl/--mx/--my); mobile + tablet get
-   their own tap-tuned fluid below. All curves are gentle ease-outs, never
-   linear, and everything collapses to instant under reduced motion. ---- */
-.nav-swirl-panel {
-  --fade: 0;
-  --mx: 50%;
-  --my: 0%;
-  --vel: 0;
-  --swirl: 0deg;
-  opacity: calc(1 - var(--fade));
-  transform: translateY(calc(var(--fade) * -18px)) scale(calc(1 - var(--fade) * 0.07));
-  transform-origin: top center;
-  clip-path: inset(0 0 calc(var(--fade) * 100%) 0 round 12px);
-  -webkit-mask-image:
-    linear-gradient(to bottom, #000 0%, #000 calc(100% - var(--fade) * 100% - 26px), transparent calc(100% - var(--fade) * 100% + 8px)),
-    radial-gradient(78% 92% at var(--mx) var(--my), #000 calc(74% - var(--vel) * 46%), transparent calc(110% - var(--vel) * 26%));
-  mask-image:
-    linear-gradient(to bottom, #000 0%, #000 calc(100% - var(--fade) * 100% - 26px), transparent calc(100% - var(--fade) * 100% + 8px)),
-    radial-gradient(78% 92% at var(--mx) var(--my), #000 calc(74% - var(--vel) * 46%), transparent calc(110% - var(--vel) * 26%));
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-  will-change: opacity, transform, clip-path, filter;
-  pointer-events: auto;
+/* ---- Nav standard dropdown (desktop/tablet hover menus) ----
+   Plain opacity + 4px rise, ~150ms ease-out, no masks / conic / blur.
+   Hover intent (~100ms) lives in DesktopNavGroup; Escape + outside-close
+   are owned by the parent openMenu state. Instant under reduced motion. */
+.nav-std-panel {
+  animation: nav-std-in 150ms ease-out both;
+  transform-origin: top left;
+  will-change: opacity, transform;
 }
-.nav-swirl-panel .nav-swirl-list {
-  position: relative;
-  isolation: isolate;
-}
-/* Aurora edge: a soft cyan->fuchsia wash that breathes with cursor energy,
-   visible even at rest so the panel never looks flat. */
-.nav-swirl-panel .nav-swirl-list::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-  opacity: calc(0.5 + var(--vel) * 0.5);
-  background:
-    radial-gradient(120% 60% at 50% -10%, rgb(34 211 238 / 0.16), transparent 60%),
-    radial-gradient(120% 70% at 85% 110%, rgb(192 38 211 / 0.14), transparent 62%);
-}
-/* Churning shimmer: conic vortex at the cursor + a counter-rotating veil. */
-.nav-swirl-panel .nav-swirl-list::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-  opacity: calc(0.28 + var(--fade) * 0.5 + var(--vel) * 0.45);
-  background: conic-gradient(from var(--swirl) at var(--mx) var(--my),
-    transparent 0deg, rgb(34 211 238 / 0.3) 70deg, rgb(192 38 211 / 0.26) 150deg,
-    transparent 220deg, rgb(34 211 238 / 0.2) 300deg, transparent 360deg);
-  mix-blend-mode: screen;
-}
-.dark .nav-swirl-panel .nav-swirl-list::after {
-  mix-blend-mode: screen;
-}
-.nav-swirl-list > li {
-  position: relative;
-  z-index: 1;
-}
-/* ---- DESKTOP fluid (fine pointer, wide): liquid blur + arc cascade ----
-   Links melt in with blur->sharp + a gentle upward arc, staggered on a curve
-   (later rows ease in a touch slower). Hover sweeps a light ribbon. */
-@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
-  .nav-swirl-panel {
-    filter: blur(calc(var(--fade) * 7px)) saturate(calc(1.18 - var(--fade) * 0.45)) brightness(calc(1.05 - var(--fade) * 0.14));
-  }
-  .nav-swirl-list > li {
-    animation: nav-link-liquid 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-    animation-delay: calc(var(--i, 0) * 38ms);
-  }
-  .nav-swirl-list > li:nth-child(n + 6) {
-    animation-delay: calc(190ms + (var(--i, 5) - 5) * 26ms);
-  }
-  .nav-swirl-list > li > a {
-    position: relative;
-    overflow: hidden;
-  }
-  .nav-swirl-list > li > a::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(100deg, transparent 20%, rgb(34 211 238 / 0.22) 50%, transparent 80%);
-    transform: translateX(-120%);
-    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-    pointer-events: none;
-  }
-  .nav-swirl-list > li > a:hover::before {
-    transform: translateX(120%);
-  }
-}
-@keyframes nav-link-liquid {
-  0% { opacity: 0; transform: translateY(-12px) translateX(-4px) scale(0.98); filter: blur(7px); }
-  55% { opacity: 0.85; transform: translateY(2px) translateX(1px) scale(1.005); filter: blur(1.5px); }
-  100% { opacity: 1; transform: translateY(0) translateX(0) scale(1); filter: blur(0); }
+@keyframes nav-std-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes nav-link-in {
   from { opacity: 0; transform: translateY(-7px); filter: blur(4px); }
@@ -451,12 +363,11 @@ html.light [class*="bg-gradient"].text-cyan-300, html.light [class*="bg-gradient
 @media (pointer: coarse) {
   .mobile-acc-panel { animation-duration: 0.42s; }
   .mobile-acc-list > li { animation-duration: 0.42s; }
-  .nav-swirl-panel .nav-swirl-list::after { opacity: calc(0.22 + var(--fade) * 0.4 + var(--vel) * 0.3); }
 }
 /* Motion-sensitive users + low-power: fluid off, scroll stays usable. */
 @media (prefers-reduced-motion: reduce) {
-  .nav-swirl-panel, .mobile-nav-sheet, .mobile-acc-panel,
-  .nav-swirl-list > li, .mobile-acc-list > li, .mobile-group-card {
+  .nav-std-panel, .mobile-nav-sheet, .mobile-acc-panel,
+  .mobile-acc-list > li, .mobile-group-card {
     animation: none !important;
     transition: none !important;
     filter: none !important;
@@ -464,10 +375,9 @@ html.light [class*="bg-gradient"].text-cyan-300, html.light [class*="bg-gradient
   .mobile-nav-scroll, .mobile-acc-scroll { scroll-behavior: auto; }
   .mobile-acc-scroll { -webkit-mask-image: none; mask-image: none; }
 }
-html.a11y-reduced-motion .nav-swirl-panel,
+html.a11y-reduced-motion .nav-std-panel,
 html.a11y-reduced-motion .mobile-nav-sheet,
 html.a11y-reduced-motion .mobile-acc-panel,
-html.a11y-reduced-motion .nav-swirl-list > li,
 html.a11y-reduced-motion .mobile-acc-list > li {
   animation: none !important;
   transition: none !important;

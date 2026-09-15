@@ -160,7 +160,7 @@ export function OrgScale() {
         Org
         <select id="scale-org" name="org" value={orgId} onChange={(e) => setOrgId(e.target.value)} className="mt-1 block rounded-lg border border-white/15 bg-black/30 px-3 py-2">
           <option value="">Pick an org…</option>
-          {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+          {orgs.map((o, oi) => <option key={o.id ?? oi} value={o.id}>{o.name}</option>)}
         </select>
       </label>
       <p role="status" className="mt-2 text-sm text-slate-400">{message}</p>
@@ -213,8 +213,8 @@ export function OrgScale() {
             {preview.length > 0 && (
               <ul className="mt-3 max-h-40 space-y-1 overflow-y-auto text-xs text-slate-300">
                 <li className="text-slate-500">Showing {preview.length} of {victimCount} (oldest-activity first):</li>
-                {preview.map((v) => (
-                  <li key={v.user_id}>{v.display_name} · joined {new Date(v.joined_at).toLocaleDateString()} · last active {v.last_active ? new Date(v.last_active).toLocaleDateString() : "never"}</li>
+                {(Array.isArray(preview) ? preview : []).map((v, vi) => (
+                  <li key={v.user_id ?? vi}>{String(v.display_name ?? "—")} · joined {v.joined_at ? new Date(v.joined_at).toLocaleDateString() : "—"} · last active {v.last_active ? new Date(v.last_active).toLocaleDateString() : "never"}</li>
                 ))}
               </ul>
             )}

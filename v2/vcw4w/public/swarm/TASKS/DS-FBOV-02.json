@@ -1,0 +1,22 @@
+{
+  "id": "DS-FBOV-02",
+  "title": "Identity client: session detect + guest contact + draft persist",
+  "goal": "FBOV overhaul slice DS-FBOV-02: Identity client: session detect + guest contact + draft persist. Owner works scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/feedback-button.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fbov-02",
+  "created": "2026-09-15T01:24:04.761Z",
+  "updated": "2026-09-14T21:43:43Z",
+  "log": [
+    "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+    "2026-09-14T21:28:14Z fbov-02: claimed; implementing session detect + guest contact + draft persist in feedback-button.tsx only.",
+    "2026-09-14T21:43:43Z fbov-02: done. Identity client in feedback-button.tsx only (dialog/route read-only): supabase getUser fail-open guest, tracked-when-signed-in default, guest contact 1..100/regex 3..254, draft fw-feedback-draft text+rating+critique+visibility (merged with sibling slice, never screenshots), submit visibility+contact_name/contact_email+annotations both encodings, reporterType human default. Gates: npx tsc --noEmit TSC_EXIT=0; npx eslint components/feedback/feedback-button.tsx ESLINT_EXIT=0. Note: fbov-01/fbov-05 actively co-editing same file (draft slice, annotator preview, png/webp validation) — reconciled live, no reverts; screenshotPreviewUrl computed but not yet passed to dialog (their follow-up)."
+  ]
+}

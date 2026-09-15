@@ -166,8 +166,9 @@ const SLUG_PATTERN = /^[a-z0-9-]{1,64}$/;
 
 /** Join link — same shape as the sibling tree: /games/<slug>?server=<id>&mmo=1 */
 export function serverJoinHref(server: Pick<GameServer, "id" | "slug">): string {
-  const slug = SLUG_PATTERN.test(server.slug) ? server.slug : "platform-wars";
-  return `/games/${slug}?server=${encodeURIComponent(server.id)}&mmo=1`;
+  const rawSlug = String(server?.slug ?? "");
+  const slug = SLUG_PATTERN.test(rawSlug) ? rawSlug : "platform-wars";
+  return `/games/${slug}?server=${encodeURIComponent(String(server?.id ?? ""))}&mmo=1`;
 }
 
 /**
@@ -205,7 +206,7 @@ export function ServerCard({ server }: { server: GameServer }) {
       </span>
       <span className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
         <Link
-          href={`/games/servers/${encodeURIComponent(server.id)}`}
+          href={`/games/servers/${encodeURIComponent(String(server?.id ?? ""))}`}
           className="flex min-h-[44px] w-full items-center justify-center whitespace-nowrap rounded-lg border border-white/20 px-4 py-3 text-base font-semibold text-slate-200 hover:bg-white/10 sm:w-auto"
         >
           Details

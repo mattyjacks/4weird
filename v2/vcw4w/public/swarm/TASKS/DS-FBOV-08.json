@@ -1,0 +1,22 @@
+{
+  "id": "DS-FBOV-08",
+  "title": "Admin repair: canonical columns + filters + signed screenshot route",
+  "goal": "FBOV overhaul slice DS-FBOV-08: Admin repair: canonical columns + filters + signed screenshot route. Owner works scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/feedback/admin/page.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fbov-08",
+  "created": "2026-09-15T01:24:04.761Z",
+  "updated": "2026-09-15T04:30:00.000Z",
+  "log": [
+    "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+    "2026-09-15T04:00:00.000Z fbov-08: claimed (in_progress, owner fbov-08). Scope per dispatch: app/feedback/admin/page.tsx repair + CREATE app/api/feedback/[id]/screenshot/route.ts (both web-lane, non-carved). Will implement status tabs, canonical columns, filter bar, detail drawer, signed-URL route; no other files/old-v1.",
+    "2026-09-15T04:30:00.000Z fbov-08: DONE. Rewrote app/feedback/admin/page.tsx (server-only, single file): status tabs unaddressed/addressing/addressed via ?status= (replaces addressed-boolean query), select(*) fail-soft for not-yet-migrated ai_*/annotations/admin_note columns, canonical text_body + screenshot_path (thumbnail_url removed), visibility badge, masked contact (first-char + ***@domain), labels chips, page_url link, annotations count, ai_summary block; GET-form filter bar (rating/critique/visibility/has-screenshot/search, in-memory fail-soft); per-row <details> drawer with screenshot via /api/feedback/[id]/screenshot + SVG annotation overlay (rect/circle/arrow/highlight/blur, 0..1-or-% coords) + annotation comments + disabled status-flip/admin-note fieldset (no update path exists; enrich route is AI-columns-only by design, so page invents zero destructive writes). Screenshot route already existed from sibling work (getUser + app_metadata admin + service-role createSignedUrl redirect) — single spec-alignment edit: TTL 300s->60s. GATES: npx tsc --noEmit => zero errors in feedback/admin + feedback/[id]/screenshot (only repo error is pre-existing app/docs/feedback/page.tsx(146,67) TS1005/TS1381, another lane's working-tree change, out of scope); npx eslint on both files => 0 errors, 1 warning (no-img-element, intentional plain <img> for same-origin signed redirect, same as predecessor). QUEUE-FOR-STEWARD: (1) API lane to ship POST /api/feedback/[id]/status (admin session, status+admin_note, audit row into feedback_events per 20261212000000_feedback_admin.sql), then drawer wires to it; (2) overlap ruling: untracked sibling files app/feedback/admin/feedback-admin.ts + copy-button.tsx + copy-email-button.tsx + app/api/feedback/admin/export/route.ts coexist with this self-contained page — steward to rule on wiring vs single-winner. No other files touched; old-v1 untouched; STATUS.json/QUEUE not edited (steward-owned)."
+  ]
+}

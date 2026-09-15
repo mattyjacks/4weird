@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { TimerEntry, formatDuration, formatGhostCash } from "@/types/time";
+import { TimerEntry, formatDuration, formatGhostAmount } from "@/types/time";
 import { Clock, Trash2, CheckCircle2, XCircle, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -13,6 +13,7 @@ interface TimeEntryListProps {
 
 export function TimeEntryList({ entries, onDelete }: TimeEntryListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const safeEntries = Array.isArray(entries) ? entries : [];
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this time entry?")) return;
@@ -24,7 +25,7 @@ export function TimeEntryList({ entries, onDelete }: TimeEntryListProps) {
     }
   };
 
-  if (entries.length === 0) {
+  if (safeEntries.length === 0) {
     return (
       <div className="rounded-xl border border-white/10 bg-zinc-950/40 p-8 text-center text-zinc-500">
         <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -35,11 +36,11 @@ export function TimeEntryList({ entries, onDelete }: TimeEntryListProps) {
 
   return (
     <div className="space-y-3">
-      {entries.map((entry) => {
+      {safeEntries.map((entry, ei) => {
         const isRunning = entry.isRunning;
         return (
           <div
-            key={entry.id}
+            key={entry.id ?? ei}
             className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-white/10 bg-zinc-950/60 hover:border-white/20 transition-all gap-4"
           >
             <div className="space-y-1.5 flex-1">
@@ -97,8 +98,8 @@ export function TimeEntryList({ entries, onDelete }: TimeEntryListProps) {
 
               <div className="flex items-center gap-3 text-xs text-zinc-400">
                 <span>
-                  {new Date(entry.startTime).toLocaleDateString()} at{" "}
-                  {new Date(entry.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  {entry.startTime ? new Date(entry.startTime).toLocaleDateString() : "—"} at{" "}
+                  {entry.startTime ? new Date(entry.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
                 </span>
                 {entry.debtor && (
                   <span>
@@ -114,7 +115,7 @@ export function TimeEntryList({ entries, onDelete }: TimeEntryListProps) {
                   {formatDuration(entry.duration || 0)}
                 </div>
                 <div className="text-xs font-mono font-semibold text-emerald-400">
-                  {formatGhostCash(entry.ghostCashOwed)}
+                  {formatGhostAmount(entry.ghostOwed)}
                 </div>
               </div>
 

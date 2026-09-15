@@ -24,7 +24,7 @@ export default function InvoicingTrashDocsPage() {
 
       <p className="mt-4 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm font-bold">
         These are NOT tax invoices — internal coin accounting only. Marking one paid moves no
-        coins by itself. Ghost Cash (👻) has no cash value and can never settle an invoice.
+        coins by itself. Ghost (👻) has no monetary value and can never settle an invoice.
       </p>
 
       <h2 className="mt-8 text-xl font-black">What exists today</h2>

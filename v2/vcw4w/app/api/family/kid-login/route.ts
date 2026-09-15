@@ -81,6 +81,18 @@ export async function POST(req: NextRequest) {
     return fail("Wrong handle or password.", 401);
   }
   const { token, tokenHash } = newKidToken();
+  // Refuse a 6th concurrent live session (fail closed): insert-then-evict
+  // alone would let anyone holding the password silently kick the child's
+  // live sessions one by one. Expired rows don't count; the slice(5)
+  // cleanup below stays as stale-row hygiene.
+  const { count: liveCount } = await service
+    .from("kid_sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("kid_id", kid.id)
+    .gt("expires_at", new Date().toISOString());
+  if ((liveCount ?? 0) >= 5) {
+    return fail("Too many active sessions for this child account. Log out another device first.", 429);
+  }
   const { error: sessionError } = await service.from("kid_sessions").insert({
     kid_id: kid.id,
     token_hash: tokenHash,

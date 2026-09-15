@@ -108,7 +108,12 @@ export async function PATCH(req: Request) {
       const service = serviceClient();
       const { count } = await service.from("kid_accounts").select("id", { count: "exact", head: true }).eq("parent_id", u.id);
       if ((count ?? 0) > 0) return fail("Close your child accounts first.", 409);
-    } catch {
+    } catch (error) {
+      // Structured 500 (never bare): kid_accounts read failed. Logged so
+      // Vercel logs name the cause. (DS-PAGEFIX-07)
+      console.error("[api] api/me/profile kid_accounts read failed", {
+        message: String((error as { message?: unknown } | null)?.message ?? error ?? "unknown").slice(0, 200),
+      });
       return fail("Server misconfigured.", 500);
     }
   }

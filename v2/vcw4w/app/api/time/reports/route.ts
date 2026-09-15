@@ -3,7 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 
 
-// GET /api/time/reports - Generate reports on hours and Ghost Cash 👻
+// GET /api/time/reports - Generate reports on hours and Ghosts 👻
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const supabase = await createClient();
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
       duration,
       is_billable,
       ghost_rate,
-      ghost_cash_owed,
+      ghost_owed,
       activity_score,
       project_id,
       debtor_id,
@@ -56,15 +56,15 @@ export async function GET(req: Request) {
   let totalSeconds = 0;
   let billableSeconds = 0;
   let nonBillableSeconds = 0;
-  let totalGhostCashOwed = 0;
+  let totalGhostOwed = 0;
   let totalActivityScore = 0;
 
-  const projectMap: Record<string, { projectName: string; projectColor: string; totalSeconds: number; totalGhostCash: number }> = {};
-  const debtorMap: Record<string, { debtorName: string; totalSeconds: number; totalGhostCash: number }> = {};
+  const projectMap: Record<string, { projectName: string; projectColor: string; totalSeconds: number; totalGhost: number }> = {};
+  const debtorMap: Record<string, { debtorName: string; totalSeconds: number; totalGhost: number }> = {};
 
   type ReportRow = {
     duration: number | null;
-    ghost_cash_owed: number | string | null;
+    ghost_owed: number | string | null;
     activity_score: number | null;
     is_billable: boolean;
     project_id: string | null;
@@ -75,13 +75,13 @@ export async function GET(req: Request) {
 
   ((entries ?? []) as unknown as ReportRow[]).forEach((e) => {
     const dur = e.duration || 0;
-    const owed = Number(e.ghost_cash_owed || 0);
+    const owed = Number(e.ghost_owed || 0);
     const act = e.activity_score ?? 100;
 
     totalSeconds += dur;
     if (e.is_billable) {
       billableSeconds += dur;
-      totalGhostCashOwed += owed;
+      totalGhostOwed += owed;
     } else {
       nonBillableSeconds += dur;
     }
@@ -93,11 +93,11 @@ export async function GET(req: Request) {
           projectName: e.project.name,
           projectColor: e.project.color ?? "#3b82f6",
           totalSeconds: 0,
-          totalGhostCash: 0,
+          totalGhost: 0,
         };
       }
       projectMap[e.project_id].totalSeconds += dur;
-      projectMap[e.project_id].totalGhostCash += owed;
+      projectMap[e.project_id].totalGhost += owed;
     }
 
     if (e.debtor_id && e.debtor) {
@@ -105,11 +105,11 @@ export async function GET(req: Request) {
         debtorMap[e.debtor_id] = {
           debtorName: e.debtor.display_name || e.debtor.username || "Unknown",
           totalSeconds: 0,
-          totalGhostCash: 0,
+          totalGhost: 0,
         };
       }
       debtorMap[e.debtor_id].totalSeconds += dur;
-      debtorMap[e.debtor_id].totalGhostCash += owed;
+      debtorMap[e.debtor_id].totalGhost += owed;
     }
   });
 
@@ -122,7 +122,7 @@ export async function GET(req: Request) {
         totalSeconds,
         billableSeconds,
         nonBillableSeconds,
-        totalGhostCashOwed: Number(totalGhostCashOwed.toFixed(2)),
+        totalGhostOwed: Number(totalGhostOwed.toFixed(2)),
         entryCount,
         totalHours: Number((totalSeconds / 3600).toFixed(2)),
         billableHours: Number((billableSeconds / 3600).toFixed(2)),
@@ -131,12 +131,12 @@ export async function GET(req: Request) {
       byProject: Object.entries(projectMap).map(([projectId, d]) => ({
         projectId,
         ...d,
-        totalGhostCash: Number(d.totalGhostCash.toFixed(2)),
+        totalGhost: Number(d.totalGhost.toFixed(2)),
       })),
       byDebtor: Object.entries(debtorMap).map(([debtorId, d]) => ({
         debtorId,
         ...d,
-        totalGhostCash: Number(d.totalGhostCash.toFixed(2)),
+        totalGhost: Number(d.totalGhost.toFixed(2)),
       })),
     },
   });

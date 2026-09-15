@@ -1689,7 +1689,7 @@ export function SquadKanbanBoard() {
 ## 4.3 Feature 16: Professional Time Tracking & 1-Click Invoice Conversion
 
 ### Architectural Blueprint
-Upgrades 4weird's `/timer` from hypothetical Ghost Cash into a real, drift-proof work clock:
+Upgrades 4weird's `/timer` from hypothetical Ghosts into a real, drift-proof work clock:
 - **Web Worker Engine**: Runs tick cycles in a background worker so tabs never drift or lose seconds when minimized.
 - **Project Budgets & Rates**: Assign hourly rates and budget hours to track team burn.
 - **1-Click Invoice Conversion**: Aggregates unbilled time entries and generates a pre-filled draft invoice.

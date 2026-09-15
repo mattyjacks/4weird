@@ -72,6 +72,16 @@ export const MAX_PRESET_BYTES = 400;
  */
 export const SYNTH_MODULE: string = "./synth";
 
+// Hidden from static analysis on purpose: Turbopack treats even a variable
+// `await import(SYNTH_MODULE)` as a resolvable dependency and fails the
+// build while synth.ts is mid-flight. `new Function` keeps the specifier
+// opaque while the surrounding try/catch preserves fail-soft.
+type DynamicImporter = (spec: string) => Promise<unknown>;
+const dynImport: DynamicImporter = new Function(
+  "s",
+  "return import(s)",
+) as DynamicImporter;
+
 // ---------------------------------------------------------------------------
 // Step builder (pure, SSR-safe)
 // ---------------------------------------------------------------------------
@@ -417,7 +427,7 @@ export async function playSfxPreset(name: string): Promise<boolean> {
     const preset = getSfxPreset(name);
     if (!preset) return false;
     try {
-      const mod: unknown = await import(SYNTH_MODULE);
+      const mod: unknown = await dynImport(SYNTH_MODULE);
       if (mod !== null && typeof mod === "object" && "playSfx" in mod) {
         const fn = (mod as { playSfx?: unknown }).playSfx;
         if (typeof fn === "function") {

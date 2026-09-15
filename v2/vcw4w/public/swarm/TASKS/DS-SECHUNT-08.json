@@ -1,0 +1,32 @@
+{
+    "created":  "2026-09-15T00:22:00.000Z",
+    "gates":  [
+                  "node scripts/verify-love-letters.mjs",
+                  "node scripts/verify-devswarm.mjs"
+              ],
+    "goal":  "Love/referral/cron routes are abuse-tight: no self-love/self-referral/self-backing, one-gift-per-giver-per-post, quest completion never self-granted, cron routes Bearer-gated (CRON_SECRET), refunds obey 90-day/unspent/paid-lot rules. Fix in scope (additive, narrow). Reviewer re-runs gate green and curls self-give 403 + cron-without-secret 401.",
+    "id":  "DS-SECHUNT-08",
+    "lane":  "economy",
+    "log":  [
+                "2026-09-15T00:22:00.000Z sechunt-lead: envelope created (CHEAP wave, 1-file-per-agent rule for workers), awaiting claim.",
+                "2026-09-15T00:33:44.488Z sechunt-08: claimed, in_progress audit start",
+                "2026-09-15T20:35:00.000Z secv-08: claimed (in_progress), auditing love/referral/cron abuse gates.",
+                "2026-09-15T20:35:00.000Z sechunt-08: audit complete, zero source edits. quests self-complete 400 (route.ts:82), referrals self-use 400 (route.ts:74), verification request-only no self-grant, 7x cron Bearer CRON_SECRET fail-closed 401, profile/me GET-only. love-letters gate OK. devswarm red ONLY on pre-existing torn DS-FIX500-02.json (parse fail col 1019, last-write 2026-09-13, out of scope, untouched).",
+                "2026-09-15T00:43:29.773Z sechunt-08: status-\u003eblocked (blocked-honest: lane green, swarm gate red on pre-existing torn file outside scope)",
+                "2026-09-15T20:55:00.000Z secv-08: VULN-1 FIXED (1 file, additive): app/api/love/quests/route.ts self-mint guard compared raw-trimmed user_id to auth id case-sensitively; Postgres casts UUIDs case-insensitively, so an uppercased self id bypassed the route check into the mint RPC. Fix: .trim().toLowerCase() before comparison + comment. Sibling sechunt-08 audit lines preserved, not overwritten.",
+                "2026-09-15T20:55:00.000Z secv-08: gates: verify-love-letters GREEN (Love Letters integrity OK), npx eslint route clean, npx tsc --noEmit exit 0 repo-wide; verify-devswarm RED solely on pre-existing torn DS-FIX500-02.json col 1019 (steward-owned, repair spec + corroboration already queued, untouched). Audit: referrals self-use/one-use/25-25 enforced uuid-level in apply_referral RPC; 7/7 cron Bearer CRON_SECRET fail-closed timing-safe; refund_coin_lot enforces 90d/unspent/paid-lot-only + refunded_coins/refunded_at (read-only, out of scope); love_gifts_one_gift_per_post index + RPC own-post checks hold. OPEN GAP queued: complete_clan_quest lacks RPC-layer self-check (direct-RPC self-mint) -\u003e QUEUE steward ask filed.",
+                "2026-09-15T20:55:00.000Z secv-08: status-\u003eblocked (blocked-honest: lane green + fix landed, swarm gate red only on extrinsic torn file outside scope)"
+            ],
+    "owner":  "secv-08",
+    "scope":  [
+                  "v2/vcw4w/app/api/love/quests/**",
+                  "v2/vcw4w/app/api/love/profile/**",
+                  "v2/vcw4w/app/api/love/me/**",
+                  "v2/vcw4w/app/api/referrals/**",
+                  "v2/vcw4w/app/api/verification/**",
+                  "v2/vcw4w/app/api/cron/**"
+              ],
+    "status":  "blocked",
+    "title":  "SECHUNT love/referral/cron abuse gates + refund rules",
+    "updated":  "2026-09-15T20:55:00.000Z"
+}

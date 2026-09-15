@@ -418,12 +418,25 @@ function pickSfx(mod: Record<string, unknown>): unknown[] {
   return [];
 }
 
+// Hidden from static analysis on purpose: Turbopack/webpack treat even a
+// variable `await import(spec)` as a resolvable dependency and fail the
+// build when an optional source is absent. `new Function` keeps the
+// specifier opaque while the surrounding try/catch preserves fail-soft.
+type DynamicImporter = (spec: string) => Promise<unknown>;
+const dynImport: DynamicImporter = new Function(
+  "s",
+  "return import(s)",
+) as DynamicImporter;
+
 async function tryImportSeeds(): Promise<SeedPair> {
   const out: SeedPair = { songs: [], sfx: [] };
   // DS-MUS-09 content/music-seeds.ts (SONGS + SFX) plus the
   // content/music/*.4ws.json sidecars ({song,sfx,from,source} wrapping
   // verbatim 4W-1). Variable specifier keeps tsc green while a source is
   // absent mid-flight; any failure => fail-open empty.
+  // Bundler-opaque on purpose: Turbopack treats even a variable
+  // `await import(spec)` as a resolvable dependency and fails the build;
+  // `new Function` keeps the specifier opaque while try/catch stays fail-soft.
   const candidates = [
     "@/content/music-seeds",
     "../../../content/music-seeds",
@@ -431,7 +444,7 @@ async function tryImportSeeds(): Promise<SeedPair> {
   ];
   for (const spec of candidates) {
     try {
-      const mod = (await import(spec)) as Record<string, unknown>;
+      const mod = (await dynImport(spec)) as Record<string, unknown>;
       for (const raw of pickSongs(mod)) {
         const r = validateSong(raw);
         if (r.ok && r.song) out.songs.push(r.song);

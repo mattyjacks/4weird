@@ -167,20 +167,20 @@ export function ServerRentForm({ games }: { games: RentGameOption[] }) {
       {step === 0 && (
         <section aria-label="Choose a game" className="rounded-2xl border border-white/10 bg-white/[.04] p-4 sm:p-6">
           <h2 className="text-lg font-bold">Which game is this room for?</h2>
-          {games.length ? (
+          {(games ?? []).length ? (
             <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-              {games.map((g) => (
-                <li key={g.slug}>
+              {(Array.isArray(games) ? games : []).map((g, index) => (
+                <li key={g?.slug ?? index}>
                   <button
                     type="button"
-                    onClick={() => setGame(g.slug)}
-                    aria-pressed={game === g.slug}
+                    onClick={() => setGame(String(g?.slug ?? ""))}
+                    aria-pressed={game === g?.slug}
                     className={`min-h-[44px] w-full rounded-xl border px-4 py-3 text-left text-base ${
-                      game === g.slug ? "border-cyan-300/60 bg-cyan-300/10" : "border-white/15 hover:bg-white/5"
+                      game === g?.slug ? "border-cyan-300/60 bg-cyan-300/10" : "border-white/15 hover:bg-white/5"
                     }`}
                   >
-                    <b className="block">{g.title}</b>
-                    <small className="text-slate-400">{g.genre ?? g.slug}</small>
+                    <b className="block">{String(g?.title ?? "—")}</b>
+                    <small className="text-slate-400">{String(g?.genre ?? g?.slug ?? "—")}</small>
                   </button>
                 </li>
               ))}

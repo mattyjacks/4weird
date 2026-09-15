@@ -83,6 +83,22 @@ export async function POST(req: Request) {
     });
   }
 
+  // Balance pre-check (402 when short): metering lands AFTER Meshy
+  // accepts the task, so without this a zero-balance caller could queue
+  // Meshy.ai work billed to the server key and walk away uncharged.
+  // Session callers read their own balance (mirrors /api/fal/generate);
+  // bot callers have no session, so they rely on the meter RPC's spend
+  // lock below, which still fails closed before any charge is skipped.
+  if (!viaBot) {
+    try {
+      const { data: bal, error: balError } = await supabase.rpc("get_my_coin_balance");
+      if (balError) return dbFail("api/meshy/generate", balError, "Unable to check balance.");
+      if ((Number(bal) || 0) < quote.gross) return fail("Insufficient Vibe Coin balance.", 402);
+    } catch (error) {
+      return dbFail("api/meshy/generate", error, "Unable to check balance.");
+    }
+  }
+
   let svc: ReturnType<typeof serviceClient>;
   try {
     svc = serviceClient();
@@ -103,10 +119,14 @@ export async function POST(req: Request) {
   if (jobErr || !job) return dbFail("api/meshy/generate", jobErr, "Unable to open job.");
   const jobId = (job as { id: string }).id;
 
-  // Meter AFTER Meshy accepts the task: a rejected queue is free by
-  // construction. (Meter-first billed failed queues.) The meter RPC
-  // re-checks balance under its spend lock, so short funds fail closed
-  // here and the job is marked failed, never silently free.
+  // Meter BEFORE Meshy is touched: metering gates the goods, so a failed
+  // meter fails the run instead of queueing spend the ledger never sees.
+  // (Meter-after-accept let an empty wallet queue real provider spend and
+  // leave the server key holding the bill.) The meter RPC re-checks balance
+  // under its spend lock, so a race that empties the wallet between check
+  // and debit still fails closed with no queue submitted — parity with
+  // POST /api/fal/generate. A provider rejection after a successful meter
+  // stays metered (contact support for a credit), never silently free.
   async function meterOrFail(): Promise<{ ok: true } | { ok: false; response: Response }> {
     if (viaBot) {
       const { error } = await svc.rpc("meter_meshy_usage_for", {
@@ -117,7 +137,7 @@ export async function POST(req: Request) {
       });
       if (error) {
         await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
-        return { ok: false, response: rpcFail("api/meshy/generate", error, rpcStatus, "Queued on Meshy.ai but unable to meter; not charged.") };
+        return { ok: false, response: rpcFail("api/meshy/generate", error, rpcStatus, "Unable to meter; nothing was queued.") };
       }
     } else {
       const { error } = await supabase.rpc("meter_meshy_usage", {
@@ -127,7 +147,7 @@ export async function POST(req: Request) {
       });
       if (error) {
         await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
-        return { ok: false, response: rpcFail("api/meshy/generate", error, rpcStatus, "Queued on Meshy.ai but unable to meter; not charged.") };
+        return { ok: false, response: rpcFail("api/meshy/generate", error, rpcStatus, "Unable to meter; nothing was queued.") };
       }
     }
     return { ok: true };
@@ -171,6 +191,9 @@ export async function POST(req: Request) {
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20_000);
+  // Meter-first: no provider spend before the ledger debit lands.
+  const metered = await meterOrFail();
+  if (!metered.ok) return metered.response;
   try {
     const res = await fetch(endpoint, {
       method: "POST",
@@ -181,8 +204,8 @@ export async function POST(req: Request) {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       if (res.status === 401 || res.status === 403) {
-        console.error(`[api/meshy/generate] Meshy rejected the server key (HTTP ${res.status}, op ${opRaw}). Nothing was charged.`);
-        return fail("Meshy.ai rejected the server key. Re-issue MESHY_API_KEY; nothing was charged.", 502);
+        console.error(`[api/meshy/generate] Meshy rejected the server key (HTTP ${res.status}, op ${opRaw}). The run was metered before queueing; nothing reached Meshy.`);
+        return fail("Meshy.ai rejected the server key. Re-issue MESHY_API_KEY; the run was metered before queueing, so contact support if you need a credit.", 502);
       }
       await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
       return fail(`Meshy.ai queue HTTP ${res.status}: ${text.slice(0, 160)}`, 502);
@@ -193,8 +216,6 @@ export async function POST(req: Request) {
       await svc.from("meshy_jobs").update({ status: "failed" }).eq("id", jobId);
       return fail("Meshy.ai returned no task id.", 502);
     }
-    const metered = await meterOrFail();
-    if (!metered.ok) return metered.response;
     await svc
       .from("meshy_jobs")
       .update({ meshy_task_id: taskId, status: "processing", coins: quote.gross, cut: quote.cut })

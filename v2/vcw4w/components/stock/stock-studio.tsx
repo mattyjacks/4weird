@@ -154,9 +154,10 @@ export function StockStudio() {
   }
 
   function runRecent(entry: string) {
-    const sep = entry.indexOf(":");
-    const entryKind = (sep > 0 ? entry.slice(0, sep) : "image") as PexelsKind;
-    const entryQuery = sep > 0 ? entry.slice(sep + 1) : entry;
+    const safeEntry = String(entry ?? "");
+    const sep = safeEntry.indexOf(":");
+    const entryKind = (sep > 0 ? safeEntry.slice(0, sep) : "image") as PexelsKind;
+    const entryQuery = sep > 0 ? safeEntry.slice(sep + 1) : safeEntry;
     setQuery(entryQuery);
     setKind(entryKind === "video" ? "video" : "image");
     void run({ mode: "search", query: entryQuery, kind: entryKind === "video" ? "video" : "image", color: "", orientation: "", page: 1 });
@@ -197,9 +198,9 @@ export function StockStudio() {
       </CompactDetails>
 
       <section aria-label="Vibe presets" className="flex gap-1.5 overflow-x-auto pb-1">
-        {PEXELS_PRESETS.map((preset) => (
+        {(Array.isArray(PEXELS_PRESETS) ? PEXELS_PRESETS : []).map((preset, index) => (
           <button
-            key={preset.label}
+            key={preset?.label ?? index}
             type="button"
             onClick={() => runPreset(preset)}
             disabled={busy}
@@ -271,7 +272,7 @@ export function StockStudio() {
               </button>
               {PEXELS_COLORS.map((c) => (
                 <button
-                  key={c.name}
+                  key={c?.name ?? String(c?.hex ?? "")}
                   type="button"
                   onClick={() => setColor(color === c.name ? "" : c.name)}
                   aria-pressed={color === c.name}
@@ -294,18 +295,18 @@ export function StockStudio() {
             </select>
           </label>
         </div>
-        {recents.length > 0 && (
+        {(recents ?? []).length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-1.5">
             <span className="text-xs text-slate-500">🕘 Recent hunts:</span>
-            {recents.map((entry) => (
+            {(Array.isArray(recents) ? recents : []).map((entry, index) => (
               <button
-                key={entry}
+                key={String(entry ?? "") || index}
                 type="button"
-                onClick={() => runRecent(entry)}
+                onClick={() => runRecent(String(entry ?? ""))}
                 disabled={busy}
                 className="rounded-full border border-white/10 px-2.5 py-0.5 text-xs text-slate-300 hover:border-emerald-300/50 disabled:opacity-50"
               >
-                {entry.startsWith("video:") ? "🎬" : "🖼️"} {entry.slice(entry.indexOf(":") + 1)}
+                {String(entry ?? "").startsWith("video:") ? "🎬" : "🖼️"} {String(entry ?? "").slice(String(entry ?? "").indexOf(":") + 1)}
               </button>
             ))}
           </div>
@@ -313,33 +314,33 @@ export function StockStudio() {
         <p role="status" className="mt-3 text-sm text-slate-400">{message}</p>
       </section>
 
-      {items.length === 0 && !lastRun && (
+      {(items ?? []).length === 0 && !lastRun && (
         <p className="rounded-xl border border-dashed border-white/15 p-3.5 text-center text-sm text-slate-500">
           🗺️ The treasure map is blank. Tap a vibe above, roll the 🎲, or type your own quest to fill it with loot.
         </p>
       )}
 
-      {items.length > 0 && (
+      {(items ?? []).length > 0 && (
         <section aria-label="Stock results" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {items.map((item) => (
-              <article key={`${item.kind}-${item.id}`} className="group overflow-hidden rounded-xl border border-white/10 bg-white/[.03] transition hover:border-emerald-300/40">
-              {item.kind === "video" ? (
-                <video src={item.url} poster={item.previewUrl || undefined} controls preload="metadata" className="aspect-video w-full bg-black object-cover" />
+          {(Array.isArray(items) ? items : []).map((item, index) => (
+              <article key={`${String(item?.kind ?? "x")}-${String(item?.id ?? index)}`} className="group overflow-hidden rounded-xl border border-white/10 bg-white/[.03] transition hover:border-emerald-300/40">
+              {item?.kind === "video" ? (
+                <video src={String(item?.url ?? "")} poster={item?.previewUrl || undefined} controls preload="metadata" className="aspect-video w-full bg-black object-cover" />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={item.previewUrl} alt={item.alt} loading="lazy" className="aspect-video w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
+                <img src={String(item?.previewUrl ?? "")} alt={String(item?.alt ?? "")} loading="lazy" className="aspect-video w-full object-cover transition duration-300 group-hover:scale-[1.02]" />
               )}
               <div className="space-y-2 p-3">
                 <p className="text-xs text-slate-400">
-                  {item.credit} ·{" "}
-                  <a href={item.creditUrl} target="_blank" rel="noreferrer" className="underline">creator</a> ·{" "}
-                  <a href={item.sourceUrl} target="_blank" rel="noreferrer" className="underline">Pexels page</a>
+                  {String(item?.credit ?? "—")} ·{" "}
+                  <a href={String(item?.creditUrl ?? "#")} target="_blank" rel="noreferrer" className="underline">creator</a> ·{" "}
+                  <a href={String(item?.sourceUrl ?? "#")} target="_blank" rel="noreferrer" className="underline">Pexels page</a>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <a href={item.url} target="_blank" rel="noreferrer" className="rounded-lg border border-white/15 px-3 py-1 text-xs font-semibold">
+                  <a href={String(item?.url ?? "#")} target="_blank" rel="noreferrer" className="rounded-lg border border-white/15 px-3 py-1 text-xs font-semibold">
                     Open file
                   </a>
-                  <button onClick={() => copyText(item.url, "File URL")} className="rounded-lg border border-white/15 px-3 py-1 text-xs font-semibold">
+                  <button onClick={() => copyText(String(item?.url ?? ""), "File URL")} className="rounded-lg border border-white/15 px-3 py-1 text-xs font-semibold">
                     Copy URL
                   </button>
                   <button onClick={() => copyText(pexelsCreditLine(item), "Credit line")} className="rounded-lg border border-white/15 px-3 py-1 text-xs font-semibold">
@@ -355,13 +356,13 @@ export function StockStudio() {
         </section>
       )}
 
-      {items.length > 0 && lastRun && (
+      {(items ?? []).length > 0 && lastRun && (
         <div className="flex flex-wrap items-center gap-3">
-          <button onClick={() => void run({ ...lastRun, page: Math.max(1, lastRun.page - 1) })} disabled={busy || lastRun.page <= 1} className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold disabled:opacity-50">
+          <button onClick={() => void run({ ...lastRun, page: Math.max(1, (lastRun?.page ?? 1) - 1) })} disabled={busy || (lastRun?.page ?? 1) <= 1} className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold disabled:opacity-50">
             ← Prev loot
           </button>
           <span className="text-sm text-slate-400">Page {page}{total > 0 ? ` · ${total} total treasures` : ""}</span>
-          <button onClick={() => void run({ ...lastRun, page: lastRun.page + 1 })} disabled={busy} className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold disabled:opacity-50">
+          <button onClick={() => void run({ ...lastRun, page: (lastRun?.page ?? 1) + 1 })} disabled={busy} className="rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold disabled:opacity-50">
             More loot →
           </button>
         </div>

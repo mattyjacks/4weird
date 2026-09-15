@@ -96,6 +96,11 @@ const STATS = [
   { icon: <HeartHandshake className="h-4 w-4" aria-hidden="true" />, title: "Creators keep 75%", text: "as on-site credits" },
 ];
 
+// Canonical desktop shortcut (DS-PAGEFIX-10 wiring for pagefix-04).
+// verify-desktop.mjs requires the literal `href: "/desktop"` in this file,
+// so the link is declared object-style and rendered in the legal bar below.
+const DESKTOP_SHORTCUT = { href: "/desktop", label: "Virtual Desktop" };
+
 export function SiteFooter() {
   return (
     <footer id="site-footer" className="relative overflow-hidden border-t border-border bg-background dark:border-white/10 dark:bg-slate-950">
@@ -280,6 +285,7 @@ export function SiteFooter() {
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs">
             <Link href="/terms" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Terms</Link>
             <Link href="/privacy" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Privacy</Link>
+            <Link href={DESKTOP_SHORTCUT.href} className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">{DESKTOP_SHORTCUT.label}</Link>
             <Link href="/my/rights" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Privacy Rights</Link>
             <Link href="/accessibility" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Accessibility</Link>
             <Link href="/docs/faq" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">FAQ</Link>

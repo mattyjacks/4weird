@@ -1,0 +1,24 @@
+{
+    "id":  "DS-FBOV-06",
+    "title":  "POST /api/feedback: visibility/contact/png-webp/annotations",
+    "goal":  "FBOV overhaul slice DS-FBOV-06: POST /api/feedback: visibility/contact/png-webp/annotations. Owner works scope-only, gates green, evidence in log.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/api/feedback/route.ts"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "status":  "done",
+    "owner":  "fbov-06",
+    "created":  "2026-09-15T01:24:04.761Z",
+    "updated":  "2026-09-15T01:40:05.509Z",
+    "log":  [
+                "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+                "2026-09-15T01:27:45.492Z fbov-06: claimed; extending route.ts for visibility/contact/png-webp/annotations.",
+                "2026-09-15T01:40:05.509Z fbov-06: DONE. route.ts extended: visibility tracked|anonymous|guest default guest (401 tracked-no-session, user_id session-resolved, client user_id never read); contact validated+stored guest-only (NULL otherwise); screenshots JPEG/PNG/WebP via magic bytes (8MB cap, polyglot guard kept, per-kind ext/contentType); annotations validated (\u003c=20, tool enum, 0..100 percents, comment\u003c=280) + persisted; insert carries visibility/user_id/contact_*/annotations/source; missing-column(42703/PGRST204/msg)-\u003e503 STORE_MISSING fail-open; guest 10/min+5/h buckets documented. human/bot+labels+botExtras untouched.",
+                "2026-09-15T01:40:05.509Z fbov-06: GATES: npx tsc --noEmit =\u003e 0 errors in app/api/feedback/route.ts (repo-wide: 2 errors in components/feedback/feedback-button.tsx ComponentType/FeedbackDialogProps, sibling UI lane scope, untouched); npx eslint app/api/feedback/route.ts =\u003e 0 errors, 1 warning (screenshotDims assigned-never-used, sibling dims lane).",
+                "2026-09-15T01:40:05.509Z fbov-06: FOLLOW-UPS: (1) annotations/visibility/user_id/contact columns migration must be applied or POSTs 503 fail-open; (2) screenshotDims parsed (png/jpeg/webp) but not persisted - dims lane to wire columns; (3) feedback-button.tsx tsc errors belong to dialog UI lane; (4) shared-file overlap with identity/source lane reconciled (single visibility/contact/guest-bucket blocks, default guest per DS-FBOV-06 spec)."
+            ]
+}

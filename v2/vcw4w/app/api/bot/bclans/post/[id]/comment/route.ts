@@ -41,6 +41,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return fail("Invalid JSON body.", 400);
   }
   if (exceedsBodyLimit(body, maxRequestBytes)) return fail("Comment is too large.", 413);
+  // Reject overlong input before truncation (parity with post route): silently
+  // slicing would store fewer bytes than the caller sent.
+  if (String((body as Record<string, unknown>)?.body ?? "").length > 2000) {
+    return fail("Body needs 1-2000 characters.", 413);
+  }
   const commentBody = cleanCommentBody((body as Record<string, unknown>)?.body);
   if (!commentBody) return fail("Body needs 1-2000 characters.", 400);
 

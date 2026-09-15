@@ -211,12 +211,12 @@ export function TeamWorkspace() {
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <select
-                value={inviteOrg || orgs[0].id}
+                value={inviteOrg || orgs[0]?.id || ""}
                 onChange={(e) => setInviteOrg(e.target.value)}
                 className="rounded-lg border border-white/15 bg-black/30 px-3 py-2 text-sm"
               >
-                {orgs.map((o) => (
-                  <option key={o.id} value={o.id}>{o.slug}</option>
+                {(Array.isArray(orgs) ? orgs : []).map((o, oi) => (
+                  <option key={o.id ?? oi} value={o.id}>{o.slug}</option>
                 ))}
               </select>
               <select
@@ -251,7 +251,11 @@ export function TeamWorkspace() {
               <button
                 className="rounded-lg bg-emerald-300 px-4 py-2 text-sm font-semibold text-slate-950"
                 onClick={async () => {
-                  const orgId = inviteOrg || orgs[0].id;
+                  const orgId = inviteOrg || orgs[0]?.id || "";
+                  if (!orgId) {
+                    setMessage("Create an org first.");
+                    return;
+                  }
                   try {
                     await request(`/api/orgs/${orgId}/invites`, {
                       method: "POST",
@@ -276,9 +280,9 @@ export function TeamWorkspace() {
               </button>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {orgs.map((o) => (
+              {(Array.isArray(orgs) ? orgs : []).map((o, oi) => (
                 <button
-                  key={o.id}
+                  key={o.id ?? oi}
                   className="rounded-lg border border-white/15 px-3 py-1 text-xs text-slate-300"
                   onClick={() => {
                     setInviteOrg(o.id);
@@ -289,8 +293,8 @@ export function TeamWorkspace() {
                 </button>
               ))}
             </div>
-            {(invites[inviteOrg || orgs[0].id] ?? []).map((inv) => (
-              <div key={inv.id} className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-300">
+            {(invites[inviteOrg || orgs[0]?.id || ""] ?? []).map((inv, ii) => (
+              <div key={inv.id ?? ii} className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-300">
                 <code className="rounded bg-black/40 px-2 py-1">{inv.token}</code>
                 <span>{inv.role_key}</span>
                 <span>{inv.max_uses === null ? "∞" : `${inv.uses}/${inv.max_uses}`} uses</span>
@@ -302,12 +306,12 @@ export function TeamWorkspace() {
                     className="rounded border border-red-400/40 px-2 py-0.5 text-red-300"
                     onClick={async () => {
                       try {
-                        await request(`/api/orgs/${inviteOrg || orgs[0].id}/invites`, {
+                        await request(`/api/orgs/${inviteOrg || orgs[0]?.id || ""}/invites`, {
                           method: "DELETE",
                           body: JSON.stringify({ invite_id: inv.id }),
                         });
                         setMessage("Invite revoked.");
-                        void loadInvites(inviteOrg || orgs[0].id);
+                        void loadInvites(inviteOrg || orgs[0]?.id || "");
                       } catch (e2) {
                         setMessage(e2 instanceof Error ? e2.message : "Unable to revoke invite.");
                       }
@@ -347,7 +351,7 @@ export function TeamWorkspace() {
         )}
       </section>
 
-      {orgs.map((org) => <BudgetControls key={org.id} orgId={org.id} title={`${org.name} organization budget`} />)}
+      {(Array.isArray(orgs) ? orgs : []).map((org, oi) => <BudgetControls key={org.id ?? oi} orgId={org.id} title={`${org.name} organization budget`} />)}
 
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">2 · {UNITUNITE_NAME} workspace <span className="text-sm font-normal text-slate-400">- {UNITUNITE_TAGLINE}</span></h2>
@@ -356,8 +360,8 @@ export function TeamWorkspace() {
           <label className="mt-4 block text-sm">
             Active workspace
             <select value={teamId} onChange={(e) => setTeamId(e.target.value)} className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2">
-              {teams.map((t) => (
-                <option key={t.id} value={t.id}>{t.name} ({t.slug})</option>
+              {(Array.isArray(teams) ? teams : []).map((t, ti) => (
+                <option key={t.id ?? ti} value={t.id}>{t.name} ({t.slug})</option>
               ))}
             </select>
           </label>
@@ -408,8 +412,8 @@ export function TeamWorkspace() {
               <label className="mt-4 block text-sm">
                 Active room
                 <select value={roomId} onChange={(e) => setRoomId(e.target.value)} className="mt-2 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2">
-                  {rooms.map((r) => (
-                    <option key={r.id} value={r.id}>
+                  {(Array.isArray(rooms) ? rooms : []).map((r, ri) => (
+                    <option key={r.id ?? ri} value={r.id}>
                       {r.name} ({r.slug}) · {r.message_count} msgs{r.bot_sends ? ` · ${r.bot_sends} [BOT]` : ""}
                     </option>
                   ))}
@@ -422,9 +426,9 @@ export function TeamWorkspace() {
               ) : !messages.length ? (
                 <p className="text-sm text-slate-500">No messages yet. Give the order.</p>
               ) : (
-                messages.map((m) => (
-                  <div key={m.id} className="text-sm">
-                    <span className="text-slate-500">{new Date(m.created_at).toLocaleTimeString()} </span>
+                (Array.isArray(messages) ? messages : []).map((m, mi) => (
+                  <div key={m.id ?? mi} className="text-sm">
+                    <span className="text-slate-500">{m.created_at ? new Date(m.created_at).toLocaleTimeString() : "—"} </span>
                     {m.is_bot ? (
                       <span className="mr-1 rounded bg-amber-300 px-1.5 py-0.5 text-[11px] font-black text-slate-950">[BOT]</span>
                     ) : null}
@@ -540,7 +544,7 @@ export function TeamWorkspace() {
       <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
         <h2 className="text-xl font-bold">5 · Ghost timer; who owes whom</h2>
         <p className="mt-2 text-sm text-slate-300">
-          Clock org work to the second and settle up in 👻 Ghost Cash; hypothetical IOUs with no value, just a
+          Clock org work to the second and settle up in 👻 Ghosts; hypothetical IOUs with no monetary value, just a
           ruler for debts. <a className="font-bold text-cyan-300 underline" href="/timer">Open the timer →</a>
         </p>
       </section>

@@ -32,6 +32,16 @@ import type {
 const SFX_MODULE = "@/lib/music/format-4w";
 const SYNTH_MODULE = "@/lib/music/synth-4w";
 
+// Hidden from static analysis on purpose: Turbopack treats even a variable
+// `await import(SYNTH_MODULE)` as a resolvable dependency and fails the
+// build while the sibling is mid-flight. `new Function` keeps the specifier
+// opaque while the surrounding try/catch preserves fail-soft.
+type DynamicImporter = (spec: string) => Promise<unknown>;
+const dynImport: DynamicImporter = new Function(
+  "s",
+  "return import(s)",
+) as DynamicImporter;
+
 /** 4W-1 SFX budget (mirrors MAX_SFX_BYTES in format-4w). */
 const SFX_MAX_BYTES = 1024;
 const MIN_HZ = 20;
@@ -272,7 +282,7 @@ function fallbackPlaySfx(sfx: Sfx4W): void {
 
 async function playSfxSmart(sfx: Sfx4W): Promise<void> {
   try {
-    const mod: unknown = await import(SYNTH_MODULE);
+    const mod: unknown = await dynImport(SYNTH_MODULE);
     if (mod !== null && typeof mod === "object" && "playSfx" in mod) {
       const fn = (mod as SynthMod).playSfx;
       if (typeof fn === "function") {
@@ -405,7 +415,7 @@ export function SfxStudio(): React.JSX.Element {
       }
     };
     void Promise.resolve()
-      .then(() => import(SFX_MODULE))
+      .then(() => dynImport(SFX_MODULE))
       .then(applyModule, clearLib);
     return () => {
       live = false;

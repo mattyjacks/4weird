@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { dbFail, fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, isMissingSchemaError, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
 import { gameSlugs, games } from "@/content/games";
@@ -24,7 +24,20 @@ export async function GET(req: Request) {
   const rl = rateLimit(`leaderboard:${clientIp(req)}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
   const { data, error } = await supabase.rpc("leaderboard_top", { p_game: game, p_metric: metric });
-  if (error) return dbFail("api/leaderboard", error, "Unable to load leaderboard.");
+  if (error) {
+    // Fail-open on missing RPC/table (migration not yet applied): empty rows,
+    // not a 500 that blanks the leaderboard page. Real faults still 500.
+    // (DS-PAGEFIX-07, FIX500 precedent)
+    const msg = String((error as { message?: unknown }).message ?? "");
+    if (isMissingSchemaError(error) || /could not find the function/i.test(msg)) {
+      console.error("[api] api/leaderboard leaderboard_top missing, returning empty rows", {
+        code: String((error as { code?: unknown }).code ?? "").slice(0, 16),
+      });
+      const meta = games.find((g) => g.slug === game);
+      return ok({ game, title: meta?.title ?? game, metric, rows: [], unavailable: true });
+    }
+    return dbFail("api/leaderboard", error, "Unable to load leaderboard.");
+  }
   const rows = ((data as { player: string; value: number }[] | null) ?? []).map((r, i) => ({
     rank: i + 1,
     player: r.player || "Player",

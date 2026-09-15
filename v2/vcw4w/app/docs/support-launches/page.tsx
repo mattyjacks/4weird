@@ -205,12 +205,12 @@ export default function SupportLaunchesPage() {
         index="8"
         kicker="One emoji, one meaning"
         title="Keep the currencies straight"
-        body="Four symbols, four ledgers, never mingled. Tips, tiers, and campaign backing move Coins; creator earnings arrive as Crowns; org timekeeping runs on Ghost Cash; clan applause runs on Love Letters."
+        body="Four symbols, four ledgers, never mingled. Tips, tiers, and campaign backing move Coins; creator earnings arrive as Crowns; org timekeeping runs on Ghost; clan applause runs on Love Letters."
       />
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["💸 Real Money", "Actual fiat, actual cash. Whenever we mean dollars, we say 💸 - never 🪙."],
-          ["👻 Ghost Cash", "Org-work IOUs from the timer. Ghost emoji only, never paired with cash. No value, no cash-out."],
+          ["👻 Ghost", "Org-work records from the timer. Ghost emoji only, never paired with cash. No value, no redemption."],
           ["🪙 Vibe Coins", "Closed-loop platform credits. 100 🪙 = $1.00. Spendable on-site only; never cash-out, never withdrawable."],
           ["💌 Love Letters", "Earned only when a human applauds your clan post - spendable on advanced awards. Never convertible into 🪙; the ledgers stay separate."],
         ].map(([t, b]) => (

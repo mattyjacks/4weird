@@ -28,7 +28,7 @@ const API_ROWS: [string, string][] = [
 const SECTIONS: [string, string, string][] = [
   ["🚀 UnitUnite", "/squads", "Squad workspaces: people, projects (Code + Issues), encrypted team messaging, cloud services."],
   ["🏢 Orgs & teams", "/squads#orgs", "Orgs hold billing and audit; roles gate every action. New users get one zero-cost default org."],
-  ["⏱️ Timer", "/timer", "Second-by-second work clock. Team ticks invoice into Ghost Cash books — memoranda only."],
+  ["⏱️ Timer", "/timer", "Second-by-second work clock. Team ticks invoice into Ghost books — memoranda only."],
   ["📋 Projects", "/squads", "Team code projects with milestones and tasks, inside the workspace."],
   ["🤝 CRM", "/business/crm", "Companies, contacts, deal pipeline, activities, and the summary dashboard."],
   ["🧾 Invoices", "/business/invoices", "Coin memoranda in Vibe Coins (100 🪙 = $1.00). Draft → sent → paid, or void."],
@@ -96,7 +96,7 @@ export default function BusinessDocsPage() {
       <p className="mt-2 text-sm text-muted-foreground">
         An invoice here is an org memorandum — a polite, itemized reminder. It is not a tax
         invoice, VAT/GST invoice, payroll record, or receipt, and marking one paid moves no
-        coins by itself. Ghost Cash (👻) has no cash value and can never settle an invoice.
+        coins by itself. Ghost (👻) has no monetary value and can never settle an invoice.
         Full terms live in <Link className="underline" href="/terms">/terms</Link>.
       </p>
 
@@ -104,7 +104,7 @@ export default function BusinessDocsPage() {
       <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
         <li><strong>Is CRM data org-scoped?</strong> Yes — every company, contact, deal, activity, and invoice belongs to one org and never crosses orgs.</li>
         <li><strong>Coins vs USD?</strong> 100 Vibe Coins = exactly $1.00 everywhere in the CRM; totals show both.</li>
-        <li><strong>Ghost Cash vs invoices?</strong> Ghost Cash (👻) IOUs never settle an invoice; invoices are memoranda, NOT tax invoices.</li>
+        <li><strong>Ghost vs invoices?</strong> Ghost (👻) records never settle an invoice; invoices are memoranda, NOT tax invoices.</li>
       </ul>
 
       <p className="mt-8 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

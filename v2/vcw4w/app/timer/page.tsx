@@ -5,7 +5,7 @@ import { BusinessCrosslinks } from "@/components/business/business-crosslinks";
 
 export const metadata: Metadata = {
   title: "Ghost Timer - Who Owes Whom",
-  description: "Org work clock with second-precision tracking and hypothetical Ghost Cash (👻) IOUs. Not money, no value; a ruler for debts.",
+  description: "Org work clock with second-precision tracking and hypothetical Ghost (👻) IOUs. Not money, no value; a ruler for debts.",
 };
 
 // NOTE: no 'use cache' here — per-user clock/session state streams in
@@ -16,12 +16,12 @@ export default function TimerPage() {
       <section className="mx-auto max-w-5xl gap-3 px-4 py-3">
         {/* Compact inline title bar: Ghost timer widget sits directly below at y:64 */}
         <header className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2">
-          <h1 className="text-lg font-black">⏱️ Timer + 👻 Ghost Cash</h1>
+          <h1 className="text-lg font-black">⏱️ Timer + 👻 Ghost</h1>
           <span className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-300">
             4WEIRD // ORG TOOLING
           </span>
           <p className="hidden min-w-0 flex-1 truncate text-xs text-slate-400 xl:block">
-            Second-precision org clock; Ghost Cash has no legal value — a ruler for debts.
+            Second-precision org clock; Ghost has no legal value — a ruler for debts.
           </p>
           {/* 8 org tool shortcuts → compact header drawer */}
           <details className="relative">

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { fail, ok, rpcFail } from "@/lib/api-respond";
+import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clampLimit, isUuid } from "@/lib/validate";
@@ -18,6 +18,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   if (!u) return fail("Login required.", 401);
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid match.", 400);
+  // Defense in depth over the read_mp_events RPC + mp_events_select RLS
+  // policy: never render a match feed to a non-participant, even if the RPC
+  // or policies are later relaxed. Mirrors GET /api/matches/[id]
+  // (DS-SEC-GAMES-01): non-participants see 404, never confirm existence.
+  // (DS-SECHUNT-04)
+  const { data: match, error: matchError } = await supabase
+    .from("game_matches")
+    .select("id,phone_id,desktop_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (matchError) return dbFail("api/matches/[id]/events", matchError, "Match not found.", 404);
+  if (!match) return fail("Match not found.", 404);
+  const m = match as { phone_id?: string; desktop_id?: string };
+  if (m.phone_id !== u.id && m.desktop_id !== u.id) return fail("Match not found.", 404);
   const q = new URL(req.url).searchParams;
   const limit = clampLimit(q.get("limit"), 50, 100);
   const since = (q.get("since") ?? "").trim().slice(0, 64) || null;
@@ -53,6 +67,21 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   const { id } = await params;
   if (!isUuid(id)) return fail("Invalid match.", 400);
+  // Mirror the PUT /api/matches/[id] participant/active checks before
+  // touching state: the post_mp_event RPC enforces the same predicates at
+  // the DB layer (defense in depth), but the API must fail closed with the
+  // same semantics — non-participants see 404 (never confirm the match
+  // exists), finished/abandoned matches see 403. (DS-SECHUNT-04)
+  const { data: match, error: matchError } = await supabase
+    .from("game_matches")
+    .select("id,phone_id,desktop_id,status")
+    .eq("id", id)
+    .maybeSingle();
+  if (matchError) return dbFail("api/matches/[id]/events", matchError, "Match not found.", 404);
+  if (!match) return fail("Match not found.", 404);
+  const m = match as { phone_id?: string; desktop_id?: string; status?: string };
+  if (m.phone_id !== u.id && m.desktop_id !== u.id) return fail("Match not found.", 404);
+  if (m.status !== "active") return fail("Match is no longer active.", 403);
   let body: unknown;
   try {
     body = await req.json();

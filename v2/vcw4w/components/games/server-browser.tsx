@@ -103,7 +103,7 @@ export function ServerBrowser() {
 
   function pingFor(s: GameServer): string {
     let h = 0;
-    for (const c of s.id) h = (h * 31 + c.charCodeAt(0)) % 997;
+    for (const c of String(s?.id ?? "")) h = (h * 31 + c.charCodeAt(0)) % 997;
     return `${12 + (h % 49)} ms`;
   }
 
@@ -219,11 +219,11 @@ export function ServerBrowser() {
                 </td>
               </tr>
             ) : (
-              visible.map((s) => {
+              (visible ?? []).map((s, index) => {
                 const st = statusFor(s);
                 const hasCounts = Number.isFinite(Number(s.players)) && Number.isFinite(Number(s.maxPlayers));
                 return (
-                  <tr key={s.id} className="border-b border-white/5 hover:bg-white/[.03]">
+                  <tr key={s?.id ?? index} className="border-b border-white/5 hover:bg-white/[.03]">
                     <td className="px-2 py-1.5">
                       <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${st.cls}`}>{st.label}</span>
                     </td>
@@ -236,7 +236,7 @@ export function ServerBrowser() {
                     <td className="px-2 py-1.5 text-slate-300">{hasCounts ? `${s.players}/${s.maxPlayers}` : "n/a"}</td>
                     <td className="px-2 py-1.5 text-slate-300">{pingFor(s)}</td>
                     <td className="whitespace-nowrap px-2 py-1.5 text-right">
-                      <Link href={`/games/servers/${encodeURIComponent(s.id)}`} className="mr-2 text-[11px] text-slate-300 hover:underline">Details</Link>
+                      <Link href={`/games/servers/${encodeURIComponent(String(s?.id ?? ""))}`} className="mr-2 text-[11px] text-slate-300 hover:underline">Details</Link>
                       {isFull(s) ? (
                         <span className="text-[11px] text-slate-500">Full</span>
                       ) : (

@@ -162,19 +162,19 @@ function ContentModePicker({
   onSelect: (next: ContentMode) => void;
 }) {
   if (!hasContentModes(slug)) return null;
-  const visible = visibleContentModesForViewer(band, kidBand);
-  const options = listContentModesForViewer(band, kidBand).filter((o) => visible.includes(o.mode));
-  const filtered = options.length < 3;
+  const visible = visibleContentModesForViewer(band, kidBand) ?? [];
+  const options = (listContentModesForViewer(band, kidBand) ?? []).filter((o) => (visible ?? []).includes(o?.mode));
+  const filtered = (options ?? []).length < 3;
   return (
     <fieldset className="mb-3 rounded-2xl border border-white/15 bg-black p-4 sm:p-5">
       <legend className="px-2 text-sm font-black text-white">Content mode</legend>
       <div className="grid gap-2 sm:grid-cols-3">
-        {options.map((option) => {
-          const summary = contentModeSummary(option.mode);
-          const selected = mode === option.mode;
+        {(Array.isArray(options) ? options : []).map((option, index) => {
+          const summary = contentModeSummary(option?.mode);
+          const selected = mode === option?.mode;
           return (
             <label
-              key={option.mode}
+              key={String(option?.mode ?? "") || index}
               className={`block cursor-pointer rounded-xl border px-3 py-2.5 text-left text-xs ${
                 selected ? "border-cyan-300/70 bg-cyan-300/10" : "border-white/10 bg-white/[.03]"
               } hover:bg-white/[.06]`}

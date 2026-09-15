@@ -71,8 +71,8 @@ export const FUNDRAISERS_COMPLIANCE_NOTE =
 /**
  * Currency emoji legend; one emoji, one meaning, everywhere:
  * - 💸 Real Money; actual fiat / cash references only. Never use 🪙 for this.
- * - 👻 Ghost Cash; hypothetical org-work IOU unit. Ghost emoji ONLY, never
- *   paired with a cash emoji. No value, no cash-out, timer books only.
+ * - 👻 Ghost; hypothetical org-work tracking unit. Ghost emoji ONLY, never
+ *   paired with a cash emoji. No monetary value, no redemption, timer books only.
  * - 🪙 Coin (Vibe Coins); closed-loop platform credits. 100 🪙 = $1.00.
  * - 💌 Love Letters; a /clans/ community currency earned from likes and
  *   other engagement: post in a clan, a human sees it and gives it a love
@@ -89,8 +89,8 @@ export const CURRENCY_LEGEND = [
   },
   {
     emoji: "👻",
-    name: "Ghost Cash",
-    blurb: "Hypothetical org-work IOUs from the timer. Ghost emoji only; no cash emoji. No value, no cash-out.",
+    name: "Ghost",
+    blurb: "Hypothetical org-work records from the timer. Ghost emoji only; no cash emoji. No monetary value, no redemption.",
   },
   {
     emoji: "🪙",

@@ -22,7 +22,7 @@ export default function FeedbackPage() {
       <DocsHero
         eyebrow="Docs · feedback"
         title={<>Tell us <span className={theme.title}>what&apos;s working.</span></>}
-        lede={<>Press Give Feedback anywhere on the site, pick a Good / Okay / Bad rating, add one line of critique, and optionally attach an annotated screenshot. Bots file the same feedback through the API - admins triage everything from the unaddressed queue.</>}
+        lede={<>Press Give Feedback anywhere on the site — or open the standalone /feedback page — pick a Good / Okay / Bad rating, add one line of critique, and optionally attach an annotated screenshot. Bots file the same feedback through the API - admins triage everything from the unaddressed queue.</>}
         stats={[
           ["3", "ratings: Good/Okay/Bad"],
           ["1", "button, everywhere"],
@@ -38,15 +38,16 @@ export default function FeedbackPage() {
         index="1"
         kicker="The button"
         title="Press Give Feedback"
-        body="The Give Feedback button sits at the top of every page. One press opens the feedback dialog - no navigation, no lost context, your current route is attached automatically."
+        body="The Give Feedback button sits at the top of every page. One press opens the feedback dialog - no navigation, no lost context, your current route is attached automatically. Prefer a full page? /feedback is the same form with more room for screenshots."
       />
       <Steps
         items={[
-          ["Press Give Feedback", <>Hit the button in the top bar. The dialog opens over the page you are already on.</>],
+          ["Press Give Feedback", <>Hit the button in the top bar — or open <code className="font-mono">/feedback</code> for the standalone page. Page submits carry <code className="font-mono">source: &quot;page&quot;</code>; dialog submits carry the dialog source instead.</>],
+          ["Pick who is reporting", <>Choose Tracked (signed in, so admins can follow up), Anonymous (no name attached), or Guest (no account needed, optional name + email for follow-up). All three land in the same human queue.</>],
           ["Pick a rating", <>Choose one: Good, Okay, or Bad. The rating is required - it is how admins sort the queue.</>],
           ["Write one critique", <>A sentence is enough. Say what happened and what you expected instead.</>],
-          ["Attach a screenshot (optional)", <>Capture the current tab and circle the problem with the built-in editor - see §4.</>],
-          ["Submit", <>Human feedback posts immediately. Bot feedback goes through the same queue with its bot label attached.</>],
+          ["Attach a screenshot (optional)", <>Paste, drop, capture the current tab, then circle the problem with the micro-editor - see §4.</>],
+          ["Submit", <>Human feedback posts immediately and answers with a Report ID. Bot feedback goes through the same queue with its bot label attached.</>],
         ]}
       />
 
@@ -58,16 +59,16 @@ export default function FeedbackPage() {
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-4">
           <p className="font-black"><span aria-hidden="true" className="mr-2">🧑</span>Humans</p>
-          <p className="mt-1 text-sm text-muted-foreground">Signed-in session, dialog UI, screenshot editor included. Your username rides along so admins can follow up.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Signed-in session, dialog UI, or the standalone /feedback page with the screenshot editor included. Pick Tracked, Anonymous, or Guest — the choice is sent as the <code className="font-mono">visibility</code> field (and page submits add <code className="font-mono">source: &quot;page&quot;</code>) so admins can filter it, and your username rides along when you are signed in.</p>
         </div>
         <div className="rounded-2xl border border-border bg-card p-4">
           <p className="font-black"><span aria-hidden="true" className="mr-2">🤖</span>Bots</p>
-          <p className="mt-1 text-sm text-muted-foreground">Same queue via <code className="font-mono">POST /api/feedback</code> with a bot key. Bot-only extras (run id, gateway state) ride in extra fields - see §5.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Same queue via <code className="font-mono">POST /api/feedback</code> with a bot key and <code className="font-mono">reporterType: &quot;bot&quot;</code>. Bot-only extras (bot id, run id, repro steps) ride in <code className="font-mono">botExtras</code> - see §5.</p>
         </div>
       </div>
       <Callout tone="emerald" title="Same queue, same ratings.">
         Humans and bots answer the same three ratings and land in the same unaddressed queue. The only difference is
-        transport: dialog for humans, API for bots.
+        transport: dialog or /feedback page for humans, API for bots.
       </Callout>
 
       <SectionHead
@@ -104,14 +105,15 @@ export default function FeedbackPage() {
       <SectionHead
         index="4"
         kicker="Show, don't tell"
-        title="Screenshot + micro editor"
-        body="Capture the current tab as a JPG, then draw and label right inside the dialog: circle the glitch, arrow the misaligned button, strike the stale copy."
+        title="Screenshot micro-editor: paste, capture, annotate"
+        body="The /feedback page and the dialog share one small editor. Paste from the clipboard, drop a JPG, PNG, or WebP image, or capture the current tab — then draw and label right inside the form before you submit. JPEG/PNG/WebP only, 8MB max."
       />
       <Steps
         items={[
-          ["Capture", <>One click snapshots the current tab - no uploads, no file picker, no leaving the dialog.</>],
-          ["Draw + label", <>Circle, arrow, or strike with the micro photo editor, then add a short label per mark.</>],
-          ["Submit together", <>The annotated shot posts with your rating and critique as one feedback item.</>],
+          ["Paste or drop", <>Copy any screenshot and paste it straight into the form, or drag a JPG, PNG, or WebP onto the dropzone. Anything else is refused with &quot;Invalid screenshot (JPEG/PNG/WebP only).&quot;</>],
+          ["Capture this tab", <>One click snapshots the page you are already on — no uploads, no file picker, no leaving the form. An empty capture is refused with &quot;Invalid screenshot (empty).&quot;</>],
+          ["Annotate", <>Draw arrows, circles, highlight boxes, or blur redactions over private text — each mark takes a short comment. The shapes travel with the screenshot as one feedback item.</>],
+          ["Submit together", <>The annotated shot posts with your rating and critique as one feedback item, plus <code className="font-mono">source: &quot;page&quot;</code> on page submits.</>],
         ]}
       />
       <Callout tone="cyan" title="Annotate before you submit.">
@@ -123,7 +125,7 @@ export default function FeedbackPage() {
         index="5"
         kicker="Copy-paste"
         title="Bot API: file feedback with fetch"
-        body="Bots POST the same rating + critique JSON. Key lives in FOURWEIRD_BOT_KEY (never in code). Bot-only extras like run id or gateway state go in the extras object."
+        body="Bots POST the real route contract below. Key lives in FOURWEIRD_BOT_KEY (never in code). reporterType, rating, critique, and text are required; labels is a string array (up to 20, each 1-64 chars); botExtras carries bot provenance and needs botId. The old { rating, critique, route, extras } shape 400s — use this shape."
       />
       <pre className="mt-3 overflow-x-auto rounded-xl bg-black/50 p-4 font-mono text-xs text-slate-200" tabIndex={0} aria-label="Scrollable code: bot feedback POST">
 {`const res = await fetch("https://4weird.com/api/feedback", {
@@ -133,13 +135,15 @@ export default function FeedbackPage() {
     "x-bot-key": process.env.FOURWEIRD_BOT_KEY
   },
   body: JSON.stringify({
+    reporterType: "bot",
     rating: "bad",
-    critique: "Lobby greeter repeats itself after rejoin; expected one greeting.",
-    route: "/bot/bclans",
-    extras: { runId: "r_abc123", gateway: "us-east" }
+    critique: "negative",
+    text: "Lobby greeter repeats itself after rejoin; expected one greeting.",
+    labels: ["lobby", "rejoin"],
+    botExtras: { botId: "my-bot", runId: "r_abc123" }
   })
 });
-const { success } = await res.json();`}
+const { success, id } = await res.json(); // success panel shows 'Report ID: <id>'`}
       </pre>
       <Callout tone="emerald" title="Verify the key first.">
         If the POST fails, check <code className="font-mono">GET /api/bot/me</code> before retrying - an expired or
@@ -150,12 +154,12 @@ const { success } = await res.json();`}
         index="6"
         kicker="Triage"
         title="Admin ingest: unaddressed views"
-        body="Admins work the unaddressed queue at /feedback/admin: newest-first by default, filterable by rating, route, and human/bot source. Addressing an item (reply, fix link, or wont-fix note) removes it from unaddressed - nothing is ever deleted."
+        body="Admins work the unaddressed queue at /feedback/admin: newest-first by default, filterable by rating, route, and human/bot source. Page submits carry source:page plus a visibility value (tracked, anonymous, or guest) so the queue can slice page vs dialog traffic. Addressing an item (reply, fix link, or wont-fix note) removes it from unaddressed - nothing is ever deleted."
       />
       <Steps
         items={[
-          ["Open unaddressed", <>The admin view lists every item nobody has addressed yet, with rating, route, screenshot, and source badge.</>],
-          ["Filter the pile", <>Slice by Good / Okay / Bad, by route, or humans-only / bots-only to batch related reports.</>],
+          ["Open unaddressed", <>The admin view at <code className="font-mono">/feedback/admin</code> lists every item nobody has addressed yet, with rating, route, screenshot, and source badge (login + admin role required).</>],
+          ["Filter the pile", <>Slice by Good / Okay / Bad, by route, by source:page, by visibility (tracked / anonymous / guest), or humans-only / bots-only to batch related reports.</>],
           ["Address it", <>Reply, link the fix, or leave a wont-fix note. Addressed items leave the queue and stay searchable.</>],
           ["Watch the trend", <>Bad clusters on one route after a deploy is the ship-block signal - Okay drift is the polish backlog.</>],
         ]}

@@ -61,6 +61,146 @@ export function useSearchShortcut(onOpen: () => void): void {
   }, [onOpen]);
 }
 
+/**
+ * Rotating example-query placeholder with a typewriter animation.
+ *
+ * - Builds the example list from live index titles/keywords when provided,
+ *   falling back to curated site examples otherwise.
+ * - Types each example at ~40ms/char, holds it for ROTATE_HOLD_MS (10s),
+ *   then deletes fast (15ms/char) before typing the next one.
+ * - `prefers-reduced-motion: reduce` disables the animation and returns a
+ *   static example string.
+ */
+const ROTATE_TYPE_MS = 40;
+const ROTATE_DELETE_MS = 15;
+const ROTATE_HOLD_MS = 10_000;
+
+const FALLBACK_EXAMPLES = [
+  "gpu desktops…",
+  "coins pricing…",
+  "submit game…",
+  "leaderboards…",
+  "agent swarm…",
+  "virtual desktop…",
+  "runpods…",
+  "docs…",
+];
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function toExample(entry: SearchIndexEntry): string | null {
+  const kw = (entry.keywords ?? []).find((k) => k.trim().length > 1);
+  const base = (kw ?? entry.title).trim().replace(/\s+/g, " ");
+  if (base.length === 0) return null;
+  const short = base.length > 28 ? `${base.slice(0, 28).trimEnd()}…` : base;
+  return short.endsWith("…") ? short : `${short}…`;
+}
+
+function buildExamples(entries?: SearchIndexEntry[]): string[] {
+  if (!entries || entries.length === 0) return FALLBACK_EXAMPLES.slice();
+  const derived: string[] = [];
+  for (const e of shuffle(entries).slice(0, 12)) {
+    const ex = toExample(e);
+    if (ex) derived.push(ex);
+  }
+  const merged = [...derived, ...FALLBACK_EXAMPLES].filter(
+    (v, i, a) =>
+      v.trim().length > 0 && a.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i,
+  );
+  return merged.slice(0, 8);
+}
+
+export function useRotatingPlaceholder(entries?: SearchIndexEntry[]): string {
+  const examples = useMemo(
+    () => buildExamples(entries),
+    // Rebuild when the index identity/size changes; order is shuffled once
+    // per memo recompute so rotation feels randomly generated, not static.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [entries?.length],
+  );
+  const [reduced, setReduced] = useState(false);
+  const [display, setDisplay] = useState(examples[0] ?? "");
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- matchMedia init must sync post-mount (no SSR window); subscription below keeps it live.
+    setReduced(mq.matches);
+    const onChange = () => setReduced(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (reduced) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reduced-motion path pins the static example synchronously; no timer loop runs.
+      setDisplay(examples[0] ?? "");
+      return;
+    }
+    if (examples.length === 0) {
+      setDisplay("");
+      return;
+    }
+    let phrase = 0;
+    let chars = 0;
+    let timer = 0;
+    let cancelled = false;
+    setDisplay("");
+    function typeTick(): void {
+      if (cancelled) return;
+      const full = examples[phrase % examples.length] ?? "";
+      chars += 1;
+      setDisplay(full.slice(0, chars));
+      if (chars >= full.length) {
+        // Full example shown: hold 10s, then delete fast into the next one.
+        timer = window.setTimeout(deleteTick, ROTATE_HOLD_MS);
+        return;
+      }
+      timer = window.setTimeout(typeTick, ROTATE_TYPE_MS);
+    }
+    function deleteTick(): void {
+      if (cancelled) return;
+      const full = examples[phrase % examples.length] ?? "";
+      chars -= 1;
+      if (chars <= 0) {
+        phrase = (phrase + 1) % examples.length;
+        chars = 0;
+        setDisplay("");
+        timer = window.setTimeout(typeTick, ROTATE_TYPE_MS);
+        return;
+      }
+      setDisplay(full.slice(0, chars));
+      timer = window.setTimeout(deleteTick, ROTATE_DELETE_MS);
+    }
+    timer = window.setTimeout(typeTick, ROTATE_TYPE_MS);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [examples, reduced]);
+
+  return display;
+}
+
+/** Allowlist for result hrefs: same-origin paths or http(s) only.
+ *  AI/static index entries are untrusted strings — javascript:/data:/vbscript:
+ *  URLs must never reach <a href> or window.location (DS-SEC3-02). */
+function isSafeHref(href: string): boolean {
+  const h = href.trim();
+  // Protocol-relative URLs ("//evil.com") inherit the page scheme and
+  // navigate off-origin — reject before the same-origin-path check.
+  if (h.startsWith("//")) return false;
+  if (h.startsWith("/")) return true;
+  return /^https?:\/\/[^/\s]+\.[^/\s]+/i.test(h);
+}
+
 /** Defensively coerce unknown JSON into index entries (fail-open: []). */
 function normalizeIndex(raw: unknown): SearchIndexEntry[] {
   let arr: unknown = raw;
@@ -76,6 +216,7 @@ function normalizeIndex(raw: unknown): SearchIndexEntry[] {
     if (item === null || typeof item !== "object") continue;
     const rec = item as Record<string, unknown>;
     if (typeof rec.href !== "string" || typeof rec.title !== "string") continue;
+    if (!isSafeHref(rec.href)) continue;
     const entry: SearchIndexEntry = { href: rec.href, title: rec.title };
     if (typeof rec.description === "string") entry.description = rec.description;
     if (typeof rec.section === "string") entry.section = rec.section;
@@ -230,9 +371,11 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps): ReactEleme
 
   const local = useMemo(() => rankLocal(index, query), [index, query]);
   const shown = aiOn && aiResults !== null ? aiResults : local;
+  const placeholderExample = useRotatingPlaceholder(index);
 
   function visit(href: string): void {
     onClose();
+    if (!isSafeHref(href)) return;
     if (typeof window !== "undefined") window.location.href = href;
   }
 
@@ -303,7 +446,9 @@ export function SearchOverlay({ open, onClose }: SearchOverlayProps): ReactEleme
             value={query}
             onChange={onQueryChange}
             onKeyDown={onInputKeyDown}
-            placeholder="Search games, docs, pages…"
+            placeholder={
+              placeholderExample ? `Try: ${placeholderExample}` : "Search games, docs, pages…"
+            }
             aria-label="Search query"
             aria-expanded={shown.length > 0}
             aria-controls={listId}

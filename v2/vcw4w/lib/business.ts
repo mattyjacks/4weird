@@ -38,7 +38,7 @@ export const BUSINESS_APPS: BusinessApp[] = [
     href: "/timer",
     label: "Timer & Work Diary",
     emoji: "⏱️",
-    blurb: "Second-by-second tracking with Ghost Cash books for teams.",
+    blurb: "Second-by-second tracking with Ghost books for teams.",
   },
   {
     href: "/squads",

@@ -69,13 +69,19 @@ const PRIMARY: Entry[] = [
   { path: "/search", changeFrequency: "weekly", priority: 0.7 },
 ];
 
-// Community + competition surfaces.
+// Community + competition surfaces. /feedback is the public human report
+// index (DS-PAGEFIX-03; /feedback/admin is gated and stays out, see header).
+// /family is the canonical family index (DS-PAGEFIX-06; only /family/login
+// was listed before, so the hub 404'd) — the verifier's GATED walk skips
+// the family dir, but the index is canonical and resolvable, so it lists.
 const COMMUNITY: Entry[] = [
   { path: "/clans", changeFrequency: "daily", priority: 0.7 },
   { path: "/bot/setup", changeFrequency: "monthly", priority: 0.6 },
   { path: "/bot/bclans", changeFrequency: "weekly", priority: 0.6 },
   { path: "/leaderboards", changeFrequency: "daily", priority: 0.7 },
   { path: "/lobbies", changeFrequency: "daily", priority: 0.6 },
+  { path: "/feedback", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/family", changeFrequency: "monthly", priority: 0.6 },
 ];
 
 // Creator economy; tipping and launch campaigns.
@@ -126,8 +132,10 @@ const PRODUCT: Entry[] = [
   { path: "/terminal", changeFrequency: "monthly", priority: 0.6 },
 ];
 
-// Distributed-compute consoles + game compute hub.
+// Distributed-compute consoles + game compute hub. /compute is the
+// fail-open index hub (DS-PAGEFIX-04); dps/p2p are the live consoles.
 const COMPUTE: Entry[] = [
+  { path: "/compute", changeFrequency: "weekly", priority: 0.7 },
   { path: "/compute/dps", changeFrequency: "weekly", priority: 0.6 },
   { path: "/compute/p2p", changeFrequency: "weekly", priority: 0.6 },
 ];
@@ -440,11 +448,13 @@ const DOCS: Entry[] = [
   { path: "/docs/faq", changeFrequency: "monthly", priority: 0.8 },
 ];
 
-// Trust + legal; indexable, change rarely.
+// Trust + legal; indexable, change rarely. /theme-css is the static theme
+// index (DS-PAGEFIX-01, canonical /theme-css) alongside /accessibility.
 const TRUST: Entry[] = [
   { path: "/privacy", changeFrequency: "yearly", priority: 0.4 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.4 },
   { path: "/accessibility", changeFrequency: "monthly", priority: 0.5 },
+  { path: "/theme-css", changeFrequency: "monthly", priority: 0.5 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

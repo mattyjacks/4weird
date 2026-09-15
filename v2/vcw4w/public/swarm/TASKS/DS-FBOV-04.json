@@ -1,0 +1,22 @@
+{
+  "id": "DS-FBOV-04",
+  "title": "Page-capture: DOM snapshot + getDisplayMedia fallback",
+  "goal": "FBOV overhaul slice DS-FBOV-04: Page-capture: DOM snapshot + getDisplayMedia fallback. Owner works scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/screenshot-capture.ts"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fbov-04",
+  "created": "2026-09-15T01:24:04.761Z",
+  "updated": "2026-09-15T03:12:00.000Z",
+  "log": [
+    "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+    "2026-09-15T03:00:00.000Z fbov-04: claimed (open->in_progress). Extending components/feedback/screenshot-capture.ts with dialog exclusion + getDisplayMedia fallback.",
+    "2026-09-15T03:12:00.000Z fbov-04: DONE (in_progress->done). File already carried DOM snapshot + getDisplayMedia fallback + 1600px/0.85 JPG normalize + ScreenshotCaptureError fail-open from concurrent FBOV work (verified by full read, not overwritten); additive gap closed: serializeDocumentElement exclusion selector extended to '[role=dialog], [aria-modal=true], [data-screenshot-exclude], [data-feedback-dialog]' + header doc updated. GATES: npx eslint components/feedback/screenshot-capture.ts exit 0; npx tsc --noEmit total 2 lines, both pre-existing out-of-scope app/docs/feedback/page.tsx(146,67) TS1005 + (146,85) TS1381, zero lines mention screenshot-capture.ts. Zero new deps; no other files / old-v1 / manifests touched."
+  ]
+}

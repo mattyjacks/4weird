@@ -1,0 +1,22 @@
+{
+  "id": "DS-FBOV-01",
+  "title": "Dialog stacking fix + Tracked/Anonymous/Guest wizard shell",
+  "goal": "FBOV overhaul slice DS-FBOV-01: Dialog stacking fix + Tracked/Anonymous/Guest wizard shell. Owner works scope-only, gates green, evidence in log.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/feedback/feedback-dialog.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "npx eslint"
+  ],
+  "status": "done",
+  "owner": "fbov-01",
+  "created": "2026-09-15T01:24:04.761Z",
+  "updated": "2026-09-15T01:38:32.981Z",
+  "log": [
+    "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+    "2026-09-15T01:26:28.000Z fbov-01: claimed; starting stacking audit + Tracked/Anonymous/Guest wizard shell in feedback-dialog.tsx only.",
+    "2026-09-15T01:38:32.981Z fbov-01: DONE. Gates green for scope. tsc: zero errors mentioning feedback-dialog (only extrinsic feedback-button.tsx FeedbackDraft dup-identifier errors from a concurrent lane edit). eslint feedback-dialog.tsx: clean, no output. Details: portal to document.body + z-[100] + data-feedback-portal-root/data-feedback-dialog + scroll-lock/inert + Esc/backdrop + focus trap (ref re-attached) + Cmd/Ctrl+Enter preserved; added optional visibility/contactName/contactEmail + onChange handlers (default anonymous, picker hidden unless onVisibilityChange passed, old callers compile unchanged); Step1 details (rating/critique/text/templates) / Step2 screenshot+identity+review with Back/Continue + progress dots; fixed bad ScreenshotAnnotation type import (aliased to exported Annotation) and imageSrc->image annotator prop. Single file changed: v2/vcw4w/components/feedback/feedback-dialog.tsx."
+  ]
+}

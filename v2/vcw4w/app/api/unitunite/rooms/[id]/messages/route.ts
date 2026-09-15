@@ -33,6 +33,11 @@ function clampLimit(v: unknown): number {
   return Math.min(100, Math.max(1, Math.floor(n)));
 }
 
+/** Cap free-form RPC metadata (mirrors SQL substr(...,1,64)); additive only. */
+function capMeta(v: unknown, max = 64): string {
+  return String(v ?? "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, max);
+}
+
 /**
  * GET /api/unitunite/rooms/[id]/messages?limit=&before=; read a room.
  * Members/owners auto-join on read so the user always sees their chats.
@@ -46,7 +51,10 @@ export async function GET(req: Request, { params }: Ctx) {
   if (!isUuid(roomId)) return fail("Invalid room.", 400);
   const q = new URL(req.url).searchParams;
   const limit = clampLimit(q.get("limit"));
-  const before = q.get("before");
+  const beforeRaw = q.get("before");
+  // Bound the cursor: timestamptz strings are short; reject oversized input.
+  if (beforeRaw !== null && beforeRaw.length > 64) return fail("Invalid cursor.", 400);
+  const before = beforeRaw;
 
   if (extractBotKey(req)) {
     if (!hasBotAuth()) return fail("Bot service is not configured.", 503);
@@ -128,8 +136,8 @@ export async function POST(req: Request, { params }: Ctx) {
       p_text: useCipher ? ciphertext : text,
       p_bot_name: botName,
       p_encoding: useCipher ? "cipher" : "plain",
-      p_session: String(input.session_key_id ?? ""),
-      p_device: String(input.device ?? "agent-relay"),
+      p_session: capMeta(input.session_key_id ?? ""),
+      p_device: capMeta(input.device ?? "agent-relay"),
     });
     if (error) return rpcFail("api/unitunite/rooms/messages", error, statusOf, "Unable to send.");
     return ok({ id: data, is_bot: true }, 201);
@@ -153,8 +161,8 @@ export async function POST(req: Request, { params }: Ctx) {
   const { data: id, error } = await supabase.rpc("send_room_packet", {
     p_room: roomId,
     p_cipher: ciphertext,
-    p_session: String(input.session_key_id ?? ""),
-    p_device: String(input.device ?? "unknown"),
+    p_session: capMeta(input.session_key_id ?? ""),
+    p_device: capMeta(input.device ?? "unknown"),
   });
   if (error) return rpcFail("api/unitunite/rooms/messages", error, statusOf, "Unable to send.");
   return ok({ id, is_bot: false }, 201);
@@ -183,6 +191,8 @@ export async function DELETE(req: Request, { params }: Ctx) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data?.user) return fail("Login required.", 401);
+  const throttle = rateLimit(`room-redact:${data.user.id}`, 30, 60_000);
+  if (!throttle.allowed) return fail("Too many requests.", 429);
   // Redaction destroys shared history: bots (and restricted play/test
   // sessions driving them) never redact, even with rooms.moderate.
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);

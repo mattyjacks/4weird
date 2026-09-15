@@ -1,0 +1,24 @@
+{
+    "id":  "DS-FBOV-10",
+    "title":  "Guest /feedback page + docs fix + verify script (NEW)",
+    "goal":  "FBOV overhaul slice DS-FBOV-10: Guest /feedback page + docs fix + verify script (NEW). Owner works scope-only, gates green, evidence in log.",
+    "lane":  "docs",
+    "scope":  [
+                  "v2/vcw4w/app/feedback/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit",
+                  "npx eslint"
+              ],
+    "status":  "done",
+    "owner":  "fbov-10",
+    "created":  "2026-09-15T01:24:04.761Z",
+    "updated":  "2026-09-15T01:39:56.000Z",
+    "log":  [
+                "2026-09-15T01:24:04.761Z lead: envelope minted for Awesome Feedback Overhaul, awaiting claim.",
+                "2026-09-15T01:29:23.000Z fbov-10: claimed; rebuilding guest /feedback page + docs §5 fix + new verifier.",
+                "2026-09-15T01:39:56.000Z fbov-10: page rebuilt to native visibility/source/contact contract + ScreenshotDropzone import + PNG/WebP; docs identity-label/JPG-only lines corrected to native fields (S5 bot example already real-contract).",
+                "2026-09-15T01:39:56.000Z fbov-10: GATES green: node scripts/verify-feedback-fbov.mjs -\u003e \u0027Feedback FBOV slice OK\u0027; npx eslint 3 touched files exit 0; npx tsc zero errors in scope (only extrinsic: feedback-button.tsx FeedbackVisibility x3, fbov-02 owned).",
+                "2026-09-15T01:39:56.000Z fbov-10: FOLLOW-UPS for steward: (1) fbov-02 tsc red FeedbackVisibility in feedback-button.tsx; (2) route/admin/dialog/dropzone siblings all in_progress - verifier asserts current disk truth, re-run after they land."
+            ]
+}

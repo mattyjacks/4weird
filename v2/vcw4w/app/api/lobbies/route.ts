@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasServerSupabase } from "@/lib/supabase/service";
+import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug } from "@/lib/validate";
+import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
 
 
 export async function GET(req: Request) {
@@ -55,6 +56,25 @@ export async function POST(req: Request) {
     title.length > 48
   ) {
     return fail("Invalid lobby.", 400);
+  }
+  // Server-side age enforcement (mirrors POST /api/matches): lobby rooms
+  // inherit the strict catalog rating of their game — Adults (18+) titles
+  // need an Adult band, Teens (13+) need Teen or Adult. Lobby create/join
+  // has no content-mode picker, so the strict rating always applies. Fail
+  // closed: an unreadable band denies 13+/18+ rooms (never the kids default).
+  try {
+    const svc = serviceClient();
+    const { data: profile } = await svc.from("profiles").select("age_band").eq("id", u.id).maybeSingle();
+    const band = String((profile as { age_band?: unknown } | null)?.age_band ?? "unknown");
+    const minAge = requiredAgeFor(getGameRating(game));
+    if (minAge >= 18 && band !== "adult") {
+      return fail("Adults (18+) games need an Adult (18+) age band. Teens stay on Teen/Kids games.", 403);
+    }
+    if (minAge >= 13 && band !== "adult" && band !== "teen") {
+      return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
+    }
+  } catch {
+    return fail("Server misconfigured.", 500);
   }
   const { data: rpcData, error } = await supabase.rpc("create_lobby", {
     p_game: game,

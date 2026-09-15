@@ -3,7 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
-import { calculateGhostCashOwed } from "@/lib/ghost-cash";
+import { calculateGhostOwed } from "@/types/time";
 
 
 // GET /api/time - List time entries with optional filters
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
       is_billable,
       is_running,
       ghost_rate,
-      ghost_cash_owed,
+      ghost_owed,
       activity_score,
       upwork_sync_mode,
       upwork_contract_id,
@@ -62,7 +62,7 @@ export async function GET(req: Request) {
     is_billable: boolean;
     is_running: boolean;
     ghost_rate: number | string | null;
-    ghost_cash_owed: number | string | null;
+    ghost_owed: number | string | null;
     activity_score: number | null;
     upwork_sync_mode: boolean | null;
     upwork_contract_id: string | null;
@@ -86,7 +86,7 @@ export async function GET(req: Request) {
       isBillable: e.is_billable,
       isRunning: e.is_running,
       ghostRate: Number(e.ghost_rate || 0),
-      ghostCashOwed: Number(e.ghost_cash_owed || 0),
+      ghostOwed: Number(e.ghost_owed || 0),
       activityScore: e.activity_score ?? 100,
       upworkSyncMode: !!e.upwork_sync_mode,
       upworkContractId: e.upwork_contract_id,
@@ -168,10 +168,10 @@ export async function POST(req: Request) {
     }
   }
 
-  // Ghost Cash owed uses the canonical quoter (same formula the reports
+  // Ghosts owed use the canonical quoter (same formula the reports
   // and invoice flows read back); billable-gated, 0 otherwise.
-  const ghostCashOwed = Boolean(isBillable)
-    ? calculateGhostCashOwed(duration, ghostRate)
+  const ghostOwed = Boolean(isBillable)
+    ? calculateGhostOwed(duration, ghostRate)
     : 0;
 
   const { data: entry, error } = await supabase
@@ -188,7 +188,7 @@ export async function POST(req: Request) {
       is_billable: !!isBillable,
       is_running: false,
       ghost_rate: ghostRate,
-      ghost_cash_owed: ghostCashOwed,
+      ghost_owed: ghostOwed,
       activity_score: 100,
     })
     .select()
@@ -197,13 +197,13 @@ export async function POST(req: Request) {
   if (error) return dbFail("POST /api/time", error, "Failed to create time entry.");
 
   // Record pending debt if applicable
-  if (ghostCashOwed > 0 && (debtorId || orgId)) {
+  if (ghostOwed > 0 && (debtorId || orgId)) {
     await supabase.from("timer_debts").insert({
       org_id: orgId || null,
       project_id: projectId || null,
       creditor_id: u.id,
       debtor_id: debtorId || u.id,
-      amount_ghost_cash: ghostCashOwed,
+      amount_ghost: ghostOwed,
       status: "pending",
       memo: `Manual entry: ${description || "Work logged"}`,
     });

@@ -110,27 +110,31 @@ export function CrmReports({
   const [coinsIn, setCoinsIn] = useState("100");
   const [usdIn, setUsdIn] = useState("1.00");
 
+  const safeDeals = Array.isArray(deals) ? deals : [];
+  const safeContacts = Array.isArray(contacts) ? contacts : [];
+  const safeCompanies = Array.isArray(companies) ? companies : [];
+  const safeActivities = Array.isArray(activities) ? activities : [];
   const companyById = useMemo(() => {
     const m = new Map<string, string>();
-    for (const c of companies) m.set(c.id, c.name ?? "");
+    for (const c of safeCompanies) m.set(c.id, c.name ?? "");
     return m;
-  }, [companies]);
+  }, [safeCompanies]);
 
   const contactById = useMemo(() => {
     const m = new Map<string, string>();
-    for (const c of contacts) m.set(c.id, contactLabel(c));
+    for (const c of safeContacts) m.set(c.id, contactLabel(c));
     return m;
-  }, [contacts]);
+  }, [safeContacts]);
 
   const dealById = useMemo(() => {
     const m = new Map<string, string>();
-    for (const d of deals) m.set(d.id, d.title ?? "");
+    for (const d of safeDeals) m.set(d.id, d.title ?? "");
     return m;
-  }, [deals]);
+  }, [safeDeals]);
 
   const stageTotals = useMemo(() => {
     const m = new Map<string, { count: number; coins: number }>();
-    for (const d of deals) {
+    for (const d of safeDeals) {
       const stage = d.stage ?? "unknown";
       const cur = m.get(stage) ?? { count: 0, coins: 0 };
       cur.count += 1;
@@ -138,11 +142,11 @@ export function CrmReports({
       m.set(stage, cur);
     }
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [deals]);
+  }, [safeDeals]);
 
   const monthlyWon = useMemo(() => {
     const m = new Map<string, { count: number; coins: number }>();
-    for (const d of deals) {
+    for (const d of safeDeals) {
       if (d.stage !== "won") continue;
       const k = monthKey(d.created_at);
       const cur = m.get(k) ?? { count: 0, coins: 0 };
@@ -151,9 +155,9 @@ export function CrmReports({
       m.set(k, cur);
     }
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [deals]);
+  }, [safeDeals]);
 
-  const totalPipeline = deals.reduce((n, d) => n + dealCoins(d), 0);
+  const totalPipeline = safeDeals.reduce((n, d) => n + dealCoins(d), 0);
   // Date-only stamp: validated YYYY-MM-DD, never user input.
   const stamp = safeDateStamp(new Date().toISOString().slice(0, 10));
 
@@ -161,7 +165,7 @@ export function CrmReports({
     const rows: string[][] = [
       ["id", "title", "stage", "value_coins", "usd_value", "company", "contact", "created_at"],
     ];
-    for (const d of deals) {
+    for (const d of safeDeals) {
       const c = dealCoins(d);
       rows.push([
         d.id,
@@ -179,7 +183,7 @@ export function CrmReports({
 
   function exportContacts() {
     const rows: string[][] = [["id", "full_name", "email", "phone", "company", "created_at"]];
-    for (const c of contacts) {
+    for (const c of safeContacts) {
       rows.push([
         c.id,
         contactLabel(c),
@@ -194,7 +198,7 @@ export function CrmReports({
 
   function exportCompanies() {
     const rows: string[][] = [["id", "name", "domain", "notes", "created_at"]];
-    for (const c of companies) {
+    for (const c of safeCompanies) {
       rows.push([c.id, c.name ?? "", c.domain ?? "", c.notes ?? "", c.created_at ?? ""]);
     }
     download(`crm-companies-${stamp}.csv`, "text/csv;charset=utf-8", toCsv(rows));
@@ -202,7 +206,7 @@ export function CrmReports({
 
   function exportActivities() {
     const rows: string[][] = [["id", "title", "deal", "done", "due_at", "created_at"]];
-    for (const a of activities) {
+    for (const a of safeActivities) {
       rows.push([
         a.id,
         a.title ?? "",
@@ -218,8 +222,8 @@ export function CrmReports({
   function exportSummaryTxt() {
     const lines = [
       `CRM pipeline summary (${stamp})`,
-      `Deals: ${deals.length} · pipeline ${totalPipeline} coins (${usd(totalPipeline)})`,
-      `Contacts: ${contacts.length} · Companies: ${companies.length} · Activities: ${activities.length}`,
+      `Deals: ${safeDeals.length} · pipeline ${totalPipeline} coins (${usd(totalPipeline)})`,
+      `Contacts: ${safeContacts.length} · Companies: ${safeCompanies.length} · Activities: ${safeActivities.length}`,
       "",
       "By stage:",
       ...stageTotals.map(([s, t]) => `- ${s}: ${t.count} deals · ${t.coins} coins (${usd(t.coins)})`),
@@ -246,22 +250,22 @@ export function CrmReports({
           Client-side CSV / TXT downloads from the loaded workspace rows. Nothing is written back.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <button type="button" className={ghostBtnCls} onClick={exportDeals} disabled={!deals.length}>
+          <button type="button" className={ghostBtnCls} onClick={exportDeals} disabled={!safeDeals.length}>
             Export deals CSV
           </button>
-          <button type="button" className={ghostBtnCls} onClick={exportContacts} disabled={!contacts.length}>
+          <button type="button" className={ghostBtnCls} onClick={exportContacts} disabled={!safeContacts.length}>
             Export contacts CSV
           </button>
-          <button type="button" className={ghostBtnCls} onClick={exportCompanies} disabled={!companies.length}>
+          <button type="button" className={ghostBtnCls} onClick={exportCompanies} disabled={!safeCompanies.length}>
             Export companies CSV
           </button>
-          <button type="button" className={ghostBtnCls} onClick={exportActivities} disabled={!activities.length}>
+          <button type="button" className={ghostBtnCls} onClick={exportActivities} disabled={!safeActivities.length}>
             Export activities CSV
           </button>
-          <button type="button" className={ghostBtnCls} onClick={exportSummaryTxt} disabled={!deals.length}>
+          <button type="button" className={ghostBtnCls} onClick={exportSummaryTxt} disabled={!safeDeals.length}>
             Pipeline summary TXT
           </button>
-          <button type="button" className={ghostBtnCls} onClick={() => window.print()} disabled={!deals.length}>
+          <button type="button" className={ghostBtnCls} onClick={() => window.print()} disabled={!safeDeals.length}>
             Print
           </button>
         </div>
@@ -313,14 +317,14 @@ export function CrmReports({
       <section className={cardCls} aria-label="Pipeline summary">
         <h2 className="text-lg font-bold text-white">Pipeline summary</h2>
         <p className="mt-1 text-sm text-slate-300">
-          {deals.length} deals · {totalPipeline.toLocaleString()} 🪙 ≈ {usd(totalPipeline)}
+          {safeDeals.length} deals · {totalPipeline.toLocaleString()} 🪙 ≈ {usd(totalPipeline)}
         </p>
         {stageTotals.length === 0 ? (
           <p className="mt-3 text-sm text-slate-500">No deals loaded yet.</p>
         ) : (
           <ul className="mt-3 divide-y divide-white/10">
-            {stageTotals.map(([stage, t]) => (
-              <li key={stage} className="flex flex-wrap items-center gap-3 py-2 text-sm">
+            {stageTotals.map(([stage, t], sti) => (
+              <li key={stage ?? sti} className="flex flex-wrap items-center gap-3 py-2 text-sm">
                 <span className="font-semibold uppercase tracking-wide text-cyan-300">{stage}</span>
                 <span className="text-slate-400">
                   {t.count} deals · {t.coins.toLocaleString()} 🪙 ≈ {usd(t.coins)}
@@ -348,8 +352,8 @@ export function CrmReports({
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {monthlyWon.map(([month, t]) => (
-                  <tr key={month} className="text-slate-200">
+                {monthlyWon.map(([month, t], mwi) => (
+                  <tr key={month ?? mwi} className="text-slate-200">
                     <td className="py-2 pr-4 font-mono">{month}</td>
                     <td className="py-2 pr-4">{t.count}</td>
                     <td className="py-2 pr-4">{t.coins.toLocaleString()} 🪙</td>
@@ -369,12 +373,12 @@ export function CrmReports({
       <section className="hidden print:block" aria-label="Print summary">
         <h2>CRM pipeline summary ({stamp})</h2>
         <p>
-          {deals.length} deals · {totalPipeline} coins ({usd(totalPipeline)}) · {contacts.length}{" "}
-          contacts · {companies.length} companies · {activities.length} activities.
+          {safeDeals.length} deals · {totalPipeline} coins ({usd(totalPipeline)}) · {safeContacts.length}{" "}
+          contacts · {safeCompanies.length} companies · {safeActivities.length} activities.
         </p>
         <ul>
-          {stageTotals.map(([stage, t]) => (
-            <li key={stage}>
+          {stageTotals.map(([stage, t], sti) => (
+            <li key={stage ?? sti}>
               {stage}: {t.count} deals · {t.coins} coins ({usd(t.coins)})
             </li>
           ))}
@@ -382,8 +386,8 @@ export function CrmReports({
         <h3>Won totals by month</h3>
         <ul>
           {monthlyWon.length === 0 && <li>No won deals yet.</li>}
-          {monthlyWon.map(([month, t]) => (
-            <li key={month}>
+          {monthlyWon.map(([month, t], mwi) => (
+            <li key={month ?? mwi}>
               {month}: {t.count} won · {t.coins} coins ({usd(t.coins)})
             </li>
           ))}

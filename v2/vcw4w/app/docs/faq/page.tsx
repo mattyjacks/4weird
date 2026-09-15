@@ -230,8 +230,7 @@ export default function FaqPage() {
       </div>
 
       <Callout tone="emerald" title="Kids Mode + age gates never remember you.">
-        Birth dates are checked in memory on your own device and are never sent, stored, or
-        remembered — every check re-derives from a freshly entered date. Kids Mode itself is
+        Game-play gates check birth dates in memory on your own device and never send or store them — every check re-derives from a freshly entered date. The one exception is MMO shard entry, which sends the date once to same-origin POST /api/age-verify to mint a signed band pass (used in memory, then dropped; never stored, logged, or echoed back). Kids Mode itself is
         one on-device flag, not age data.
       </Callout>
 

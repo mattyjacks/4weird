@@ -8,7 +8,7 @@ import { useSiteTheme } from "@/components/site/site-theme-provider";
 import { useMountedTheme } from "@/components/site/themes/use-mounted-theme";
 // DS-SEARCH-05: search entry points mount the sibling overlay (DS-SEARCH-04
 // owns components/site/search-overlay.tsx; import by contract).
-import { SearchOverlay, useSearchShortcut } from "@/components/site/search-overlay";
+import { SearchOverlay, useRotatingPlaceholder, useSearchShortcut } from "@/components/site/search-overlay";
 
 // Heavy chunks stay off the first-paint bundle and hydrate after it:
 // wallet badges pull balance polling + auth wiring, the USA flag pulls
@@ -57,6 +57,7 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
   {
     label: "🎮 Play",
     links: [
+      { href: "/games", label: "🎮 All Games" },
       { href: "/buddy", label: "🐶 Gaming Buddy" },
       { href: "/leaderboards", label: "🏆 Leaderboards" },
       { href: "/clans", label: "🏰 Clans" },
@@ -121,21 +122,17 @@ const NAV_MORE_LINKS: NavLink[] = [
 void NAV_MORE_LINKS;
 void GITHUB_HREF;
 
-// Standardized nav: ONE taxonomy (NAV_GROUPS + All Games) rendered three ways
+// Standardized nav: ONE taxonomy (NAV_GROUPS, with 🎮 All Games first in Play)
+// rendered three ways
 // — desktop dropdowns (lg+), tablet quick-row (md-lg), accordion sheet (<lg).
 // Shared <HeaderCtas> keeps Get Coins / Dashboard / Login / Sign Up identical
 // everywhere. Link explanations live in lib/site-nav.ts; the href literals
 // below stay inline because scripts/verify-*.mjs assert their presence here —
 // when you add a header link, mirror its copy in lib/site-nav.ts, and vice versa.
 
-const ALL_GAMES_HREF = "/games";
-
-// Desktop dropdown timing: 2s swirl fade-out on mouse-away, up to 1s
-// proportional restore when the mouse comes back (restore = faded * 1s,
-// so 0.6s away -> ~0.3s restore).
-const NAV_FADE_OUT_MS = 2000;
-const NAV_RESTORE_MAX_MS = 1000;
-const NAV_SWITCH_FADE_MS = 180;
+// Desktop dropdown timing: standard hover intent (~100ms open/close delay)
+// with a ~150ms ease-in panel animation (see .nav-std-panel in globals.css).
+const NAV_HOVER_INTENT_MS = 100;
 
 // Cached reduced-motion subscription: a matchMedia read per animation event
 // forces a style recalc mid-gesture, so subscribe once per component and
@@ -262,192 +259,54 @@ type DesktopNavGroupProps = {
 };
 
 /**
- * One desktop nav dropdown: click/hover pins it open; mouse-away starts a
- * 2s fade where a mouse-disturbed gradient mask dissolves the panel while it
- * slides back up into its button. Moving the mouse back restores opacity in
- * (faded * 1s) from the swirl.
+ * One desktop nav dropdown: hover/focus opens after a short intent delay,
+ * mouse-away closes after the same delay. The panel itself animates via
+ * CSS (.nav-std-panel: ~150ms ease opacity + translateY). Escape and
+ * outside-close are owned by the parent (openMenu state).
  *
  * Memoized: static nav data + stable label-level callbacks mean a group only
  * re-renders when its own active/open state or the pathname changes.
  */
 const DesktopNavGroup = memo(function DesktopNavGroup({ group, active, expandedMenu, pathname, onOpen, onRequestClose, onNavigate }: DesktopNavGroupProps) {
-  const [leaving, setLeaving] = useState(false);
-  const stayVisible = expandedMenu || leaving;
-  const panelRef = useRef<HTMLDivElement>(null);
-  const fadeRef = useRef(0);
-  const velRef = useRef(0);
-  const swirlRef = useRef(0);
-  const rafRef = useRef(0);
-  const leavingRef = useRef(false);
-  const lastPosRef = useRef<{ x: number; y: number; t: number } | null>(null);
-  // Cached panel rect: getBoundingClientRect() on every pointermove forces a
-  // sync layout per event (layout thrash). Refresh on open/enter instead and
-  // reuse the cached box for the whole hover gesture.
-  const rectRef = useRef<DOMRect | null>(null);
-  const reducedMotion = usePrefersReducedMotion();
+  const openTimerRef = useRef<number>(0);
+  const closeTimerRef = useRef<number>(0);
 
-  const refreshRect = useCallback(() => {
-    const panel = panelRef.current;
-    rectRef.current = panel ? panel.getBoundingClientRect() : null;
+  const clearTimers = useCallback(() => {
+    if (openTimerRef.current) window.clearTimeout(openTimerRef.current);
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+    openTimerRef.current = 0;
+    closeTimerRef.current = 0;
   }, []);
 
-  const cancelAnim = useCallback(() => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = 0;
-  }, []);
+  useEffect(() => clearTimers, [clearTimers]);
 
-  const paint = useCallback(() => {
-    const panel = panelRef.current;
-    if (!panel) return;
-    panel.style.setProperty("--fade", fadeRef.current.toFixed(4));
-    panel.style.setProperty("--vel", velRef.current.toFixed(4));
-    panel.style.setProperty("--swirl", `${swirlRef.current.toFixed(1)}deg`);
-  }, []);
-
-  const setMouseFromClient = useCallback((clientX: number, clientY: number) => {
-    const panel = panelRef.current;
-    let nx = 0.5;
-    let ny = 0;
-    // Cached rect — no layout read in the pointermove hot path.
-    const rect = rectRef.current;
-    if (rect && rect.width > 0 && rect.height > 0) {
-      nx = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-      ny = Math.min(1, Math.max(0, (clientY - rect.top) / rect.height));
+  // If the parent yanks open state (switched group / Escape / outside /
+  // route), drop any pending intent so a stale timer can't reopen us.
+  useEffect(() => {
+    if (!expandedMenu) {
+      if (openTimerRef.current) window.clearTimeout(openTimerRef.current);
+      openTimerRef.current = 0;
     }
-    panel?.style.setProperty("--mx", `${(nx * 100).toFixed(1)}%`);
-    panel?.style.setProperty("--my", `${(ny * 100).toFixed(1)}%`);
-    const now = performance.now();
-    const last = lastPosRef.current;
-    if (last) {
-      const dist = Math.hypot(clientX - last.x, clientY - last.y);
-      const dt = Math.max(16, now - last.t);
-      const boost = Math.min(1, dist / (140 * (dt / 16)));
-      velRef.current = Math.min(1, velRef.current + boost * 0.55);
-      swirlRef.current = (swirlRef.current + boost * 46) % 360;
-    }
-    lastPosRef.current = { x: clientX, y: clientY, t: now };
-  }, []);
-
-  // Global mouse disturbance while fading: wiggling the mouse churns the mask.
-  useEffect(() => {
-    if (!leaving) return;
-    const onMove = (event: PointerEvent) => setMouseFromClient(event.clientX, event.clientY);
-    window.addEventListener("pointermove", onMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onMove);
-  }, [leaving, setMouseFromClient]);
-
-  useEffect(() => {
-    cancelAnim();
-    return cancelAnim;
-  }, [cancelAnim]);
-
-  // Cache the panel box as soon as it mounts so hover math never measures.
-  useEffect(() => {
-    if (stayVisible) refreshRect();
-  }, [stayVisible, refreshRect]);
-
-  // Parent yanked the open state (switched group / Escape / outside / route):
-  // fast swirl-away if we were mid-fade, otherwise hide instantly.
-  useEffect(() => {
-    if (expandedMenu || !leavingRef.current) return;
-    if (reducedMotion) {
-      leavingRef.current = false;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- animation-cancel syncs panel state with the external reduced-motion setting when the parent yanks open state.
-      setLeaving(false);
-      return;
-    }
-    const start = fadeRef.current;
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - t0) / NAV_SWITCH_FADE_MS);
-      fadeRef.current = start + (1 - start) * t;
-      velRef.current *= 0.94;
-      swirlRef.current = (swirlRef.current + (1.5 + velRef.current * 10)) % 360;
-      paint();
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        rafRef.current = 0;
-        leavingRef.current = false;
-        setLeaving(false);
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return cancelAnim;
-  }, [expandedMenu, cancelAnim, paint, reducedMotion]);
+  }, [expandedMenu]);
 
   const handleEnter = () => {
-    refreshRect();
-    if (leavingRef.current) {
-      // Mouse came back mid-fade: restore in (faded * 1s), unwinding the swirl.
-      cancelAnim();
-      const faded = fadeRef.current;
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = 0;
+    if (expandedMenu || openTimerRef.current) return;
+    openTimerRef.current = window.setTimeout(() => {
+      openTimerRef.current = 0;
       onOpen(group.label);
-      if (reducedMotion || faded <= 0.01) {
-        fadeRef.current = 0;
-        velRef.current = 0;
-        leavingRef.current = false;
-        setLeaving(false);
-        paint();
-        return;
-      }
-      const duration = Math.min(NAV_RESTORE_MAX_MS, Math.max(120, faded * NAV_RESTORE_MAX_MS));
-      const start = faded;
-      const t0 = performance.now();
-      const tick = (now: number) => {
-        const t = Math.min(1, (now - t0) / duration);
-        const eased = 1 - Math.pow(1 - t, 2);
-        fadeRef.current = start * (1 - eased);
-        velRef.current *= 0.9;
-        swirlRef.current = (swirlRef.current - (2 + velRef.current * 14) * (1 - t)) % 360;
-        paint();
-        if (t < 1) {
-          rafRef.current = requestAnimationFrame(tick);
-        } else {
-          rafRef.current = 0;
-          fadeRef.current = 0;
-          velRef.current = 0;
-          leavingRef.current = false;
-          setLeaving(false);
-          paint();
-        }
-      };
-      rafRef.current = requestAnimationFrame(tick);
-      return;
-    }
-    if (!expandedMenu) onOpen(group.label);
+    }, NAV_HOVER_INTENT_MS);
   };
 
   const handleLeave = () => {
-    if (!expandedMenu || leavingRef.current) return;
-    if (reducedMotion) {
+    if (openTimerRef.current) window.clearTimeout(openTimerRef.current);
+    openTimerRef.current = 0;
+    if (!expandedMenu || closeTimerRef.current) return;
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = 0;
       onRequestClose(group.label);
-      return;
-    }
-    leavingRef.current = true;
-    setLeaving(true);
-    fadeRef.current = 0;
-    velRef.current = 0;
-    lastPosRef.current = null;
-    paint();
-    const t0 = performance.now();
-    const tick = (now: number) => {
-      const t = Math.min(1, (now - t0) / NAV_FADE_OUT_MS);
-      fadeRef.current = t;
-      velRef.current *= 0.93;
-      swirlRef.current = (swirlRef.current + (1.2 + velRef.current * 16)) % 360;
-      paint();
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      } else {
-        rafRef.current = 0;
-        leavingRef.current = false;
-        setLeaving(false);
-        fadeRef.current = 0;
-        onRequestClose(group.label);
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
+    }, NAV_HOVER_INTENT_MS);
   };
 
   return (
@@ -455,8 +314,8 @@ const DesktopNavGroup = memo(function DesktopNavGroup({ group, active, expandedM
       className="relative"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
-      onMouseMove={(event) => setMouseFromClient(event.clientX, event.clientY)}
       onFocusCapture={() => {
+        clearTimers();
         if (!expandedMenu) onOpen(group.label);
       }}
     >
@@ -466,7 +325,7 @@ const DesktopNavGroup = memo(function DesktopNavGroup({ group, active, expandedM
         aria-haspopup="true"
         aria-current={active && !expandedMenu ? "page" : undefined}
         onClick={() => (expandedMenu ? onRequestClose(group.label) : onOpen(group.label))}
-        className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-semibold transition hover:bg-accent hover:text-accent-foreground ${
+        className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-semibold transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1 ${
           active ? "text-cyan-600 dark:text-cyan-300" : ""
         }`}
       >
@@ -475,9 +334,9 @@ const DesktopNavGroup = memo(function DesktopNavGroup({ group, active, expandedM
           ▾
         </span>
       </button>
-      {stayVisible && (
-        <div ref={panelRef} className="nav-swirl-panel desktop-fluid absolute left-0 top-full z-50 min-w-52 pt-1">
-          <ul className="nav-swirl-list overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/50">
+      {expandedMenu && (
+        <div className="nav-std-panel absolute left-0 top-full z-50 min-w-52 pt-1">
+          <ul className="overflow-hidden rounded-xl border border-border bg-popover py-1 shadow-xl dark:border-white/10 dark:bg-slate-950/95 dark:shadow-black/50">
             {group.links.map((link, index) => (
               <DropdownLink
                 key={`${link.href}-${link.label}`}
@@ -533,47 +392,6 @@ const HeaderCtas = memo(function HeaderCtas({ signedIn, onNavigate }: { signedIn
         </>
       )}
     </>
-  );
-});
-
-/**
- * All Games entry in both of its responsive forms: quiet bar link on
- * desktop/tablet, full-width primary button in the sheet. Same href,
- * same label, same active rule. Memoized — static copy, pathname-active only.
- */
-const AllGamesLink = memo(function AllGamesLink({
-  pathname,
-  onNavigate,
-  variant,
-}: {
-  pathname: string;
-  onNavigate: () => void;
-  variant: "bar" | "sheet";
-}) {
-  const active = isActive(pathname, ALL_GAMES_HREF);
-  if (variant === "sheet") {
-    return (
-      <Link
-        href={ALL_GAMES_HREF}
-        onClick={onNavigate}
-        aria-current={active ? "page" : undefined}
-        className="flex min-h-[44px] items-center justify-center rounded-xl bg-cyan-600 px-3 py-2 text-center text-sm font-black text-white transition hover:bg-cyan-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 dark:bg-cyan-300 dark:text-slate-950 dark:hover:bg-cyan-200"
-      >
-        🎮 All Games
-      </Link>
-    );
-  }
-  return (
-    <Link
-      href={ALL_GAMES_HREF}
-      onClick={onNavigate}
-      aria-current={active ? "page" : undefined}
-      className={`rounded-lg px-2.5 py-1.5 font-bold transition hover:bg-accent hover:text-accent-foreground ${
-        active ? "text-cyan-600 dark:text-cyan-300" : ""
-      }`}
-    >
-      🎮 All Games
-    </Link>
   );
 });
 
@@ -695,6 +513,7 @@ export function SiteHeader() {
   }, []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
   useSearchShortcut(openSearch);
+  const pillExample = useRotatingPlaceholder();
   const reducedMotion = usePrefersReducedMotion();
 
   // Track auth state so the header can show Login / Sign Up vs Dashboard.
@@ -875,7 +694,6 @@ export function SiteHeader() {
             aria-label="Primary navigation"
             className="hidden items-center gap-1 text-sm text-muted-foreground lg:flex"
           >
-            <AllGamesLink variant="bar" pathname={pathname} onNavigate={closeMenu} />
             <BarGroups
               pathname={pathname}
               openMenu={openMenu}
@@ -887,14 +705,19 @@ export function SiteHeader() {
 
           {/* Desktop actions (lg+): identical set as the sheet via HeaderCtas */}
           <div className="hidden items-center gap-2 lg:flex">
-            {/* DS-SEARCH-05: desktop search entry point (icon button). */}
+            {/* DS-SEARCH-05: desktop search entry point (short pill). */}
             <button
               type="button"
               onClick={openSearch}
               aria-label="Open site search"
-              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg border border-border px-3 py-2 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+              title="Search (Ctrl/⌘K or /)"
+              className="inline-flex h-9 max-w-56 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border border-border px-3 py-1.5 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
             >
-              <span aria-hidden="true">🔍</span>
+              <span aria-hidden="true" className="shrink-0">🔍</span>
+              <span className="shrink-0">Search</span>
+              <span aria-hidden="true" className="truncate text-xs font-normal opacity-70">
+                {pillExample ? `— try: ${pillExample}` : ""}
+              </span>
             </button>
             <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
             <HeaderCtas signedIn={signedIn} onNavigate={closeMenu} />
@@ -925,7 +748,6 @@ export function SiteHeader() {
             aria-label="Tablet navigation"
             className="mx-auto flex max-w-6xl items-center gap-1 px-4 py-1.5 text-sm text-muted-foreground sm:px-5"
           >
-            <AllGamesLink variant="bar" pathname={pathname} onNavigate={closeMenu} />
             <BarGroups
               pathname={pathname}
               openMenu={openMenu}
@@ -944,24 +766,33 @@ export function SiteHeader() {
             ref={mobileNavRef}
             id="site-mobile-nav"
             aria-label="Mobile navigation"
-            className="mobile-nav-sheet mobile-nav-scroll mobile-fluid border-t border-border bg-background px-3 pb-4 pt-3 lg:hidden dark:border-white/10 dark:bg-black"
+            className="mobile-nav-sheet mobile-nav-scroll mobile-fluid sticky top-0 z-40 border-t border-border bg-background px-3 pb-4 pt-3 lg:hidden dark:border-white/10 dark:bg-black"
             style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom, 1rem))" }}
           >
-            <DemoQuickLinks pathname={pathname} onNavigate={closeSheet} />
-            {/* DS-SEARCH-05: Menu 1 sheet search entry point — closes the
-                sheet first (via openSearch) so the overlay owns focus. */}
+            {/* Menu 1 top mirror of the desktop bar (no IDs duplicated):
+                HeaderCtas (Get Coins, Dashboard/Login/Sign Up) -> search -> balances. */}
+            <div className="mb-3 grid gap-2">
+              <HeaderCtas signedIn={signedIn} onNavigate={closeSheet} />
+              {/* DS-SEARCH-05: Menu 1 sheet search entry point — closes the
+                  sheet first (via openSearch) so the overlay owns focus. */}
             <button
               type="button"
               onClick={openSearch}
               aria-label="Open site search"
-              className="mb-2 flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-border px-3 py-2 text-center text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+              className="mb-2 flex min-h-[44px] w-full items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border border-border px-3 py-2 text-center text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
             >
-              <span aria-hidden="true">🔍</span> Search
+              <span aria-hidden="true" className="shrink-0">🔍</span>
+              <span className="shrink-0">Search</span>
+              <span aria-hidden="true" className="truncate text-xs font-normal opacity-70">
+                {pillExample ? `— try: ${pillExample}` : ""}
+              </span>
             </button>
+              <div className="flex min-h-[1.75rem] items-center justify-center">
+                <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
+              </div>
+            </div>
+            <DemoQuickLinks pathname={pathname} onNavigate={closeSheet} />
             <ul className="space-y-1 sm:grid sm:grid-cols-2 sm:gap-2 sm:space-y-0">
-              <li className="sm:col-span-2">
-                <AllGamesLink variant="sheet" pathname={pathname} onNavigate={closeSheet} />
-              </li>
               {NAV_GROUPS.map((group) => {
                 const active = groupActive(pathname, group.links);
                 const isExpanded = expanded === group.label;
@@ -1008,10 +839,6 @@ export function SiteHeader() {
                 );
               })}
             </ul>
-            {/* Sheet actions: identical set as desktop via HeaderCtas */}
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <HeaderCtas signedIn={signedIn} onNavigate={closeSheet} />
-            </div>
           </nav>
         )}
       </header>

@@ -94,18 +94,18 @@ function coarsePlatform(): "phone" | "desktop" {
 const SIDE_KEYS = ["hp", "gold", "kills", "floor", "progress", "score", "alive"] as const;
 
 function SideCard({ label, state }: { label: string; state: SideState | null | undefined }) {
-  const rows = SIDE_KEYS.filter((k) => state != null && state[k] !== undefined && state[k] !== null);
+  const rows = (Array.isArray(SIDE_KEYS) ? SIDE_KEYS : []).filter((k) => state != null && state[k] !== undefined && state[k] !== null);
   return (
     <div className="rounded-xl border border-white/10 bg-white/[.03] p-3">
       <p className="text-xs font-black tracking-widest text-cyan-300">{label}</p>
-      {rows.length === 0 ? (
+      {(rows ?? []).length === 0 ? (
         <p className="mt-1 text-xs text-slate-400">No reported stats yet.</p>
       ) : (
         <dl className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-          {rows.map((k) => (
-            <div key={k} className="flex items-center justify-between gap-2">
-              <dt className="text-slate-400">{k}</dt>
-              <dd className="font-bold text-white">{String(state?.[k])}</dd>
+          {(rows ?? []).map((k, index) => (
+            <div key={String(k ?? "") || index} className="flex items-center justify-between gap-2">
+              <dt className="text-slate-400">{String(k ?? "")}</dt>
+              <dd className="font-bold text-white">{String(state?.[k] ?? "—")}</dd>
             </div>
           ))}
         </dl>
@@ -179,7 +179,7 @@ function GraveGainPartyInner({ slug }: { slug: string }) {
           `/api/matches/${encodeURIComponent(matchId)}/events?limit=50`,
         ).catch(() => null);
         if (!live) return;
-        if (Array.isArray(ev?.events)) setEvents(ev.events.slice(0, 50));
+        if (Array.isArray(ev?.events)) setEvents((Array.isArray(ev?.events) ? ev.events : []).slice(0, 50));
       } catch (error) {
         if (!live) return;
         if ((error as { status?: number }).status === 401) setGuest(true);
@@ -336,7 +336,7 @@ function GraveGainPartyInner({ slug }: { slug: string }) {
 
   // Dormant-in-match: live party card for ?match=<uuid>.
   if (matchId) {
-    const short = matchId.slice(0, 8);
+    const short = String(matchId ?? "").slice(0, 8);
     return (
       <section
         aria-label={`${copy.mode} live party`}
@@ -363,19 +363,19 @@ function GraveGainPartyInner({ slug }: { slug: string }) {
         </p>
         {events.length > 0 ? (
           <ul aria-label="Match feed" className="mt-2 space-y-1 text-xs text-slate-300">
-            {events.map((e) => (
-              <li key={e.id || `${e.created_at}-${e.text}`} className="rounded-lg border border-white/10 bg-black/30 px-3 py-1.5">
-                <span className="font-bold text-cyan-300">{e.kind || "event"}</span> · {e.text}{" "}
-                <span className="text-slate-500">{e.created_at}</span>
+            {(Array.isArray(events) ? events : []).map((e, index) => (
+              <li key={e?.id ?? `${String(e?.created_at ?? "")}-${String(e?.text ?? "")}-${index}`} className="rounded-lg border border-white/10 bg-black/30 px-3 py-1.5">
+                <span className="font-bold text-cyan-300">{String(e?.kind ?? "") || "event"}</span> · {String(e?.text ?? "")}{" "}
+                <span className="text-slate-500">{e?.created_at ? new Date(e.created_at).toLocaleString() : "—"}</span>
               </li>
             ))}
           </ul>
         ) : (
           feed.length > 0 && (
             <ul aria-label="Match feed" className="mt-2 space-y-1 text-xs text-slate-300">
-              {feed.map((line) => (
-                <li key={line} className="rounded-lg border border-white/10 bg-black/30 px-3 py-1.5">
-                  {line}
+              {(Array.isArray(feed) ? feed : []).map((line, index) => (
+                <li key={String(line ?? "") ? `${String(line ?? "")}-${index}` : index} className="rounded-lg border border-white/10 bg-black/30 px-3 py-1.5">
+                  {String(line ?? "")}
                 </li>
               ))}
             </ul>

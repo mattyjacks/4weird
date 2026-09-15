@@ -118,9 +118,9 @@ export default async function Page({
             Search <span className="text-cyan-300">⌘K</span>
           </h1>
           <div role="group" aria-label="Result filters" className="flex flex-wrap items-center gap-1.5">
-            {FILTERS.map((k) => (
+            {(Array.isArray(FILTERS) ? FILTERS : []).map((k, index) => (
               <button
-                key={k}
+                key={String(k ?? index)}
                 type="button"
                 data-search-filter={k}
                 aria-pressed={k === active}
@@ -131,7 +131,7 @@ export default async function Page({
                     : "border-white/10 bg-white/[.03] text-slate-300 hover:border-cyan-300/50")
                 }
               >
-                {k === "all" ? "All" : k[0].toUpperCase() + k.slice(1)}
+                {k === "all" ? "All" : String(k ?? "").charAt(0).toUpperCase() + String(k ?? "").slice(1)}
               </button>
             ))}
           </div>

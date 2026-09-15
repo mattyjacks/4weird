@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { dbFail, fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, isMissingSchemaError, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isSlug } from "@/lib/validate";
@@ -19,7 +19,22 @@ export async function GET() {
     .select("active_seconds,actions,kills,deaths")
     .eq("user_id", u.id)
     .limit(500);
-  if (error) return dbFail("api/stats", error);
+  if (error) {
+    // Fail-open on missing table (migration not yet applied): stats read as
+    // zeros, not a 500 that blanks the dashboard. Real DB faults still 500
+    // via dbFail. (DS-PAGEFIX-07, FIX500 precedent)
+    if (isMissingSchemaError(error)) {
+      console.error("[api] api/stats game_stat_events table missing, returning zero stats", {
+        code: String((error as { code?: unknown }).code ?? "").slice(0, 16),
+      });
+      return ok({
+        stats: { playtime: "0h 0m", kills: 0, deaths: 0, actions_per_minute: 0 },
+        average: {},
+        unavailable: true,
+      });
+    }
+    return dbFail("api/stats", error);
+  }
   const totals = ((rows as { active_seconds: number; actions: number; kills: number; deaths: number }[] | null) ?? []).reduce(
     (x, v) => ({
       sec: x.sec + v.active_seconds,

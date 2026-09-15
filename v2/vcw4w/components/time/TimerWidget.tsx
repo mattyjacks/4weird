@@ -20,7 +20,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { TimerEntry, TimerProject, formatDuration, formatGhostCash, calcGhostCash } from "@/types/time";
+import { TimerEntry, TimerProject, formatDuration, formatGhostAmount, calculateGhostOwed } from "@/types/time";
 import { ScreenTracker } from "./ScreenTracker";
 
 interface TimerWidgetProps {
@@ -69,7 +69,7 @@ export function TimerWidget({
     }
   }, [runningTimer]);
 
-  // Calculate elapsed time & Ghost Cash
+  // Calculate elapsed time & Ghosts
   useEffect(() => {
     if (runningTimer?.isRunning && runningTimer.startTime) {
       const updateElapsed = () => {
@@ -89,9 +89,9 @@ export function TimerWidget({
     }
   }, [runningTimer]);
 
-  const selectedProject = projects.find((p) => p.id === projectId);
+  const selectedProject = (Array.isArray(projects) ? projects : []).find((p) => p.id === projectId);
   const currentRate = selectedProject?.ghostRate || runningTimer?.ghostRate || 0;
-  const currentGhostCashOwed = calcGhostCash(elapsedSeconds, currentRate);
+  const currentGhostOwed = calculateGhostOwed(elapsedSeconds, currentRate);
 
   const handleStart = async () => {
     setIsLoading(true);
@@ -143,11 +143,11 @@ export function TimerWidget({
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-400">
         <ShieldAlert className="h-4 w-4 text-cyan-400 shrink-0" />
         <span>
-          <strong>Ghost Cash (👻)</strong> is an internal debt measurement tool with no cash value and no legal tender status.
+          <strong>Ghost (👻)</strong> is an internal debt measurement tool with no monetary value and no legal tender status.
         </span>
       </div>
 
-      {/* Main Display: Duration & Ghost Cash Counter */}
+      {/* Main Display: Duration & Ghosts Counter */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div
@@ -160,13 +160,13 @@ export function TimerWidget({
           </div>
           <div className="flex items-center gap-2 text-sm">
             <Coins className="h-4 w-4 text-emerald-400" />
-            <span className="text-zinc-400">Ghost Cash Accrued:</span>
+            <span className="text-zinc-400">Ghosts accrued:</span>
             <span className="font-mono font-bold text-emerald-400 text-base">
-              {formatGhostCash(currentGhostCashOwed)}
+              {formatGhostAmount(currentGhostOwed)}
             </span>
             {currentRate > 0 && (
               <span className="text-xs text-zinc-500 font-mono">
-                (@ {formatGhostCash(currentRate)}/hr)
+                (@ {formatGhostAmount(currentRate)}/hr)
               </span>
             )}
           </div>
@@ -237,9 +237,9 @@ export function TimerWidget({
           className="h-9 px-3 rounded-md bg-zinc-900 border border-white/10 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
         >
           <option value="">No Project (General Work)</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name} {p.ghostRate > 0 ? `(${formatGhostCash(p.ghostRate)}/hr)` : ""}
+          {(Array.isArray(projects) ? projects : []).map((p, pi) => (
+            <option key={p.id ?? pi} value={p.id}>
+              {p.name} {p.ghostRate > 0 ? `(${formatGhostAmount(p.ghostRate)}/hr)` : ""}
             </option>
           ))}
         </select>
@@ -257,7 +257,7 @@ export function TimerWidget({
               isBillable ? "text-emerald-400" : "text-zinc-500"
             )}
           >
-            Billable in Ghost Cash (👻)
+            Billable in Ghosts (👻)
           </Label>
         </div>
 

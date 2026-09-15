@@ -39,8 +39,8 @@ const GAME_OPTIONS: GameOption[] = [
 ];
 
 function gameForDimension(dimension: Dimension): GameOption {
-  const found = GAME_OPTIONS.find((option) => option.dimension === dimension);
-  return found ?? GAME_OPTIONS[1];
+  const found = (Array.isArray(GAME_OPTIONS) ? GAME_OPTIONS : []).find((option) => option?.dimension === dimension);
+  return found ?? GAME_OPTIONS[1] ?? GAME_OPTIONS[0] ?? { id: "classic-2d", label: "Classic 2D world", dimension: "2d" as Dimension };
 }
 
 const AGE_MULTIPLIER: Record<AgeBand, number> = {
@@ -63,8 +63,9 @@ function estimateQuote(
   hours: number,
   hostFree: boolean,
 ): RentQuote {
-  const perMin = BASE_PER_MIN[dimension] * AGE_MULTIPLIER[ageBand];
-  const totalCoins = Math.round(perMin * 60 * Math.max(0, hours));
+  const perMin = (BASE_PER_MIN[dimension] ?? 0) * (AGE_MULTIPLIER[ageBand] ?? 1);
+  const safeHours = Number.isFinite(hours) ? Math.max(0, hours) : 0;
+  const totalCoins = Math.round(perMin * 60 * safeHours);
   return {
     totalCoins,
     perPlayerCoins: hostFree ? 0 : totalCoins,
@@ -117,13 +118,14 @@ export function RentForm() {
   const [quoting, setQuoting] = useState<boolean>(false);
 
   function handleDimensionChange(next: Dimension): void {
+    if (!SPECS[next as Dimension]) return;
     setDimension(next);
     setGameId(gameForDimension(next).id);
-    setRegion(SPECS[next].region);
+    setRegion(String(SPECS[next]?.region ?? ""));
   }
 
   function handleGameChange(nextId: string): void {
-    const found = GAME_OPTIONS.find((option) => option.id === nextId);
+    const found = (Array.isArray(GAME_OPTIONS) ? GAME_OPTIONS : []).find((option) => option?.id === nextId);
     if (!found) return; // fail-open: ignore unknown game ids
     setGameId(found.id);
     setDimension(found.dimension);
@@ -163,9 +165,9 @@ export function RentForm() {
     [dimension, ageBand, hours, hostFree],
   );
   const shown: RentQuote = quote ?? live;
-  const perHour = Math.round((BASE_PER_MIN[dimension] * AGE_MULTIPLIER[ageBand] * 60 + Number.EPSILON) * 100) / 100;
+  const perHour = Math.round(((BASE_PER_MIN[dimension] ?? 0) * (AGE_MULTIPLIER[ageBand] ?? 1) * 60 + Number.EPSILON) * 100) / 100;
   const monthly = Math.round(perHour * 730);
-  const specs = SPECS[dimension];
+  const specs = SPECS[dimension] ?? SPECS["2d"];
 
   useEffect(() => {
     emitInterop("mmorpg:rent-estimate", { dimension, ageBand, hours, hostFree, totalCoins: live.totalCoins });
@@ -192,12 +194,12 @@ export function RentForm() {
             Game
             <select
               value={gameId}
-              onChange={(event) => handleGameChange(event.target.value)}
+              onChange={(event) => handleGameChange(String(event.target.value ?? ""))}
               className="mt-1 block w-full rounded-md border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-white"
             >
-              {GAME_OPTIONS.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label} - {BASE_PER_MIN[option.dimension]} coins/min
+              {(Array.isArray(GAME_OPTIONS) ? GAME_OPTIONS : []).map((option, index) => (
+                <option key={String(option?.id ?? index)} value={String(option?.id ?? "")}>
+                  {String(option?.label ?? "Realm")} - {Number(option?.dimension ? BASE_PER_MIN[option.dimension] ?? 0 : 0)} coins/min
                 </option>
               ))}
             </select>
@@ -208,7 +210,7 @@ export function RentForm() {
               Dimension
               <select
                 value={dimension}
-                onChange={(event) => handleDimensionChange(event.target.value as Dimension)}
+                onChange={(event) => handleDimensionChange(String(event.target.value ?? "2d") as Dimension)}
                 className="mt-1 block w-full rounded-md border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-white"
               >
                 <option value="1d">1D — text realm</option>
@@ -222,11 +224,11 @@ export function RentForm() {
               Region
               <select
                 value={region}
-                onChange={(event) => setRegion(event.target.value)}
+                onChange={(event) => setRegion(String(event.target.value ?? ""))}
                 className="mt-1 block w-full rounded-md border border-white/10 bg-slate-900 px-2 py-1.5 text-xs text-white"
               >
-                {["US-East", "US-West", "EU-West", "EU-Central", "AP-South"].map((r) => (
-                  <option key={r} value={r}>{r}</option>
+                {["US-East", "US-West", "EU-West", "EU-Central", "AP-South"].map((r, index) => (
+                  <option key={String(r ?? index)} value={String(r ?? "")}>{String(r ?? "")}</option>
                 ))}
               </select>
             </label>
@@ -235,9 +237,9 @@ export function RentForm() {
           <fieldset>
             <legend className="text-xs text-slate-300">Age band</legend>
             <div className="mt-1 flex gap-1.5">
-              {(["kids", "teens", "adults"] as AgeBand[]).map((band) => (
+              {(["kids", "teens", "adults"] as AgeBand[]).map((band, index) => (
                 <button
-                  key={band}
+                  key={String(band ?? index)}
                   type="button"
                   onClick={() => setAgeBand(band)}
                   aria-pressed={ageBand === band}
@@ -277,7 +279,7 @@ export function RentForm() {
               min={1}
               max={72}
               value={hours}
-              onChange={(event) => setHours(Number(event.target.value) || 1)}
+              onChange={(event) => setHours(Number(String(event.target.value ?? "")) || 1)}
               className="mt-1 w-full accent-cyan-300"
               aria-label="Duration in hours"
             />
@@ -297,9 +299,9 @@ export function RentForm() {
           {shown.totalCoins} coins / {hours}h &middot; ≈{monthly} coins/mo
         </p>
         <dl className="mt-2 grid grid-cols-2 gap-1.5 text-[11px]">
-          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">CPU</dt><dd className="font-semibold text-white">{specs.cpu}</dd></div>
-          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">RAM</dt><dd className="font-semibold text-white">{specs.ram}</dd></div>
-          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">Region</dt><dd className="font-semibold text-white">{region}</dd></div>
+          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">CPU</dt><dd className="font-semibold text-white">{String(specs?.cpu ?? "")}</dd></div>
+          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">RAM</dt><dd className="font-semibold text-white">{String(specs?.ram ?? "")}</dd></div>
+          <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">Region</dt><dd className="font-semibold text-white">{String(region ?? "")}</dd></div>
           <div className="rounded-md bg-black/30 px-2 py-1"><dt className="text-slate-500">Players</dt><dd className="font-semibold text-white">{shown.hostFree ? "Free join" : "Paid join"}</dd></div>
         </dl>
         <p className="mt-2 text-[11px] text-slate-400">

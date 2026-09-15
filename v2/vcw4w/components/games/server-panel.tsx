@@ -106,7 +106,7 @@ export function ServerDetail({ id }: { id: string }) {
       }
       const rec = (body as { servers?: unknown }).servers;
       const rows = Array.isArray(rec) ? rec : [];
-      const match = rows.map((row) => toGameServer(row)).find((s) => s && s.id === id) ?? null;
+      const match = (Array.isArray(rows) ? rows : []).map((row) => toGameServer(row)).find((s) => s && String(s?.id ?? "") === String(id ?? "")) ?? null;
       if (!match) {
         setMessage("No room with that id is listed right now. It may have closed — pick another from the browser.");
         return;

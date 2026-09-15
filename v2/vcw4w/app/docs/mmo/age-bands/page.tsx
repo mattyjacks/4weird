@@ -75,7 +75,7 @@ export default function MmorpgAgeBandsPage() {
       <SectionHead
         index="2"
         kicker="How the check works"
-        title="DOB in memory only — never stored, never sent"
+        title="DOB in memory only — never stored, sent once to mint your pass"
         body="The gate follows lib/age-gate.ts: you type a date of birth, the page derives your age fresh from that input, compares it to the band minimum (13 for teens, 18 for adults), and keeps only the pass/fail in React state for this page load."
       />
       <Steps
@@ -86,7 +86,7 @@ export default function MmorpgAgeBandsPage() {
           ],
           [
             "Age is derived fresh, in memory",
-            <>A pure function compares the entered date against today&apos;s date. No fetch, no Supabase, no cookies, no localStorage — the input is used for this call and never stored.</>,
+            <>Sent once to same-origin POST /api/age-verify to mint a signed band pass — used in memory to derive the band, then dropped: never written to any table, never logged, never forwarded, never echoed back. Only the band attestation cookie is kept.</>,
           ],
           [
             "Only the verdict lives on — briefly",
@@ -99,8 +99,7 @@ export default function MmorpgAgeBandsPage() {
         ]}
       />
       <Callout tone="emerald" title="Privacy is the feature, not the footnote.">
-        Date of birth is never sent to any API, never written to any table, and never persisted anywhere — the same
-        guarantee as every other age gate on the site. See <code>lib/age-gate.ts</code> for the implementation.
+        Your date of birth travels exactly once — inside a same-origin POST to /api/age-verify, used in memory to derive your band and then dropped. It is never written to any table, never logged, never forwarded, and never echoed back; only the signed band attestation is kept. See <code>lib/age-gate.ts</code> for the check and <code>app/api/age-verify/route.ts</code> for the mint.
       </Callout>
 
       <SectionHead

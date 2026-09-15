@@ -61,7 +61,12 @@ export async function POST(req: Request) {
     if (minAge >= 13 && band !== "adult" && band !== "teen") {
       return fail("Teens (13+) games need a Teen (13-17) or Adult (18+) age band.", 403);
     }
-  } catch {
+  } catch (error) {
+    // Structured 500 (never bare): age-band read failed. Logged server-side
+    // with the cause so Vercel logs name it. (DS-PAGEFIX-07)
+    console.error("[api] api/matches age-band read failed", {
+      message: String((error as { message?: unknown } | null)?.message ?? error ?? "unknown").slice(0, 200),
+    });
     return fail("Server misconfigured.", 500);
   }
   const { data: rpcData, error } = await supabase.rpc(rpcName, {

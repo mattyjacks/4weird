@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
+import { dbFail, fail, isMissingSchemaError, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
@@ -29,7 +29,21 @@ export async function GET(req: Request) {
   const { data, error } = await supabase
     .from("game_rates")
     .select("game_slug,coins_per_load,coins_per_hour");
-  if (error) return dbFail("api/games/rates", error, "Unable to load rates.");
+  if (error) {
+    // Fail-open on missing table (migration not yet applied): defaults cover
+    // every game, not a 500 that blanks badges/pricing. (DS-PAGEFIX-07)
+    if (isMissingSchemaError(error)) {
+      console.error("[api] api/games/rates game_rates table missing, returning defaults", {
+        code: String((error as { code?: unknown }).code ?? "").slice(0, 16),
+      });
+      return ok({
+        rates: [],
+        defaults: { coins_per_load: GAME_LOAD_COINS_DEFAULT, coins_per_hour: GAME_HOURLY_COINS_DEFAULT },
+        unavailable: true,
+      });
+    }
+    return dbFail("api/games/rates", error, "Unable to load rates.");
+  }
   return ok({
     rates: data ?? [],
     defaults: { coins_per_load: GAME_LOAD_COINS_DEFAULT, coins_per_hour: GAME_HOURLY_COINS_DEFAULT },

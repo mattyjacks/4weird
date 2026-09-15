@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
-import { dbFail, fail, ok } from "@/lib/api-respond";
+import { dbFail, fail, isMissingSchemaError, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp, isSlug } from "@/lib/validate";
 import { houseCreatorUserId } from "@/lib/support";
@@ -32,7 +32,18 @@ export async function GET(req: Request) {
     .select("dev_user_id")
     .eq("game_slug", slug)
     .maybeSingle();
-  if (rateError) return dbFail("api/games/creator", rateError, "Unable to load game creator.");
+  if (rateError) {
+    // Fail-open on missing table (migration not yet applied): unmapped games
+    // fall through to the house-creator fallback below, not a 500.
+    // (DS-PAGEFIX-07, FIX500 precedent)
+    if (isMissingSchemaError(rateError)) {
+      console.error("[api] api/games/creator game_rates table missing, using house fallback", {
+        code: String((rateError as { code?: unknown }).code ?? "").slice(0, 16),
+      });
+    } else {
+      return dbFail("api/games/creator", rateError, "Unable to load game creator.");
+    }
+  }
   if (rate?.dev_user_id) devUserId = String(rate.dev_user_id);
 
   // game_developers is authenticated-read; guests get [] here, which is fine
@@ -64,8 +75,20 @@ export async function GET(req: Request) {
       .eq("active", true)
       .order("coins_monthly", { ascending: true })
       .limit(20);
-    if (tierError) return dbFail("api/games/creator", tierError, "Unable to load creator tiers.");
-    tiers = tierRows ?? [];
+    if (tierError) {
+      // Fail-open on missing support_tiers table: creator resolves with empty
+      // tiers, not a 500. (DS-PAGEFIX-07, FIX500 precedent)
+      if (isMissingSchemaError(tierError)) {
+        console.error("[api] api/games/creator support_tiers table missing, returning empty tiers", {
+          code: String((tierError as { code?: unknown }).code ?? "").slice(0, 16),
+        });
+        tiers = [];
+      } else {
+        return dbFail("api/games/creator", tierError, "Unable to load creator tiers.");
+      }
+    } else {
+      tiers = tierRows ?? [];
+    }
     // profiles is self-read; a non-owner read returns null -> unknown, not unverified.
     const { data: profile } = await supabase.from("profiles").select("is_verified").eq("id", devUserId).maybeSingle();
     if (profile && typeof profile.is_verified === "boolean") verified = profile.is_verified;

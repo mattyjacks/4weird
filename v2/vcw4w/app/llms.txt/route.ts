@@ -130,7 +130,7 @@ See also: [all games](${SITE_URL}/games), [new game builder](${SITE_URL}/newgame
 - Age ratings on every game: Kids (0-12), Teens (13-17), Adults (18+); account band enforced server-side.
 - Teen (13-17) accounts are blocked from Adults games outright; Adult (18+) accounts pass Adults games only after an on-device 18+ check each time.
 - Kids Mode on hides Adults games entirely; Teens games ask a 13+ on-device check.
-- Date of birth entered in a gate is checked on-device only and never stored, never sent to servers, and never overrides the account band.
+- Game-play gate dates of birth are checked on-device only and never stored or sent; MMO shard entry sends the date once to same-origin POST /api/age-verify to mint a signed band pass (used in memory, then dropped — never stored, logged, or echoed back), and never overrides the account band.
 - Direct accounts are 13+ only; under-13 children use a parent-created Child sub-account.
 - Cheat Mode saves are permanently flagged (cheat_mode:true cannot be laundered); slot 0 is cheat-proof and can never be marked; leaderboards use handles and aggregate totals only.
 
