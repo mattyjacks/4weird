@@ -106,8 +106,12 @@ grant execute on function public.apply_coin_lot_to_ledger() to service_role;
 revoke all on function public.backfill_clan_forum_counters() from anon, public, authenticated;
 grant execute on function public.backfill_clan_forum_counters() to service_role;
 
-revoke all on function public.rls_auto_enable() from anon, public, authenticated;
-grant execute on function public.rls_auto_enable() to service_role;
+do $$ begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke all on function public.rls_auto_enable() from anon, public, authenticated;
+    grant execute on function public.rls_auto_enable() to service_role;
+  end if;
+end $$;
 
 -- ---- Section B: parameterized SECURITY DEFINER internals with no legit
 -- direct client path (only nested calls from definer functions / triggers).

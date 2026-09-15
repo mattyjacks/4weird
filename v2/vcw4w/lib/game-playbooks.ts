@@ -94,6 +94,14 @@ const TABLE: Record<string, GamePlaybook> = {
     autoplay: ["Head toward observed content with clicks leading movement (improveFromObservations).", "Right-click block on enemy wind-up; never blind-rotate away from loot.", "Emit gravegain2d_attack tags so the dispatcher routes melee correctly."],
     tips: ["Clicks lead, movement follows; attack toward content.", "Chrono-Lock is easier to learn than Realtime.", "Block pays for itself against the first elite."],
   },
+  gravegain2dB: {
+    slug: "gravegain2dB",
+    controls: "A/D or arrows run · W / Space jump · S drop/slide · J / Left-click blaster · K / Right-click breach pulse · E interact · Esc/P pause",
+    goal: "Run the mission board from the MoonRock hub: breach sealed tunnels, hold the line, and bank salvage.",
+    boot: ["Pick a breacher and stage from the MoonRock hub.", "Open the mission board and pick the first breach mission.", "Run with A/D, jump debris with Space, and breach sealed doors with K."],
+    autoplay: ["Advance left-to-right with run leading fire (improveFromObservations).", "Breach-pulse (K) sealed doors and shields; never blind-fire away from salvage.", "Emit gravegain2dB_attack tags so the dispatcher routes blaster fire correctly."],
+    tips: ["Keep moving; a sprinting breacher is harder to hit.", "Breach pulse first, blaster second on shielded doors.", "Bank salvage at the hub between missions."],
+  },
   gravegain3d: {
     slug: "gravegain3d",
     controls: "WASD move · Mouse or arrows look · Left-click melee/skill (hold to charge) · Right-click block/projectile · F / Shift ability · Space jump · Q potion · E enter buildings · Esc/P pause",

@@ -1,0 +1,26 @@
+{
+  "created": "2026-09-15T04:59:46.413Z",
+  "gates": [
+    "node --check on game.js + any created .js",
+    "game.json slug==dir (gravegain2dB) validated by verifier when wired"
+  ],
+  "goal": "2dB play shell lands as NEW bundle-root files ONLY (public/games/gravegain2dB/game.json slug gravegain2dB title Breach MoonRock, index.html, game.js boot loader that mounts sim/terrain/player/campaign modules + lowercase compat note, game.css) + NEW lib/gravegain2dB-catalog.ts (mixed-case slug helpers + 2dB/2DA save-namespace separation spec + lowercase redirect spec /games/gravegain2db/ -> /games/gravegain2dB/). NEVER edit content/games.ts, game-manifests.ts, sitemap, site-nav, saves/leaderboard/matches/cheats APIs \u00e2\u20ac\u201d file those as QUEUE wiring requests. NEVER touch public/games/gravegain2dA/**. Reviewer: shell boots to menu, 2DA bytes untouched.",
+  "id": "DS-GG2DB-08",
+  "lane": "games",
+  "log": [
+    "2026-09-15T04:59:46.413Z lead: envelope created, awaiting claim.",
+    "claimed by gg2db-08 building 2dB play shell",
+    "gg2db-08: shell complete, gates pass (node --check ok, slug==dir), 2dA untouched; wiring requests returned as text"
+  ],
+  "owner": "gg2db-08",
+  "scope": [
+    "v2/vcw4w/public/games/gravegain2dB/game.json",
+    "v2/vcw4w/public/games/gravegain2dB/index.html",
+    "v2/vcw4w/public/games/gravegain2dB/game.js",
+    "v2/vcw4w/public/games/gravegain2dB/game.css",
+    "v2/vcw4w/lib/gravegain2dB-catalog.ts"
+  ],
+  "status": "done",
+  "title": "2dB shell + slug/save-separation spec",
+  "updated": "2026-09-15T04:59:46.413Z"
+}

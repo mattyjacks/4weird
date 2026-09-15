@@ -75,8 +75,14 @@ grant execute on function public.handle_new_user() to service_role;
 revoke all on function public.maintain_clan_comment_count() from anon, public;
 grant execute on function public.maintain_clan_comment_count() to service_role;
 
-revoke all on function public.rls_auto_enable() from anon, public;
-grant execute on function public.rls_auto_enable() to service_role;
+-- This helper does not exist in every project revision. Guard its optional
+-- cleanup so a fresh migration cannot fail before the later hardening runs.
+do $$ begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke all on function public.rls_auto_enable() from anon, public;
+    grant execute on function public.rls_auto_enable() to service_role;
+  end if;
+end $$;
 
 revoke all on function public.strip_slot_zero_cheat_marker() from anon, public;
 grant execute on function public.strip_slot_zero_cheat_marker() to service_role;

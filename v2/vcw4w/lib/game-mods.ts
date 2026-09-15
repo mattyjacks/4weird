@@ -27,6 +27,7 @@
 export const KNOWN_MOD_TARGETS = [
   "gravegain3d",
   "gravegain2d",
+  "gravegain2dB",
   "gravegain1d",
   "battlesharks2",
   "global",

@@ -29,6 +29,7 @@ export type AgeBand = "kids" | "teens" | "adults";
 const DIMENSION_OF_SLUG: Record<string, string> = {
   gravegain1d: "1d",
   gravegain2dA: "2d",
+  gravegain2dB: "2d",
   gravegain3d: "3d",
   gravegain4d: "4d",
   gravegain5d: "5d",

@@ -42,6 +42,7 @@ export const GAME_RATINGS: Record<string, AgeRating> = {
   // Intense violence / horror themes - 18+.
   assassinanimals: "adults",
   gravegain2dA: "adults",
+  gravegain2dB: "adults",
   gravegain3d: "adults",
   gravegain4d: "adults",
   demolichdom: "adults",

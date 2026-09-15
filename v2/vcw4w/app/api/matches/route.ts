@@ -35,12 +35,15 @@ export async function POST(req: Request) {
   }
   const input = (body ?? {}) as Record<string, unknown>;
   const requestedGame = typeof input.game_slug === "string" ? input.game_slug : "";
-  // GraveGain2DA retains its capitalized dimension suffix in the public URL.
+  // GraveGain2DA/2dB retain their capitalized dimension suffix in the public URL.
   // Keep generic slug validation strict for every other game.
-  const game = requestedGame === "gravegain2dA" ? requestedGame : isSlug(requestedGame);
+  const game =
+    requestedGame === "gravegain2dA" || requestedGame === "gravegain2dB"
+      ? requestedGame
+      : isSlug(requestedGame);
   const platform = String(input.platform ?? "");
   if (!game || !["phone", "desktop"].includes(platform)) return fail("Invalid match request.", 400);
-  const GRAVEGAIN = new Set(["gravegain1d", "gravegain2dA", "gravegain3d"]);
+  const GRAVEGAIN = new Set(["gravegain1d", "gravegain2dA", "gravegain2dB", "gravegain3d"]);
   const rpcName = GRAVEGAIN.has(game)
     ? "gravegain_quick_match"
     : game === "platform-wars"

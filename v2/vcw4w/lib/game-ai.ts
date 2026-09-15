@@ -149,6 +149,8 @@ export type GameAiFeature = {
 export const GAME_AI_FEATURES: GameAiFeature[] = [
   { gameSlug: "gravegain2d", kind: "dialogue", mode: "optional", provider: "openai", label: "NPC dialogue bot", blurb: "Procedural-dungeon NPCs talk back via an OpenAI dialogue bot." },
   { gameSlug: "gravegain2d", kind: "director", mode: "optional", provider: "runpod", label: "AI game director", blurb: "RunPod-backed director paces spawns and loot." },
+  { gameSlug: "gravegain2dB", kind: "dialogue", mode: "optional", provider: "openai", label: "NPC dialogue bot", blurb: "MoonRock hub NPCs talk back via an OpenAI dialogue bot." },
+  { gameSlug: "gravegain2dB", kind: "director", mode: "optional", provider: "runpod", label: "AI game director", blurb: "RunPod-backed director paces breach waves and salvage." },
   { gameSlug: "gravegain3d", kind: "dialogue", mode: "optional", provider: "openai", label: "NPC dialogue bot", blurb: "Dungeon NPCs talk back via an OpenAI dialogue bot." },
   { gameSlug: "gravegain3d", kind: "director", mode: "optional", provider: "runpod", label: "AI game director", blurb: "RunPod-backed director paces encounters." },
   { gameSlug: "lastwordszombies", kind: "director", mode: "optional", provider: "runpod", label: "AI game director", blurb: "Director tunes zombie horde waves to your typing speed." },

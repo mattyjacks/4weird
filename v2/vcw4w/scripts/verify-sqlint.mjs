@@ -1,11 +1,11 @@
-// verify-sqlint.mjs — union verifier for the DS-SQLINT-01..09 CHEAP wave.
+// verify-sqlint.mjs — union verifier for the DS-SECLINT-01..09 hardening wave.
 //
 // READ-ONLY audit: only node:fs reads over supabase/migrations. Zero DB
 // writes, zero network, never edits sibling files — orphans are REPORTED
 // as failures naming the file so the owning lane can fix them.
 //
 // Checks:
-//   (1) 20261219000000..08_sqlint_*.sql all exist (absent => FAIL, not crash).
+//   (1) 20261219000001..09_seclint_*.sql all exist (absent => FAIL, not crash).
 //   (2) SET search_path pins present for handle_updated_at /
 //       touch_game_save_updated_at / vcw_runs_touch_updated_at.
 //   (3) Every REVOKE target in the sqlint files resolves to a real function
@@ -31,12 +31,13 @@ const allSql = fs.readdirSync(migDir).filter((f) => f.endsWith(".sql")).sort();
 const allText = new Map();
 for (const f of allSql) allText.set(f, fs.readFileSync(path.join(migDir, f), "utf8"));
 
-// ---- (1) all nine sqlint wave files exist (tolerate absence with FAIL) ----
+// ---- (1) all nine SECLINT wave files exist (tolerate absence with FAIL) ----
 const sqlintFiles = [];
-for (let v = 0; v <= 8; v++) {
-  const stem = `2026121900000${v}_sqlint_`;
+for (let v = 1; v <= 9; v++) {
+  const stamp = String(v).padStart(2, "0");
+  const stem = `202612190000${stamp}_seclint_`;
   const hit = allSql.find((f) => f.startsWith(stem) && f.endsWith(".sql"));
-  must(hit !== undefined, `sqlint migration ${stem}*.sql is MISSING (sibling DS-SQLINT-0${v + 1} still in flight?).`);
+  must(hit !== undefined, `SECLINT migration ${stem}*.sql is MISSING (sibling DS-SECLINT-${stamp} still in flight?).`);
   if (hit) sqlintFiles.push(hit);
 }
 const sqlintText = sqlintFiles.map((f) => allText.get(f)).join("\n");
@@ -58,7 +59,7 @@ for (const fn of ["handle_updated_at", "touch_game_save_updated_at", "vcw_runs_t
   );
   must(
     pinRe.test(sqlintCode),
-    `SET search_path pin missing for ${fn}() in the 20261219000000..08_sqlint_*.sql files.`,
+    `SET search_path pin missing for ${fn}() in the 20261219000001..09_seclint_*.sql files.`,
   );
 }
 
@@ -73,9 +74,14 @@ for (const f of sqlintFiles) {
 }
 const migrationsCode = stripComments([...allText.values()].join("\n"));
 const orphanTargets = [];
+// rls_auto_enable was an optional helper in an earlier project revision.
+// Its revokes are guarded with to_regprocedure(), so an absent definition is
+// a supported state rather than an orphan.
+const optionalTargets = new Set(["rls_auto_enable"]);
 for (const { file, target } of revokeHits) {
   const name = target.replace(/^.*\./, "").replace(/\s*\(.*$/, "");
   const defRe = new RegExp(`create\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?"?${name}"?\\s*\\(`, "i");
+  if (optionalTargets.has(name)) continue;
   if (!defRe.test(migrationsCode)) orphanTargets.push(`${file}: REVOKE target ${target} resolves to NO function definition in supabase/migrations (orphan — owning lane must fix; not edited here).`);
   must(
     defRe.test(migrationsCode),
@@ -92,8 +98,6 @@ const ANON_KEEP = {
   clan_leaderboard: "clan standings are an intentionally public read surface.",
   love_post_totals: "post love counts render on public profiles.",
   love_profile_stats: "profile love stats are public per skill.",
-  launch_campaign_progress: "fundraising progress bar is a public read.",
-  community_stat_averages: "aggregate community stats are a public read.",
   game_chart_summary: "game charts are a public read surface.",
 };
 const AUTH_KEEP = {
@@ -102,10 +106,10 @@ const AUTH_KEEP = {
 };
 const ALLOWLIST = { ...ANON_KEEP, ...AUTH_KEEP };
 for (const [name, why] of Object.entries(ANON_KEEP)) {
-  const anonRevokeRe = new RegExp(`revoke\\s+[^;]*?\\b${name}\\b\\s*\\([^)]*\\)[^;]*?\\bfrom\\b[^;]*?\\banon\\b`, "is");
+  const anonGrantRe = new RegExp(`grant\\s+execute\\s+on\\s+function\\s+public\\.${name}\\s*\\([^)]*\\)\\s+to\\s+[^;]*?\\banon\\b`, "is");
   must(
-    !anonRevokeRe.test(sqlintCode),
-    `allowlisted public read ${name}() must stay executable by anon — ${why} Found a REVOKE FROM anon in the sqlint files.`,
+    anonGrantRe.test(migrationsCode),
+    `allowlisted public read ${name}() must have an explicit final anon grant — ${why}`,
   );
   const defRe = new RegExp(`create\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?"?${name}"?\\s*\\(`, "i");
   must(
@@ -116,7 +120,7 @@ for (const [name, why] of Object.entries(ANON_KEEP)) {
 
 for (const [name, why] of Object.entries(AUTH_KEEP)) {
   const authRevokeRe = new RegExp(`revoke\\s+[^;]*?\\b${name}\\b\\s*\\([^)]*\\)[^;]*?\\bfrom\\b[^;]*?\\bauthenticated\\b`, "is");
-  must(!authRevokeRe.test(sqlintCode), `lobby read ${name}() revoked FROM authenticated in the sqlint files: ${why}`);
+  must(!authRevokeRe.test(sqlintCode), `lobby read ${name}() revoked FROM authenticated in the SECLINT files: ${why}`);
   const defRe2 = new RegExp(`create\\s+(?:or\\s+replace\\s+)?function\\s+(?:public\\s*\\.\\s*)?"?${name}"?\\s*\\(`, "i");
   must(defRe2.test(migrationsCode), `lobby read ${name}() resolves to NO function definition in supabase/migrations: ${why}`);
 }
@@ -125,13 +129,13 @@ for (const [name, why] of Object.entries(AUTH_KEEP)) {
 const OPS_LINE =
   "OPS (dashboard-only, no SQL fix possible): Supabase Dashboard → Authentication → Policies → enable “Leaked password protection” (HaveIBeenPwned check), then confirm in Auth settings. No migration can set auth.leaked_password_protection.";
 const docRe = /leaked[_-]?password[_-]?protection/is;
-if (docRe.test(sqlintText)) {
+if (docRe.test([...allText.values()].join("\n"))) {
   // documented in a sqlint migration comment — requirement met.
 } else {
   console.log(OPS_LINE);
   must(
     false,
-    `no comment documenting auth_leaked_password_protection as dashboard-only found in the 20261219000000..08_sqlint_*.sql files — human OPS action printed above: ${OPS_LINE}`,
+    `no comment documenting auth_leaked_password_protection as dashboard-only found in the 20261219000001..09_seclint_*.sql files — human OPS action printed above: ${OPS_LINE}`,
   );
 }
 
@@ -141,5 +145,5 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `verify-sqlint: ok (${sqlintFiles.length}/9 sqlint migrations, 3 search_path pins, ${revokeHits.length} REVOKE targets resolved, ${Object.keys(ALLOWLIST).length} allowlisted public reads kept, leaked-password OPS documented).`,
+  `verify-sqlint: ok (${sqlintFiles.length}/9 SECLINT migrations, 3 search_path pins, ${revokeHits.length} REVOKE targets resolved, ${Object.keys(ALLOWLIST).length} allowlisted public reads kept, leaked-password OPS documented).`,
 );

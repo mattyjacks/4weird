@@ -115,6 +115,7 @@ export const MMORPG_MAX_COST_PER_MIN_COINS = 10000;
 export type MmorpgGameKind =
   | "gravegain1d"
   | "gravegain2dA"
+  | "gravegain2dB"
   | "gravegain3d"
   | "gravegain4d"
   | "gravegain5d";
@@ -123,6 +124,7 @@ export type MmorpgGameKind =
 export const MMORPG_GAME_KINDS: readonly MmorpgGameKind[] = [
   "gravegain1d",
   "gravegain2dA",
+  "gravegain2dB",
   "gravegain3d",
   "gravegain4d",
   "gravegain5d",
@@ -162,6 +164,7 @@ export type MmorpgServerCosts = {
 export const MMORPG_SERVER_COSTS_BY_GAME: Record<MmorpgGameKind, MmorpgServerCosts> = {
   gravegain1d: { basePerMin: 6, loadPerPlayerPerMin: 1, rentalPerHour: 36 },
   gravegain2dA: { basePerMin: 8, loadPerPlayerPerMin: 2, rentalPerHour: 48 },
+  gravegain2dB: { basePerMin: 9, loadPerPlayerPerMin: 2, rentalPerHour: 54 },
   gravegain3d: { basePerMin: 10, loadPerPlayerPerMin: 2, rentalPerHour: 60 },
   gravegain4d: { basePerMin: 12, loadPerPlayerPerMin: 3, rentalPerHour: 72 },
   gravegain5d: { basePerMin: 15, loadPerPlayerPerMin: 4, rentalPerHour: 90 },
@@ -173,6 +176,7 @@ export function cleanMmorpgGameKind(value: unknown): MmorpgGameKind {
   if (
     v === "gravegain1d" ||
     v === "gravegain2dA" ||
+    v === "gravegain2dB" ||
     v === "gravegain3d" ||
     v === "gravegain4d" ||
     v === "gravegain5d"

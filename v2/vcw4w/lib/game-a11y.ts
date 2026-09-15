@@ -51,6 +51,15 @@ const TABLE: Record<string, GameA11y> = {
     controls: "WASD / arrows move · Left-click melee · Right-click block · F ability · Shift sprint · Esc or P pause",
     assist: "Dialogue-heavy: enable dyslexia font and large text before entering dungeons.",
   },
+  gravegain2dB: {
+    slug: "gravegain2dB",
+    keyboardOnly: false,
+    colorDependent: false,
+    photosensitive: true,
+    readingHeavy: false,
+    controls: "A/D or arrows run · W / Space jump · S drop/slide · J / Left-click blaster · K / Right-click breach pulse · E interact · Esc or P pause",
+    assist: "Side-scroll breach runs: reduced-motion calms breach pulses and debris; touch stick + fire buttons work on phones.",
+  },
   gravegain3d: {
     slug: "gravegain3d",
     keyboardOnly: false,

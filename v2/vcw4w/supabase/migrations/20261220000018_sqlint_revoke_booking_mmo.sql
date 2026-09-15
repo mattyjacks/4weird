@@ -151,7 +151,11 @@ revoke all on function public.leave_mmo_server(uuid) from public, anon, authenti
 revoke all on function public.heartbeat_mmo_presence(uuid) from public, anon, authenticated;
 
 -- Internal helper (in this envelope's set; restated idempotently).
-revoke all on function public.rls_auto_enable() from public, anon, authenticated;
+do $$ begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    revoke all on function public.rls_auto_enable() from public, anon, authenticated;
+  end if;
+end $$;
 
 -- VocRehab export RPCs: zero .rpc callers (see header) -- close to clients.
 revoke all on function public.vocrehab_export_snapshot() from public, anon, authenticated;

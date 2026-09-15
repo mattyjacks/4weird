@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-09-15",
+  "note": "Break the Citadel Chain event for GraveGain2dB MMO (games lane, v2-native). Public breach event: many 4-player authoritative rooms on ONE shared seed relay objectives to a global bar, then unlock the world boss. Solo play stays fully available when the MMO layer is offline. ASCII only.",
+  "id": "break-the-citadel-chain",
+  "seasonNo": 3,
+  "name": { "kid": "Break the Noisy Chain Party", "teen": "Break the Citadel Chain", "all": "BREAK THE CITADEL CHAIN" },
+  "window": { "startUtc": "2027-02-01T00:00:00Z", "endUtc": "2027-03-31T23:59:59Z" },
+  "games": ["gravegain2dB"],
+  "seed": "citadel-chain-s3-2db",
+  "threshold": 1000000,
+  "frontMinimumPct": 20,
+  "fronts": [
+    { "id": "outer-ward", "name": { "kid": "Creaky Outer Wall", "teen": "Outer Ward", "all": "OUTER WARD" }, "minPct": 20 },
+    { "id": "chain-span", "name": { "kid": "Clanky Chain Bridge", "teen": "Chain Span", "all": "CHAIN SPAN" }, "minPct": 20 },
+    { "id": "gatehouse", "name": { "kid": "Grumbly Gate House", "teen": "Gatehouse", "all": "GATEHOUSE" }, "minPct": 20 },
+    { "id": "citadel-core", "name": { "kid": "Glowy Heart Room", "teen": "Citadel Core", "all": "CITADEL CORE" }, "minPct": 20 }
+  ],
+  "bossUnlock": {
+    "id": "citadel-warder",
+    "name": { "kid": "Grumbly Chain Keeper", "teen": "Citadel Warder", "all": "CITADEL WARDER" },
+    "threshold": 1000000,
+    "rule": "relay legs complete (every front >= 20% of threshold) THEN boss damage >= threshold",
+    "rewardTitle": "chainbreaker"
+  },
+  "killRule": {
+    "totalAtLeast": "threshold",
+    "everyFrontAtLeastPct": 20,
+    "frontPctOf": "threshold",
+    "summary": "total relay damage >= threshold AND each of the 4 fronts >= 20% of threshold, then boss damage >= threshold"
+  },
+  "roomSize": 4,
+  "modifiers": [
+    {
+      "id": "chain-tide",
+      "name": { "kid": "Clanky Chain Tide", "teen": "Chain Tide", "all": "CHAIN TIDE" },
+      "effect": "Hourly breach window: +25% objective value in gravegain2dB for 10 minutes"
+    },
+    {
+      "id": "relay-fronts",
+      "name": { "kid": "Zoomy Chain Porches", "teen": "Relay Fronts", "all": "RELAY FRONTS" },
+      "effect": "Relay fronts deal back 10% less; squad records tracked per front"
+    }
+  ],
+  "warbandBonus": "linkbearers",
+  "rewards": [
+    { "id": "chain-cache", "kind": "loot", "detail": "Event loot cache per verified relay front (idempotent redeem)" },
+    { "id": "chainbreaker-title", "kind": "title", "titleId": "chainbreaker", "detail": "Top-share verified contributors earn the chainbreaker title" },
+    { "id": "ward-cleaver-title", "kind": "title", "titleId": "ward-cleaver", "detail": "Mid-share verified contributors earn the ward-cleaver title" },
+    { "id": "linkbearer-title", "kind": "title", "titleId": "linkbearer", "detail": "Base-share verified contributors earn the linkbearer title" }
+  ],
+  "codexCategory": "seasons",
+  "codexEntries": ["front:citadel-chain-joined", "front:citadel-chain-relayed", "boss:citadel-warder-down"],
+  "soloFallback": true
+}

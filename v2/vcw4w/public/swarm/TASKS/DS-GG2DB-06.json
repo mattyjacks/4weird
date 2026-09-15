@@ -1,0 +1,24 @@
+{
+  "created": "2026-09-15T04:59:46.413Z",
+  "gates": [
+    "node --check on every created .js file",
+    "npx tsc --noEmit zero errors in scope (lib file)"
+  ],
+  "goal": "Authoritative co-op netcode lands as NEW files: lib/gravegain2dB-net.ts (InputFrame/button mask + RoomSnapshot/delta types + 60Hz sim / 20Hz snapshot / 60Hz input + reliable vs unreliable split + server-side validation rejecting forged movement/fire/cooldown/pickup/terrain/objective/reward claims) + public/games/gravegain2dB/net/ (prediction/interp/chunk-delta handlers, disconnect 30s recoverable shield + scale-to-active + no host migration, reconnect full-state bundle with no duplication) + app/api/games/gravegain2dB/room/route.ts (room create/join skeleton, fail-open). Never touch the slow duel relay. Reviewer: tsc + node --check clean, 2-client shared-collapse fixture described.",
+  "id": "DS-GG2DB-06",
+  "lane": "games",
+  "log": [
+    "2026-09-15T04:59:46.413Z lead: envelope created, awaiting claim.",
+    "2026-09-15T12:00:00Z gg2db-06: claimed, starting authoritative co-op netcode.",
+    "2026-09-15T12:00:00Z gg2db-06: done. 6 new files; node --check 4/4 clean; tsc zero errors in scope (1 pre-existing error in sibling gravegain2dB-mmo.ts, untouched); smoke harness passed."
+  ],
+  "owner": "gg2db-06",
+  "scope": [
+    "v2/vcw4w/lib/gravegain2dB-net.ts",
+    "v2/vcw4w/public/games/gravegain2dB/net/**",
+    "v2/vcw4w/app/api/games/gravegain2dB/**"
+  ],
+  "status": "done",
+  "title": "2dB authoritative co-op netcode",
+  "updated": "2026-09-15T04:59:46.413Z"
+}
