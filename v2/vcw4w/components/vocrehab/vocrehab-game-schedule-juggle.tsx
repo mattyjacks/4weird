@@ -113,6 +113,23 @@ const SJ_GEO_IDS = ["wa", "nh", "ak", "custom"] as const;
 const SJ_DAY_MIN = 0;
 const SJ_DAY_MAX = 24 * 60;
 
+/**
+ * Longest single stretch one block may cover (12h). Whole-day single-block
+ * marking is removed on purpose: every part of the day deserves its own
+ * plan (sleep + work + meals + rest), so long days become two blocks.
+ */
+const SJ_MAX_BLOCK_MIN = 12 * 60;
+
+type SjTab = "month" | "day" | "plan" | "travel" | "save";
+
+const SJ_TABS: Array<{ id: SjTab; label: string }> = [
+  { id: "month", label: "Month" },
+  { id: "day", label: "Day" },
+  { id: "plan", label: "Activities" },
+  { id: "travel", label: "Travel" },
+  { id: "save", label: "Save" },
+];
+
 /** One learner-placed block with its 24h clock position. */
 type SjDayBlock = {
   id: string;
@@ -323,6 +340,7 @@ function ScheduleJuggleRoot({
   }, []);
 
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
+  const [tab, setTab] = useState<SjTab>("month");
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const [travelResult, setTravelResult] = useState<VocrehabTravelResult | null>(null);
   const [travelTrip, setTravelTrip] = useState<SjTravelTrip | null>(null);
@@ -422,6 +440,7 @@ function ScheduleJuggleRoot({
 
   const openDay = (dayId: string) => {
     setSelectedDayId(dayId);
+    setTab("day");
     const count = blocksByDay[dayId]?.length ?? 0;
     say(dayAriaLabel(dayId, count, selectedActivity?.label ?? null));
   };
@@ -442,6 +461,7 @@ function ScheduleJuggleRoot({
     if (!isInRange(seedAnchor.year, seedAnchor.monthIndex, seedAnchor.year, seedAnchor.monthIndex)) return;
     scheduleDispatch({ type: "setMonth", monthAnchor: seedAnchor });
     setSelectedDayId(todayId);
+    setTab("day");
     say("Back to the current month — today is open and ready.");
   };
 
@@ -480,7 +500,9 @@ function ScheduleJuggleRoot({
       return;
     }
     const start = snapToHalfHour(startMin);
-    const duration = defaultDuration(selectedActivity.id);
+    // Single stretches cap at half a day — long days become two blocks so
+    // each part of the day keeps its own plan.
+    const duration = Math.min(defaultDuration(selectedActivity.id), SJ_MAX_BLOCK_MIN);
     const end = Math.min(SJ_DAY_MAX, start + duration);
     if (!(end > start)) return;
     const block: SjDayBlock = {
@@ -515,7 +537,16 @@ function ScheduleJuggleRoot({
     mutateDay(selectedDayId, (current) =>
       current.map((block) => {
         if (block.id !== id || block.locked === true) return block;
-        const end = Math.min(SJ_DAY_MAX, Math.max(block.startMin + 30, snapToHalfHour(endMin)));
+        const end = Math.min(
+          SJ_DAY_MAX,
+          block.startMin + SJ_MAX_BLOCK_MIN,
+          Math.max(block.startMin + 30, snapToHalfHour(endMin)),
+        );
+        if (end === block.startMin + SJ_MAX_BLOCK_MIN) {
+          const hint = "That stretch is at its fullest — split the rest into a second block so each part keeps its own plan.";
+          setNote(hint);
+          say(hint);
+        }
         return { ...block, endMin: end };
       }),
     );
@@ -551,7 +582,7 @@ function ScheduleJuggleRoot({
       return;
     }
     const last = sleeps[sleeps.length - 1];
-    const duration = Math.max(30, last.endMin - last.startMin);
+    const duration = Math.min(SJ_MAX_BLOCK_MIN, Math.max(30, last.endMin - last.startMin));
     const start = Math.min(SJ_DAY_MAX - duration, Math.max(SJ_DAY_MIN, snapToHalfHour(last.startMin)));
     const copy: SjDayBlock = {
       id: nextBlockId("sleep"),
@@ -633,6 +664,7 @@ function ScheduleJuggleRoot({
     };
     mutateDay(dayId, (prev) => [...prev, block]);
     setSelectedDayId(dayId);
+    setTab("day");
     say(
       `${eventAriaLabel(block.title, block.startMin, block.endMin, true)} Set as steady travel time so the rest of the day can flex around it.`,
     );
@@ -763,24 +795,25 @@ function ScheduleJuggleRoot({
     });
   };
 
+  const dayTabLabel = selectedDayId ? selectedDayId.slice(5) : "Day";
+
   return (
-    <div className="vocrehab-game-schedule-juggle space-y-4">
+    <div className="vocrehab-game-schedule-juggle space-y-2">
       <ScheduleLiveRegion message={liveMessage} />
-      <p className="text-sm text-muted-foreground" role="status">
-        {totalBlocks} {totalBlocks === 1 ? "block" : "blocks"} placed · {travelMinTotal} min travel
-        planned · {conflictsResolved}{" "}
-        {conflictsResolved === 1 ? "puzzle" : "puzzles"} worked through · {monthLabel} ·{" "}
-        {totalConflicts === 0 ? "✓ no open overlaps" : `▲ ${totalConflicts} open to explore`}
+      <p className="text-xs text-muted-foreground" role="status">
+        {totalBlocks} {totalBlocks === 1 ? "block" : "blocks"} · {travelMinTotal} min travel ·{" "}
+        {monthLabel} ·{" "}
+        {totalConflicts === 0 ? "✓ no open overlaps" : `▲ ${totalConflicts} open`}
       </p>
 
       {showWelcome && hasSave ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2 text-sm">
           <p className="font-medium">Welcome back — your saved month is on the board.</p>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="mt-1.5 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setShowWelcome(false)}
-              className="rounded-lg border border-emerald-600 bg-white px-3 py-1.5 font-medium"
+              className="min-h-11 rounded-lg border border-emerald-600 bg-white px-3 py-1.5 font-medium"
             >
               Keep building
             </button>
@@ -790,7 +823,7 @@ function ScheduleJuggleRoot({
                 clearAll();
                 setShowWelcome(false);
               }}
-              className="rounded-lg border px-3 py-1.5"
+              className="min-h-11 rounded-lg border bg-white px-3 py-1.5"
             >
               Start fresh instead
             </button>
@@ -798,21 +831,63 @@ function ScheduleJuggleRoot({
         </div>
       ) : null}
 
-      <VocrehabScheduleControls
-        presetId={presetId}
-        onPreset={choosePreset}
-        difficulty={difficulty}
-        onDifficulty={chooseDifficulty}
-        monthLabel={monthLabel}
-        onPrev={() => goMonth(-1)}
-        onNext={() => goMonth(1)}
-        onToday={goToday}
-        onJumpToDay1={jumpToDay1}
-        savedAt={savedAt}
-      />
+      <div
+        role="tablist"
+        aria-label="Schedule sections"
+        className="sticky top-0 z-10 -mx-1 bg-background/95 px-1 py-1 backdrop-blur"
+      >
+        <div className="flex gap-1 overflow-x-auto">
+          {SJ_TABS.map((entry) => {
+            const active = tab === entry.id;
+            const badge =
+              entry.id === "month" && totalConflicts > 0
+                ? ` ▲${totalConflicts}`
+                : entry.id === "day" && selectedDayId
+                  ? ` · ${selectedBlocks.length}`
+                  : "";
+            return (
+              <button
+                key={entry.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-label={
+                  entry.id === "day" ? `Day tab${selectedDayId ? `, ${selectedDayId}` : ""}` : `${entry.label} tab`
+                }
+                onClick={() => setTab(entry.id)}
+                className={
+                  "min-h-11 flex-1 whitespace-nowrap rounded-xl border px-3 py-2 text-sm " +
+                  (active ? "bg-primary/10 font-semibold ring-2 ring-primary ring-offset-1 " : "")
+                }
+              >
+                {entry.id === "day" ? dayTabLabel : entry.label}
+                {badge}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+      {note ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-sm" role="status">
+          {note}
+        </p>
+      ) : null}
+
+      {tab === "month" ? (
+        <div role="tabpanel" aria-label="Month calendar" className="max-h-[62vh] space-y-2 overflow-y-auto sm:max-h-[66vh]">
+          <VocrehabScheduleControls
+            presetId={presetId}
+            onPreset={choosePreset}
+            difficulty={difficulty}
+            onDifficulty={chooseDifficulty}
+            monthLabel={monthLabel}
+            onPrev={() => goMonth(-1)}
+            onNext={() => goMonth(1)}
+            onToday={goToday}
+            onJumpToDay1={jumpToDay1}
+            savedAt={savedAt}
+          />
           <VocrehabScheduleMonth
             year={anchor.year}
             monthIndex={anchor.monthIndex}
@@ -821,8 +896,75 @@ function ScheduleJuggleRoot({
             onSelect={openDay}
             todayDayId={todayId}
           />
+          <p className="text-xs text-muted-foreground">{geoPreset.briefing}</p>
         </div>
-        <div className="lg:col-span-2">
+      ) : null}
+
+      {tab === "day" ? (
+        <div role="tabpanel" aria-label="Day plan" className="max-h-[62vh] space-y-2 overflow-y-auto sm:max-h-[66vh]">
+          {selectedDayId ? (
+            <section aria-label={`Day drawer for ${selectedDayId}`} className="space-y-2 rounded-xl border p-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold">{selectedDayId} — 24-hour plan</h3>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDayId(null)}
+                  aria-label={`Close day ${selectedDayId}`}
+                  className="min-h-11 rounded-lg border px-3 py-1 text-sm"
+                >
+                  Close day
+                </button>
+              </div>
+              <p className="text-sm text-muted-foreground" role="status">
+                {dayAriaLabel(selectedDayId, selectedBlocks.length, selectedActivity?.label ?? null)}
+              </p>
+              {selectedConflicts.length > 0 ? (
+                <ul className="space-y-2">
+                  {selectedConflicts.map((conflict, index) => (
+                    <li
+                      key={`${conflict.burdenId}-${index}`}
+                      className="rounded-lg border border-amber-300 bg-amber-50 p-2 text-sm"
+                    >
+                      <p>{conflict.message}</p>
+                      <p className="mt-1 text-xs font-medium">Fix idea: {conflict.fixLabel}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {selectedBlocks.length === 0
+                    ? "A fresh day with room for wins — pick an activity under Activities, then tap a half-hour target."
+                    : "✓ This day is holding together nicely — every block has its own room."}
+                </p>
+              )}
+              <VocrehabScheduleDay
+                dayId={selectedDayId}
+                events={selectedDayEvents}
+                selectedActivity={
+                  selectedActivity
+                    ? {
+                        id: selectedActivity.id,
+                        label: selectedActivity.label,
+                        defaultDurMin: selectedActivity.defaultDurMin,
+                      }
+                    : null
+                }
+                onCreate={createBlock}
+                onMove={moveBlock}
+                onResize={resizeBlock}
+                onRemove={removeBlock}
+              />
+            </section>
+          ) : (
+            <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground" role="status">
+              Pick any day on the Month tab to open its 24-hour plan — open days are ready when you are.
+            </p>
+          )}
+        </div>
+      ) : null}
+
+      {tab === "plan" ? (
+        <div role="tabpanel" aria-label="Activities" className="max-h-[62vh] space-y-2 overflow-y-auto sm:max-h-[66vh]">
           <VocrehabSchedulePalette
             activities={ACTIVITY_KINDS.map((kind) => ({
               id: kind.id,
@@ -842,117 +984,62 @@ function ScheduleJuggleRoot({
             burdens={paletteBurdens}
             onRepeatSleep={repeatSleep}
           />
+          <button
+            type="button"
+            onClick={() => setTab(selectedDayId ? "day" : "month")}
+            className="min-h-11 w-full rounded-xl border px-3 py-2 text-sm font-medium"
+          >
+            {selectedDayId ? `Place it on ${selectedDayId} →` : "Back to Month →"}
+          </button>
         </div>
-      </div>
-
-      {note ? (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm" role="status">
-          {note}
-        </p>
       ) : null}
 
-      {selectedDayId ? (
-        <section aria-label={`Day drawer for ${selectedDayId}`} className="space-y-3 rounded-xl border p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold">{selectedDayId} — 24-hour plan</h3>
-            <button
-              type="button"
-              onClick={() => setSelectedDayId(null)}
-              aria-label={`Close day ${selectedDayId}`}
-              className="rounded-lg border px-3 py-1 text-sm"
-            >
-              Close day
-            </button>
-          </div>
-          <p className="text-sm text-muted-foreground" role="status">
-            {dayAriaLabel(selectedDayId, selectedBlocks.length, selectedActivity?.label ?? null)}
-          </p>
-          {selectedConflicts.length > 0 ? (
-            <ul className="space-y-2">
-              {selectedConflicts.map((conflict, index) => (
-                <li
-                  key={`${conflict.burdenId}-${index}`}
-                  className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-sm"
-                >
-                  <p>{conflict.message}</p>
-                  <p className="mt-1 text-xs font-medium">Fix idea: {conflict.fixLabel}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {selectedBlocks.length === 0
-                ? "A fresh day with room for wins — pick an activity, then tap a half-hour target."
-                : "✓ This day is holding together nicely — every block has its own room."}
-            </p>
-          )}
-          <VocrehabScheduleDay
-            dayId={selectedDayId}
-            events={selectedDayEvents}
-            selectedActivity={
-              selectedActivity
-                ? {
-                    id: selectedActivity.id,
-                    label: selectedActivity.label,
-                    defaultDurMin: selectedActivity.defaultDurMin,
-                  }
-                : null
-            }
-            onCreate={createBlock}
-            onMove={moveBlock}
-            onResize={resizeBlock}
-            onRemove={removeBlock}
+      {tab === "travel" ? (
+        <div role="tabpanel" aria-label="Places and travel" className="max-h-[62vh] space-y-2 overflow-y-auto sm:max-h-[66vh]">
+          <VocrehabScheduleAddresses
+            addresses={addresses}
+            onChange={(next) => {
+              scheduleDispatch({ type: "setAddresses", addresses: next });
+              vocrehabEmit("action", { addresses: next.length });
+            }}
+            onEstimate={runEstimate}
           />
-        </section>
-      ) : (
-        <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground" role="status">
-          Pick any day on the month grid to open its 24-hour plan — open days are ready when you are.
-        </p>
-      )}
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <VocrehabScheduleAddresses
-          addresses={addresses}
-          onChange={(next) => {
-            scheduleDispatch({ type: "setAddresses", addresses: next });
-            vocrehabEmit("action", { addresses: next.length });
-          }}
-          onEstimate={runEstimate}
-        />
-        <VocrehabScheduleTravel
-          result={travelResult}
-          loading={travelLoading}
-          onApply={applyTravel}
-          onRecalc={recalcTravel}
-          notice={transitNotice}
-        />
-      </div>
-
-      <VocrehabSchedulePersist
-        onSave={({ includeAddresses }) => saveMonth(includeAddresses)}
-        onLoad={loadMonth}
-        onClearMonth={clearMonth}
-        onClearAll={clearAll}
-        onExport={({ includeAddresses }) => exportMonth(includeAddresses)}
-        savedAt={savedAt}
-        hasSave={hasSave}
-      />
-
-      <p className="text-xs text-muted-foreground">{geoPreset.briefing}</p>
-
-      {finishNote ? (
-        <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm" role="status">
-          {finishNote}
-        </p>
+          <VocrehabScheduleTravel
+            result={travelResult}
+            loading={travelLoading}
+            onApply={applyTravel}
+            onRecalc={recalcTravel}
+            notice={transitNotice}
+          />
+        </div>
       ) : null}
-      <button
-        type="button"
-        onClick={finishMonth}
-        disabled={totalBlocks === 0}
-        className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-50"
-      >
-        Finish my month
-      </button>
+
+      {tab === "save" ? (
+        <div role="tabpanel" aria-label="Save and finish" className="max-h-[62vh] space-y-2 overflow-y-auto sm:max-h-[66vh]">
+          <VocrehabSchedulePersist
+            onSave={({ includeAddresses }) => saveMonth(includeAddresses)}
+            onLoad={loadMonth}
+            onClearMonth={clearMonth}
+            onClearAll={clearAll}
+            onExport={({ includeAddresses }) => exportMonth(includeAddresses)}
+            savedAt={savedAt}
+            hasSave={hasSave}
+          />
+          {finishNote ? (
+            <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-2 text-sm" role="status">
+              {finishNote}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={finishMonth}
+            disabled={totalBlocks === 0}
+            className="min-h-11 w-full rounded bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-50"
+          >
+            Finish my month
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

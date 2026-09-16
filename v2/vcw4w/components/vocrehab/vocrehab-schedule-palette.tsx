@@ -47,7 +47,7 @@ export default function VocrehabSchedulePalette({
 }: VocrehabSchedulePaletteProps) {
   return (
     <section
-      className="vocrehab-schedule-palette space-y-4"
+      className="vocrehab-schedule-palette space-y-2"
       aria-label="Schedule activity palette"
     >
       <div>
@@ -60,7 +60,7 @@ export default function VocrehabSchedulePalette({
             : "Choose what fits today. Every pick moves the plan forward."}
         </p>
         {activities.length === 0 ? null : (
-          <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+          <ul className="mt-2 grid grid-cols-2 gap-1.5">
             {activities.map((activity) => {
               const pressed = activity.id === selectedId;
               return (
@@ -70,7 +70,7 @@ export default function VocrehabSchedulePalette({
                     onClick={() => onSelect(activity.id)}
                     aria-pressed={pressed}
                     aria-label={`Select activity ${activity.label}`}
-                    className={`w-full rounded-xl border p-3 text-left focus-visible:outline-2 focus-visible:outline-amber-500 ${
+                    className={`w-full rounded-xl border p-2 text-left focus-visible:outline-2 focus-visible:outline-amber-500 ${
                       pressed
                         ? "border-amber-400 bg-amber-50"
                         : "border-stone-200 bg-white hover:border-amber-300 hover:bg-amber-50"
@@ -91,7 +91,7 @@ export default function VocrehabSchedulePalette({
         )}
       </div>
 
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-2">
         <h3 className="text-sm font-semibold text-stone-900">
           Things that make days heavier ({burdens.length})
         </h3>
@@ -120,7 +120,7 @@ export default function VocrehabSchedulePalette({
         )}
       </div>
 
-      <div className="rounded-xl border border-stone-200 bg-white p-3">
+      <div className="rounded-xl border border-stone-200 bg-white p-2">
         <h3 className="text-sm font-semibold text-stone-900">
           Keep rest steady
         </h3>

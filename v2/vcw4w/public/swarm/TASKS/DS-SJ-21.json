@@ -1,0 +1,25 @@
+{
+  "id": "DS-SJ-21",
+  "title": "SJ tabbed compact mobile layout + no all-day blocks",
+  "goal": "Tabbed compact schedule-juggle practice (Month/Day/Activities/Travel/Save) with sticky tab bar, internal panel scroll so the page never needs scrolling, mobile-friendly touch targets, and removal of whole-day single-block marking via max-stretch clamp. DONE-when: root + page + controls + palette edited, tsc+eslint green, verify script green, evidence in log. Strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-game-schedule-juggle.tsx",
+    "v2/vcw4w/app/vocrehab/play/schedule-juggle/page.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-schedule-controls.tsx",
+    "v2/vcw4w/components/vocrehab/vocrehab-schedule-palette.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit",
+    "eslint touched paths",
+    "node scripts/verify-vocrehab-schedule.mjs"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-21",
+  "created": "2026-09-16T03:36:06.709Z",
+  "updated": "2026-09-16T03:37:39.536Z",
+  "log": [
+    "2026-09-16T03:36:06.709Z DS-SJ-21: envelope created + claimed, starting tabbed compact refactor.",
+    "2026-09-16T03:37:39.536Z DS-SJ-21: tabs+compact+mobile+a11y landed; tsc exit 0, eslint 4 paths clean, verify 3/3 PASS."
+  ]
+}

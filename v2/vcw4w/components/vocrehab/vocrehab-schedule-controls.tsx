@@ -62,8 +62,8 @@ export default function VocrehabScheduleControls({
     (savedAt ? ` Last saved ${savedAt}.` : " Not saved yet — your plan is safe to keep building.");
 
   return (
-    <section aria-label="Schedule controls" className="rounded-xl border p-4">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+    <section aria-label="Schedule controls" className="rounded-xl border p-2">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <div role="group" aria-label="Starting preset">
           <span id="vocrehab-preset-label" className="mb-1 block text-sm font-medium">
             Starting preset

@@ -62,6 +62,8 @@ gate state + date`. Evidence lives in the envelope `log`, not here.
 
  - SJ-LEAD CLOSE (2026-09-16): 20-agent wave DS-SJ-01..20 closed 20/20 done — monthly calendar + 24h day + WA/NH/AK presets + travel API/fallback + Easy/Med/Hard + persist + seed bridge + tests/docs/verify/a11y + integrator wiring; lead gates: verify-vocrehab-schedule 3/3 PASS, tsc exit 0, tests 22/22 via tsc-emit (bare node --test needs strip-types+.js-import workaround, runner quirk not code), eslint clean all scopes; shared-manifest wiring (layout metadata, .env.example key line, package.json verify slot, docs nav/sitemap) queued for steward. (sj-lead → steward)
 
+ - SJ-LEAD (2026-09-16): DS-SJ-21 done — tabbed compact schedule-juggle (Month/Day/Activities/Travel/Save, sticky tablist, in-panel scroll, 12h max-stretch, page steps updated); tsc 0, eslint clean, verify 3/3. (sj-lead → steward).
+
 ## Protocol (standing — not per-wave)
 
 - Claim-before-write; live owner wins races, loser stands down zero-writes.
