@@ -38,7 +38,7 @@ async function CurrencyLegend() {
 export default function FundraisersPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto max-w-6xl space-y-3 px-4 py-4">
+      <section className="mx-auto max-w-6xl space-y-2.5 px-4 py-3">
         <Link className="text-cyan-300 hover:underline" href="/">
           ← Home
         </Link>
@@ -50,8 +50,8 @@ export default function FundraisersPage() {
             investment. No equity, no interest, no profit-share, no cash-out. Every coin includes the 25% platform cut.
           </p>
         </header>
-        <details open className="rounded-xl border border-red-300/30 bg-red-300/10 p-3.5 text-sm text-red-100">
-          <summary className="cursor-pointer font-bold">🚧 Fundraisers are disabled for now; but still working under the hood.</summary>
+        <details className="rounded-full border border-red-300/30 bg-red-300/10 px-3 py-1.5 text-xs text-red-100">
+          <summary className="cursor-pointer font-bold">🚧 Fundraisers are disabled for now; but still working under the hood. [Details]</summary>
           <p className="mt-1">{FUNDRAISERS_DISABLED_NOTICE}</p>
           <p className="mt-2 text-red-200/90">{FUNDRAISERS_COMPLIANCE_NOTE}</p>
         </details>

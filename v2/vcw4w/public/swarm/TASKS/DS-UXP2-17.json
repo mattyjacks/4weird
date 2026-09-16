@@ -1,0 +1,26 @@
+{
+    "id":  "DS-UXP2-17",
+    "title":  "UXP2 batch 17: music, music/maker, tools compactness",
+    "goal":  "UXP2 /music /music/maker /tools (spec pp51-53) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/music/page.tsx",
+                  "v2/vcw4w/app/music/maker/page.tsx",
+                  "v2/vcw4w/app/tools/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-17",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T00:00:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/music /music/maker /tools (spec pp51-53), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-17: claimed in_progress. Pre-write audit: /music already h-10 header + h-9(36px) rows; /music/maker already h-10 DAW ribbon + h-dvh; /tools needs hero compression + grid density. Layout/classes only planned.",
+                "2026-09-16T00:00:00.000Z uxp2-17: RESUMED same-tag (owner=uxp2-17, in_progress, no steal). Adopted zero prior diffs in scope (targets clean; sibling counter/image/seo diffs untouched, out of scope).",
+                "2026-09-16T00:00:00.000Z uxp2-17: DONE layout-only. /music: sticky thead (z-10 bg-slate-950) over scroll region; h-10 header + h-9 rows already spec. /music/maker: cockpit padding px-3/py-3->px-2/py-2; h-10 DAW ribbon + h-dvh already spec. /tools: hero pt-8/sm:pt-10->pt-4/sm:pt-5, title 2xl/4xl->xl/2xl, mt-3->mt-1.5, grid mt-6->mt-3 gap-3->gap-2.5, cards p-4/rounded-2xl->p-3/rounded-xl, title base->sm, blurb line-clamp-2; min-h-[120px] + lg:grid-cols-4 kept per spec. Wiring grep identical before/after (music 4, maker 1-metadata, tools 2). GATES: local eslint 3-path exit 0; tsc --noEmit exit 0 zero errors; envelope parses BOM-less. HANDOFF component-owned (untouched, needs component-lane pass): SongGrid genre ribbon+search + sticky 56px player (components/music), MakerShell DAW consolidation + above-fold sequencer, tool search/filter header + card icon/category tags."
+            ]
+}

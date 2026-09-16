@@ -1,0 +1,22 @@
+{
+  "id": "DS-UXPASS2-12",
+  "title": "Fal sticky ribbon + dense grid",
+  "goal": "/fal 44px category ribbon + search, 4-col 140px grid per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/fal/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/fal/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-12",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-16T00:15:00.000Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:05:00.000Z uxpass2-12: claimed; implementing sticky 44px ribbon + search, collapsible header, dense-grid shell in app/fal/page.tsx only.",
+    "2026-09-16T00:15:00.000Z uxpass2-12: done. app/fal/page.tsx only: collapsible <details> header (eyebrow/title/badge always visible, pitch inside), sticky top-0 h-11 ribbon (All + 5 category pills with live FAL_OPS counts 10/5/6/4/5 + GET ?q= search, pills link ?cat= URL contract), #fal-studio shell with scroll-mt-14 + catalog meta row. Server-safe (no hooks, keeps 'use cache'). Gates: eslint app/fal/page.tsx exit 0 clean; tsc --noEmit scope-clean (0 errors in app/fal/page.tsx; 1 extrinsic pre-existing error app/pricing/page.tsx(442,10) TS17008 unclosed div, sibling lane file, untouched). HANDOFF→steward/component lane: FalStudio (components/fal/fal-studio.tsx) to consume ?cat=/?q= (initialCategory/initialQuery) + compact 4-col ~140px cards + Compact View toggle; no component files touched."
+  ]
+}

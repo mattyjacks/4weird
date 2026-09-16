@@ -1,0 +1,25 @@
+{
+    "id":  "DS-UXP2-18",
+    "title":  "UXP2 batch 18: tools counter/image/seo compactness",
+    "goal":  "UXP2 /tools/counter /tools/image /tools/seo (spec pp54-56) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/tools/counter/page.tsx",
+                  "v2/vcw4w/app/tools/image/page.tsx",
+                  "v2/vcw4w/app/tools/seo/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-18",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T00:00:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/tools/counter /tools/image /tools/seo (spec pp54-56), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-18: claimed (open/null verified from disk). Adopting in-scope layout-only workbench wrappers found in working tree; verifying + gating.",
+                "2026-09-16T00:00:00.000Z uxp2-18: DONE. Layout-only verified: each page keeps ToolShell+Suspense+component wiring; added grid min-w-0 gap-3 workbench wrapper + fallback p-4>p-3. Split layouts (counter 65/35+ribbon, image 50/50, seo 45/55+sticky actions) already live in components/tools (prior pass, untouched/out-of-scope for this envelope). Gates: eslint clean on 3 touched files (exit 0 via v2/vcw4w local eslint 9.39.5); tsc --noEmit zero errors repo-wide; envelope JSON parses (id=DS-UXP2-18 status=done owner=uxp2-18). Note: scripts/verify-devswarm.mjs absent from repo - JSON-parse used instead. No edits outside scope; STATUS.json untouched."
+            ]
+}

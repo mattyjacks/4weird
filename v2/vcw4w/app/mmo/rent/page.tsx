@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function MmorpgRentPage() {
   return (
     <div className="bg-slate-950 text-white">
-      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-5">
+      <div className="mx-auto max-w-6xl px-4 py-2 sm:px-5">
         <div className="flex items-center gap-3">
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-cyan-300">
             Realm rental
@@ -21,19 +21,20 @@ export default function MmorpgRentPage() {
             Rent a realm <span className="text-cyan-300">for your party.</span>
           </h1>
         </div>
-        <div className="mt-2 grid gap-3 lg:h-[calc(100dvh-96px)] lg:min-h-[480px] lg:grid-cols-[55%_45%]">
+        <div className="mt-2 grid gap-2.5 lg:h-[calc(100dvh-96px)] lg:min-h-[480px] lg:grid-cols-[55%_45%]">
           <div className="lg:min-h-0 lg:overflow-y-auto">
             <RentForm />
           </div>
-          {/* Quote companion panel: static explainer only — the live quote
-              itself renders inside RentForm, so no state is duplicated. */}
-          <aside
-            aria-label="How realm rental works"
-            className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[.03] p-4 text-sm lg:min-h-0 lg:overflow-y-auto"
+          {/* Guide accordion: static explainer only — the live quote
+              itself renders inside RentForm, so no state is duplicated.
+              <details> collapses the notes without displacing controls. */}
+          <details
+            open
+            className="flex flex-col gap-2.5 rounded-2xl border border-white/10 bg-white/[.03] p-3.5 text-sm lg:min-h-0 lg:overflow-y-auto"
           >
-            <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+            <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
               How it works
-            </h2>
+            </summary>
             <ol className="grid gap-2 text-[13px] text-slate-300">
               <li className="flex gap-2">
                 <span className="font-black text-cyan-300">1.</span>
@@ -59,7 +60,7 @@ export default function MmorpgRentPage() {
             >
               ← Browse realms before you rent
             </Link>
-          </aside>
+          </details>
         </div>
       </div>
     </div>

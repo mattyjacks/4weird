@@ -17,7 +17,8 @@ Secret-free by construction: no keys, tokens, credentials, or emails ever land h
 - [LANES.md](./LANES.md) — lane table: one lane = one file set, one owner.
 - [FOR-BOTS.md](./FOR-BOTS.md) — bot quickstart: fetch order, claim rules, gate evidence format.
 - [MEMORY.md](./MEMORY.md) — running memory: lessons, landmines, lead rulings. Read first.
-- [QUEUE.md](./QUEUE.md) — wiring/conflict requests for the integrator (the G10/E20 pattern).
+- [QUEUE.md](./QUEUE.md) — wiring/conflict requests for the integrator (the G10/E20 pattern). OPEN items only; history in `QUEUE.archive-2026-09-15.md` (read-only).
+- [ss3.md](./ss3.md) — file-native swarm boot v2 (CHEAP/FAST runs via `READY.json` + `Packs/` + `RUNS/`); [ss2.md](./ss2.md) is the legacy v1, still valid.
 - [TASKS/](./TASKS/) — one envelope per lane per `_template.json` (`open → claimed → in_progress → done`, or `blocked`).
 
 ## Scale story

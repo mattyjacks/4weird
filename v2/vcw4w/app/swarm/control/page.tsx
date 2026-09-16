@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * /swarm/control — phone-first control surface for ss2 file-native waves.
+ * /swarm/control — phone-first control surface for ss3 file-native waves.
  *
  * Single client-component page (no metadata export: client components
  * cannot export metadata). SSR-safe: no window/document access during
@@ -9,7 +9,8 @@
  * GET /api/swarm-runs every 30s; waves open via POST /api/swarm-runs
  * (login session only, 401 for anonymous).
  *
- * Mode numbers mirror the canonical table lib/swarm-ss2/modes.mjs:
+ * Mode numbers mirror the canonical table lib/swarm-ss2/modes.mjs
+ * (boot: public/swarm/ss3.md):
  * CHEAP 10-30 agents, 1-file scopes, snapshot packs; FAST 3-8 scopes +
  * paired spot-checker, full packs, one retry. Both cheap models,
  * FAST ~= 2x CHEAP tokens.
@@ -182,7 +183,7 @@ export default function SwarmControlPage() {
         <p className="mt-6 text-xs font-bold uppercase tracking-[0.3em] text-violet-300">📡 Swarm control</p>
         <h1 className="mt-2 text-4xl font-black">Open a wave</h1>
         <p className="mt-3 text-slate-300">
-          One goal in, a file-native ss2 run out. Agents pick it up from the bus; a STOP file halts pickup while
+          One goal in, a file-native ss3 run out. Agents pick it up from the bus; a STOP file halts pickup while
           in-flight work finishes.
         </p>
         <AgentBotNav current="/swarm/control" />

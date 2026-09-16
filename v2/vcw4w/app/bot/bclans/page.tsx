@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function BclansPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-[calc(100vh-4rem)] bg-slate-950 text-white">
       {/* Slim 36px sticky auth strip: key status context stays visible while issuing commands */}
       <div className="sticky top-0 z-10 border-b border-white/10 bg-slate-950/90 backdrop-blur">
         <div className="mx-auto flex h-9 max-w-6xl items-center gap-2 px-4 text-xs">
@@ -28,7 +28,7 @@ export default function BclansPage() {
         </div>
       </div>
 
-      <section className="mx-auto max-w-6xl px-4 py-6">
+      <section className="mx-auto max-w-6xl px-4 py-3">
         <AgentBotNav current="/bot/bclans" />
         <details className="mt-2 rounded-xl border border-white/10 bg-white/[.02] px-3 py-2 text-xs text-slate-400">
           <summary className="cursor-pointer font-bold text-slate-300">
@@ -59,7 +59,7 @@ export default function BclansPage() {
             .
           </p>
         </details>
-        <div className="mt-3">
+        <div className="mt-2">
           <Suspense fallback={<p className="text-sm text-slate-400">Loading console…</p>}>
             <BclansConsole />
           </Suspense>

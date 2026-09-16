@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function LeaderboardsPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-[calc(100vh-4rem)] bg-slate-950 text-white">
       {/* Compact 40px toolbar: title + context inline; Game/metric/timeframe controls live in the browser below */}
       <div className="sticky top-0 z-10 border-b border-white/10 bg-slate-950/90 backdrop-blur">
         <div className="mx-auto flex h-10 max-w-5xl items-center gap-3 px-4">
@@ -28,7 +28,7 @@ export default function LeaderboardsPage() {
           </Link>
         </div>
       </div>
-      <section className="mx-auto max-w-5xl px-4 py-6">
+      <section className="mx-auto max-w-5xl px-4 py-3">
         <p className="text-xs text-slate-400 md:hidden">
           Best runs on the station, ranked from aggregate play. Set a public handle to appear by name.
         </p>

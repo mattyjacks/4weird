@@ -12,9 +12,11 @@ export const metadata: Metadata = {
 export default function MmorpgPage() {
   return (
     <div className="bg-slate-950 text-white">
-      {/* 48px sticky command header: title + Rent Realm CTA (filters live in MmoBrowser row below) */}
+      {/* 44px unified sticky toolbar: title + Rent Realm CTA pinned;
+          Game/Age filters + dense grid/table live in MmoBrowser row below
+          (component-owned — see QUEUE handoff, never stretched scope) */}
       <div className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/95 backdrop-blur">
-        <div className="mx-auto flex h-12 max-w-7xl items-center gap-3 px-4 sm:px-5">
+        <div className="mx-auto flex h-11 max-w-7xl items-center gap-3 px-4 sm:px-5">
           <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-cyan-300">
             MMORPG worlds
           </p>
@@ -29,7 +31,7 @@ export default function MmorpgPage() {
           </Link>
         </div>
       </div>
-      <section className="mx-auto max-w-7xl px-4 py-3 sm:px-5">
+      <section className="mx-auto max-w-7xl px-4 py-2 sm:px-5">
         <p className="text-xs text-slate-400">
           Compare realms by dimension and age band with live coins/min quotes — host-free worlds are free to join.
         </p>

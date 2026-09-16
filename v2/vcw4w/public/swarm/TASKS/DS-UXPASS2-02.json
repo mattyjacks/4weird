@@ -1,0 +1,27 @@
+{
+    "id":  "DS-UXPASS2-02",
+    "title":  "Games sticky filter + dense grid",
+    "goal":  "/games 44px sticky filter bar, card 160px, dense/list toggle, staff-picks 110px ribbon per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+    "lane":  "games",
+    "scope":  [
+                  "v2/vcw4w/app/games/page.tsx"
+              ],
+    "gates":  [
+                  "./node_modules/.bin/eslint v2/vcw4w/app/games/page.tsx",
+                  "npx tsc --noEmit scope-clean"
+              ],
+    "status":  "done",
+    "owner":  "uxpass2-02",
+    "created":  "2026-09-15T23:31:59.714Z",
+    "updated":  "2026-09-15T23:46:01.379Z",
+    "log":  [
+                "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+                "2026-09-15T19:34:20.1408592-04:00 uxpass2-02: claimed, starting games sticky filter + dense grid layout pass.",
+                "2026-09-15T19:45:09.2171400-04:00 uxpass2-02: layout pass complete in v2/vcw4w/app/games/page.tsx only. Outer command bar h-12-\u003eh-11 (44px spec), inner shortcut bar h-12-\u003eh-10 docked sticky top-11 (fixes dual top-0 overlap), container py-3-\u003epy-2 px-4-\u003epx-3, text/badge token tightening; all hrefs + GameCatalog wiring unchanged.",
+                "2026-09-15T19:45:09.2181334-04:00 uxpass2-02: gates: eslint app/games/page.tsx clean (exit True, no output); npx tsc --noEmit clean (exit True, zero-new); node parse DS-UXPASS2-02.json OK BOM-less (head 123,13,10); verify:devswarm FAILS pre-existing on DS-UXPASS2-01.json BOM head 239,187,191, not this lane.",
+                "2026-09-15T19:45:09.2181334-04:00 uxpass2-02: QUEUE handoff (component-owned, not in scope): 44px sticky filter bar with pills+search+surprise lives in components/games/game-catalog.tsx styles.bar; card 160px + hover-play in Card + game-catalog.module.css; dense/list toggle needs new state in GameCatalog; staff-picks 110px ribbon needs recommended section condense in GameCatalog.",
+                "2026-09-15T23:46:01.379Z uxpass2-02: layout-only pass in app/games/page.tsx — single 44px (h-11) sticky command bar + docked 40px section nav (84px stacked chrome), scroll-mt-[88px] so #catalog lands below chrome, dynamic games.length count chip (was hardcoded 35), container py-2. Server component untouched otherwise: use-cache/cacheLife/cacheTag/JSON-LD intact, no content/games.ts edits.",
+                "2026-09-15T23:46:01.379Z uxpass2-02: GATES GREEN — eslint app/games/page.tsx exit 0; npx tsc --noEmit exit 0 (whole-project clean, scope clean).",
+                "2026-09-15T23:46:01.379Z uxpass2-02: QUEUE HANDOFF (component-owned, out of scope): 160px cards + Dense/Compact toggle + staff-picks 110px ribbon + 44px filter-bar itself all live in components/games/game-catalog.tsx + game-catalog.module.css (sticky .bar ~48px, cards ~190px, staff-picks full grid section); catalog data wiring stays in content/games.ts + lib/games-catalog.ts. Request games-lane/steward schedule component pass; page anchors #catalog/#recommended/#top ready for it."
+            ]
+}

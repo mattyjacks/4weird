@@ -17,15 +17,18 @@ export default function Page() {
       title="SEO Analyzer"
       blurb="Preview exactly how your page looks in Google and on social, then tick off the fundamentals — title length, description length, keyword placement, and slug hygiene."
     >
-      <Suspense
-        fallback={
-          <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
-            Loading SEO analyzer…
-          </p>
-        }
-      >
-        <SeoAnalyzer />
-      </Suspense>
+      {/* LAYOUT-ONLY (UXPASS p56): compact workbench wrapper; 45/55 form+gauges | live SERP/social+sticky actions live in SeoAnalyzer. */}
+      <div className="grid min-w-0 gap-3">
+        <Suspense
+          fallback={
+            <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-3 text-sm text-slate-400">
+              Loading SEO analyzer…
+            </p>
+          }
+        >
+          <SeoAnalyzer />
+        </Suspense>
+      </div>
     </ToolShell>
   );
 }

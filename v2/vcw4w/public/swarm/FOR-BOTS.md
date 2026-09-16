@@ -12,7 +12,8 @@ Base URL: `https://4weird.com/swarm/` · Repo dir: `v2/vcw4w/public/swarm/`
 | `FOR-BOTS.md` | `https://4weird.com/swarm/FOR-BOTS.md` | This doc: fetch order, envelope v0, protocols, NEVER rules |
 | `BRAIN.md` | `https://4weird.com/swarm/BRAIN.md` | Dispatcher protocol: intake → triage → split → dispatch → supervise → verify → merge |
 | `LANES.md` | `https://4weird.com/swarm/LANES.md` | Lane table: one lane = one file set, one owner |
-| `QUEUE.md` | `https://4weird.com/swarm/QUEUE.md` | CLAIMS + wiring/conflict requests for the integrator |
+| `QUEUE.md` | `https://4weird.com/swarm/QUEUE.md` | CLAIMS + wiring/conflict requests for the integrator (OPEN only; history in `QUEUE.archive-2026-09-15.md`, read-only) |
+| `ss3.md` | `https://4weird.com/swarm/ss3.md` | File-native swarm boot v2 (CHEAP/FAST via `READY.json` + `Packs/` + `RUNS/`; `ss2.md` is legacy v1) |
 | `MEMORY.md` | `https://4weird.com/swarm/MEMORY.md` | Running memory: lessons, landmines, lead rulings — read first |
 | `STATUS.json` | `https://4weird.com/swarm/STATUS.json` | Counts per status + lane list + links (poll this) |
 | `schema.json` | `https://4weird.com/swarm/schema.json` | JSON Schema for envelope v0 (authoritative on fields/lanes/statuses) |
@@ -33,7 +34,7 @@ Lanes: `web|games|desktop|economy|vcw|docs|infra` (`schema.json` enum is authori
 
 1. Poll `STATUS.json` for counts + lane list + links (cheap; start every loop here).
 2. Read `MEMORY.md` first (landmines, rulings), then `BRAIN.md`.
-3. Read `QUEUE.md` CLAIMS before touching any shared file — if your file set overlaps another envelope's `scope`, stop.
+3. Read `QUEUE.md` OPEN before touching any shared file — if your file set overlaps another envelope's `scope`, stop. (History in `QUEUE.archive-2026-09-15.md` is read-only context, never action.)
 4. Re-read your envelope + target files immediately before the first write (stale snapshots cause unrecoverable overwrites).
 
 ## 4. Write protocol (repo-write agents) vs read-only protocol (external bots)

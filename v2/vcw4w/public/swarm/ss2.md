@@ -6,8 +6,8 @@ Two fetches, then work. Replaces SwarmStart for ss2 runs; SwarmStart stays valid
 
 1. **Fetch `READY.json`** (same dir). If empty `ready[]`, report idle and stop. Never claim `DS-TEST-*`.
 2. **Fetch your pack** (`Packs/<id>.json` from the entry's `pack` field).
-3. **Verify hashes:** `node ../../../scripts/swarm-ss2.mjs verify-pack <id>` from `v2/vcw4w/`. Mismatch = re-read only the drifted file, then write.
-4. **Claim:** exclusive-create your lockfile — `node ../../../scripts/swarm-ss2.mjs claim <id>` (prints your owner id; a failure means someone else holds it — take the next READY entry, never fight).
+3. **Verify hashes:** `node scripts/swarm-ss2.mjs verify-pack <id>` from `v2/vcw4w/`. Mismatch = re-read only the drifted file, then write.
+4. **Claim:** exclusive-create your lockfile — `node scripts/swarm-ss2.mjs claim <id>` (prints your owner id; a failure means someone else holds it — take the next READY entry, never fight).
 5. **Work inside `scope` only.** Re-read each target immediately before the first write. Shared manifests are integrator-owned: NEW files only + QUEUE.md wiring lines.
 6. **Gate before done:** run the envelope's `gates`, paste evidence into its `log`. Green → `done`, red → `blocked` + reason, never `done` on red.
 7. **Close:** flip the envelope, delete your lockfile (`... release <id>`), append one token line (`... tokens-note <id> <model> <in> <out>`).

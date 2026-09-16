@@ -10,6 +10,10 @@
  * `modes.ts` starts as a verbatim port of this file, so CHEAP/FAST mean
  * exactly the same thing before and after migration. Do not add I/O here.
  *
+ * LIVE CONTRACT: `scripts/swarm-ss2.mjs` imports this table (no copies), and
+ * `public/swarm/ss3.md` §Modes + `/cheap` + `/fast` quote it. Change a knob
+ * here and every surface follows — never mirror these numbers elsewhere.
+ *
  * Schema version: modes.v1
  */
 
@@ -100,4 +104,27 @@ export function checkRatio(ratio) {
   if (ratio < RATIO_GUARD.min) return { ok: false, reason: `below floor ${RATIO_GUARD.min} (packs too thin?)` };
   if (ratio > RATIO_GUARD.max) return { ok: false, reason: `above ceiling ${RATIO_GUARD.max} (trim excerpts or retries)` };
   return { ok: true, reason: "within band" };
+}
+
+/** Lockfile heartbeat cadence in ms for the mode. Pure. */
+export function heartbeatMs(mode) {
+  const m = MODES[mode] || MODES.cheap;
+  return m.heartbeatMin * 60_000;
+}
+
+/** Narrowed-retry budget per blocked task (0 = QUEUE it and move on). Pure. */
+export function retryBudget(mode) {
+  return (MODES[mode] || MODES.cheap).retries;
+}
+
+/** Pack flavor for the mode: "snapshot" (hashes + cmds) or "full" (+ excerpts). Pure. */
+export function packKind(mode) {
+  return (MODES[mode] || MODES.cheap).pack;
+}
+
+/** One-line human summary of a mode for run intents and reports. Pure. */
+export function describeMode(mode) {
+  const m = MODES[mode] || MODES.cheap;
+  const pair = m.paired ? " + paired checker" : "";
+  return `${m.id.toUpperCase()} ${m.agents[0]}-${m.agents[1]} agents${pair}, ${m.pack} pack, ${m.retries} retr${m.retries === 1 ? "y" : "ies"}, x${m.budgetMultiplier} budget`;
 }

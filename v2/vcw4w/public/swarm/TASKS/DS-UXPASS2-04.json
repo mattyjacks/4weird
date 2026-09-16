@@ -1,0 +1,23 @@
+{
+  "id": "DS-UXPASS2-04",
+  "title": "Agents marketplace above fold",
+  "goal": "/agents 36px stepper, mode tabs in title row, top pods at y140 with Rent Now per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "economy",
+  "scope": [
+    "v2/vcw4w/app/agents/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/agents/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-04",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-16T00:25:46.965Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-04: claimed, status in_progress.",
+    "2026-09-16T00:05:00.000Z uxpass2-04: layout-only edit v2/vcw4w/app/agents/page.tsx (36px h-9 stepper Key/Fund/Rent/Connect, mode tabs inline in title row, py-6->py-3 + tightened margins so marketplace starts ~y140, wiring/ids kept). QUEUE handoff: top-3-4 pod card density + Rent Now CTA styling owned by @/components/agents/marketplace (out of scope). Gates: tsc --noEmit clean; eslint blocked by pre-existing eslint-plugin-react vs eslint10 infra error (getFilename). status done.",
+    "2026-09-16T00:25:46.965Z lead: re-verified agents stepper/mode-tabs/py-3 on disk (git diff 74 lines); eslint scope exit 0, tsc exit 0 — prior eslint-infra block resolved. Status stays done."
+  ]
+}

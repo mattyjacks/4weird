@@ -1,0 +1,26 @@
+{
+    "id":  "DS-UXP2-12",
+    "title":  "UXP2 batch 12: games/servers, bouncer, easydnc compactness",
+    "goal":  "UXP2 /games/servers /bouncer /easydnc (spec pp35-37) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/games/servers/page.tsx",
+                  "v2/vcw4w/app/bouncer/page.tsx",
+                  "v2/vcw4w/app/easydnc/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-12",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T01:00:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/games/servers /bouncer /easydnc (spec pp35-37), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-12: claimed envelope (status in_progress, owner uxp2-12); starting pp35-37 layout-only compactness.",
+                "2026-09-16T01:00:00.000Z uxp2-12: resumed same tag (disk owner uxp2-12, status in_progress — not a steal). Re-read spec pp35-37 + all 3 targets + STATUS/QUEUE; no uncommitted diffs in scope to adopt (HEAD already compact). Games-lane scope note: app/games/servers + components/games/server-browser edited (owned); app/bouncer + app/easydnc page shells verified already-compact, zero writes (out of games-lane scope).",
+                "2026-09-16T01:00:00.000Z uxp2-12: DONE scope-complete. Owned edits (classes-only): server-browser thead sticky top-0 z-10 + solid bg, header th py-1.5->py-1, data td py-1.5->py-1; servers/page skeleton thead sticky + th py-2->py-1 + td py-2.5->py-1.5. Wiring grep identical before/after (page 2L; browser 4L/1onClick/5onChange/1fetch/1button/3select/2input; bouncer 0; easydnc 0). Gates: local ./node_modules/.bin/eslint 2 touched paths clean exit 0 (npx eslint extrinsic fail: resolves v10 vs repo plugin, not file-caused); npx tsc --noEmit exit 0 zero errors; envelope parses BOM-less. HANDOFF component-owned density (untouched, out of page.tsx scope): BouncerChecker textarea/result split + debounced auto-check (components/bouncer), EasyDncChecker tabbed console [Single|Bulk|API] + 40px checker row (components/easydnc + app/easydnc/single-lookup) -> web/component lane via steward."
+            ]
+}

@@ -9,7 +9,7 @@ DevSwarm splits one goal into parallel lane tasks, each tracked by a JSON task e
 
 ## Lifecycle
 
-1. Load brain state (`BRAIN.md`, `LANES.md`, `MEMORY.md`, `QUEUE.md`, `STATUS.json`).
+1. Load brain state (`BRAIN.md`, `LANES.md`, `MEMORY.md`, `QUEUE.md`, `STATUS.json`). `QUEUE.md` is the slim live bus (OPEN only); history is read-only in `QUEUE.archive-2026-09-15.md`. File-native CHEAP/FAST runs boot via `ss3.md` (`/cheap`, `/fast`).
 2. Triage the goal into lanes (one task per lane).
 3. Claim: write one `TASKS/DS-XXXX.json` envelope per lane (next free number, per `_template.json`).
 4. Fan out: one subagent per envelope (lane agents in `.opencode/agents/`).
@@ -39,4 +39,5 @@ Lane ownership and boundaries are defined in `LANES.md`. One lane per envelope; 
 - Protocol source of truth: `v2/vcw4w/public/swarm/BRAIN.md`
 - Lane definitions: `v2/vcw4w/public/swarm/LANES.md`
 - Bot onboarding: `v2/vcw4w/public/swarm/FOR-BOTS.md`
+- File-native boot v2 + modes: `v2/vcw4w/public/swarm/ss3.md`, `v2/vcw4w/lib/swarm-ss2/modes.mjs` (commands `.opencode/commands/cheap.md`, `fast.md`)
 - Live board: `https://4weird.com/swarm/` (per-file views under `https://4weird.com/swarm/*`)

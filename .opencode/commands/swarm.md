@@ -20,6 +20,9 @@ Read these fresh on every run (repo root relative):
 - `v2/vcw4w/public/swarm/TASKS/_template.json` (envelope schema)
 
 Do not rely on cached summaries — the queue, status, and memory may have changed since last run.
+`QUEUE.md` is the slim live bus (OPEN only); history lives read-only in
+`QUEUE.archive-2026-09-15.md`. File-native CHEAP/FAST runs boot via `ss3.md`
+(`ss2.md` = legacy v1).
 
 ## 2. Triage the goal
 

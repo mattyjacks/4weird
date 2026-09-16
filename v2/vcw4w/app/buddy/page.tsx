@@ -129,12 +129,22 @@ async function BuddyGameSection({ searchParams }: { searchParams?: Promise<{ gam
         )}
       </form>
 
+      {/* 1-row hardware setup ribbon (layout only): Mic / Cam / Share toggles live in the widget below;
+          this strip keeps session launch zero-scroll with no wiring changes. */}
+      <div aria-label="Session hardware setup" className="mt-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-white/10 bg-white/[.02] px-2 py-1.5 text-[11px] font-bold">
+        <span className="px-1 text-slate-400">Session hardware:</span>
+        <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-slate-200">🎙 Mic: toggle in widget</span>
+        <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-slate-200">📹 Cam: toggle in widget</span>
+        <span className="rounded-full border border-white/10 bg-black/30 px-2 py-0.5 text-slate-200">🖥 Share Screen: one click in widget</span>
+        <a href="#buddy-session" className="ml-auto rounded-full bg-violet-300 px-2 py-0.5 text-slate-950">⤓ Jump to launcher</a>
+      </div>
+
       {/* 2-col single screen: config widget | live status console */}
-      <div className="mt-2 grid gap-2 lg:grid-cols-2">
+      <div id="buddy-session" className="mt-2 grid gap-2 lg:grid-cols-2">
         <div className="min-w-0" key={gameSlug}>
           <GamingBuddy gameSlug={gameSlug} gameTitle={gameTitle} />
         </div>
-        <aside aria-label="Live companion status" className="min-w-0 rounded-2xl border border-white/10 bg-white/[.03] p-3 lg:sticky lg:top-2 lg:self-start">
+        <aside aria-label="Live companion status" className="min-w-0 rounded-2xl border border-white/10 bg-white/[.03] p-3 lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-sm font-bold">📡 Live status</h2>
             <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[11px] font-bold text-emerald-200">watching: {gameTitle}</span>
@@ -174,6 +184,14 @@ async function BuddyGuide({ gameTitle }: { gameTitle: string }) {
   const summaryCls = "cursor-pointer text-sm font-bold text-white";
   return (
     <div className="pb-4">
+      <details className={detailCls} open={false}>
+        <summary className={summaryCls}>⚙️ Customize Appearance &amp; Voice</summary>
+        <p className="mt-1 text-slate-400">
+          Avatar, TTS voice, and personality live in the session widget above (no page scroll needed) — pick a
+          voice below to preview free, then set it in the widget when you start. Component-owned meters
+          (waveform, token burn) render in-widget; queued as handoff, not touched here.
+        </p>
+      </details>
       <details className={detailCls}>
         <summary className={summaryCls}>How it works (4 steps) — for {gameTitle}</summary>
         <ol className="mt-2 grid gap-2 sm:grid-cols-4">

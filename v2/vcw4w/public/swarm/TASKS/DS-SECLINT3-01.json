@@ -1,0 +1,21 @@
+{
+    "id":  "DS-SECLINT3-01",
+    "title":  "SECLINT3 DS-SECLINT3-01 â€” remediate CSV lines 2-11 (extension_in_public pgcrypto + leaked_password + 8 anon SECURITY DEFINER)",
+    "goal":  "Remediate assigned 10 CSV lint rows from Supabase Performance Security Lints (dwpwzfwdqjguvtvkfaxu).csv in ONE new migration 20261225000001_seclint3_01_specials_anon1.sql: revoke PUBLIC, converge anon/authenticated grants per caller evidence, pin SET search_path, rerunnable DO blocks. Reviewer checks: migration exists, verify-migration-versions passes, no shipped file edited.",
+    "lane":  "infra",
+    "scope":  [
+                  "v2/vcw4w/supabase/migrations/20261225000001_seclint3_infra.sql"
+              ],
+    "gates":  [
+                  "node scripts/verify-migration-versions.mjs"
+              ],
+    "status":  "done",
+    "owner":  "seclint3-01",
+    "created":  "2026-09-15T23:45:00.000Z",
+    "updated":  "2026-09-16T00:35:00.000Z",
+    "log":  [
+                "2026-09-15T23:45:00.000Z unassigned: envelope created for CHEAP20 seclint3 wave, awaiting claim.",
+                "2026-09-16T00:00:00.000Z seclint3-01: claimed, starting CSV lines 2-11 remediation.",
+                "2026-09-16T00:35:00.000Z seclint3-lead: worker interrupted post-write; pgcrypto MOVE draft neutralized to KEEP per 20261222000001 + QUEUE ruling (unqualified callers under pinned search_path would 42883); gate verify-migration-versions exit 0 (207 files)."
+            ]
+}

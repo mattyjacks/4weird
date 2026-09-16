@@ -1,0 +1,24 @@
+{
+  "id": "DS-UXPASS2-10",
+  "title": "Buddy zero-scroll setup",
+  "goal": "/buddy hardware ribbon, sticky HUD, customizer drawer per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/buddy/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/buddy/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-10",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-16T00:25:46.965Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:20:00.000Z uxpass2-10: claimed (status open, owner null verified). Scope per envelope = app/buddy/page.tsx only; spec Page 10 (/buddy) governs - envelope pages 36-38 ref is bouncer/easydnc/builder mismatch, buddy goal matches Page 10.",
+    "2026-09-16T00:30:00.000Z uxpass2-10: layout-only edits done in scope file only (hardware ribbon strip, aside lg:top-2 to lg:top-20 sticky + viewport cap, Customize Appearance & Voice drawer; wiring untouched, component-owned meters queued as handoff).",
+    "2026-09-16T00:35:00.000Z uxpass2-10: blocked - gates not green through no fault of scope. ESLint: repo has no eslint.config (v9.39.5, exit 2, zero file findings). tsc: buddy/page.tsx clean (zero buddy errors), full-project fails only on sibling uxpass2-09 desktop/page.tsx TAB_LABEL_ACTIVE x4 (out of scope, untouched). Unblock: add eslint flat config or scope gate to file-only; land/fix sibling desktop errors.",
+    "2026-09-16T00:25:46.965Z lead: re-verified buddy ribbon/sticky-HUD/drawer on disk (git diff 22 lines); eslint scope exit 0, tsc exit 0 — extrinsic desktop TAB_LABEL_ACTIVE reds gone, unblocking. blocked->done."
+  ]
+}

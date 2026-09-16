@@ -60,7 +60,7 @@ export default async function Page(): Promise<React.JSX.Element> {
             <caption className="pb-2 text-left text-xs text-slate-400">
               Seed loop index — every loop below is playable in your browser, no downloads needed.
             </caption>
-            <thead>
+            <thead className="sticky top-0 z-10 bg-slate-950">
               <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500">
                 <th scope="col" className="w-8 px-2 py-1 font-semibold">#</th>
                 <th scope="col" className="px-2 py-1 font-semibold">Track title</th>

@@ -20,7 +20,7 @@ export default async function WorkPage() {
   cacheLife("hours");
 
   return (
-    <main className="mx-auto max-w-4xl px-3 py-4">
+    <main className="mx-auto max-w-4xl px-3 py-3">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">
           Work
@@ -51,8 +51,8 @@ export default async function WorkPage() {
         </label>
       </div>
 
-      {/* Dark glass 3x2 matrix */}
-      <div className="mt-3 rounded-2xl bg-slate-950 p-3">
+      {/* Dark glass 3x2 matrix, compact p-2.5 horizontal icon+text pills */}
+      <div className="mt-2 rounded-2xl bg-slate-950 p-2.5">
         <h2 className="px-1 text-sm font-semibold text-white">Safe actions</h2>
         <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {SAFE_ACTIONS.map((a) => (
@@ -60,30 +60,31 @@ export default async function WorkPage() {
               key={a.href}
               href={a.href}
               title={a.body}
-              className="rounded-xl border border-white/10 bg-white/[.06] p-3 backdrop-blur transition hover:border-cyan-300/50 hover:bg-white/10"
+              className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[.06] p-2.5 backdrop-blur transition hover:border-cyan-300/50 hover:bg-white/10"
             >
-              <p className="text-sm font-semibold text-white">
-                <span aria-hidden="true" className="mr-1.5">{a.icon}</span>
-                {a.title}
-              </p>
-              <p className="mt-0.5 truncate text-xs text-slate-400">{a.body}</p>
-              <p className="mt-1 text-xs font-medium text-cyan-300">{a.href} →</p>
+              <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-300/15 text-sm font-black text-cyan-300">{a.icon}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-semibold text-white">{a.title}</span>
+                <span className="block truncate text-xs text-slate-400">{a.body}</span>
+                <span className="block text-xs font-medium text-cyan-300">{a.href} →</span>
+              </span>
             </Link>
           ))}
         </div>
       </div>
 
-      {/* Interactive mini IT request form (replaces the static cURL box) */}
-      <h2 className="mt-4 text-sm font-semibold">Need something else? Ask IT</h2>
-      <p className="mt-1 text-xs text-neutral-600">
+      {/* Interactive mini IT request form (dark glass inline row:
+          Tool Name | Reason | Submit — same ids/names/handler, dark classes only) */}
+      <h2 className="mt-3 text-sm font-semibold">Need something else? Ask IT</h2>
+      <p className="mt-0.5 text-xs text-neutral-600">
         Do not sign up for a new app on your own — that is shadow IT. Send one
         request and wait for approval:
       </p>
       <form
         id="work-it-request"
-        className="mt-2 flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-3 sm:flex-row"
+        className="mt-2 flex flex-col gap-2 rounded-xl border border-white/10 bg-slate-950 p-2.5 sm:flex-row sm:items-end"
       >
-        <label className="flex-1 text-xs font-semibold text-neutral-700">
+        <label className="flex-1 text-xs font-semibold text-slate-300">
           Tool / Permission Needed
           <input
             name="appName"
@@ -92,10 +93,10 @@ export default async function WorkPage() {
             maxLength={80}
             placeholder="Figma"
             autoComplete="off"
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-2.5 py-1.5 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-2.5 py-1.5 text-sm font-normal text-white placeholder:text-slate-500 focus:border-cyan-300 focus:outline-none"
           />
         </label>
-        <label className="flex-[2] text-xs font-semibold text-neutral-700">
+        <label className="flex-[2] text-xs font-semibold text-slate-300">
           Business Justification
           <input
             name="reason"
@@ -104,12 +105,12 @@ export default async function WorkPage() {
             maxLength={500}
             placeholder="Design mockups for the spring launch"
             autoComplete="off"
-            className="mt-1 w-full rounded-lg border border-neutral-300 px-2.5 py-1.5 text-sm font-normal text-neutral-900 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-white/10 bg-slate-900 px-2.5 py-1.5 text-sm font-normal text-white placeholder:text-slate-500 focus:border-cyan-300 focus:outline-none"
           />
         </label>
         <button
           type="submit"
-          className="self-end rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
+          className="shrink-0 self-end rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-blue-700"
         >
           Submit Request →
         </button>

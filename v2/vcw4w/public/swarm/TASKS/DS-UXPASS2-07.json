@@ -1,0 +1,24 @@
+{
+    "id":  "DS-UXPASS2-07",
+    "title":  "Timer docked console + ledger",
+    "goal":  "/timer 1-row toolbar, embedded shift ledger, export CSV, drop footers per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/timer/page.tsx"
+              ],
+    "gates":  [
+                  "./node_modules/.bin/eslint v2/vcw4w/app/timer/page.tsx",
+                  "npx tsc --noEmit scope-clean"
+              ],
+    "status":  "done",
+    "owner":  "uxpass2-07",
+    "created":  "2026-09-15T23:31:59.714Z",
+    "updated":  "2026-09-16T00:12:00.000Z",
+    "log":  [
+                "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+                "2026-09-16T00:00:00.000Z uxpass2-07: claimed, starting scope survey.",
+                "2026-09-16T00:01:00.000Z uxpass2-07: in_progress, layout-only docked console + ledger framing in scope file.",
+                "2026-09-15T23:45:00.000Z uxpass2-07: claimed, Next App Router docs read (Server Components+Suspense), scope re-read before write.",
+                "2026-09-16T00:12:00.000Z uxpass2-07: DONE. page.tsx only: sticky 1-row toolbar (title+badge+tagline+Tools drawer), #shift-ledger docked wrapper around Suspense/GhostTimer (toolbar/table/CSV live in-component, untouched), footer-replacing utility strip (summary-stats note + Export CSV anchor + Pro link, zero promo blocks). Gates: eslint app/timer/page.tsx exit 0 clean; npx tsc --noEmit exit 0 (0 lines, scope-clean). Next App Router docs read (Server Components+Suspense; page stays server component). QUEUE handoff: single-row Org|Contract|Task|ClockIn toolbar + Today/This-week totals + quick filters live inside components/ghost/ghost-timer.tsx (out of envelope scope)."
+            ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "DS-UXPASS2-14",
+  "title": "Stock unified search bar",
+  "goal": "/stock 48px unified bar, filters drawer, grid from y110 per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/stock/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/stock/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-14",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-15T23:31:59.714Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-14: claimed in_progress; Next docs read (layouts-and-pages + caching use-cache/cacheLife); implementing layout-only Page 14 in scope file.",
+    "2026-09-16T00:10:00.000Z uxpass2-14: done. Scope-only rewrite of v2/vcw4w/app/stock/page.tsx: h-12 unified search bar (title + Images/Videos tabs + search input + submit, single row), collapsed <details> Filters & Moods drawer (10 preset + 12 color chips, layout-only anchors), grid section tightened (pt-1) so masonry starts ~y110; live controls untouched in StockStudio. Gates: eslint app/stock/page.tsx exit 0; tsc --noEmit exit 0 scope-clean. QUEUE handoff: moving live preset/color/orientation controls from StockStudio header into drawer needs component-owned edit (out of scope)."
+  ]
+}

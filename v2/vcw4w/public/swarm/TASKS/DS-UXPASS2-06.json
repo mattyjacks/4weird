@@ -1,0 +1,22 @@
+{
+  "id": "DS-UXPASS2-06",
+  "title": "Squads split workspace",
+  "goal": "/squads 40px stepper, 100vh 45/55 split, permissions popover per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/squads/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/squads/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-06",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-15T23:53:33.252Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-06: claimed, layout-only pass on v2/vcw4w/app/squads/page.tsx.",
+    "2026-09-15T23:53:33.252Z uxpass2-06: DONE layout-only. 40px stepper nav (h-10: 1.Org>2.Workspace>3.Squad Rooms), 100vh split (main lg:h-[calc(100vh-64px)] lg:overflow-hidden, grid lg:grid-cols-[45%_55%], internal scroll rails), permissions popover (details: View Permission Matrix Owner/Admin/Member/Guest). TeamWorkspace+PartyHub untouched. Gates: eslint app/squads/page.tsx EXIT 0 (run from v2/vcw4w, root has no eslint bin); tsc --noEmit EXIT 0 scope-clean. Zero writes outside scope file."
+  ]
+}

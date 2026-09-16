@@ -1,0 +1,27 @@
+{
+    "id":  "DS-UXP2-02",
+    "title":  "UXP2 batch 2: agents, vcw, squads compactness",
+    "goal":  "UXP2 /agents /vibecodeworker /squads (spec pp4-6) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/agents/page.tsx",
+                  "v2/vcw4w/app/vibecodeworker/page.tsx",
+                  "v2/vcw4w/app/squads/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+  "status": "done",
+  "owner": "uxp2-02",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T00:41:43.000Z",
+    "log": [
+        "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/agents /vibecodeworker /squads (spec pp4-6), layout-only, functionality preserved).",
+        "2026-09-16T00:00:00.000Z uxp2-02: claimed (status=in_progress, owner=uxp2-02).",
+        "2026-09-16T00:41:43.000Z uxp2-02: resumed after session death (owner verified uxp2-02, status in_progress — not a steal). Adopting tree diffs; spec pp4-6 re-read.",
+        "2026-09-16T00:41:43.000Z uxp2-02: verified layout-only — zero page-file edits made this session (adopted tree state). agents: title row + mode tabs (#browse/#my-compute) + h-9 stepper (Key/Fund/Rent/Connect) + setup <details> drawer; vibecodeworker: h-[100vh] lock, 36px status bar (Branch/RunPods/Balance), 4-col launcher, no marketing footers; squads: 40px stepper + 45/55 split + permission-matrix popover. Wiring intact: agents href 14/14, vcw href 5/5 (anchor delta is JSX line-break formatting only), squads per-pattern zero diff; Marketplace/MyCompute/NanoclawDeploy/TeamWorkspace/PartyHub/BusinessCrosslinks untouched.",
+        "2026-09-16T00:41:43.000Z uxp2-02: GATES green — eslint app/agents+ vibecodeworker+squads clean; tsc --noEmit EXIT 0 zero errors; envelope parses (DS-UXP2-02 in_progress/uxp2-02 log=3, verify-devswarm per-envelope shape checks pass). NOTE: verify-devswarm full pass fails at step 4 on GLOBAL STATUS.json counts (says open=1/in_progress=7, tree holds 2 open incl. DS-TEST + 30+ in_progress from untracked sibling envelopes) — pre-existing steward-owned drift, STATUS.json untouched per lane rules → steward handoff. HANDOFF (component-owned density, not stretched): agents Marketplace/MyCompute/NanoclawDeploy card density + squads TeamWorkspace/PartyHub internals → owning lanes via QUEUE. BOM-less UTF8 confirmed on all touched files. status=done."
+      ]
+}

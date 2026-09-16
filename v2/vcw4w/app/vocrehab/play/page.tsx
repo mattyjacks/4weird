@@ -61,12 +61,17 @@ const VOCREHAB_GAMES = [
 
 export default function Page() {
   return (
-    <main className="mx-auto w-full max-w-5xl space-y-2.5 px-3 py-3">
-      <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
-        <Link href="/vocrehab">VocRehab</Link> → Practice arcade
-      </nav>
-      <h1 className="text-lg font-bold tracking-tight">Practice arcade</h1>
-      <p className="max-w-3xl text-[13px] text-muted-foreground">
+    <main className="mx-auto w-full max-w-5xl space-y-2 px-3 py-2">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+        <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
+          <Link href="/vocrehab">VocRehab</Link> → Practice arcade
+        </nav>
+        <h1 className="text-base font-bold tracking-tight">Practice arcade</h1>
+        <span className="ml-auto shrink-0 rounded-full border border-white/15 px-2 py-px text-[11px] font-bold text-muted-foreground">
+          5 drills
+        </span>
+      </div>
+      <p className="max-w-3xl text-xs text-muted-foreground">
         Five short practice games. Every game starts with an untimed practice rep, and every game
         carries the same promise: <strong>practice, not a test — nothing here grades you.</strong>{" "}
         Guests can play everything; signing in only lets you save runs to your profile.

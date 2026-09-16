@@ -1,0 +1,24 @@
+{
+    "id":  "DS-UXPASS2-01",
+    "title":  "Homepage cockpit hero",
+    "goal":  "/ compress hero to \u003c220px tabbed preview, inline 3-door pill switcher, 4-col 130px tiles, py-5 per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/page.tsx"
+              ],
+    "gates":  [
+                  "./node_modules/.bin/eslint v2/vcw4w/app/page.tsx",
+                  "npx tsc --noEmit scope-clean"
+              ],
+    "status":  "done",
+    "owner":  "uxpass2-01",
+    "created":  "2026-09-15T23:31:59.714Z",
+    "updated":  "2026-09-15T23:58:50.988Z",
+    "log":  [
+                "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+                "2026-09-16T00:00:00.000Z uxpass2-01: claimed (status open, owner null verified). Scope per envelope = app/page.tsx only; user message listed 4 pages but envelope scope governs — other 3 pages left untouched.",
+                "2026-09-16T00:10:00.000Z uxpass2-01: re-affirmed claim (owner verified uxpass2-01), starting layout-only cockpit compression on app/page.tsx.",
+                "2026-09-15T23:43:15.086Z uxpass2-01: continued session verified owner=uxpass2-01/status=in_progress; working-copy hero work (pill switcher, capped previews, p-2 tiles) already present, remaining item = py-6->py-5 section normalization + final-CTA tighten, layout-only in scope file.",
+                "2026-09-15T23:58:50.988Z uxpass2-01: co-writer under same tag completed section pass (lanes py-5, all other sections py-4, ticker py-2) — goal met/exceeded, zero further source writes to avoid clobber. GATE eslint app/page.tsx exit 0 clean (v2/vcw4w/node_modules/.bin/eslint.cmd; repo-root binary absent). GATE npx tsc --noEmit exit 0 clean. Status -> done."
+            ]
+}

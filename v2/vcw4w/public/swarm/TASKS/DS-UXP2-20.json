@@ -1,0 +1,31 @@
+{
+  "id": "DS-UXP2-20",
+  "title": "UXP2 batch 20: vcw hub audit, vocrehab suite, docs, legal compactness",
+  "goal": "UXP2 /vibecodeworker/hub(audit) /vocrehab /vocrehab/course /vocrehab/play /vocrehab/discover /docs /privacy /terms (spec pp63-70) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/vocrehab/page.tsx",
+    "v2/vcw4w/app/vocrehab/course/page.tsx",
+    "v2/vcw4w/app/vocrehab/play/page.tsx",
+    "v2/vcw4w/app/vocrehab/discover/page.tsx",
+    "v2/vcw4w/app/docs/page.tsx",
+    "v2/vcw4w/app/privacy/page.tsx",
+    "v2/vcw4w/app/terms/page.tsx"
+  ],
+  "gates": [
+    "npx tsc --noEmit (zero NEW errors in scope)",
+    "npx eslint on touched paths (clean)",
+    "node scripts/verify-devswarm.mjs (envelope valid)"
+  ],
+  "status": "blocked",
+  "owner": "uxp2-20",
+  "created": "2026-09-15T07:30:00.000Z",
+  "updated": "2026-09-16T00:39:37.082Z",
+  "log": [
+    "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/vibecodeworker/hub(audit) /vocrehab /vocrehab/course /vocrehab/play /vocrehab/discover /docs /privacy /terms (spec pp63-70), layout-only, functionality preserved).",
+    "2026-09-16T00:29:53.734Z uxp2-20: claimed (tag==owner match, finalized claim line) — starting pp63-70 layout-only pass on 7 page.tsx targets; hub audit-only.",
+    "2026-09-16T00:35:30.000Z uxp2-20: layout pass complete. play/discover/docs/privacy/terms shells already matched spec from prior waves; density applied: vocrehab hub cards p-4>p-3/text-lg>base + XP progress header bar + Access drawer (spec p64 items 2-3), course/discover/play compact inline header rows + count badges + py-2 (pp65-67), docs p-5>p-3.5 + mt-6/5>mt-3 + gap-2.5 (p68). privacy/terms ZERO edits (legal text byte-identical, pp69-70 already sticky-TOC+accordion+summary). No old-v1/manifest/secret/out-of-scope writes. Convergent same-tag edits adopted without loss; standing down further file writes.",
+    "2026-09-16T00:36:00.000Z uxp2-20: gates on merged tree: eslint touched 5 paths CLEAN (no output); tsc --noEmit CLEAN (full project, zero errors); verify-devswarm RED-EXTRINSIC (STATUS.json open 1 vs TASKS 2; STATUS updated 06:12 predates this 07:30 envelope; steward-owned, no hand-edit). HANDOFFS: (1) steward: recount STATUS.json then flip this envelope to done; (2) site-nav/integrator: DOCS_DATA seeds-guide rows still pending (QUEUE docs line), untouched here. Status blocked-honest pending steward recount.",
+    "2026-09-16T00:39:37.083Z uxp2-20: on-top delta green — vocrehab hub progress header+Access drawer; course/discover/play header rows+count chips; docs guide micro-cards p-4>p-3/h-9>h-8/footer mt-4>p-3; privacy table px-4 py-2>px-3 py-1.5 (28 cells) + rail 212>200px; terms summary p-4>p-3 + filter h-12>h-10 + rail grid tighten. Wiring check: zero removed Link/form/button/input/details/href/handler lines (class-only diff). Gates: eslint 7 paths CLEAN; tsc --noEmit CLEAN zero errors; envelope parses BOM-less; verify-devswarm RED extrinsic (STATUS open 1 vs TASKS 2, steward-owned). QUEUE audit+handoff line filed. Stays blocked-honest pending steward recount — never done on red."
+  ]
+}

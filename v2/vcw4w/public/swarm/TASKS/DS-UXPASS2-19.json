@@ -1,0 +1,24 @@
+{
+  "id": "DS-UXPASS2-19",
+  "title": "Xonotic arena dashboard",
+  "goal": "/xonotic status pill, unified command bar, zero-scroll per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/xonotic/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/xonotic/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-19",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-15T23:31:59.714Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-19: claimed (in_progress). Read Next docs (page.js file convention: Server Component default export; use-cache directive + cacheLife for cached intro) before writing.",
+    "2026-09-16T00:00:00.000Z uxpass2-19: NOTE concurrent uncommitted edit on scope by another lane (bottom servers paragraph removed, Browse-servers CTA moved inline w/ ml-auto) detected via re-read + git diff; built on top, no clobber.",
+    "2026-09-16T00:00:00.000Z uxpass2-19: implement Page 19 layout-only in app/xonotic/page.tsx: (1) removed redundant top amber desktop-app banner, folded into consolidated status pill (amber dot + Desktop app: required + Install link) in command bar; (2) unified command bar kept (title + status pill + GPU chip + Details popover + Browse servers CTA, ml-auto right-aligned); (3) zero-scroll preserved (h-screen flex-col overflow-hidden, flex-1 min-h-0 console region, no marketing footers in file). CachedXonoticIntro use-cache/cacheLife untouched; all imports still used.",
+    "2026-09-16T00:00:00.000Z uxpass2-19: GATE eslint app/xonotic/page.tsx -> PASS (no output). GATE npx tsc --noEmit -> scope-clean: zero errors in app/xonotic/page.tsx; only 4 pre-existing errors in out-of-scope app/desktop/page.tsx (TAB_LABEL_ACTIVE TS2552 x4, untouched by this lane). Status -> done."
+  ]
+}

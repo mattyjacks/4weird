@@ -20,27 +20,27 @@ async function CachedTermsBody() {
   cacheTag('site-legal');
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <a href="#terms-s1" className="rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
-          <p className="font-black">🧾 Eligibility &amp; Accounts</p>
-          <p className="mt-1 text-sm text-muted-foreground">13+ only · Adult 18+ buys &amp; payouts · §1 →</p>
+      <div className="grid gap-2.5 sm:grid-cols-3">
+        <a href="#terms-s1" className="rounded-2xl border border-border bg-card p-3 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
+          <p className="text-[15px] font-black">🧾 Eligibility &amp; Accounts</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">13+ only · Adult 18+ buys &amp; payouts · §1 →</p>
         </a>
-        <a href="#terms-s8" className="rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
-          <p className="font-black">🪙 Vibe Coins &amp; Billing</p>
-          <p className="mt-1 text-sm text-muted-foreground">100 🪙 = $1.00 · 90-day refund · §8 →</p>
+        <a href="#terms-s8" className="rounded-2xl border border-border bg-card p-3 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
+          <p className="text-[15px] font-black">🪙 Vibe Coins &amp; Billing</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">100 🪙 = $1.00 · 90-day refund · §8 →</p>
         </a>
-        <a href="#terms-s3" className="rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
-          <p className="font-black">📜 Content &amp; IP Rights</p>
-          <p className="mt-1 text-sm text-muted-foreground">You own your posts · §10 DMCA · §3 →</p>
+        <a href="#terms-s3" className="rounded-2xl border border-border bg-card p-3 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
+          <p className="text-[15px] font-black">📜 Content &amp; IP Rights</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">You own your posts · §10 DMCA · §3 →</p>
         </a>
       </div>
-      <form action="/search" method="get" role="search" className="mt-3 flex h-12 items-center gap-2 rounded-2xl border border-border bg-card px-4">
+      <form action="/search" method="get" role="search" className="mt-2.5 flex h-10 items-center gap-2 rounded-2xl border border-border bg-card px-3">
         <span aria-hidden="true">🔍</span>
         <label htmlFor="terms-filter" className="sr-only">Filter terms</label>
         <input id="terms-filter" name="q" type="search" placeholder="Filter terms... (e.g. Refund, Liability, Crowns)" className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" />
         <button type="submit" className="shrink-0 text-sm font-bold text-cyan-600 dark:text-cyan-300">Search</button>
       </form>
-      <div className="mt-4 grid gap-4 lg:grid-cols-[212px_minmax(0,1fr)]">
+      <div className="mt-3 grid gap-3 lg:grid-cols-[200px_minmax(0,1fr)]">
         <nav aria-label="Terms sections" className="max-h-56 self-start overflow-auto rounded-2xl border border-border bg-card p-3 lg:sticky lg:top-4 lg:max-h-[70vh]">
           <p className="px-1 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">On this page</p>
           <ul className="mt-2 space-y-0.5 text-[13px] leading-snug">

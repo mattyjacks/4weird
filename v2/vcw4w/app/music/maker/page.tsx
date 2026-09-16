@@ -29,7 +29,8 @@ export default async function Page() {
         </p>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-6xl px-3 py-3 sm:px-4">
+        {/* LAYOUT-ONLY (UXPASS p52): tightened cockpit padding so the 16-step sequencer in MakerShell starts above the fold. */}
+        <div className="mx-auto max-w-6xl px-2 py-2 sm:px-3">
           <Suspense
             fallback={
               <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">

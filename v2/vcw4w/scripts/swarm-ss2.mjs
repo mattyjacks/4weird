@@ -2,6 +2,9 @@
 /**
  * swarm-ss2 — file-native swarm engine (Plan B).
  *
+ * Boot canonical: public/swarm/ss3.md §Boot. Mode numbers imported from
+ * lib/swarm-ss2/modes.mjs (single source of truth — never copy them here).
+ *
  * Subcommands (all run from v2/vcw4w/):
  *   ready [--out PATH]                 Rank open envelopes -> READY.json (lead-manual per wave)
  *   pack <id> [--full]                 Build Packs/<id>.json sidecar (hashes + acceptance + excerpts?)
@@ -22,6 +25,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { MODES as CANON, clampAgents as clampCanon } from "../lib/swarm-ss2/modes.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url)); // scripts/
 const ROOT = path.resolve(HERE, ".."); // v2/vcw4w/
@@ -35,9 +39,11 @@ const TOKENS = path.join(SWARM, "TOKENS.jsonl");
 const ROLLUP = path.join(SWARM, "TOKENS-ROLLUP.json");
 
 const MODES = {
-  cheap: { agents: [10, 30], pack: "snapshot", heartbeatMin: 10 },
-  fast: { agents: [3, 8], pack: "full", heartbeatMin: 3 },
+  cheap: { agents: CANON.cheap.agents, pack: CANON.cheap.pack, heartbeatMin: CANON.cheap.heartbeatMin },
+  fast: { agents: CANON.fast.agents, pack: CANON.fast.pack, heartbeatMin: CANON.fast.heartbeatMin },
 };
+// Agent-range clamping lives canonically in lib/swarm-ss2/modes.mjs
+// (clampCanon, used by cmdRun below) — never re-implement ranges here.
 
 function fail(msg, code = 1) {
   console.error(`swarm-ss2: ${msg}`);
@@ -218,10 +224,7 @@ function cmdRun(args) {
   if (!MODES[mode]) fail(`--mode must be cheap|fast (got ${mode})`);
   const goal = g("--goal");
   if (!goal) fail(`usage: run --mode <cheap|fast> --agents N --goal "..." [--target desktop|cloud-vm]`);
-  let agents = Number(g("--agents"));
-  const [lo, hi] = MODES[mode].agents;
-  if (!Number.isFinite(agents)) agents = hi;
-  agents = Math.min(hi, Math.max(lo, agents));
+  let agents = clampCanon(mode, g("--agents"));
   const target = g("--target") || "desktop";
   const id = `RUN-${Date.now().toString(36).toUpperCase()}`;
   fs.mkdirSync(path.join(RUNS, "open"), { recursive: true });

@@ -22,16 +22,19 @@ async function CachedSubmitIntro() {
         Max <strong>50 MB</strong> ⚡ · game root = folder with index.html · verdicts: <strong>safe</strong> / <strong>warning</strong> / <strong>unsafe</strong> / <strong>denied</strong> (malware hard-denied, quarantined, human review) · coins metered, 25% cut included
       </p>
       <a href="#zip-submit-form" className="ml-auto shrink-0 rounded-full bg-cyan-600 px-3 py-1 text-xs font-black hover:bg-cyan-500">
-        Publish ↓
+        Publish Game to Arcade 🚀
       </a>
     </div>
   );
 }
 
+// uxpass-2 Page 16: strict cockpit isolation — 100vh lock (minus 64px global
+// header), zero page-level scroll. Columns scroll internally. No promo
+// footers on this utility form.
 export default function SubmitPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <section className="mx-auto flex max-w-6xl flex-col gap-2 px-3 py-3">
+    <main className="h-[calc(100vh-4rem)] overflow-hidden bg-slate-950 text-white">
+      <section className="mx-auto flex h-full max-w-6xl flex-col gap-2 overflow-hidden px-3 py-3">
         <Suspense fallback={<p className="text-sm text-slate-400">Loading…</p>}>
           <CachedSubmitIntro />
         </Suspense>
@@ -44,35 +47,32 @@ export default function SubmitPage() {
           <li className="truncate rounded-full px-2 py-0.5 text-slate-400">3 Review &amp; Sign</li>
           <li className="ml-auto hidden shrink-0 text-slate-500 sm:block">zero-scroll cockpit</li>
         </ol>
-        {/* 2-col cockpit: 45% metadata explainer / 55% live form (zip dropzone + thumbnail + revenue selector live in ZipSubmitForm). */}
-        <div className="grid gap-2 lg:grid-cols-[45%_55%]">
-          <aside className="h-fit rounded-xl border border-white/10 bg-white/[.02] p-3 text-xs lg:sticky lg:top-3">
+        {/* 2-col cockpit: 45% metadata 2x2 grid / 55% live form (zip
+            dropzone + thumbnail + revenue selector live in ZipSubmitForm).
+            Inline Publish CTA lives in the header bar above — no separated
+            bottom action. */}
+        <div className="grid min-h-0 flex-1 gap-2 overflow-hidden lg:grid-cols-[45%_55%]">
+          <aside className="min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-white/[.02] p-3 text-xs">
             <p className="text-xs font-black">Metadata</p>
-            <dl className="mt-2 space-y-1.5 text-slate-300">
-              <div className="flex gap-2"><dt className="w-16 shrink-0 font-bold text-slate-400">Title</dt><dd>Game name (defaults to .zip filename).</dd></div>
-              <div className="flex gap-2"><dt className="w-16 shrink-0 font-bold text-slate-400">Slug</dt><dd>URL-safe id derived at publish.</dd></div>
-              <div className="flex gap-2"><dt className="w-16 shrink-0 font-bold text-slate-400">Category</dt><dd>Arcade genre picked at review.</dd></div>
-              <div className="flex gap-2"><dt className="w-16 shrink-0 font-bold text-slate-400">Engine</dt><dd className="flex flex-wrap gap-1">
-                {["HTML5", "Godot", "Unity WebGL", "Phaser"].map((e) => (
-                  <span key={e} className="rounded-full border border-white/10 px-1.5 py-px text-[10px] text-slate-300">{e}</span>
-                ))}
-              </dd></div>
+            {/* High-density 2x2 grid (8px gaps): Title / Root Path / Category / Version. */}
+            <dl className="mt-2 grid grid-cols-2 gap-2 text-slate-300">
+              <div className="rounded-lg border border-white/10 bg-white/[.02] p-2"><dt className="font-bold text-slate-400">Title</dt><dd className="mt-0.5">Game name (defaults to .zip filename).</dd></div>
+              <div className="rounded-lg border border-white/10 bg-white/[.02] p-2"><dt className="font-bold text-slate-400">Root Path</dt><dd className="mt-0.5">Folder with index.html inside the .zip.</dd></div>
+              <div className="rounded-lg border border-white/10 bg-white/[.02] p-2"><dt className="font-bold text-slate-400">Category</dt><dd className="mt-0.5">Arcade genre picked at review.</dd></div>
+              <div className="rounded-lg border border-white/10 bg-white/[.02] p-2"><dt className="font-bold text-slate-400">Version</dt><dd className="mt-0.5">Semver stamped at publish; slug derived then.</dd></div>
             </dl>
-            <p className="mt-2 border-t border-white/10 pt-2 text-[11px] text-slate-400">
+            <p className="mt-2 text-[11px] text-slate-400">
+              Engine: {["HTML5", "Godot", "Unity WebGL", "Phaser"].join(" · ")}
+            </p>
+            <p className="mt-1 border-t border-white/10 pt-2 text-[11px] text-slate-400">
               Revenue: Free / Vibe Coins / Direct Tip — chosen at review. Developer contract signed at step 3.
             </p>
           </aside>
-          <div id="zip-submit-form" className="min-w-0 scroll-mt-3">
+          <div id="zip-submit-form" className="min-h-0 min-w-0 overflow-y-auto scroll-mt-3">
             <Suspense fallback={<p className="text-sm text-slate-400">Loading form…</p>}>
               <ZipSubmitForm />
             </Suspense>
           </div>
-        </div>
-        {/* Docked Publish shortcut (real Upload + scan button lives in the form). */}
-        <div className="sticky bottom-3 flex justify-end">
-          <a href="#zip-submit-form" className="rounded-full bg-cyan-600 px-5 py-2 text-sm font-black shadow-lg shadow-cyan-950/50 hover:bg-cyan-500">
-            Publish Game to Arcade ↓
-          </a>
         </div>
       </section>
     </main>

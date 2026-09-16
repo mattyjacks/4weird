@@ -1,0 +1,22 @@
+{
+  "id": "DS-UXPASS2-18",
+  "title": "Blender horizontal launcher",
+  "goal": "/blender rate chip, 48px launcher bar, full-height queue per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/blender/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/blender/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-18",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-15T23:31:59.714Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-18: claimed, status in_progress. Scope v2/vcw4w/app/blender/page.tsx only.",
+    "2026-09-16T00:10:00.000Z uxpass2-18: implemented uxpass-2 Page 18 layout-only in scope file: rate chip kept in title row (with aria-label), new h-12 horizontal launcher bar (upload/frames/render + limits cue), guide steps folded into <details> accordion (nested scene-tips accordion kept), studio wrapped in #render-queue region with min-h-0 flex-1 full-height scroll. Server component, use cache/cacheLife/cacheTag/metadata/Suspense unchanged. Gates: eslint app/blender/page.tsx exit 0; tsc --noEmit scope-clean (0 blender errors; 4 pre-existing errors in desktop-lane app/desktop/page.tsx TAB_LABEL_ACTIVE untouched). BOM-less verified (first bytes 105,109,112). Status done."
+  ]
+}

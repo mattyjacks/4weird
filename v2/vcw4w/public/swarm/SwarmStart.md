@@ -65,7 +65,8 @@ Example: `2026-09-13T02:09:03.660Z A3: claimed, starting scope survey.`
 | Full bot quickstart + read/write protocols | `FOR-BOTS.md` |
 | Dispatcher protocol (intake → merge) | `BRAIN.md` |
 | Lane table (who owns which files) | `LANES.md` |
-| Wiring/conflict requests for the integrator | `QUEUE.md` |
+| Wiring/conflict requests for the integrator | `QUEUE.md` (OPEN only; history in `QUEUE.archive-2026-09-15.md`) |
+| File-native boot v2 (CHEAP/FAST runs) | `ss3.md` (`ss2.md` = legacy v1) |
 | Lessons, landmines, lead rulings | `MEMORY.md` |
 | Live counts + links | `STATUS.json` |
 | Envelope schema (exact fields) | `schema.json` |

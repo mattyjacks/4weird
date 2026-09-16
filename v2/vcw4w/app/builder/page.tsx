@@ -12,9 +12,10 @@ export const metadata: Metadata = {
 
 export default function BuilderPage() {
   return (
-    <main className="bg-slate-950 text-white">
-      <section className="mx-auto max-w-7xl px-4 py-4">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+    <main className="flex h-[calc(100vh-56px)] min-h-[500px] flex-col overflow-hidden bg-slate-950 text-white">
+      <section className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col px-4 py-3">
+        {/* Sticky header build bar: title + primary destinations above the fold */}
+        <div className="flex shrink-0 flex-wrap items-baseline gap-x-3 gap-y-0.5">
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-300">
             4WEIRD // CLONE TOOL
           </p>
@@ -30,7 +31,8 @@ export default function BuilderPage() {
             </Link>
           </p>
         </div>
-        <div className="mt-3">
+        {/* 2-column configuration cockpit fills the viewport (client owns the split) */}
+        <div className="mt-2 min-h-0 flex-1">
           <Suspense
             fallback={
               <p

@@ -1,0 +1,25 @@
+{
+    "id":  "DS-UXP2-15",
+    "title":  "UXP2 batch 15: studio, studio/audio, studio/paint compactness",
+    "goal":  "UXP2 /studio /studio/audio /studio/paint (spec pp45-47) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/studio/page.tsx",
+                  "v2/vcw4w/app/studio/audio/page.tsx",
+                  "v2/vcw4w/app/studio/paint/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-15",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T01:04:13.225Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/studio /studio/audio /studio/paint (spec pp45-47), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-15: claimed envelope (status open, owner null). Spec pp45-47 re-read; 3 target page shells re-read. Grep before: 0 handlers/links/forms in scope (only out-of-scope video/editor match). Starting layout/classes-only pass.",
+                "2026-09-16T01:04:13.225Z uxp2-15: RESUMED same-tag (owner still uxp2-15, status in_progress - not a steal). Spec pp45-47 + 3 shells re-read; adopted prior uncommitted studio/page.tsx diff (inline header + status pill + py-3) verbatim. Grep before/after in scope: 0/0 (all interactivity lives in studio-hub-client/audio-client+audio-lab/paint-studio - untouched). Audio shell: inline justify-between header + on-device/WAV pill + text-xs lede + mt-2 (kept lg 100vh-190px cockpit lock). Paint shell: same inline header + 2-layers/PNG pill + text-xs lede + ADDED lg 100vh-190px/min-h-480/overflow-auto cockpit lock mirroring audio. Gates: local eslint 3-path clean exit 0; tsc --noEmit exit 0 zero errors (zero NEW in scope); envelope parses BOM-less UTF-8 (byte-checked 4 files). verify-devswarm red EXTRINSIC: STATUS.json open 1 vs TASKS 2 (steward-owned drift, same as DS-UXP2-07/08/11/20 waves - needs steward recount). Scope-complete -> done; component-owned density filed as QUEUE handoff."
+            ]
+}

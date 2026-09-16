@@ -77,12 +77,22 @@ export default function DpsDonorConsolePage() {
 
   return (
     <RegionGate feature="dps-donate" variant="page">
-    <main className="mx-auto w-full max-w-6xl px-5 py-6">
-      <h1 className="text-2xl font-black">Donate Personal Seconds</h1>
+    <main className="mx-auto w-full max-w-6xl px-4 py-3.5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h1 className="text-2xl font-black">Donate Personal Seconds</h1>
+        {/* DS-UXP2-14 (spec p43): earned-coins inline badge (was a detached
+            bottom card). Text preserved, zero handlers. */}
+        <p
+          className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-bold text-amber-200"
+          title="balances quote the coin ledger"
+        >
+          🪙 Earned: 0 coins this session (placeholder)
+        </p>
+      </div>
       <p className="mt-1 text-sm text-slate-400">Share idle compute and earn Vibe Coins. 100 coins = $1.00 USD.</p>
 
-      <div className="mt-4 rounded-2xl border border-white/10 bg-white/[.04] p-5">
-        <div className="grid gap-6 md:grid-cols-2">
+      <div className="mt-3 rounded-2xl border border-white/10 bg-white/[.04] p-3.5">
+        <div className="grid gap-3 md:grid-cols-2">
           <section aria-label="Hardware readout">
             <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400">Hardware readout</h2>
             {showOfflineFallback ? (
@@ -91,7 +101,7 @@ export default function DpsDonorConsolePage() {
                 defaults. Donating stays optional and fail-open.
               </p>
             ) : null}
-            <dl className="mt-3 grid grid-cols-2 gap-3">
+            <dl className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
               <div className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2">
                 <dt className="text-xs uppercase tracking-wide text-slate-500">CPU cores</dt>
                 <dd className="text-xl font-black">{readout.cpuCores}</dd>
@@ -114,7 +124,7 @@ export default function DpsDonorConsolePage() {
             </dl>
           </section>
 
-          <div className="space-y-5">
+          <div className="space-y-3">
             <section aria-label="Share controls">
               <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400">Share controls</h2>
               <label className="mt-3 block text-sm font-bold">
@@ -163,12 +173,6 @@ export default function DpsDonorConsolePage() {
           </div>
         </div>
       </div>
-
-      <section aria-label="Earned coins" className="mt-4 rounded-2xl border border-white/10 bg-white/[.04] p-5">
-        <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400">Earned coins</h2>
-        <p className="mt-2 text-sm">0 coins earned this session (placeholder).</p>
-        <p className="text-sm text-slate-400">balances quote the coin ledger</p>
-      </section>
     </main>
     </RegionGate>
   );

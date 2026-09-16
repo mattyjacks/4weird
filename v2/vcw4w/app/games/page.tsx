@@ -69,32 +69,36 @@ export default async function GamesPage() {
           ),
         }}
       />
-      {/* Compact sticky arcade command bar (48px): title + count + actions stay visible */}
-      <div className="sticky top-0 z-10 border-b border-white/10 bg-[#070912]/90 backdrop-blur">
-        <div className="mx-auto flex h-12 max-w-6xl items-center gap-2 px-4 sm:px-5">
-          <h1 className="text-base font-black tracking-tight">Arcade</h1>
-          <span className="rounded-full border border-fuchsia-400/40 px-2 py-0.5 font-mono text-[11px] font-bold text-fuchsia-200">{games.length} games</span>
-          <span className="hidden rounded-full border border-emerald-400/40 px-2 py-0.5 font-mono text-[11px] font-bold text-emerald-200 sm:inline">free to try</span>
+      {/* Compact sticky arcade command bar (44px): title + count + actions stay visible */}
+      <div className="sticky top-0 z-20 border-b border-white/10 bg-[#070912]/90 backdrop-blur">
+        <div className="mx-auto flex h-11 max-w-6xl items-center gap-1.5 overflow-x-auto px-3 sm:px-4">
+          <h1 className="shrink-0 text-sm font-black tracking-tight">Arcade</h1>
+          <span className="shrink-0 rounded-full border border-fuchsia-400/40 px-1.5 py-0.5 font-mono text-[10px] font-bold text-fuchsia-200">{games.length} games</span>
+          <span className="hidden shrink-0 rounded-full border border-emerald-400/40 px-1.5 py-0.5 font-mono text-[10px] font-bold text-emerald-200 sm:inline">free to try</span>
           <span className="flex-1" />
-          <a href="#catalog" className="rounded-full border border-white/20 px-3 py-1 text-xs font-bold hover:bg-white/10">Browse catalog</a>
-          <a href="/newgameplus" className="rounded-full bg-fuchsia-500 px-3 py-1 text-xs font-bold text-white transition hover:bg-fuchsia-400">Ship your own</a>
+          <a href="#catalog" className="shrink-0 whitespace-nowrap rounded-full border border-white/20 px-2.5 py-1 text-[11px] font-bold hover:bg-white/10">Browse catalog</a>
+          <a href="/newgameplus" className="shrink-0 whitespace-nowrap rounded-full bg-fuchsia-500 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-fuchsia-400">Ship your own</a>
         </div>
       </div>
-      <div id="catalog" className="mx-auto max-w-6xl scroll-mt-14 px-4 py-3 sm:px-5">
-        {/* Sticky 48px arcade command bar: anchor shortcuts only, no logic.
-          Filter/search + dense 5-col grid live in <GameCatalog/> below. */}
-      <nav aria-label="Arcade sections" className="sticky top-0 z-10 border-b border-white/10 bg-[#070912]/90 backdrop-blur">
-        <div className="mx-auto flex h-12 max-w-6xl items-center gap-2 overflow-x-auto px-4">
-          <span className="shrink-0 text-sm font-black tracking-tight">
+      <div id="catalog" className="mx-auto max-w-6xl scroll-mt-[88px] px-3 py-2 sm:px-4">
+        {/* Sticky 40px section shortcut bar (docked under 44px command bar):
+          anchor shortcuts only, no logic. scroll-mt-88px = 44px bar + 40px
+          docked nav + 4px breathing room, so #catalog lands just below the
+          stacked sticky chrome and the catalog starts above the fold.
+          Filter/search + dense grid + staff-picks ribbon live in
+          <GameCatalog/> (component-owned, QUEUE handoff in DS-UXPASS2-02). */}
+      <nav aria-label="Arcade sections" className="sticky top-11 z-10 border-b border-white/10 bg-[#070912]/90 backdrop-blur">
+        <div className="mx-auto flex h-10 max-w-6xl items-center gap-1.5 overflow-x-auto px-1 py-0.5">
+          <span className="shrink-0 text-xs font-black tracking-tight">
             Arcade
           </span>
-          <span className="shrink-0 rounded-full border border-white/15 px-2 py-0.5 font-mono text-[11px] text-white/70">
-            35 games · free to try
+          <span className="shrink-0 rounded-full border border-white/15 px-1.5 py-0.5 font-mono text-[10px] text-white/70">
+            {games.length} games · free to try
           </span>
-          <a href="#recommended" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10">
+          <a href="#recommended" className="shrink-0 whitespace-nowrap rounded-full border border-white/15 px-2.5 py-1 text-[11px] font-semibold text-white/80 transition hover:bg-white/10">
             Staff picks ↓
           </a>
-          <a href="#top" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10">
+          <a href="#top" className="shrink-0 whitespace-nowrap rounded-full border border-white/15 px-2.5 py-1 text-[11px] font-semibold text-white/80 transition hover:bg-white/10">
             Back to top ↑
           </a>
         </div>

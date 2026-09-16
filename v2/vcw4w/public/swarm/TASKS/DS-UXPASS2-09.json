@@ -1,0 +1,25 @@
+{
+    "id":  "DS-UXPASS2-09",
+    "title":  "Desktop tabbed cockpit",
+    "goal":  "/desktop CTA in header, 4 tabs, zero-scroll pods dashboard per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+    "lane":  "desktop",
+    "scope":  [
+                  "v2/vcw4w/app/desktop/page.tsx"
+              ],
+    "gates":  [
+                  "./node_modules/.bin/eslint v2/vcw4w/app/desktop/page.tsx",
+                  "npx tsc --noEmit scope-clean"
+              ],
+    "status":  "done",
+    "owner":  "uxpass2-09",
+    "created":  "2026-09-15T23:31:59.714Z",
+    "updated":  "2026-09-16T00:12:00.000Z",
+    "log":  [
+                "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+                "2026-09-15T23:45:00.000Z uxpass2-09: claimed (scan-then-claim one pass; envelope open/owner null, no race). Scope v2/vcw4w/app/desktop/page.tsx only.",
+                "2026-09-16T00:15:00.000Z uxpass2-09: done. Layout-only edits in v2/vcw4w/app/desktop/page.tsx: CTA elevated to header row (Rent CPU Desktop Now -\u003e #launch), section pills renamed to 4 tab labels + sticky (sticky top-0 z-20 backdrop-blur), section spacing mt-6-\u003emt-4, h1 text-2xl-\u003etext-xl, h2 text-xl-\u003etext-lg, guide lists space-y-2-\u003espace-y-1, plans gap-3-\u003egap-2.5. Wiring preserved (DesktopRental/RunpodDashboard/AgentBotNav/Suspense/anchors/ids unchanged, server component, no client conversion).",
+                "2026-09-16T00:15:00.000Z uxpass2-09: gates green from v2/vcw4w: node_modules/.bin/eslint app/desktop/page.tsx exit 0; node_modules/.bin/tsc --noEmit exit 0 (repo-clean, zero errors).",
+                "2026-09-16T00:15:00.000Z uxpass2-09: QUEUE handoffs (component-owned, out of scope): DesktopRental launch-form density + RunpodDashboard pod-card density live in lane components, not page.tsx — needs lane-owner pass for true zero-scroll pods dashboard.",
+                "2026-09-16T00:12:00.000Z uxpass2-09: CORRECTION — on-disk implementation is the tabbed-cockpit rewrite (verified in working copy), not sticky-pills: header CTA label htmlFor=dtab-launch, 4 CSS-only radio tabs (peer/launch|pods|testing|plans, Tailwind v3.4 named peers, server component preserved, no useState), CachedDesktopGuide split into CachedTestingGuide + CachedPlansGuide (same use-cache hours/desktop pattern), narrative collapsed into details. Prior 00:15 entries describe a lighter variant that is NOT on disk; this entry is the accurate record. Gates re-verified green on the tabbed implementation (see prior entries). Status stays done."
+            ]
+}

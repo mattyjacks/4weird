@@ -1,0 +1,27 @@
+{
+    "id":  "DS-UXP2-14",
+    "title":  "UXP2 batch 14: code, terminal, compute dps/p2p compactness",
+    "goal":  "UXP2 /code /terminal /compute/dps /compute/p2p (spec pp41-44) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/code/page.tsx",
+                  "v2/vcw4w/app/terminal/page.tsx",
+                  "v2/vcw4w/app/compute/dps/page.tsx",
+                  "v2/vcw4w/app/compute/p2p/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-14",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T12:30:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/code /terminal /compute/dps /compute/p2p (spec pp41-44), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-14: claimed (status open, owner null verified) — starting layout-only compactness pass on 4 scoped page.tsx files.",
+                "2026-09-16T12:00:00.000Z uxp2-14: RESUMED after session death (owner still uxp2-14, status in_progress — not a steal). Spec pp41-44 + 4 targets re-read; git shows zero diffs on scoped files (prior session died pre-write), adopting clean slate. Baselines: code h0/l6/f0, terminal h26/l6/f7, dps h3/l0/f3, p2p h0/l0/f0.",
+                "2026-09-16T12:30:00.000Z uxp2-14: done. Layout-only edits in 3 scoped files; p2p/page.tsx zero-touch by design (all markup component-owned). /code: section py-8>py-3.5, hero paragraph folded into <details> tooltip (copy kept), lookup grid mt-5/gap-4>mt-3/gap-3, [Overview|Audit Guide|FAQs] CSS-only radio tabs (Tailwind 3.4 named peers, zero handlers, all 3 Links + all copy mounted). /terminal: main padding 1rem/2rem>0.5rem/1rem, title+desc compressed to 1-line status bar + [?] Help <details> popover (copy kept), shell height calc(100vh-120px)>calc(100vh-76px) with flex-column + internal history scroll + bottom-pinned prompt form (all handlers/props identical). /compute/dps: px-5/py-6>px-4/py-3.5, Earned-coins detached card folded into header badge (both strings kept, badge title carries ledger note), hardware dl grid-cols-2>grid-cols-2 md:grid-cols-4, card mt-4/p-5>mt-3/p-3.5, grid gap-6>gap-3, right col space-y-5>space-y-3. After: code h0/l6/f3 (+3 radio tab inputs, zero handlers), terminal h26/l6/f7, dps h3/l0/f3, p2p h0/l0/f0. Gates: eslint 4 paths exit 0; tsc --noEmit exit 0 (zero scope errors); envelope JSON.parse OK; all touched files BOM-free UTF8. verify-devswarm red on PRE-EXISTING steward-owned mismatch (STATUS open=1 vs TASKS open: DS-TEST-001/002 + _template) — untouched per hard rule 4, flagged for steward. HANDOFFS for steward (component-owned, out of scope): (1) app/code/code-lookup-form.tsx — move hero explainer into card as tooltip/subtext (spec p41 item 2 remainder); (2) components/compute/p2p-benchmark.tsx — 2-col split, Honest-note>tooltip, space-y-6>space-y-3 (spec p44); (3) components/tools/tool-shell.tsx — tighten pt-6/pb-8 for p2p viewport fit (shared). Zero writes outside scope: git shows only the 3 scoped page.tsx modified."
+            ]
+}

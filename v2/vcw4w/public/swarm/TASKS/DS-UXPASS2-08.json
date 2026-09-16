@@ -1,0 +1,26 @@
+{
+  "id": "DS-UXPASS2-08",
+  "title": "Timer Pro full-height fit",
+  "goal": "/timer/pro 100vh-64px lock, dynamic log height, top-right export bar per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/timer/pro/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/timer/pro/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-08",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-16T00:30:00.000Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-08: claimed, in_progress. NOTE scope mismatch: dispatch memo said business/* pages but envelope scope is timer/pro; following envelope file as authority, timer/pro only.",
+    "2026-09-16T00:30:00.000Z uxpass2-08: in_progress reaffirmed (owner tag match, scope timer/pro/page.tsx disjoint from active uxpass2-08 siblings). Layout-only shell edit: lg:h-[calc(100vh-64px)] lock + flex-1/min-h-0 dynamic log context + top-right export nav (anchor #timer-pro-week + Link /business/invoices); wiring untouched.",
+    "2026-09-16T00:30:00.000Z uxpass2-08: gates pass — eslint app/timer/pro/page.tsx clean (no output), tsc --noEmit clean (no output). Scope-clean: only v2/vcw4w/app/timer/pro/page.tsx touched.",
+    "2026-09-16T00:30:00.000Z uxpass2-08: done. QUEUE handoffs (component-owned, out of scope): (1) relocate Export CSV button from TimeReport into header toolbar + add Generate Invoice / Add Manual Entry actions (components/timer/time-report.tsx, work-clock.tsx); (2) replace pro-client fixed lg:max-h-[380px] log with flex-1 dynamic height; (3) suppress global footer on /timer/pro via layout (app layout out of scope).",
+    "2026-09-16T00:10:00.000Z uxpass2-08: done. Shell lock lg:h-[calc(100vh-64px)] lg:overflow-hidden + flex height context in page.tsx only. Gates green (eslint clean, tsc clean). NOTE co-worker nav block (Export CSV/Invoices links) appeared mid-task; kept, not clobbered.",
+    "2026-09-16T00:20:00.000Z uxpass2-08/verify: independent re-check stood down on scope write (sibling impl under same tag already landed; zero clobber). Gates re-run green: eslint app/timer/pro/page.tsx exit 0 no findings; npx tsc --noEmit exit 0 scope-clean. Next page.js docs read (Server Component default + Suspense streaming kept). Handoffs for steward/QUEUE: (1) pro-client lg:max-h-[380px] log cap still fixed — needs component-owned dynamic height; (2) top-right bar is shell anchor nav only — real Export CSV/Generate Invoice/Add Manual Entry wiring lives in TimeReport+WorkClock client state; (3) global CachedSiteFooter suppression needs root layout change, out of envelope scope."
+  ]
+}

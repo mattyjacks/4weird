@@ -57,11 +57,11 @@ async function CachedSectionGrid() {
   cacheLife("hours");
   cacheTag("vcw");
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
       {sections.map((section) => (
         <div
           key={section.slug}
-          className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3.5 transition hover:border-cyan-300/40"
+          className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-white/[0.02] p-3 transition hover:border-cyan-300/40"
         >
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-white">{section.label}</p>
@@ -79,19 +79,23 @@ async function CachedSectionGrid() {
   );
 }
 
-function StatusRow({ label, value }: { label: string; value: string }) {
+function StatusChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-2 py-1 text-xs">
-      <span className="text-slate-500">{label}</span>
+    <span className="flex min-w-0 items-center gap-1.5 text-xs">
+      <span className="shrink-0 uppercase tracking-widest text-slate-500 text-[10px] font-bold">
+        {label}
+      </span>
       <span className="truncate font-mono font-semibold text-slate-200">{value}</span>
-    </div>
+    </span>
   );
 }
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <div className="mx-auto flex h-screen max-w-7xl flex-col gap-3 overflow-hidden px-4 py-3">
+    // uxpass-2 Page 5 cockpit: strict 100vh lock, zero page scroll.
+    // Tool page renders no marketing footers — cockpit only.
+    <main className="h-[100vh] overflow-hidden bg-slate-950 text-white">
+      <div className="mx-auto flex h-full max-w-7xl flex-col gap-2.5 px-4 py-3">
         {/* Compact cockpit header (<180px): title + status + actions inline */}
         <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-white/10 bg-white/[0.02] px-3 py-2">
           <h1 className="text-lg font-black">VibeCodeWorker</h1>
@@ -109,33 +113,35 @@ export default function Page() {
           </a>
         </header>
 
-        {/* Cockpit: left 25% status, right 75% launch tiles */}
-        <div className="grid min-h-0 flex-1 gap-3 overflow-hidden lg:grid-cols-[25%_75%]">
-          <aside className="min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-white/[0.02] p-3.5">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
-              Workspace status
-            </p>
-            <div className="mt-1 divide-y divide-white/5">
-              <StatusRow label="Branch" value="main" />
-              <StatusRow label="RunPods" value="BYOK · connect in Run" />
-              <StatusRow label="Balance" value="100 🪙 = $1" />
-            </div>
-            <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-slate-500">
-              Quick links
-            </p>
-            <div className="mt-1 flex flex-col gap-1 text-xs">
-              <a className="text-cyan-300 hover:underline" href="/vcw/desktop/">
-                /vcw/desktop/ — desktop builds
-              </a>
-              <a className="text-cyan-300 hover:underline" href="/vcw/agent/">
-                /vcw/agent/ — agent API docs
-              </a>
-            </div>
-          </aside>
-          <section aria-label="Launch modes" className="min-h-0 overflow-y-auto">
-            <CachedSectionGrid />
-          </section>
+        {/* 36px horizontal workspace status bar */}
+        <div
+          aria-label="Workspace status"
+          className="flex h-9 shrink-0 items-center gap-4 overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] px-3"
+        >
+          <StatusChip label="Branch" value="main" />
+          <span aria-hidden="true" className="h-4 w-px shrink-0 bg-white/10" />
+          <StatusChip label="RunPods" value="BYOK · connect in Run" />
+          <span aria-hidden="true" className="h-4 w-px shrink-0 bg-white/10" />
+          <StatusChip label="Balance" value="100 🪙 = $1" />
+          <span className="hidden min-w-0 flex-1 sm:block" />
+          <a
+            className="hidden shrink-0 text-xs text-cyan-300 hover:underline sm:block"
+            href="/vcw/desktop/"
+          >
+            /vcw/desktop/
+          </a>
+          <a
+            className="hidden shrink-0 text-xs text-cyan-300 hover:underline sm:block"
+            href="/vcw/agent/"
+          >
+            /vcw/agent/
+          </a>
         </div>
+
+        {/* 4-column mode launcher fills remaining viewport height */}
+        <section aria-label="Launch modes" className="min-h-0 flex-1 overflow-y-auto">
+          <CachedSectionGrid />
+        </section>
       </div>
     </main>
   );

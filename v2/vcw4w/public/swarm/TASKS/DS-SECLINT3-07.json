@@ -1,0 +1,21 @@
+{
+    "id":  "DS-SECLINT3-07",
+    "title":  "SECLINT3 DS-SECLINT3-07 â€” remediate CSV lines 62-71 (10 authenticated)",
+    "goal":  "Remediate assigned 10 CSV lint rows from Supabase Performance Security Lints (dwpwzfwdqjguvtvkfaxu).csv in ONE new migration 20261225000007_seclint3_07_auth06.sql: revoke PUBLIC, converge anon/authenticated grants per caller evidence, pin SET search_path, rerunnable DO blocks. Reviewer checks: migration exists, verify-migration-versions passes, no shipped file edited.",
+    "lane":  "infra",
+    "scope":  [
+                  "v2/vcw4w/supabase/migrations/20261225000007_seclint3_auth_d.sql"
+              ],
+    "gates":  [
+                  "node scripts/verify-migration-versions.mjs"
+              ],
+    "status":  "done",
+    "owner":  "seclint3-07",
+    "created":  "2026-09-15T23:45:00.000Z",
+    "updated":  "2026-09-16T00:35:00.000Z",
+    "log":  [
+                "2026-09-15T23:45:00.000Z unassigned: envelope created for CHEAP20 seclint3 wave, awaiting claim.",
+                "2026-09-15T23:50:00.000Z seclint3-07: claimed, status in_progress.",
+                "2026-09-16T00:35:00.000Z seclint3-lead: worker interrupted post-write; scope realigned to landed file 20261225000007_seclint3_auth_d.sql; gate verify-migration-versions exit 0 (207 files); wave coverage audit: all 180 unique CSV functions touched, zero GRANT TO public."
+            ]
+}

@@ -1,0 +1,27 @@
+{
+    "id":  "DS-UXP2-01",
+    "title":  "UXP2 batch 1: home, games, pricing compactness",
+    "goal":  "UXP2 / /games /pricing (spec pp1-3) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/page.tsx",
+                  "v2/vcw4w/app/games/page.tsx",
+                  "v2/vcw4w/app/pricing/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-01",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T00:00:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/ /games /pricing (spec pp1-3), layout-only, functionality preserved).",
+                "2026-09-15T08:10:00.000Z uxp2-01: claimed (status=in_progress owner=uxp2-01; 1:1 tag==id).",
+                "2026-09-16T00:00:00.000Z uxp2-01: resumed (owner=uxp2-01 status=in_progress verified from disk; same tag, not a steal). Adopted tree diffs: games/page.tsx == DS-UXPASS2-02 done pass, page.tsx == DS-UXPASS2-01 done pass, pricing top half == DS-UXPASS2-03 done pass; all layout-only (zero onClick/onSubmit/onChange/fetch/useState/useEffect diff lines). No UXP2C-* envelopes exist; no live writers on scope.",
+                "2026-09-16T00:10:00.000Z uxp2-01: incremental pricing pass (mid-page sections only): sm:text-3xl->sm:text-xl x3, mt-5->mt-3 x4, p-5/p-4->p-3.5 x3, mt-6->mt-3; classes only, all Links/InfoTips/RateCalculator/PackCatalog/FAQ wiring untouched. games/page.tsx + home hero adopted as-is from done sibling passes, zero further edits.",
+                "2026-09-16T00:15:00.000Z uxp2-01: GATES: eslint app/page.tsx app/games/page.tsx app/pricing/page.tsx exit 0; tsc --noEmit exit 0 (whole-project clean); envelope parses BOM-less (head 123,13,10). verify-devswarm RED pre-existing + out of scope: STATUS.json counts {open:1,in_progress:7,done:397,blocked:121} vs TASKS dir {open:2,in_progress:26,done:506,blocked:147} (681 files incl. untracked); steward-owned, rule 4 forbids lane fix -> steward. QUEUE handoff already filed by DS-UXPASS2-02 (GameCatalog 160px cards/dense toggle/staff ribbon component-owned). status=done."
+            ]
+}

@@ -15,13 +15,6 @@ export const metadata: Metadata = {
 export default function XonoticPage() {
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-slate-950 text-white">
-      <p className="shrink-0 border-b border-amber-300/20 bg-amber-300/10 px-3 py-1 text-center text-xs text-amber-200">
-        Off-site mode needs the desktop app —{" "}
-        <a href={VCW_DESKTOP_PATH} className="font-bold underline">
-          install {VCW_DESKTOP_PATH}
-        </a>{" "}
-        then tick “Installed” below.
-      </p>
       <section className="mx-auto flex w-full max-w-4xl min-h-0 flex-1 flex-col px-3 py-2">
         <CachedXonoticIntro />
         <div className="mt-2 min-h-0 flex-1 overflow-y-auto">
@@ -31,12 +24,6 @@ export default function XonoticPage() {
             <VcwAutoplay gameSlug="xonotic" gameTitle="Xonotic" />
           </Suspense>
         </div>
-        <p className="mt-1 shrink-0 text-xs text-slate-500">
-          Prefer to play yourself, or manage servers?{" "}
-          <Link href="/agents" className="text-cyan-300 hover:underline">
-            Rent an agent / Xonotic server →
-          </Link>
-        </p>
       </section>
     </main>
   );
@@ -52,6 +39,13 @@ async function CachedXonoticIntro() {
         ← Servers
       </Link>
       <h1 className="text-lg font-black">Xonotic, played by VibeCodeWorker</h1>
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-300/30 bg-amber-300/10 px-2 py-0.5 text-xs text-amber-200">
+        <span aria-hidden="true" className="inline-block size-1.5 rounded-full bg-amber-300" />
+        Desktop app: required ·{" "}
+        <a href={VCW_DESKTOP_PATH} className="font-bold underline">
+          Install
+        </a>
+      </span>
       <span className="rounded-full border border-white/10 bg-white/[.05] px-2 py-0.5 text-xs text-slate-300">
         GPU-boosted · off-site · self-terminates after 55 min
       </span>
@@ -71,6 +65,12 @@ async function CachedXonoticIntro() {
           <li>Self-terminates after 55 min. RunPod bills per second; coin quotes include the 25% cut.</li>
         </ul>
       </details>
+      <Link
+        href="/agents"
+        className="ml-auto shrink-0 rounded-full border border-cyan-400/40 bg-cyan-400/10 px-2 py-0.5 text-xs font-bold text-cyan-300 hover:bg-cyan-400/20"
+      >
+        Browse servers ↗
+      </Link>
     </div>
   );
 }

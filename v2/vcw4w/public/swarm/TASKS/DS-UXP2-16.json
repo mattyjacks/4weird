@@ -1,0 +1,27 @@
+{
+    "id":  "DS-UXP2-16",
+    "title":  "UXP2 batch 16: studio recorder/image/video compactness",
+    "goal":  "UXP2 /studio/recorder /studio/image /studio/video (spec pp48-50) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/studio/recorder/page.tsx",
+                  "v2/vcw4w/app/studio/image/page.tsx",
+                  "v2/vcw4w/app/studio/video/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-16",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T01:04:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/studio/recorder /studio/image /studio/video (spec pp48-50), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-16: claimed (status in_progress, owner uxp2-16). Spec pp48-50 re-read; targets re-read; starting LAYOUT/CLASSES-ONLY pass.",
+                "2026-09-16T01:04:00.000Z uxp2-16: resumed same-tag (disk owner uxp2-16, status in_progress - not a steal). Spec pp48-50 re-read; 3 targets re-read; git diff showed zero prior changes in scope (fresh start, nothing to adopt). STATUS.json + QUEUE tail + MEMORY re-read before write.",
+                "2026-09-16T01:04:00.000Z uxp2-16: layout pass landed, classes/wrappers only, copy bytes identical: recorder + image shells folded into compact command-bar headers (items-center justify-between + static status chip + truncate deck text-xs + section py-3 + mount mt-2); video cockpit already zero-scroll, tightened h-10->h-9 + max-w-6xl->max-w-7xl w-full py-3->py-2. Wiring grep 0/0 before/after in scope; DemoRecorder + DictateImageEditor + VideoStudio mounts and all Suspense fallbacks still mounted.",
+                "2026-09-16T01:04:00.000Z uxp2-16: gates - eslint 3 touched paths clean exit 0; tsc --noEmit exit 0 zero errors (zero NEW in scope); envelope JSON parses BOM-less. verify-devswarm red EXTRINSIC: STATUS.json open 1 vs TASKS 2 (untouched steward manifest, same pre-existing drift as DS-UXP2-20/07/08/11 waves) - steward recount needed. Scope-complete -> done; component-owned density filed as QUEUE handoff."
+            ]
+}

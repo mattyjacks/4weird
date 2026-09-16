@@ -1,0 +1,22 @@
+{
+  "id": "DS-UXPASS2-17",
+  "title": "NewGamePlus sticky launch",
+  "goal": "/newgameplus sticky launch header, 2-col grid, tuning drawer, split cockpit per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/newgameplus/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/newgameplus/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-17",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-15T23:31:59.714Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-17: claimed web envelope, scope v2/vcw4w/app/newgameplus/page.tsx only, layout-only.",
+    "2026-09-16T00:00:00.000Z uxpass2-17: done. Layout-only page shell: sticky launch header (anchor #ngp-builder + cached How-it-works), 45/55 split cockpit (single-scroll mobile, per-column lg scroll), 2-col pairing hint grid, tuning + fast-vs-deluxe drawers. Builder internals untouched (component-owned). Gates: eslint app/newgameplus/page.tsx exit 0 no output; tsc --noEmit exit 0 scope-clean. Next docs read: page/layout file conventions (Server Component leaf, Suspense island, use-cache). Zero writes outside scope."
+  ]
+}

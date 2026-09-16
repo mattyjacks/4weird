@@ -1,0 +1,24 @@
+{
+  "id": "DS-UXPASS2-05",
+  "title": "VCW 100vh cockpit",
+  "goal": "/vibecodeworker 100vh lock, 36px status bar, 4-col mode launcher, hide marketing footers per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "vcw",
+  "scope": [
+    "v2/vcw4w/app/vibecodeworker/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/vibecodeworker/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-05",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-15T23:31:59.714Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-05: claimed (games lane). Note: envelope file lists lane vcw / scope vibecodeworker; worker brief lists lane games / scope submit+newgameplus+blender+xonotic pp16-19. Games-owned files here: newgameplus, xonotic. submit/blender/vibecodeworker are out of games scope -> layout review only, edits via QUEUE handoff, zero direct writes outside owned scopes.",
+    "2026-09-16T00:05:00.000Z uxpass2-05: vcw lane worker (CHEAP) proceeding per brief: scope v2/vcw4w/app/vibecodeworker/page.tsx only, layout-only Page 5 cockpit.",
+    "2026-09-16T00:12:00.000Z uxpass2-05: done. Layout-only: h-[100vh] overflow-hidden lock, h-9 36px status bar (Branch/RunPods/Balance + quick links), 4-col launcher (sm:2/lg:4), sidebar removed, no marketing footers in tool page. Gates: ESLINT_EXIT:0 (./node_modules/.bin/eslint app/vibecodeworker/page.tsx), TSC_EXIT:0 (npx tsc --noEmit). Next docs read: node_modules/next/dist/docs (App Router page/metadata/use-cache kept as-is). Zero writes outside scope.",
+    "2026-09-16T00:20:00.000Z games-lane note (worker uxpass2-05 per parallel brief pp16-19): envelope already done by vcw lane - status left untouched. Games-owned page-level only: app/xonotic/page.tsx unified command bar (secondary servers CTA moved inline into intro row as Browse-servers pill, bottom paragraph removed; composes with vcw pill-banner work). newgameplus/submit/blender/vibecodeworker pages read-only reviewed (already cockpit-conformant, no games-owned edits needed). Gates: eslint GREEN (repo-local binary, xonotic+newgameplus), tsc --noEmit EXIT 0, verify-newgameplus GREEN; verify-game-bundles RED pre-existing (divergedMissing 5x gravegain2d + mismatched 4x soundpainter/soundpainter2/template-demo/venturemechanically, untouched, bundles never hand-edited) -> QUEUE handoff to steward."
+  ]
+}

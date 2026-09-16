@@ -1,0 +1,22 @@
+{
+  "id": "DS-UXPASS2-13",
+  "title": "Meshy 100vh cockpit",
+  "goal": "/meshy export overlay, 64px filmstrip, 100vh lock per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/meshy/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/meshy/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-13",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-16T00:00:00.000Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-15T23:45:00.000Z uxpass2-13: claimed, Next docs layouts-and-pages read, implementing Page 13 cockpit in scope file only.",
+    "2026-09-16T00:00:00.000Z uxpass2-13: done. Scope v2/vcw4w/app/meshy/page.tsx only: 100vh lock h-[calc(100vh-64px)] overflow-hidden, export GLB/OBJ moved onto canvas toolbar overlay, 70px footer tray removed and replaced with h-16 (64px) filmstrip docked under canvas, no marketing footers. Gates: eslint app/meshy/page.tsx EXIT 0 (no output); npx tsc --noEmit EXIT 0 (no errors). BOM-less verified (no EF BB BF)."
+  ]
+}

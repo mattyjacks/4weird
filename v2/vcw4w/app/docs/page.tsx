@@ -44,7 +44,7 @@ async function CachedGuidesGrid() {
   const groupOf = (href: string) =>
     DOCS_GROUPS.find((g) => (g.hrefs as readonly string[]).includes(href)) ?? DOCS_GROUPS[0];
   return (
-    <div className="mt-6 space-y-3">
+    <div className="mt-3 space-y-3">
       {DOCS_GROUPS.map((g) => {
         const items = indexed.filter(({ doc }) => groupOf(doc.href).id === g.id);
         return (
@@ -66,10 +66,10 @@ async function CachedGuidesGrid() {
                   href={doc.href}
                   className="group relative overflow-hidden rounded-2xl border border-border bg-card transition hover:-translate-y-1 hover:shadow-2xl"
                 >
-                  <div aria-hidden="true" className={`h-1.5 bg-gradient-to-r ${doc.card}`} />
-                  <div className="p-4">
-                    <div className="flex items-center gap-2.5">
-                      <span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-xl ${doc.card}`}>
+                  <div aria-hidden="true" className={`h-1 bg-gradient-to-r ${doc.card}`} />
+                  <div className="p-3">
+                    <div className="flex items-center gap-2">
+                      <span aria-hidden="true" className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-lg ${doc.card}`}>
                         {doc.icon}
                       </span>
                       <div className="min-w-0">
@@ -79,8 +79,8 @@ async function CachedGuidesGrid() {
                         <h2 className="text-base font-black leading-tight">{doc.label}</h2>
                       </div>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{doc.blurb}</p>
-                    <span className="mt-2 inline-block text-sm font-bold text-cyan-600 transition group-hover:translate-x-1 dark:text-cyan-300">
+                    <p className="mt-1.5 text-[13px] text-muted-foreground">{doc.blurb}</p>
+                    <span className="mt-1.5 inline-block text-[13px] font-bold text-cyan-600 transition group-hover:translate-x-1 dark:text-cyan-300">
                       Read guide →
                     </span>
                   </div>
@@ -160,7 +160,7 @@ export default function DocsHome() {
         body="Four doors into the same arcade. New here? Take door one and read straight through."
       />
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+      <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
         {[
           ["🌱 New here? Read in order", "About → Getting started → Playing games → Vibe Coins. Fifteen minutes and you'll be dangerous.", "/docs/about"],
           ["🎉 Social player? Belong first", "Clans → Bots → Privacy & safety. Find your people, then give your agent a key.", "/docs/clans"],
@@ -170,7 +170,7 @@ export default function DocsHome() {
           <Link
             key={href}
             href={href}
-            className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
+            className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
           >
             <p className="font-black group-hover:text-cyan-600 dark:group-hover:text-cyan-300">{t}</p>
             <p className="mt-1 text-sm text-muted-foreground">{b}</p>
@@ -253,29 +253,29 @@ export default function DocsHome() {
         title="Four pages, one login"
         body="Pricing is public; the other three need your session. Learn them once, use them daily."
       />
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-3.5">
           <p className="font-black">👤 /account</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Dashboard: balance (coins + fractional centicentcoins), checkout, daily claim,
             referral code, grant recovery — plus doors to usage and rights.
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-3.5">
           <p className="font-black">💰 /pricing</p>
           <p className="mt-1 text-sm text-muted-foreground">
             The public catalog: 500 / 1,500 / 5,000 / 25,000 packs + custom 500-100,000
             at 1¢/coin. 100 coins is the free trial — never sold.
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-3.5">
           <p className="font-black">🧾 /my/usage/</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Every cent itemized: session + total + 1h/24h, by-kind + by-game, rentals,
             AI + Buddy turns, clan fees, workspace cloud, combined 25/75 totals.
           </p>
         </div>
-        <div className="rounded-2xl border border-border bg-card p-5">
+        <div className="rounded-2xl border border-border bg-card p-3.5">
           <p className="font-black">🛡️ /my/rights</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Self-service export (portable JSON) + guarded 30-minute delete flow +
@@ -304,10 +304,10 @@ export default function DocsHome() {
         title="If you only read three guides"
         body="Fifteen minutes across these three and the other ten turn into reference."
       />
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
         <Link
           href="/docs/getting-started"
-          className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
+          className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
         >
           <p className="font-black group-hover:text-cyan-600 dark:group-hover:text-cyan-300">🚀 Getting started</p>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -316,7 +316,7 @@ export default function DocsHome() {
         </Link>
         <Link
           href="/docs/vibe-coins"
-          className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
+          className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
         >
           <p className="font-black group-hover:text-cyan-600 dark:group-hover:text-cyan-300">🪙 Vibe Coins</p>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -325,7 +325,7 @@ export default function DocsHome() {
         </Link>
         <Link
           href="/docs/playing-games"
-          className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
+          className="group rounded-2xl border border-border bg-card p-3.5 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl"
         >
           <p className="font-black group-hover:text-cyan-600 dark:group-hover:text-cyan-300">🕹️ Playing games</p>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -334,7 +334,7 @@ export default function DocsHome() {
         </Link>
       </div>
 
-      <p className="mt-8 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+      <p className="mt-3 rounded-2xl border border-dashed border-border p-3 text-center text-sm text-muted-foreground">
         Company: MattyJacks LLC, New Hampshire, USA ·{" "}
         <a className="underline" href="mailto:matt@mattyjacks.com">matt@mattyjacks.com</a> ·{" "}
         <Link className="underline" href="/terms">Terms of Use</Link> ·{" "}

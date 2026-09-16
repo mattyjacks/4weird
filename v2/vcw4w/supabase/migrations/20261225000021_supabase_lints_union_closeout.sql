@@ -1,0 +1,89 @@
+-- ============================================================================
+-- SUPABASE LINTS UNION CLOSEOUT (20261225000021_supabase_lints_union_closeout.sql)
+--
+-- Source: Supabase Performance Security Lints (dwpwzfwdqjguvtvkfaxu).csv,
+-- observed 2026-09-15T23:34Z — 200 rows:
+--   0014 extension_in_public ........................... x1 (pgcrypto)
+--   0028 anon SECURITY DEFINER executable .............. x14
+--   0029 authenticated SECURITY DEFINER executable ..... x184
+--   auth_leaked_password_protection .................... x1
+--
+-- UNION VERIFICATION (2026-09-16, 20-agent CHEAP run + lead re-check):
+-- programmatic diff of CSV function names vs the seclint3 wave on disk
+-- (20261225000001..20261225000020) shows ZERO CSV functions uncovered:
+-- every one of the 181 distinct RPC names is pinned there (REVOKE ALL FROM
+-- PUBLIC [+ anon] + GRANT least-privilege + ALTER FUNCTION SET search_path
+-- = public, pg_temp). The 3 extra names in seclint3 are bonus trigger-helper
+-- pins (handle_updated_at, touch_game_save_updated_at,
+-- vcw_runs_touch_updated_at). This file therefore ships NO grant changes —
+-- doc-only closeout (same precedent as 20261222000020_seclint2_integrate.sql).
+--
+-- FAMILY VERDICTS (20 agents independently converged; lead confirmed):
+--
+-- (1) 0014 pgcrypto — ACCEPTED RISK, KEEP IN public. Agent count: 14
+-- unqualified gen_random_bytes sites + 1 digest site across 8 migration
+-- files, all under pinned search_path=public or session-DEFAULT scope, zero
+-- qualified refs, zero crypt/gen_salt dependents. Moving the extension
+-- re-introduces the 42883 outage repaired by 20261102000000 (lead ruling in
+-- 20261225000001 stands). No executable statement here by design.
+--
+-- (2) 0028 anon x14 — ALL INTENTIONAL KEEPS (revoking anon breaks the app):
+--   * 7 public reads (clan_leaderboard, clan_minute_rate, clan_roster_page,
+--     game_chart_summary, leaderboard_top, love_post_totals,
+--     love_profile_stats) — logged-out GET routes (clan page, /api/analytics
+--     explicit anon client, /api/leaderboard, love post/profile GETs).
+--   * 3 kid sessions (start/heartbeat/end_kid_session) — children hold no
+--     Supabase login; kid_session-cookie branch of /api/games/session calls
+--     as anon; bodies re-validate the SHA-256 token hash fail-closed.
+--   * 3 party discovery (party_feed/resolve/search) — logged-out feed +
+--     resolve/search GETs, no login.
+--   * 1 phantom meter_submission_charge 5-arg (p_user-first): server-only
+--     lockdown (conditional block in 20261225000003; no app caller; the
+--     p_user-first shape ships as meter_submission_charge_for via
+--     serviceClient). The legit 4-arg overload stays authenticated-only.
+-- End-state per function: REVOKE PUBLIC only; GRANT anon, authenticated,
+-- service_role; search_path pinned (see 20261225000002/03).
+--
+-- (3) 0029 authenticated x184 — INTENTIONAL RPC SURFACE, hardened grants.
+-- Convention: REVOKE PUBLIC+anon; GRANT authenticated, service_role;
+-- search_path pinned (see 20261225000004..20). Two worker proposals were
+-- REJECTED by lead with evidence, recorded here so they are not re-tried:
+--   (a) service_role-only lock on meter_* — REJECTED. meter_fal_usage,
+--       meter_game_ai_usage and meter_clan_posting_fee are called via the
+--       user-JWT createClient() in app/api/fal/generate/route.ts:115,
+--       buddy chat/tts/presence, swarm chat, and clan post/comment/message
+--       routes. Revoking authenticated breaks all metering. Safe to keep:
+--       meter functions only DEBIT the caller (no self-mint possible).
+--   (b) SECURITY INVOKER flips for read-only RPCs — DEFERRED. Flipping
+--       without a per-table RLS audit risks empty public pages (RLS
+--       deny-by-default) and 403s on kid/anon paths. Tracked follow-up, not
+--       this wave. DEFINER + least-privilege grants + fixed search_path is
+--       the terminal SQL state.
+-- Residual 0028/0029 WARN rows will therefore still LIST in the dashboard
+-- by design (PostgREST must expose the RPCs); suppression comes from the
+-- hardened grants, not from zero rows.
+--
+-- (4) auth_leaked_password_protection x1 — DASHBOARD ONLY, no SQL can fix.
+-- Runbook: Supabase dashboard -> project dwpwzfwdqjguvtvkfaxu ->
+-- Authentication -> Sign In/Up -> Password protection -> enable "Leaked
+-- password protection" (HaveIBeenPwned check) -> Save. Verify the toggle
+-- reads ON (Management API GET /v1/projects/<ref>/config/auth; the
+-- user-facing Auth API does not expose it).
+--
+-- VERIFICATION (run in SQL editor after `supabase db push`):
+--   -- pgcrypto placement (expect public = accepted risk, see (1)):
+--   -- SELECT e.extname, n.nspname FROM pg_extension e
+--   -- JOIN pg_namespace n ON n.oid = e.extnamespace WHERE e.extname='pgcrypto';
+--   -- anon DEFINER residue (expect only the 13 intentional keeps of (2)):
+--   -- SELECT p.proname, pg_get_function_identity_arguments(p.oid) FROM pg_proc p
+--   -- JOIN pg_namespace n ON n.oid=p.pronamespace
+--   -- WHERE n.nspname='public' AND p.prosecdef
+--   -- AND has_function_privilege('anon', p.oid, 'EXECUTE');
+--   -- authenticated DEFINER residue (expect the intentional RPC surface):
+--   -- same query with 'authenticated'.
+--
+-- Append-only: never edit a shipped migration. Rerunnable: this file carries
+-- exactly one no-op statement below.
+-- ============================================================================
+
+do $$ begin null; end $$;

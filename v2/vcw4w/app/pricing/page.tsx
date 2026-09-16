@@ -124,7 +124,7 @@ export default function Page() {
         dangerouslySetInnerHTML={{ __html: jsonLdScript(pricingOffersJsonLd()) }}
       />
       {/* Hero: single 40px title line + inline status + compact CTAs */}
-      <section className="mx-auto max-w-6xl px-4 py-4 sm:px-5">
+      <section className="mx-auto max-w-6xl px-4 py-3 sm:px-5">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-300">
             Pricing
@@ -142,42 +142,32 @@ export default function Page() {
         <p className="mt-1 max-w-2xl text-sm text-slate-300">
           100 Vibe Coins = exactly $1.00 - 25% cut already inside, never on top.
         </p>
-        <div className="mt-2 grid max-w-3xl gap-2">
-          <CompactDetails
-            summary="Free trial: up to 100 coins ($1.00)"
-            hint="One free trial per person and network."
-            defaultOpen
-          >
-            <p className="text-sm leading-relaxed text-slate-300">
-              New accounts start credited automatically - one per person and network.
-            </p>
-          </CompactDetails>
-          <CompactDetails
-            summary="How compute splits 25% platform / 75% provider"
-            hint="Provider shares land as Crowns for individuals or shared wallet credits (on-site credits, never cash-out)."
-          >
-            <p className="text-sm leading-relaxed text-slate-300">
-              One gross metered price; provider shares land as Crowns for individual providers (Terms 8A.1) or shared wallet credits.{" "}
-              <InfoTip
-                text="Crowns are earn-only credits for individual providers under Terms 8A.1 - convertible 1:1 to Coins after the lock or cashable via the payout provider. Shared wallet credits stay on-site."
-                label="About Crowns"
-                side="bottom"
-              />
-            </p>
-          </CompactDetails>
-          <CompactDetails
-            summary="Where coins work, when they expire, how they spend"
-            hint="On-site services only; one-year expiry; oldest unexpired centicentcoins spent first."
-          >
-            <p className="text-sm leading-relaxed text-slate-300">
-              Spendable on cloud computing, game credits, and other on-site services only (on-site credits, never cash-out; never withdrawable). Coins expire one year after receipt, and every purchase automatically spends the oldest unexpired centicentcoins first.{" "}
-              <InfoTip
-                text="Centicentcoins are the smallest ledger unit: 100 centicentcoins = 1 coin = $0.01. Spending the oldest unexpired lot first stretches every pack furthest."
-                label="About centicentcoins"
-                side="bottom"
-              />
-            </p>
-          </CompactDetails>
+        {/* Info ribbon replaces stacked accordions: single inline row of tooltip chips (recovers ~200px) */}
+        <div className="mt-2 flex max-w-3xl flex-wrap items-center gap-1.5" aria-label="Pricing notes">
+          <span className="rounded-full border border-white/15 bg-white/[.04] px-2.5 py-1 text-xs text-slate-300">
+            Free trial: up to 100 coins ($1.00) · one per person/network{" "}
+            <InfoTip
+              text="New accounts start credited automatically - one per person and network."
+              label="About the free trial"
+              side="bottom"
+            />
+          </span>
+          <span className="rounded-full border border-white/15 bg-white/[.04] px-2.5 py-1 text-xs text-slate-300">
+            25% platform / 75% provider · on-site credits{" "}
+            <InfoTip
+              text="One gross metered price; provider shares land as Crowns for individual providers (Terms 8A.1) or shared wallet credits. Crowns are earn-only credits - convertible 1:1 to Coins after the lock or cashable via the payout provider. Shared wallet credits stay on-site."
+              label="About the split"
+              side="bottom"
+            />
+          </span>
+          <span className="rounded-full border border-white/15 bg-white/[.04] px-2.5 py-1 text-xs text-slate-300">
+            On-site only · 1-year expiry · oldest centicentcoins first{" "}
+            <InfoTip
+              text="Spendable on cloud computing, game credits, and other on-site services only (never withdrawable). Coins expire one year after receipt; every purchase spends the oldest unexpired centicentcoins first (100 centicentcoins = 1 coin = $0.01)."
+              label="About expiry"
+              side="bottom"
+            />
+          </span>
         </div>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Link
@@ -219,13 +209,16 @@ export default function Page() {
           <a href="#faq" className="shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10">
             FAQ
           </a>
+          <Link href="/account" className="ml-auto shrink-0 rounded-full bg-cyan-300 px-3 py-1 text-xs font-black text-slate-950 transition hover:bg-cyan-200">
+            Buy 100 🪙 $1.00
+          </Link>
         </div>
       </nav>
 
-      {/* Plans */}
-      <section id="plans" className="mx-auto max-w-6xl scroll-mt-16 px-4 pt-6 sm:px-5" aria-label="Plans">
-        <div className="grid gap-3 lg:grid-cols-3">
-          <article className="rounded-3xl border border-white/10 bg-white/[.04] p-4">
+      {/* Plans: zero-scroll matrix, standardized ~380px cards with docked CTAs */}
+      <section id="plans" className="mx-auto max-w-6xl scroll-mt-16 px-4 pt-4 sm:px-5" aria-label="Plans">
+        <div className="grid gap-2.5 lg:grid-cols-3">
+          <article className="flex flex-col rounded-3xl border border-white/10 bg-white/[.04] p-3 lg:h-[380px] lg:overflow-y-auto">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Play</p>
             <h2 className="mt-2 text-lg font-black">Vibe Coins</h2>
             <p className="mt-2 text-xl font-black">
@@ -241,15 +234,17 @@ export default function Page() {
               <Check>Cloud saves, leaderboards, clans, agent escrow</Check>
               <Check>Renting games: load fee by exact bytes + play billed per second (quoted per hour)</Check>
             </ul>
+            <div className="mt-auto pt-3">
             <Link
               href="/account"
-              className="mt-3 block rounded-full bg-white/10 px-4 py-1.5 text-center text-sm font-bold transition hover:bg-white/15"
+              className="block rounded-full bg-white/10 px-4 py-1.5 text-center text-sm font-bold transition hover:bg-white/15"
             >
               Buy coins
             </Link>
+            </div>
           </article>
 
-          <article className="relative rounded-3xl border-2 border-cyan-300/70 bg-gradient-to-b from-cyan-300/15 to-white/[.03] p-4">
+          <article className="relative flex flex-col rounded-3xl border-2 border-cyan-300/70 bg-gradient-to-b from-cyan-300/15 to-white/[.03] p-3 lg:h-[380px] lg:overflow-y-auto">
             <p className="inline-block rounded-full bg-cyan-300 px-3 py-1 text-xs font-black uppercase tracking-widest text-slate-950">
               Most popular
             </p>
@@ -268,15 +263,17 @@ export default function Page() {
               <Check>RunPod / DigitalOcean / custom endpoints, no fake provisioning</Check>
               <Check>Game AI + Gaming Buddy meter the same way - see /buddy and /my/usage/</Check>
             </ul>
+            <div className="mt-auto pt-3">
             <Link
               href="/agents"
-              className="mt-3 block rounded-full bg-cyan-300 px-4 py-1.5 text-center text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
+              className="block rounded-full bg-cyan-300 px-4 py-1.5 text-center text-sm font-bold text-slate-950 transition hover:bg-cyan-200"
             >
               Start renting
             </Link>
+            </div>
           </article>
 
-          <article className="rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/10 to-white/[.03] p-4">
+          <article className="flex flex-col rounded-3xl border border-amber-300/40 bg-gradient-to-b from-amber-300/10 to-white/[.03] p-3 lg:h-[380px] lg:overflow-y-auto">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-300">Self-hosted · BYOK · Mid-tier</p>
             <h2 className="mt-2 text-lg font-black">Bring your own keys</h2>
             <p className="mt-2 text-xl font-black">
@@ -294,21 +291,23 @@ export default function Page() {
               <Check>15% API/compute markup on your at-cost bills (vs 25% on cloud)</Check>
               <Check>Your keys, your limits, your invoices; we never hold funds</Check>
             </ul>
+            <div className="mt-auto pt-3">
             <Link
               href="/squads"
-              className="mt-3 block rounded-full border border-amber-300/60 px-4 py-1.5 text-center text-sm font-bold text-amber-200 transition hover:bg-amber-300/10"
+              className="block rounded-full border border-amber-300/60 px-4 py-1.5 text-center text-sm font-bold text-amber-200 transition hover:bg-amber-300/10"
             >
               Go self-hosted
             </Link>
+            </div>
           </article>
         </div>
       </section>
 
       {/* Renting games */}
-      <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-5 sm:pt-6" aria-label="Renting games">
-        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-4">
+      <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-5" aria-label="Renting games">
+        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-3">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Renting games</p>
-          <h2 className="mt-2 text-lg font-black sm:text-3xl">About $0.01 per hour of play, billed per second</h2>
+          <h2 className="mt-2 text-lg font-black sm:text-xl">About $0.01 per hour of play, billed per second</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
             Every first load costs a <strong className="text-white">proportional load fee (default 1 coin for 1 MiB of fresh bytes)</strong> -
             even loads under 1 MB pay their exact fraction, down to 1 centicentcoin (0.01 coins). Running play
@@ -321,7 +320,7 @@ export default function Page() {
             game). Every price already includes the 25% platform cut - and a day-1 daily bonus (5 coins) covers a
             full 5-hour session on its own.
           </p>
-          <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
+          <ul className="mt-3 grid gap-2.5 sm:grid-cols-2">
             <Check>Load fee by exact bytes (1 MiB = full fee) + play billed per second (defaults 1 + 1/hr)</Check>
             <Check>Same version free for 24h · still-playing check every 5h · dev rates 0-100</Check>
             <Check>Guests play free with skippable ads - no saves, multiplayer, or AI</Check>
@@ -345,10 +344,10 @@ export default function Page() {
       </section>
 
       {/* Big communities: 10k orgs, 100k clans, pruning, Tribute commons */}
-      <section className="mx-auto max-w-6xl px-4 pt-6 sm:px-5 sm:pt-6" aria-label="Big communities">
-        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-4">
+      <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-5" aria-label="Big communities">
+        <div className="rounded-3xl border border-white/10 bg-white/[.03] p-3">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-300">Big communities</p>
-          <h2 className="mt-2 text-lg font-black sm:text-3xl">10,000-member orgs · 100,000-member clans</h2>
+          <h2 className="mt-2 text-lg font-black sm:text-xl">10,000-member orgs · 100,000-member clans</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
             Hosted orgs hold up to <strong className="text-white">10,000</strong> members and clans up to{" "}
             <strong className="text-white">100,000</strong> members before automated pruning arms (owners never
@@ -365,7 +364,7 @@ export default function Page() {
             <strong className="text-white">Tribute commons</strong> gifts to the poorest clans and members - so a
             quiet room you love doesn&apos;t die when its wallet runs dry.
           </p>
-          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+          <p className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
             <Link href="/account" className="text-cyan-300 hover:underline">Get coins →</Link>
             <Link href="/games" className="text-cyan-300 hover:underline">Play now →</Link>
             <Link href="/my/usage/" className="text-cyan-300 hover:underline">See itemized usage →</Link>
@@ -374,9 +373,9 @@ export default function Page() {
       </section>
 
       {/* How the 25% works */}
-      <section id="rates" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-6 sm:px-5 sm:py-6" aria-label="How compute pricing works">
-        <div className="grid gap-3 lg:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/[.03] p-4">
+      <section id="rates" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-4 sm:px-5 sm:py-4" aria-label="How compute pricing works">
+        <div className="grid gap-2.5 lg:grid-cols-2">
+          <div className="rounded-3xl border border-white/10 bg-white/[.03] p-3">
             <h2 className="text-xl font-black sm:text-2xl">How the 25% compute premium works</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
               Every cloud meter shows one gross price in coins. Behind it we split{" "}
@@ -411,7 +410,7 @@ export default function Page() {
               </p>
             </div>
           </div>
-          <div className="rounded-3xl border border-white/10 bg-white/[.03] p-4">
+          <div className="rounded-3xl border border-white/10 bg-white/[.03] p-3">
             <h2 className="text-xl font-black sm:text-2xl">
               How Self-Hosted BYOK works{" "}
               <InfoTip
@@ -439,8 +438,9 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Comparison */}
-        <div className="mt-4 overflow-x-auto rounded-3xl border border-white/10">
+        {/* Estimator: 2-col comparison + interactive calculator */}
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <div className="overflow-x-auto rounded-3xl border border-white/10">
           <table className="w-full min-w-[640px] border-collapse bg-white/[.02] text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 text-xs uppercase tracking-widest text-slate-400">
@@ -479,18 +479,18 @@ export default function Page() {
               </tr>
             </tbody>
           </table>
+          </div>
+          <div aria-label="Compute rate calculator">
+            <RateCalculator />
+          </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-5" aria-label="Compute rate calculator">
-        <RateCalculator />
-      </div>
-
       {/* VibeCodeWorker license */}
       <section className="mx-auto max-w-6xl px-4 sm:px-5" aria-label="VibeCodeWorker license">
-        <div className="rounded-3xl border border-violet-300/30 bg-gradient-to-b from-violet-400/10 to-white/[.02] p-4">
+        <div className="rounded-3xl border border-violet-300/30 bg-gradient-to-b from-violet-400/10 to-white/[.02] p-3.5">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-violet-300">Private license · not open source</p>
-          <h2 className="mt-2 text-lg font-black sm:text-3xl">VibeCodeWorker licensing, plainly stated</h2>
+          <h2 className="mt-2 text-lg font-black sm:text-xl">VibeCodeWorker licensing, plainly stated</h2>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-300">
             The 4weird platform, VibeCodeWorker, and the games in this repo are proprietary; all
             rights reserved. Full text lives in the repo <code className="text-cyan-300">LICENSE</code> file
@@ -499,7 +499,7 @@ export default function Page() {
             paid order control.
           </p>
           <div className="mt-3 grid gap-3 lg:grid-cols-2">
-            <div className="rounded-2xl border border-amber-300/30 bg-black/30 p-5">
+            <div className="rounded-2xl border border-amber-300/30 bg-black/30 p-3.5">
               <h3 className="font-black text-amber-200">Mid-tier self-host - $420/mo per org</h3>
               <ul className="mt-3 space-y-1.5">
                 <Check>Up to 100 user seats included; additional seats $4.20/mo each</Check>
@@ -508,7 +508,7 @@ export default function Page() {
                 <Check>No free or implied self-host right; a current paid plan is required</Check>
               </ul>
             </div>
-            <div className="rounded-2xl border border-cyan-300/30 bg-black/30 p-5">
+            <div className="rounded-2xl border border-cyan-300/30 bg-black/30 p-3.5">
               <h3 className="font-black text-cyan-200">Enterprise / hyperscaler - Get a Quote</h3>
               <ul className="mt-3 space-y-1.5">
                 <Check>Custom monthly pricing - Talk to Sales (matt@mattyjacks.com)</Check>
@@ -518,13 +518,13 @@ export default function Page() {
               </ul>
             </div>
           </div>
-          <ul className="mt-6 space-y-1.5">
+          <ul className="mt-3 space-y-1.5">
             <Check>25% cut already inside, never on top of every hosted price (25% platform / 75% provider or creator as on-site credits, never cash-out); routing around metering or the cut violates the license</Check>
             <Check>Contributions assign to us: work you submit through the platform is assigned to MattyJacks LLC (exclusive perpetual license where assignment is not possible); contributors do not retain ownership, and we may improve, modify, or remove games without further permission</Check>
             <Check>Attribution required: games built or tested with VibeCodeWorker must credit “Built with help from 4weird VibeCodeWorker - 4weird.com/vibecodeworker” in the game credits</Check>
             <Check>Prepay preferred: fees are due as quoted plus taxes; late amounts may bear interest and collection costs where allowed; we reserve the right to collect amounts owed by any lawful means (charge on file, suspension, offset, collections, court)</Check>
           </ul>
-          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+          <p className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
             <Link href="/account" className="text-cyan-300 hover:underline">Get coins →</Link>
             <Link href="/agents" className="text-cyan-300 hover:underline">Rent compute →</Link>
             <Link href="/terms" className="text-cyan-300 hover:underline">Read the Terms →</Link>
@@ -546,7 +546,7 @@ export default function Page() {
             (pro-rated when part of a pack is already spent). Free coins are never refundable. Request
             a refund from your account page; refunded lots are marked refunded.
           </p>
-          <p className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+          <p className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
             <Link href="/account" className="text-cyan-300 hover:underline">Get coins →</Link>
             <Link href="/games" className="text-cyan-300 hover:underline">Play now →</Link>
             <Link href="/my/usage/" className="text-cyan-300 hover:underline">See itemized usage →</Link>

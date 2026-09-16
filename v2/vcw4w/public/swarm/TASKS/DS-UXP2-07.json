@@ -1,0 +1,27 @@
+{
+    "id":  "DS-UXP2-07",
+    "title":  "UXP2 batch 7: xonotic, search, clans compactness",
+    "goal":  "UXP2 /xonotic /search /clans (spec pp19-21) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/xonotic/page.tsx",
+                  "v2/vcw4w/app/search/page.tsx",
+                  "v2/vcw4w/app/clans/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+  "status":  "done",
+  "owner":  "uxp2-07",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T00:00:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/xonotic /search /clans (spec pp19-21), layout-only, functionality preserved).",
+                "2026-09-16T operation uxp2-07: claimed (status in_progress, owner uxp2-07). Spec pp19-21 + 3 targets re-read before first write.",
+                "2026-09-16T uxp2-07: resumed same-tag (owner uxp2-07 match, status in_progress, not done) - adopted live diffs, zero overwrites.",
+                "2026-09-16T uxp2-07: xonotic ADOPTED (status pill + unified command bar w/ Browse servers inline + details popover; redundant banners already removed). search ADOPTED (48px spotlight bar, pills as leading chips, 150ms debounce live fetch, 40px keyboard-nav rows, CMD-K hint). clans WROTE 1 layout-only tighten (section py-6->py-3, #clan-create mt-4->mt-2; command bar + anchor trigger preserved). Wiring grep before/after: xonotic 3/3, search 9/9, clans-page 2/2 - zero handlers/links/forms lost.",
+                "2026-09-16T uxp2-07: GATES eslint clean (3 paths exit 0, run from v2/vcw4w); tsc --noEmit exit 0 zero errors; DS-UXP2-07 parses BOM-less UTF8 OK. verify-devswarm exit 1 EXTRINSIC: sibling TASKS/DS-UXP2-06.json malformed JSON (line 24, not my scope, untouched) - steward repair requested via QUEUE. HANDOFF component-owned (out of page.tsx scope, untouched): ClanBrowser inline 350px Start-a-clan form -> modal/drawer on +Create Clan trigger; filter pills above form + search input; 130px compact clan cards (Emblem/Name/Count/Tagline/Join); VcwAutoplay launch-button row density. status done."
+            ]
+}

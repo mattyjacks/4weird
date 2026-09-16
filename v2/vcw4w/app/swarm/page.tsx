@@ -82,8 +82,8 @@ export default function SwarmPage() {
 
       <div className="mx-auto max-w-[1600px] px-4 pb-4">
         <CachedSwarmShell />
-        {/* 3-pane IDE cockpit: 20% agent rail | 55% chat + docked prompt | 25% telemetry */}
-        <div className="mt-2 grid gap-2 lg:h-[calc(100vh-110px)] lg:grid-cols-[20%_55%_25%]">
+        {/* 2-pane cockpit: 20% agent rail | 80% chat stage; telemetry docked to a 32px status bar */}
+        <div className="mt-2 grid gap-2 lg:h-[calc(100vh-110px)] lg:grid-cols-[20%_80%]">
           {/* Left rail: agent roster + orchestration shortcuts (chat selectors live in the center widget) */}
           <nav aria-label="Agent rail" className="min-h-0 rounded-xl border border-white/10 bg-white/[.02] p-2 lg:overflow-y-auto">
             <p className="px-1 text-[10px] font-bold tracking-widest text-violet-300">AGENTS</p>
@@ -105,34 +105,72 @@ export default function SwarmPage() {
               <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">serverful</b> <span className="text-slate-500">RunPod pod/desktop</span></li>
             </ul>
             <p className="mt-2 px-1 text-[10px] text-slate-500">Model + temperature dials live in the chat widget →</p>
+            <details className="mt-2 rounded-lg border border-white/10 bg-black/30">
+              <summary className="cursor-pointer list-none px-2 py-1.5 text-xs font-bold text-white [&::-webkit-details-marker]:hidden">
+                DevSwarm — repo swarm ▾
+              </summary>
+              <div className="px-2 pb-2">
+                <CachedDevSwarmIntro />
+                <div className="mt-1">
+                  <Suspense fallback={<p className="text-xs text-slate-500">Loading build board…</p>}>
+                    <DevSwarmPanel />
+                  </Suspense>
+                </div>
+              </div>
+            </details>
           </nav>
 
-          {/* Center stage: live streaming chat + docked prompt (unchanged widget) */}
-          <div id="swarm-chat" className="min-h-0 scroll-mt-12 rounded-xl border border-white/10 bg-white/[.02] p-2 lg:overflow-y-auto">
-            <Suspense fallback={<p className="text-xs text-slate-500">Loading swarm chat…</p>}>
-              <SwarmChatLazy />
-            </Suspense>
-          </div>
-
-          {/* Right panel: orchestration telemetry explainer (live meters render per-turn in the chat widget) */}
-          <aside aria-label="Telemetry" className="min-h-0 rounded-xl border border-white/10 bg-white/[.02] p-2 lg:overflow-y-auto">
-            <p className="px-1 text-[10px] font-bold tracking-widest text-cyan-300">TELEMETRY</p>
-            <ul className="mt-1 space-y-1 text-xs text-slate-300">
-              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">⚡ tokens/sec</b> <span className="text-slate-500">— streams live per turn in chat</span></li>
-              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">🛠️ tool calls</b> <span className="text-slate-500">— orchestration trace per message</span></li>
-              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">🧠 context gauge</b> <span className="text-slate-500">— brain ~150 tok + .txt RAG ~300 tok max</span></li>
-              <li className="rounded-lg border border-white/10 bg-black/30 px-2 py-1.5"><b className="text-white">💰 metering</b> <span className="text-slate-500">— per-agent coins, 25% incl.; ledger on <Link href="/my/usage/" className="text-cyan-300 hover:underline">/my/usage/</Link></span></li>
-            </ul>
-            <div className="mt-2 rounded-lg border border-white/10 bg-black/30 px-2 py-1.5">
-              <h2 className="text-xs font-black">DevSwarm — repo swarm</h2>
-              <CachedDevSwarmIntro />
-              <div className="mt-1">
-                <Suspense fallback={<p className="text-xs text-slate-500">Loading build board…</p>}>
-                  <DevSwarmPanel />
-                </Suspense>
-              </div>
+          {/* Center stage: sticky Hire bar + agent tabs + live chat + advanced accordion + 32px telemetry bar */}
+          <div id="swarm-chat" className="flex min-h-0 scroll-mt-12 flex-col rounded-xl border border-white/10 bg-white/[.02] lg:overflow-hidden">
+            {/* Sticky Hire action bar: 1-click launch, no scroll to CTA */}
+            <div className="sticky top-0 z-20 flex h-10 shrink-0 items-center gap-2 border-b border-white/10 bg-slate-950/95 px-2 backdrop-blur">
+              <a href="#swarm-chat" className="rounded-full bg-emerald-400 px-3 py-1 text-xs font-black text-slate-950 hover:bg-emerald-300">
+                🚀 Hire Swarm &amp; Connect
+              </a>
+              <span className="hidden text-[11px] text-slate-500 sm:inline">1-click launch · per-agent coins, 25% incl.</span>
+              <Link href="/agents" className="ml-auto rounded-full border border-white/15 px-2 py-0.5 text-[11px] font-semibold text-slate-300 hover:bg-white/10">
+                ⚡ Rent compute
+              </Link>
             </div>
-          </aside>
+            {/* Horizontal agent config tabs (layout-only anchors into the chat widget) */}
+            <div role="tablist" aria-label="Agent configs" className="flex shrink-0 gap-1 overflow-x-auto border-b border-white/10 px-2 py-1.5">
+              {["Agent 1: Architect", "Agent 2: Coder", "Agent 3: QA"].map((a, i) => (
+                <a
+                  key={a}
+                  role="tab"
+                  aria-selected={i === 0}
+                  aria-current={i === 0 ? "true" : undefined}
+                  href="#swarm-chat"
+                  className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold ${i === 0 ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-100" : "border-white/10 bg-black/30 text-slate-300 hover:border-white/25"}`}
+                >
+                  {a}
+                </a>
+              ))}
+            </div>
+            <div className="min-h-0 flex-1 p-2 lg:overflow-y-auto">
+              <Suspense fallback={<p className="text-xs text-slate-500">Loading swarm chat…</p>}>
+                <SwarmChatLazy />
+              </Suspense>
+              {/* Collapsible advanced options (layout-only; live dials render in the chat widget) */}
+              <details className="mt-2 rounded-lg border border-white/10 bg-black/30">
+                <summary className="cursor-pointer list-none px-2 py-1.5 text-xs font-bold text-white [&::-webkit-details-marker]:hidden">
+                  Advanced Settings ⚙ ▾
+                </summary>
+                <ul className="space-y-1 px-2 pb-2 text-xs text-slate-500">
+                  <li className="rounded-lg border border-white/10 px-2 py-1.5">🌡️ temperature slider <span className="text-slate-600">— dial lives in the chat widget</span></li>
+                  <li className="rounded-lg border border-white/10 px-2 py-1.5">🛠️ tool checkboxes (7) <span className="text-slate-600">— toggles live in the chat widget</span></li>
+                  <li className="rounded-lg border border-white/10 px-2 py-1.5">📝 custom system prompt <span className="text-slate-600">— editor lives in the chat widget</span></li>
+                </ul>
+              </details>
+            </div>
+            {/* Telemetry as a 32px horizontal status bar */}
+            <div aria-label="Telemetry status" className="flex h-8 shrink-0 items-center gap-3 overflow-x-auto whitespace-nowrap border-t border-white/10 px-2 text-[11px] text-slate-400">
+              <span><b className="text-white">⚡ tokens/sec</b> <span className="text-slate-500">live per turn</span></span>
+              <span><b className="text-white">🛠️ tool calls</b> <span className="text-slate-500">trace per message</span></span>
+              <span><b className="text-white">🧠 context</b> <span className="text-slate-500">~150 tok + .txt RAG ~300 max</span></span>
+              <span><b className="text-white">💰 metering</b> <Link href="/my/usage/" className="text-cyan-300 hover:underline">ledger /my/usage/</Link></span>
+            </div>
+          </div>
         </div>
       </div>
     </main>

@@ -54,7 +54,7 @@ export default function ClansPage() {
         </div>
       </div>
 
-      <section className="mx-auto max-w-6xl px-4 py-6">
+      <section className="mx-auto max-w-6xl px-4 py-3">
         <p className="text-xs text-slate-400 lg:hidden">
           Gamer and coder crews. Reading is public; posting needs a login and clan membership.
         </p>
@@ -62,7 +62,7 @@ export default function ClansPage() {
           Love a post? Give it 💌; love letters are clan-native appreciation (never coins), earned via
           daily bonus + quests + loved posts, spent on gifts and advanced awards.
         </p>
-        <div id="clan-create" className="mt-4 scroll-mt-16">
+        <div id="clan-create" className="mt-2 scroll-mt-16">
           <Suspense fallback={<p className="text-sm text-slate-400">Loading clans…</p>}>
             <ClanBrowser />
           </Suspense>

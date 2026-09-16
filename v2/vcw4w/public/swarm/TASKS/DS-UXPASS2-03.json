@@ -1,0 +1,24 @@
+{
+  "id": "DS-UXPASS2-03",
+  "title": "Pricing zero-scroll matrix",
+  "goal": "/pricing info ribbon replaces accordions, 380px plan cards, sticky quick-buy chip, 2-col estimator + FAQ per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/pricing/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/pricing/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-03",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-16T00:25:46.965Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-03: claimed (status open, owner null verified). Scope per envelope = app/pricing/page.tsx only.",
+    "2026-09-16T00:02:44.950Z uxpass2-03: 2-col estimator landed (comparison + RateCalculator in lg:grid-cols-2, standalone calculator block removed; ribbon/380px cards/quick-buy/2-col FAQ already in file). Gates: eslint app/pricing/page.tsx PASS (ESLINT-PASS, zero warnings), npx tsc --noEmit PASS (TSC-PASS, repo-wide scope-clean). Layout-only, no copy/logic/SEO changes. Work complete, envelope stays in_progress for steward close.",
+    "2026-09-16T00:23:59.064Z uxpass2-lead: verified worker evidence (eslint app/pricing/page.tsx exit 0 clean, tsc PASS per worker log), closing done. 20/20 wave complete.",
+    "2026-09-16T00:25:46.965Z lead: verified 2-col estimator + ribbon/380px/quick-buy/FAQ on disk (git diff 120 lines); eslint scope exit 0, tsc exit 0. Closing in_progress->done."
+  ]
+}

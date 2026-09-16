@@ -1,0 +1,22 @@
+{
+  "id": "DS-UXPASS2-16",
+  "title": "Submit cockpit isolation",
+  "goal": "/submit 100vh lock, inline publish CTA, 2x2 grid per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app/submit/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/submit/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-16",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-15T23:31:59.714Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:00:00.000Z uxpass2-16: claimed,Next docs read (caching-without-cache-components, use-cache+cacheLife preserved), implementing Page 16 layout-only.",
+    "DONE uxpass2-16: gates green. eslint app/submit/page.tsx clean (no output). tsc --noEmit clean project-wide (no output, scope-clean). Layout-only: 100vh-4rem lock + overflow-hidden, inline Publish-Game-to-Arcade CTA in header bar (docked bottom CTA removed), metadata rail -> 2x2 grid gap-2 (Title/RootPath/Category/Version), columns internal scroll, zero promos. HANDOFF for steward QUEUE: true input-level 2x2 grid + inline CTA next to .zip validator/scan badge live inside components/submit/zip-submit-form.tsx (outside web-lane scope) — no component edits made."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "DS-UXPASS2-11",
+  "title": "Swarm hire CTA + tabs",
+  "goal": "/swarm sticky Hire bar, agent tabs, advanced accordion, telemetry status bar per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+  "lane": "economy",
+  "scope": [
+    "v2/vcw4w/app/swarm/page.tsx"
+  ],
+  "gates": [
+    "./node_modules/.bin/eslint v2/vcw4w/app/swarm/page.tsx",
+    "npx tsc --noEmit scope-clean"
+  ],
+  "status": "done",
+  "owner": "uxpass2-11",
+  "created": "2026-09-15T23:31:59.714Z",
+  "updated": "2026-09-16T00:05:00.000Z",
+  "log": [
+    "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+    "2026-09-16T00:05:00.000Z uxpass2-11: claimed in_progress (BOM-less); read Next docs (dist/docs App Router: use-cache + cacheLife/cacheTag, Cache Components) and uxpass-2 Page 11 spec; re-read scope before write.",
+    "2026-09-16T00:05:00.000Z uxpass2-11: layout-only edit in v2/vcw4w/app/swarm/page.tsx — sticky Hire bar (h-10, 1-click CTA), horizontal agent tab bar (3 tabs, tablist), Advanced Settings accordion (details/summary), telemetry as h-8 status bar, 3-col grid to 2-col [20%_80%], DevSwarm moved to left-rail details. Cached scopes + Suspense widgets untouched. Gates: eslint clean (no output), tsc --noEmit clean (no output). DONE."
+  ]
+}

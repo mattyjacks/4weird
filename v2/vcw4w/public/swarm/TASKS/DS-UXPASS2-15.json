@@ -1,0 +1,22 @@
+{
+    "id":  "DS-UXPASS2-15",
+    "title":  "Vault explorer toolbar",
+    "goal":  "/vault 40px toolbar, overlay upload, 100vh table per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. Layout-only edits in scope file; component-owned asks to QUEUE handoffs.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/vault/page.tsx"
+              ],
+    "gates":  [
+                  "./node_modules/.bin/eslint v2/vcw4w/app/vault/page.tsx",
+                  "npx tsc --noEmit scope-clean"
+              ],
+    "status":  "done",
+    "owner":  "uxpass2-15",
+    "created":  "2026-09-15T23:31:59.714Z",
+    "updated":  "2026-09-15T23:55:00.000Z",
+    "log":  [
+                "2026-09-15T23:31:59.714Z unassigned: envelope created for uxpass-2 CHEAP20, awaiting claim.",
+                "2026-09-15T23:45:00.000Z uxpass2-15: claimed, Next App Router docs read (01-app Server Component + Suspense + metadata), scope page.tsx re-read.",
+                "2026-09-15T23:55:00.000Z uxpass2-15: done. Layout-only: h-11-\u003eh-10 40px toolbar (+search filter, +New Folder), overlay upload hint (sticky, zero static height; live dropzone stays in VaultBrowser component-owned), table wrapper [height:calc(100vh-120px)] overflow-auto. Gates: node node_modules/eslint/bin/eslint.js app/vault/page.tsx -\u003e clean exit 0 (run from v2/vcw4w); npx tsc --noEmit -\u003e clean exit 0. Scope-only diff confirmed (app/vault/page.tsx)."
+            ]
+}

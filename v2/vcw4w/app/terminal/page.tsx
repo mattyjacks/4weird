@@ -588,12 +588,22 @@ export default function TerminalPage() {
   const attached = pods.find((p) => p.id === attachedId) ?? null;
 
   return (
-    <main style={{ maxWidth: 1100, margin: "0 auto", padding: "1rem 1rem 2rem", fontFamily: "monospace" }}>
-      <h1 style={{ margin: "0.25rem 0" }}>CryptArt Commander</h1>
-      <p style={{ fontFamily: "sans-serif", margin: "0 0 0.75rem" }}>
-        Local power-user terminal. Allow-listed commands only — no server execution, works offline.
-        Desktop relay (<code>pair</code>/<code>link</code>/<code>exec</code>) is opt-in and allow-listed.
-      </p>
+    <main style={{ maxWidth: 1100, margin: "0 auto", padding: "0.5rem 1rem 1rem", fontFamily: "monospace" }}>
+      {/* DS-UXP2-14 (spec p42): single-line header status bar — title + live
+          pill + [?] Help popover. Copy unchanged, zero handlers. */}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", margin: "0.25rem 0", fontFamily: "sans-serif", fontSize: "0.8rem" }}>
+        <h1 style={{ margin: 0, fontFamily: "monospace", fontSize: "1rem", whiteSpace: "nowrap" }}>CryptArt Commander</h1>
+        <span style={{ color: "#7dd3fc", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>local sandbox · offline-safe</span>
+        <details style={{ position: "relative", marginLeft: "auto", flexShrink: 0 }}>
+          <summary style={{ cursor: "pointer", color: "#9adcff", whiteSpace: "nowrap" }}>[?] Help</summary>
+          <div style={{ position: "absolute", right: 0, top: "1.5rem", zIndex: 10, width: 320, background: "#1a1a1a", border: "1px solid #444", borderRadius: 8, padding: "0.75rem" }}>
+            <p style={{ margin: 0 }}>
+              Local power-user terminal. Allow-listed commands only — no server execution, works offline.
+              Desktop relay (<code>pair</code>/<code>link</code>/<code>exec</code>) is opt-in and allow-listed.
+            </p>
+          </div>
+        </details>
+      </div>
       <div style={{ background: "#2b2b2b", borderRadius: "8px 8px 0 0", padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
         <span aria-hidden="true" style={{ display: "flex", gap: "0.35rem" }}>
           <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57", display: "inline-block" }} />
@@ -605,23 +615,28 @@ export default function TerminalPage() {
           <DesktopStatus />
         </span>
       </div>
+      {/* DS-UXP2-14 (spec p42): viewport-locked shell — history scrolls
+          internally, prompt input pinned at the bottom. Handlers/props
+          untouched. */}
       <div
         aria-live="polite"
         onClick={() => inputRef.current?.focus()}
-        style={{ background: "#0a0a0a", color: "#d7ffd7", borderRadius: "0 0 8px 8px", padding: "1rem", height: "calc(100vh - 120px)", minHeight: 320, overflowY: "auto" }}
+        style={{ background: "#0a0a0a", color: "#d7ffd7", borderRadius: "0 0 8px 8px", padding: "1rem", height: "calc(100vh - 76px)", minHeight: 320, overflow: "hidden", display: "flex", flexDirection: "column" }}
       >
+        <div style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto" }}>
         {lines.map((l) => (
           <div key={l.id} style={{ color: l.kind === "error" ? "#ff9d9d" : l.kind === "input" ? "#9adcff" : "#d7ffd7", whiteSpace: "pre-wrap" }}>
             {l.text}
           </div>
         ))}
+        </div>
         <form
           onSubmit={(e) => {
             e.preventDefault();
             run(value);
             setValue("");
           }}
-          style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}
+          style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", paddingTop: "0.5rem", borderTop: "1px solid #1f1f1f", background: "#0a0a0a" }}
         >
           <span aria-hidden="true">&gt;</span>
           <input

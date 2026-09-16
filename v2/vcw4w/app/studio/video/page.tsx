@@ -17,7 +17,7 @@ export default async function Page() {
 
   return (
     <div className="flex h-dvh flex-col bg-slate-950 text-white">
-      <header className="flex h-10 shrink-0 items-center gap-3 border-b border-white/10 px-3 sm:px-4">
+      <header className="flex h-9 shrink-0 items-center gap-3 border-b border-white/10 px-3 sm:px-4">
         <p className="shrink-0 text-[11px] font-bold uppercase tracking-[0.2em] text-cyan-300">
           Media Mogul · Video
         </p>
@@ -29,7 +29,7 @@ export default async function Page() {
         </p>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-6xl px-3 py-3 sm:px-4">
+        <div className="mx-auto w-full max-w-7xl px-3 py-2 sm:px-4">
           <Suspense
             fallback={
               <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">

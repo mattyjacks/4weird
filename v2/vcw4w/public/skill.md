@@ -480,11 +480,11 @@ Part A above is the bot quickstart. Below is the complete reference: identity, g
 
 ```bash
 cd v2/vcw4w
-npm test   # sync + 54 verify invocations + eslint + tsc
+npm test   # sync + 60 verify invocations + eslint + tsc
 npm run build
 ```
 
-Supabase changes: add a rerunnable migration (`IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS` before every policy/trigger), regen the runbook bundle, and extend `scripts/verify-*.mjs` when you add a subsystem. Latest migration: `20261115000000_profile_audit_log.sql` (tamper-evident profile band-change log, read-own) guarded by the family/age-gate verifiers.
+Supabase changes: add a rerunnable migration (`IF NOT EXISTS / OR REPLACE / DROP ... IF EXISTS` before every policy/trigger), regen the runbook bundle, and extend `scripts/verify-*.mjs` when you add a subsystem. Latest migration: `20261224000000_feedback_none_options.sql` (feedback `none` rating/critique options + none/none defaults) widening `20261120000000_feedback.sql` via the neutral-critique repairs.
 
 ## 11. DevSwarm
 

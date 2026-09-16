@@ -1,0 +1,25 @@
+{
+    "id":  "DS-UXP2-03",
+    "title":  "UXP2 batch 3: timer, timer/pro, desktop compactness",
+    "goal":  "UXP2 /timer /timer/pro /desktop (spec pp7-9) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/timer/page.tsx",
+                  "v2/vcw4w/app/timer/pro/page.tsx",
+                  "v2/vcw4w/app/desktop/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-03",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T12:00:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/timer /timer/pro /desktop (spec pp7-9), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-03: claimed (disk read: status open, owner null; DS-UXPASS2-03 overlap check clean - pricing scope only; worktree already holds spec-shaped layout diffs on all 3 targets, verifying before any write).",
+                "2026-09-16T12:00:00.000Z uxp2-03: RESUMED (same tag; disk owner=uxp2-03 status=in_progress, no steal). Adopted prior diffs; one write: pro/page.tsx comment UXPASS2-08->DS-UXP2-03. Grep counts: timer 1->3 (+2 anchors, additive), pro 3->6 (+nav anchors, additive), desktop 27->26 (4 anchor pills -> 4 tab radios+labels, all Links/Suspense preserved). Gates: eslint clean (3 files), tsc --noEmit zero errors repo-wide, envelope JSON parses. verify-devswarm global FAIL is steward-owned STATUS.json open-count drift (counts=1 vs TASKS=2), pre-existing, out of scope -> QUEUE handoff. Scope work DONE."
+            ]
+}

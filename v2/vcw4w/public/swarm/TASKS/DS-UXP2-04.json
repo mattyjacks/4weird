@@ -1,0 +1,27 @@
+{
+    "id":  "DS-UXP2-04",
+    "title":  "UXP2 batch 4: buddy, swarm, fal compactness",
+    "goal":  "UXP2 /buddy /swarm /fal (spec pp10-12) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/buddy/page.tsx",
+                  "v2/vcw4w/app/swarm/page.tsx",
+                  "v2/vcw4w/app/fal/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-04",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T00:42:43.045Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/buddy /swarm /fal (spec pp10-12), layout-only, functionality preserved).",
+                "2026-09-16T00:08:00.000Z uxp2-04: claimed (status open, owner null verified); pre-existing working-tree diff found on all 3 targets, verifying layout-only + wiring preserved before adopting.",
+                "2026-09-16T00:42:43.045Z uxp2-04: RESUMED same tag (owner=uxp2-04, status in_progress verified - not a steal). Re-read spec pp10-12 + all 3 targets; adopted pre-existing diffs, zero new page writes needed. LAYOUT/CLASSES ONLY confirmed: buddy hardware ribbon + sticky HUD (top-20) + customizer drawer; swarm 2-pane (20/80) + sticky Hire bar + agent tabs + advanced accordion + 32px telemetry bar; fal sticky 44px category ribbon + search + collapsible header. Wiring before/after HEAD->worktree (all preserved, only additive anchors): buddy 14->15 (+#buddy-session jump), swarm 12->15 (+Hire/agent-tab anchors), fal 4->9 (+cat pills/?q= form); GamingBuddy/SwarmChatLazy/DevSwarmPanel/AgentBotNav/FalStudio/forms/inputs/Links all intact.",
+                "2026-09-16T00:42:43.045Z uxp2-04: GATES green in scope - eslint app/buddy+swarm+fal exit 0; tsc --noEmit exit 0 (zero errors repo-wide, zero new in scope); envelope parses (verify-devswarm step 3 passes all envelopes incl. DS-UXP2-04; ConvertFrom-Json OK); BOM-less UTF8 confirmed on 3 pages + envelope. Full verify-devswarm.mjs red ONLY extrinsic steward-owned STATUS.json counts mismatch (open 1 vs TASKS 2, same as DS-UXP2-20 reported) - precedent DS-UXPASS2-01..20 closed done under same extrinsic red; steward recount requested, counts untouched per protocol. Status -> done.",
+                "2026-09-16T00:42:43.045Z uxp2-04: HANDOFFS component-owned density (untouched, out of page.tsx scope, envelope-log per protocol - QUEUE/STATUS steward-owned): (1) swarm live dials/selectors (model, temperature, 7 tool checkboxes, system prompt, agent config) live in SwarmChatLazy widget - needs component-lane pass to honor agent-tab anchors; (2) fal ?cat=/?q= ribbon contract + dense 4-col ~140px cards live in FalStudio (see also DS-UXPASS2-12) - needs component-lane filter wiring; (3) buddy waveform/token-burn meters + Mic/Cam/Share toggles live in GamingBuddy widget - ribbon points at widget, no duplication. Zero writes outside scope; no old-v1/, no swarm/index.html, no html under swarm/."
+            ]
+}

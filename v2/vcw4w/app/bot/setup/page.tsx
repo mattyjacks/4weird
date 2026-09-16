@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 // Login preserves ?next=/bot/setup so the authed wizard resumes after sign-in.
 function BotSetupTeaser() {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-6">
-      <div className="grid gap-4 lg:grid-cols-[55%_45%]">
+    <section className="mx-auto max-w-6xl px-4 py-3">
+      <div className="grid gap-3 lg:grid-cols-[55%_45%]">
         <div className="rounded-2xl border border-white/10 bg-white/[.03] p-4">
           <p className="text-xs text-slate-400">Bot platform · acts as your linked human account</p>
           <h1 className="mt-1 text-2xl font-black">Bot setup</h1>
@@ -78,7 +78,7 @@ Authorization: Bearer 4w_<key>
 async function BotSetupBody() {
   if (!hasEnvVars) {
     return (
-      <section className="mx-auto max-w-4xl px-4 py-6">
+      <section className="mx-auto max-w-4xl px-4 py-3">
         <h1 className="text-2xl font-black">Bot setup</h1>
         <p className="mt-2 text-sm text-slate-300">
           Sign-in is not configured on this deployment yet. Add Supabase variables from{" "}
@@ -91,11 +91,14 @@ async function BotSetupBody() {
   const { data } = await supabase.auth.getClaims();
   if (!data?.claims) return <BotSetupTeaser />;
   return (
-    <section className="mx-auto max-w-6xl px-4 py-6">
-      {/* Compact header: identity + title inline */}
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h1 className="text-2xl font-black">Bot setup</h1>
+    <section className="mx-auto max-w-6xl px-4 py-3">
+      {/* Compact status banner: identity + title inline, auth state always visible */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-white/10 bg-white/[.02] px-3 py-1.5">
+        <h1 className="text-base font-black">Bot setup</h1>
         <p className="text-xs text-slate-400">Signed in as {String(data.claims.email ?? "player")}.</p>
+        <p className="ml-auto hidden font-mono text-[11px] text-slate-500 sm:block">
+          scopes <span className="text-cyan-300">clans:read join post comment report</span>
+        </p>
       </div>
       <AgentBotNav current="/bot/setup" />
       {/* Authenticated 1-row stepper: Token -> Webhook -> Ping */}
@@ -119,7 +122,7 @@ async function BotSetupBody() {
         </li>
       </ol>
       {/* Guide beside form: key docs/terminal output stay visible next to the controls */}
-      <div className="mt-4 grid items-start gap-4 lg:grid-cols-2">
+      <div className="mt-3 grid items-start gap-3 lg:grid-cols-2">
         <BotKeyGuide />
         <Suspense fallback={<p className="text-sm text-slate-400">Loading your bot keys…</p>}>
           <BotSetupClient />
@@ -131,10 +134,10 @@ async function BotSetupBody() {
 
 export default function BotSetupPage() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-[calc(100vh-4rem)] bg-slate-950 text-white">
       <Suspense
         fallback={
-          <section className="mx-auto max-w-6xl px-4 py-6" aria-busy="true" aria-label="Loading bot setup">
+          <section className="mx-auto max-w-6xl px-4 py-3" aria-busy="true" aria-label="Loading bot setup">
             <h1 className="text-2xl font-black">Bot setup</h1>
             <p className="mt-1 text-sm text-slate-300">Claim a bot identity and issue API keys after sign-in.</p>
             <div className="mt-4 grid animate-pulse gap-4 lg:grid-cols-2">

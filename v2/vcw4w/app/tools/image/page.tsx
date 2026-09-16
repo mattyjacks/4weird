@@ -17,15 +17,18 @@ export default function Page() {
       title="Image Optimizer"
       blurb="Shrink game art, screenshots, and thumbnails for the web: pick a format, tune quality and size, and download the result. Re-encoding strips EXIF metadata automatically."
     >
-      <Suspense
-        fallback={
-          <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-400">
-            Loading image optimizer…
-          </p>
-        }
-      >
-        <ImageOptimizer />
-      </Suspense>
+      {/* LAYOUT-ONLY (UXPASS p55): compact workbench wrapper; 50/50 dropzone+preview | settings+export live in ImageOptimizer. */}
+      <div className="grid min-w-0 gap-3">
+        <Suspense
+          fallback={
+            <p role="status" className="rounded-xl border border-white/10 bg-white/[.03] p-3 text-sm text-slate-400">
+              Loading image optimizer…
+            </p>
+          }
+        >
+          <ImageOptimizer />
+        </Suspense>
+      </div>
     </ToolShell>
   );
 }

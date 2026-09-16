@@ -40,9 +40,9 @@ export default function VaultPage() {
         </aside>
 
         <section className="min-w-0 flex-1">
-          {/* 44px drive-style toolbar: scope tabs + storage gauge + Upload shortcut (live controls inside VaultBrowser). */}
-          <header className="flex h-11 items-center gap-2 overflow-hidden rounded-xl border border-white/10 bg-white/[.03] px-2">
-            <h1 className="truncate text-sm font-black">🗄️ Weird Vault</h1>
+          {/* 40px unified explorer toolbar: scope tabs + search filter + Upload / New Folder actions (live controls inside VaultBrowser). */}
+          <header className="flex h-10 items-center gap-2 overflow-hidden rounded-xl border border-white/10 bg-white/[.03] px-2">
+            <h1 className="shrink-0 truncate text-sm font-black">🗄️ Weird Vault</h1>
             <nav aria-label="Scopes" className="hidden items-center gap-1 md:flex">
               {["Personal", "Team", "Org", "Trash"].map((s) => (
                 <a key={s} href="#vault-browser" title={`Jump to file browser (${s} scope)`} className="rounded-full border border-white/10 px-2 py-0.5 text-[11px] font-bold text-slate-300 hover:border-cyan-300/40">
@@ -50,19 +50,40 @@ export default function VaultPage() {
                 </a>
               ))}
             </nav>
-            <span className="hidden min-w-0 flex-1 truncate text-[11px] text-slate-400 lg:block">
-              50 MB/file · 500 MB free Personal · ~3 coins/GB-month overage · one scope per file · Timer + CRM land here
+            <form method="get" action="#vault-browser" role="search" aria-label="Filter files" className="hidden min-w-0 flex-1 items-center md:flex">
+              <input
+                name="q"
+                type="search"
+                placeholder="Filter files…"
+                aria-label="Filter files"
+                className="h-7 w-full min-w-0 rounded-full border border-white/10 bg-slate-950/60 px-2 text-xs text-slate-200 placeholder:text-slate-500 focus:border-cyan-300/40 focus:outline-none"
+              />
+            </form>
+            <span className="hidden min-w-0 truncate text-[11px] text-slate-400 xl:block">
+              50 MB/file · 500 MB free Personal · ~3 coins/GB-month overage
             </span>
-            <a href="#vault-browser" className="ml-auto shrink-0 rounded-full bg-cyan-600 px-3 py-1 text-xs font-black hover:bg-cyan-500">
-              + Upload
-            </a>
+            <span className="ml-auto flex shrink-0 items-center gap-1">
+              <a href="#vault-browser" title="Create a new folder in the file browser below" className="rounded-full border border-white/10 px-2 py-1 text-xs font-bold text-slate-200 hover:border-cyan-300/40">
+                + New Folder
+              </a>
+              <a href="#vault-browser" className="shrink-0 rounded-full bg-cyan-600 px-3 py-1 text-xs font-black hover:bg-cyan-500">
+                + Upload
+              </a>
+            </span>
           </header>
 
-          {/* 64px dropzone hint + dense h-9 file table (Type|Name|Size|Modified|Scope|Actions) live in VaultBrowser — mounted immediately, above the fold. */}
-          <div id="vault-browser" className="mt-2 scroll-mt-3">
-            <Suspense fallback={<p className="text-sm text-slate-400">Loading Vault…</p>}>
-              <VaultBrowser />
-            </Suspense>
+          {/* Full-viewport file table (calc(100vh-120px)) with overlay upload hint — the live dropzone/modal ships inside VaultBrowser (component-owned); this page keeps zero static dropzone height. */}
+          <div id="vault-browser" className="relative mt-2 min-h-80 scroll-mt-3 overflow-auto rounded-xl border border-white/10 bg-white/[.02] [height:calc(100vh-120px)]">
+            <div className="pointer-events-none sticky inset-x-0 top-0 z-10 flex justify-center p-2">
+              <p className="pointer-events-auto rounded-full border border-dashed border-cyan-300/40 bg-slate-950/80 px-3 py-1 text-[11px] font-bold text-slate-300">
+                Drop files anywhere to upload · or use + Upload
+              </p>
+            </div>
+            <div className="px-2 pb-2">
+              <Suspense fallback={<p className="text-sm text-slate-400">Loading Vault…</p>}>
+                <VaultBrowser />
+              </Suspense>
+            </div>
           </div>
         </section>
       </div>

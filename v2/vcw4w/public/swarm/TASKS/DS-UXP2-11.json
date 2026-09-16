@@ -1,0 +1,28 @@
+{
+    "id":  "DS-UXP2-11",
+    "title":  "UXP2 batch 11: work, mmo, mmo/rent compactness",
+    "goal":  "UXP2 /work /mmo /mmo/rent (spec pp32-34) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/work/page.tsx",
+                  "v2/vcw4w/app/mmo/page.tsx",
+                  "v2/vcw4w/app/mmo/rent/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "blocked",
+    "owner":  "uxp2-11",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T12:30:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/work /mmo /mmo/rent (spec pp32-34), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-11: claimed in_progress/owner uxp2-11 (1:1 tag==id).",
+                "2026-09-16T12:00:00.000Z uxp2-11: resumed same-tag (owner match, status in_progress); re-read spec pp32-34 + 3 targets, zero local diffs to adopt (work/mmo/rent clean vs HEAD).",
+                "2026-09-16T12:20:00.000Z uxp2-11: layout pass complete LAYOUT/CLASSES ONLY — work: matrix p-3→p-2.5 + cards to flex-row icon pills (6 Link hrefs/title kept), IT form to dark-glass inline row Tool|Reason|Submit (id/names/validations/submit/fetch-script unchanged), telemetry dismiss pill kept; mmo: sticky h-12→h-11 + section py-3→py-2 (Rent Link + MmoBrowser kept); rent: guide aside→details[open] accordion + grid gap-3→gap-2.5/p-4→p-3.5 (RentForm + /mmo Link kept). wiring grep before==after.",
+                "2026-09-16T12:25:00.000Z uxp2-11: gates — eslint 3 touched paths clean exit 0; tsc --noEmit exit 0 zero app/work|app/mmo errors; envelope parses (ConvertFrom-Json OK, verifier passed steps 1-3 incl. envelope-shape on all TASKS). verify-devswarm exit 1 EXTRINSIC: STATUS.json counts open 1 vs TASKS 2 (steward-owned, untouched by this lane; same drift as DS-UXP2-20/07/08 waves).",
+                "2026-09-16T12:30:00.000Z uxp2-11: blocked-honest (failed gate → blocked, never done): QUEUE.md handoff filed for steward recount + component-lane density (mmo-browser default-table/padding/filter-merge, rent-form pill-tabs/CTA-elevate). Zero writes outside scope; no old-v1/, no swarm/index.html, no STATUS.json edit."
+            ]
+}

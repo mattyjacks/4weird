@@ -1,0 +1,28 @@
+{
+    "id":  "DS-UXP2-08",
+    "title":  "UXP2 batch 8: bot setup, bclans, leaderboards, lobbies compactness",
+    "goal":  "UXP2 /bot/setup /bot/bclans /leaderboards /lobbies (spec pp22-25) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/bot/setup/page.tsx",
+                  "v2/vcw4w/app/bot/bclans/page.tsx",
+                  "v2/vcw4w/app/leaderboards/page.tsx",
+                  "v2/vcw4w/app/lobbies/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+  "status":  "done",
+  "owner":  "uxp2-08",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T00:49:01.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/bot/setup /bot/bclans /leaderboards /lobbies (spec pp22-25), layout-only, functionality preserved).",
+                "2026-09-16T00:00:00.000Z uxp2-08: claimed in_progress/owner uxp2-08 (1:1 tag==id).",
+                "2026-09-16T00:49:01.000Z uxp2-08: resumed after session death; envelope still in_progress/owner uxp2-08 (no steal), zero prior diffs in scope (git diff clean on all 4 paths) so no diffs to adopt.",
+                "2026-09-16T00:49:01.000Z uxp2-08: layout-only pass done. /lobbies: stacked header+pill folded into sticky 40px toolbar (title+context+single auth pill, verbatim text), section py-6->py-3, browsers mt-3->mt-2, main 100vh-4rem workbench. /bot/setup: status banner (identity+scopes inline, h1 text-2xl->text-base), teaser/grid/fallback py/gap tightened, main 100vh-4rem. /bot/bclans + /leaderboards (already compact): main 100vh-4rem, section py-6->py-3, console mt-3->mt-2. Wiring grep identical before/after (setup 10a/2S, bclans 6a/1S, leaderboards 1L/1S, lobbies 2L/2S). GATES: local eslint v9.39.5 on 4 touched paths exit 0 clean; tsc --noEmit exit 0 zero errors; envelope JSON parses BOM-less. verify-devswarm red EXTRINSIC pre-existing (STATUS open 1 vs TASKS 2, untouched steward manifest) -> steward recount.",
+                "2026-09-16T00:49:01.000Z uxp2-08: HANDOFFS component-owned (untouched, out of page.tsx scope) -> QUEUE line DS-UXP2-08: bclans-console tab console + JSON inspector (app/bot/bclans/bclans-console.tsx); setup code tabs + webhook ping (app/bot/setup/bot-setup*, components/bot/bot-key-guide); leaderboard inline filters + 36px rows (components/games/leaderboard-browser, games lane); lobby dense table (components/lobbies/*)."
+             ]
+}

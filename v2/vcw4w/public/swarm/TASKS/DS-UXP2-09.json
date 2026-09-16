@@ -1,0 +1,27 @@
+{
+    "id":  "DS-UXP2-09",
+    "title":  "UXP2 batch 9: support, fundraisers, business compactness",
+    "goal":  "UXP2 /support /fundraisers /business (spec pp26-28) compacted per v2/vcw4w/public/swarm/uxpass/uxpass-improvements-by-antigravity-2.md. LAYOUT/CLASSES ONLY: every button, link, form, handler, fetch, and conditional stays mounted and wired - only Tailwind layout classes, grid structure, and non-destructive wrappers (sticky bars, details/drawers, tabs) change. Component-owned density (catalogs, studios) goes to QUEUE as handoff, never stretched scope. Reviewer opens each route at 1080p and sees primary actions above the fold with zero functionality lost.",
+    "lane":  "web",
+    "scope":  [
+                  "v2/vcw4w/app/support/page.tsx",
+                  "v2/vcw4w/app/fundraisers/page.tsx",
+                  "v2/vcw4w/app/business/page.tsx"
+              ],
+    "gates":  [
+                  "npx tsc --noEmit (zero NEW errors in scope)",
+                  "npx eslint on touched paths (clean)",
+                  "node scripts/verify-devswarm.mjs (envelope valid)"
+              ],
+    "status":  "done",
+    "owner":  "uxp2-09",
+    "created":  "2026-09-15T07:30:00.000Z",
+    "updated":  "2026-09-16T00:00:00.000Z",
+    "log":  [
+                "2026-09-15T07:30:00.000Z uxp2-lead: envelope created (/support /fundraisers /business (spec pp26-28), layout-only, functionality preserved).",
+                "2026-09-15T08:00:00.000Z uxp2-09: claimed (status in_progress, owner uxp2-09). Scope: support/fundraisers/business page.tsx layout-only.",
+                "2026-09-16T00:00:00.000Z uxp2-09: RESUMED after prior-session death (owner still uxp2-09, status in_progress - same-tag resume, not a steal). Adopted prior diff (support header pill space-y-1.5/text-xl/rounded-full Legal Terms badge). Spec pp26-28 re-read before writes.",
+                "2026-09-16T00:00:00.000Z uxp2-09: layout-only pass complete. support: section py-6-\u003epy-3 space-y-3-\u003e2.5 (header pill kept). fundraisers: section py-4-\u003epy-3; compliance notice open-\u003ecollapsed slim pill (rounded-full px-3 py-1.5 text-xs + [Details] affordance, copy otherwise verbatim). business: hero py-6-\u003epy-3, h1 text-2xl/sm:3xl-\u003etext-xl/sm:2xl, mt-3-\u003emt-2/mt-1 trims; app-grid px-5 pb-14-\u003epx-4 pb-4 (cards already spec p-3.5/gap-3); link row mt-6-\u003emt-3; pricing strip pb-16-\u003epb-4, p-6/sm:p-10-\u003ep-3.5/sm:p-4, gap-6-\u003egap-3. Wiring grep identical before/after: support 1 Link, fundraisers 1 Link, business 16 Links; zero forms/handlers at page level; SupportClient/FundraiserBrowser/CachedBusinessApps+Suspense all still mounted.",
+                "2026-09-16T00:00:00.000Z uxp2-09: GATES green-local: local eslint 3 touched paths clean (npx eslint crashes extrinsic: eslint-plugin-react getFilename vs eslint 10 flat-config, pre-existing infra); tsc --noEmit exit 0 zero errors; envelope parses BOM-less. verify-devswarm red EXTRINSIC: STATUS.json open 1 vs TASKS 2 (steward manifest drift, same as DS-UXP2-07/08/20 waves) -\u003e steward recount. HANDOFF component-owned density (untouched, out of page.tsx scope): components/support/support-client tab console [One-Time Tip|My Subscriptions|Offer a Tier|Creator Verification] + zero-scroll tip console; components/fundraisers/fundraiser-browser top category filter bar + search + 3-col dense cards + Launch-Campaign drawer; business metric ribbon already page-level (kept). Zero writes outside 3 scope files. STATUS done."
+            ]
+}

@@ -19,7 +19,7 @@ async function CachedPrivacyBody() {
   cacheLife('max');
   cacheTag('site-legal');
   return (
-      <div className="grid gap-4 lg:grid-cols-[212px_minmax(0,1fr)]">
+      <div className="grid gap-3 lg:grid-cols-[200px_minmax(0,1fr)]">
         <nav aria-label="Privacy policy sections" className="max-h-56 self-start overflow-auto rounded-2xl border border-border bg-card p-3 lg:sticky lg:top-4 lg:max-h-[70vh]">
           <p className="px-1 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">On this page</p>
           <ul className="mt-2 space-y-0.5 text-[13px] leading-snug">
@@ -43,51 +43,51 @@ async function CachedPrivacyBody() {
         <div className="min-w-0">
           <div className="overflow-x-auto rounded-2xl border border-border bg-card">
             <table className="w-full min-w-[560px] border-collapse text-left text-[13px] leading-snug">
-              <caption className="px-4 pt-3 text-left text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Summary — the sections below control</caption>
+              <caption className="px-3 pt-2 text-left text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Summary — the sections below control</caption>
               <thead>
                 <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <th scope="col" className="px-4 py-2">Data category</th>
-                  <th scope="col" className="px-4 py-2">Purpose</th>
-                  <th scope="col" className="px-4 py-2">Retention</th>
-                  <th scope="col" className="px-4 py-2">Control</th>
+                  <th scope="col" className="px-3 py-1.5">Data category</th>
+                  <th scope="col" className="px-3 py-1.5">Purpose</th>
+                  <th scope="col" className="px-3 py-1.5">Retention</th>
+                  <th scope="col" className="px-3 py-1.5">Control</th>
                 </tr>
               </thead>
               <tbody className="text-muted-foreground">
                 <tr className="border-b border-border/60">
-                  <td className="px-4 py-2 font-bold text-white">Account &amp; profile</td>
-                  <td className="px-4 py-2">Run accounts, Clans, saves</td>
-                  <td className="px-4 py-2">While active</td>
-                  <td className="px-4 py-2"><a className={a} href="#privacy-s1">§1–2</a></td>
+                  <td className="px-3 py-1.5 font-bold text-white">Account &amp; profile</td>
+                  <td className="px-3 py-1.5">Run accounts, Clans, saves</td>
+                  <td className="px-3 py-1.5">While active</td>
+                  <td className="px-3 py-1.5"><a className={a} href="#privacy-s1">§1–2</a></td>
                 </tr>
                 <tr className="border-b border-border/60">
-                  <td className="px-4 py-2 font-bold text-white">Gameplay &amp; telemetry</td>
-                  <td className="px-4 py-2">Progress, leaderboards, matchmaking</td>
-                  <td className="px-4 py-2">While active</td>
-                  <td className="px-4 py-2"><a className={a} href="#privacy-s2">§2</a></td>
+                  <td className="px-3 py-1.5 font-bold text-white">Gameplay &amp; telemetry</td>
+                  <td className="px-3 py-1.5">Progress, leaderboards, matchmaking</td>
+                  <td className="px-3 py-1.5">While active</td>
+                  <td className="px-3 py-1.5"><a className={a} href="#privacy-s2">§2</a></td>
                 </tr>
                 <tr className="border-b border-border/60">
-                  <td className="px-4 py-2 font-bold text-white">Coins &amp; transactions</td>
-                  <td className="px-4 py-2">Billing, tips, campaigns</td>
-                  <td className="px-4 py-2">Tax &amp; records law</td>
-                  <td className="px-4 py-2"><a className={a} href="#privacy-s7">§7</a></td>
+                  <td className="px-3 py-1.5 font-bold text-white">Coins &amp; transactions</td>
+                  <td className="px-3 py-1.5">Billing, tips, campaigns</td>
+                  <td className="px-3 py-1.5">Tax &amp; records law</td>
+                  <td className="px-3 py-1.5"><a className={a} href="#privacy-s7">§7</a></td>
                 </tr>
                 <tr className="border-b border-border/60">
-                  <td className="px-4 py-2 font-bold text-white">Technical &amp; safety</td>
-                  <td className="px-4 py-2">Security, fraud, moderation</td>
-                  <td className="px-4 py-2">As needed + legal holds</td>
-                  <td className="px-4 py-2"><a className={a} href="#privacy-s8">§8</a></td>
+                  <td className="px-3 py-1.5 font-bold text-white">Technical &amp; safety</td>
+                  <td className="px-3 py-1.5">Security, fraud, moderation</td>
+                  <td className="px-3 py-1.5">As needed + legal holds</td>
+                  <td className="px-3 py-1.5"><a className={a} href="#privacy-s8">§8</a></td>
                 </tr>
                 <tr className="border-b border-border/60">
-                  <td className="px-4 py-2 font-bold text-white">Cookies &amp; prefs</td>
-                  <td className="px-4 py-2">Sign-in, settings, consented analytics</td>
-                  <td className="px-4 py-2">7-day banner renewal</td>
-                  <td className="px-4 py-2"><a className={a} href="#privacy-s4">§4</a></td>
+                  <td className="px-3 py-1.5 font-bold text-white">Cookies &amp; prefs</td>
+                  <td className="px-3 py-1.5">Sign-in, settings, consented analytics</td>
+                  <td className="px-3 py-1.5">7-day banner renewal</td>
+                  <td className="px-3 py-1.5"><a className={a} href="#privacy-s4">§4</a></td>
                 </tr>
                 <tr>
-                  <td className="px-4 py-2 font-bold text-white">VocRehab rehearsals</td>
-                  <td className="px-4 py-2">Practice transcripts you save</td>
-                  <td className="px-4 py-2">§7 schedule; deletes with account</td>
-                  <td className="px-4 py-2"><a className={a} href="#privacy-s2a">§2A</a></td>
+                  <td className="px-3 py-1.5 font-bold text-white">VocRehab rehearsals</td>
+                  <td className="px-3 py-1.5">Practice transcripts you save</td>
+                  <td className="px-3 py-1.5">§7 schedule; deletes with account</td>
+                  <td className="px-3 py-1.5"><a className={a} href="#privacy-s2a">§2A</a></td>
                 </tr>
               </tbody>
             </table>

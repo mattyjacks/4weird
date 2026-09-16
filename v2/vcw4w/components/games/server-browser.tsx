@@ -191,15 +191,15 @@ export function ServerBrowser() {
       </div>
       <div className="overflow-x-auto rounded-xl border border-white/10">
         <table className="w-full min-w-[760px] border-collapse text-left text-xs">
-          <thead>
-            <tr className="border-b border-white/10 bg-white/[.03] uppercase tracking-wider text-slate-400">
-              <th scope="col" className="px-2 py-1.5">Status</th>
-              <th scope="col" className="px-2 py-1.5">Name</th>
-              <th scope="col" className="px-2 py-1.5">Dim</th>
-              <th scope="col" className="px-2 py-1.5">Region</th>
-              <th scope="col" className="px-2 py-1.5">Players</th>
-              <th scope="col" className="px-2 py-1.5">Ping</th>
-              <th scope="col" className="px-2 py-1.5 text-right">Connect</th>
+          <thead className="sticky top-0 z-10">
+            <tr className="border-b border-white/10 bg-[#070912] uppercase tracking-wider text-slate-400">
+              <th scope="col" className="px-2 py-1">Status</th>
+              <th scope="col" className="px-2 py-1">Name</th>
+              <th scope="col" className="px-2 py-1">Dim</th>
+              <th scope="col" className="px-2 py-1">Region</th>
+              <th scope="col" className="px-2 py-1">Players</th>
+              <th scope="col" className="px-2 py-1">Ping</th>
+              <th scope="col" className="px-2 py-1 text-right">Connect</th>
             </tr>
           </thead>
           <tbody>
@@ -224,18 +224,18 @@ export function ServerBrowser() {
                 const hasCounts = Number.isFinite(Number(s.players)) && Number.isFinite(Number(s.maxPlayers));
                 return (
                   <tr key={s?.id ?? index} className="border-b border-white/5 hover:bg-white/[.03]">
-                    <td className="px-2 py-1.5">
+                    <td className="px-2 py-1">
                       <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${st.cls}`}>{st.label}</span>
                     </td>
-                    <td className="max-w-[220px] truncate px-2 py-1.5 font-semibold text-white" title={s.title}>
+                    <td className="max-w-[220px] truncate px-2 py-1 font-semibold text-white" title={s.title}>
                       {s.title || "Untitled"}
                       {s.hostFree ? <span className="ml-1 rounded-full bg-cyan-300/10 px-1.5 py-0.5 text-[10px] text-cyan-200">Free</span> : null}
                     </td>
-                    <td className="px-2 py-1.5 text-slate-300">{String(s.dimension ?? "—").toUpperCase()}</td>
-                    <td className="px-2 py-1.5 text-slate-300">{s.region || "—"}</td>
-                    <td className="px-2 py-1.5 text-slate-300">{hasCounts ? `${s.players}/${s.maxPlayers}` : "n/a"}</td>
-                    <td className="px-2 py-1.5 text-slate-300">{pingFor(s)}</td>
-                    <td className="whitespace-nowrap px-2 py-1.5 text-right">
+                    <td className="px-2 py-1 text-slate-300">{String(s.dimension ?? "—").toUpperCase()}</td>
+                    <td className="px-2 py-1 text-slate-300">{s.region || "—"}</td>
+                    <td className="px-2 py-1 text-slate-300">{hasCounts ? `${s.players}/${s.maxPlayers}` : "n/a"}</td>
+                    <td className="px-2 py-1 text-slate-300">{pingFor(s)}</td>
+                    <td className="whitespace-nowrap px-2 py-1 text-right">
                       <Link href={`/games/servers/${encodeURIComponent(String(s?.id ?? ""))}`} className="mr-2 text-[11px] text-slate-300 hover:underline">Details</Link>
                       {isFull(s) ? (
                         <span className="text-[11px] text-slate-500">Full</span>
