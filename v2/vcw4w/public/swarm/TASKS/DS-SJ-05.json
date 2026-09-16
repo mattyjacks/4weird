@@ -1,0 +1,23 @@
+{
+  "id": "DS-SJ-05",
+  "title": "SJ travel fallback",
+  "goal": "Haversine + mode speeds + plane composite estimator, range formatting, pure no-browser-globals NEW lib file. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/lib/vocrehab-travel-estimate.ts"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-05",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T03:10:00.000Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:00:00.000Z DS-SJ-05: claimed, starting travel fallback lib.",
+    "2026-09-16T03:10:00.000Z DS-SJ-05: created v2/vcw4w/lib/vocrehab-travel-estimate.ts (NEW, pure, zero imports, no browser globals). Exports TravelMode, haversineMi, estimateLeg, formatRange + EstimateLegOpts/TravelLegEstimate/TravelCoord types. Speeds: car 32mph, walk 3mph, transit 1.6x car+12 wait, plane = airport-drive stub (default 10mi at car speed) + miles/500*60 + 90 overhead. Gates: npx tsc --noEmit exit 0 (fixed coord-narrowing TS2339 first pass), npx eslint lib/vocrehab-travel-estimate.ts exit 0, grep confirms zero import/require/browser-global lines. Scope-only: single new file, no shared-manifest touches."
+  ]
+}

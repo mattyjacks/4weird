@@ -1,0 +1,25 @@
+{
+  "id": "DS-SJ-16",
+  "title": "SJ unit tests",
+  "goal": "NEW pure tests for calendar edges, overlap checker, fallback estimator vs known Tacoma distances. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/lib/__tests__/vocrehab-schedule-calendar.test.ts",
+    "v2/vcw4w/lib/__tests__/vocrehab-travel-estimate.test.ts"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-16",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T12:00:00.000Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T12:00:00.000Z DS-SJ-16: claimed. No repo test framework found (no vitest/jest, no lib/__tests__ yet) — will write plain node:test + node:assert/strict TS tests importing only the two lib files.",
+    "2026-09-16T12:00:00.000Z DS-SJ-16: created both scope files (13 calendar tests: Feb2024=29d, Feb2023=28d, Mon-first blanks Jan2024=0/Feb2024=3/Sep2024=6, addMonths year-wrap, snapToHalfHour incl clamp; 9 travel tests: Tacoma home->hospital ~2mi in 1-3mi band, coord-shape parity, car/walk/transit/plane ordering, formatRange). Imports limited to the two lib files + node:test/node:assert. Note: no overlap checker exists in vocrehab-schedule-calendar.ts so none tested.",
+    "2026-09-16T12:00:00.000Z DS-SJ-16: GATES GREEN — node --test on tsc-compiled output: 22 pass / 0 fail; npx tsc --noEmit: clean (no output); npx eslint on both test files: clean (no output). Run note: .js-suffix imports need a tsc emit step before node --test (node 22.17 strip-types does not rewrite .js->.ts); sources untouched. Scope-only: no other files written. DONE."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "DS-SJ-12",
+  "title": "SJ travel panel UI",
+  "goal": "NEW travel panel: leg results, Apply-to-day locked travel blocks, no-service burden surfacing. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-schedule-travel.tsx"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-12",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T03:30:00.000Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:30:00.000Z DS-SJ-12: claimed. Creating scope-only components/vocrehab/vocrehab-schedule-travel.tsx.",
+    "2026-09-16T03:32:00.000Z DS-SJ-12: created v2/vcw4w/components/vocrehab/vocrehab-schedule-travel.tsx ('use client', local VocrehabTravelResult type, no SJ imports; props result/loading/onApply/onRecalc + optional notice slot; live-estimate vs planning-estimate badge; Apply-to-day + Recalculate buttons; strengths-first tone, no red styling).",
+    "2026-09-16T03:33:00.000Z DS-SJ-12: gate npx tsc --noEmit (v2/vcw4w) PASS, no output. Gate npx eslint components/vocrehab/vocrehab-schedule-travel.tsx PASS, no output. Scope-only: one new file, zero shared-manifest edits. done."
+  ]
+}

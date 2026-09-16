@@ -1,0 +1,23 @@
+{
+  "id": "DS-SJ-09",
+  "title": "SJ address book UI",
+  "goal": "NEW address-book + estimator component: CRUD, Home/Work defaults, From/To + mode tabs, recalc hooks. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-schedule-addresses.tsx"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-09",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T03:05:00.000Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:00:00.000Z DS-SJ-09: claimed by DS-SJ-09, building address-book component.",
+    "2026-09-16T03:05:00.000Z DS-SJ-09: created v2/vcw4w/components/vocrehab/vocrehab-schedule-addresses.tsx (use client, local SavedAddress/TravelMode types, CRUD + category badges + Home/Work-default From/To + mode tabs + sample + privacy notes). Gates: npx eslint touched path exit 0 clean; npx tsc --noEmit exit 0 zero errors. Scope-only, no shared-manifest edits. DONE."
+  ]
+}

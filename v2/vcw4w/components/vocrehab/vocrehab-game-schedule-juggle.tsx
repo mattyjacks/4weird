@@ -1,23 +1,976 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+/**
+ * VocRehab Schedule Juggle — composition root (DS-SJ-20 integrator).
+ *
+ * Composes every landed SJ piece into one practice board:
+ * - calendar lib (`lib/vocrehab-schedule-calendar`) for month nav + half-hour snaps
+ * - activities (`lib/vocrehab-schedule-activities`) for the palette
+ * - burdens (`lib/vocrehab-schedule-burdens`) for difficulty sets + overlap notes
+ * - geo presets (`lib/vocrehab-schedule-presets`) for home-base addresses
+ * - travel fallback estimator (`lib/vocrehab-travel-estimate`) for trip ranges
+ * - seed bridge (`lib/vocrehab-schedule-seed`) for preset/difficulty/finish summary
+ * - month grid + 24h day drawer + palette + addresses + travel + controls +
+ *   persist components, the month store hook, and the a11y live-region helper
+ *
+ * Strengths-first throughout: guidance celebrates steady planning, conflicts
+ * are amber planning notes with one-tap fixes — never red errors. The finish
+ * payload carries counts + preset/difficulty/seed only; addresses stay
+ * anonymized (categories only) everywhere they leave the device.
+ *
+ * Legacy fallback: `?legacy=1` renders the original 7-day x 3-slot grid.
+ */
+
+import { Suspense, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { makeSeed } from "@/lib/vocrehab-seed";
-import { vocrehabJugglePoolSets, vocrehabSelectJuggle } from "@/lib/vocrehab-seed-pools3";
+import {
+  vocrehabJugglePoolSets,
+  vocrehabSelectJuggle,
+} from "@/lib/vocrehab-seed-pools3";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
+import {
+  addMonths,
+  getInitialMonthParts,
+  isInRange,
+  minutesToLabel,
+  snapToHalfHour,
+  toDayId,
+} from "@/lib/vocrehab-schedule-calendar";
+import {
+  ACTIVITY_KINDS,
+  defaultDuration,
+} from "@/lib/vocrehab-schedule-activities";
+import {
+  BURDENS,
+  burdensForDifficulty,
+  checkOverlaps,
+} from "@/lib/vocrehab-schedule-burdens";
+import type { ScheduleEvent } from "@/lib/vocrehab-schedule-burdens";
+import {
+  DEFAULT_GEO_PRESET_ID,
+  getGeoPreset,
+} from "@/lib/vocrehab-schedule-presets";
+import type { SavedAddress } from "@/lib/vocrehab-schedule-presets";
+import {
+  estimateLeg,
+  haversineMi,
+} from "@/lib/vocrehab-travel-estimate";
+import type { TravelMode } from "@/lib/vocrehab-travel-estimate";
+import {
+  buildFinishSummary,
+  difficultyForSetId,
+  presetIdForSeed,
+} from "@/lib/vocrehab-schedule-seed";
+import type { VocrehabScheduleDifficulty } from "@/lib/vocrehab-schedule-seed";
+import VocrehabScheduleMonth from "./vocrehab-schedule-month";
+import VocrehabScheduleDay from "./vocrehab-schedule-day";
+import type { VocrehabScheduleDayEvent } from "./vocrehab-schedule-day";
+import VocrehabSchedulePalette from "./vocrehab-schedule-palette";
+import VocrehabScheduleTravel from "./vocrehab-schedule-travel";
+import type { VocrehabTravelResult } from "./vocrehab-schedule-travel";
+import VocrehabScheduleControls from "./vocrehab-schedule-controls";
+import VocrehabSchedulePersist from "./vocrehab-schedule-persist";
+import VocrehabScheduleAddresses from "./vocrehab-schedule-addresses";
+import type {
+  VocrehabSavedAddress,
+  VocrehabTravelMode,
+} from "./vocrehab-schedule-addresses";
+import {
+  SCHEDULE_VERSION,
+  STORAGE_KEY,
+  readStoredSchedule,
+  useScheduleStore,
+} from "./vocrehab-schedule-store";
+import type {
+  DayEvent,
+  ScheduleState,
+} from "./vocrehab-schedule-store";
+import {
+  ScheduleLiveRegion,
+  announceLive,
+  dayAriaLabel,
+  eventAriaLabel,
+} from "./vocrehab-schedule-a11y";
 
-const VOCREHAB_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
-const VOCREHAB_SLOTS = ["Morning", "Afternoon", "Evening"] as const;
+const SJ_MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
 
-// Blocks and constraints come from the seeded pool (lib/vocrehab-seed-pools3):
-// every seed replays the same fair schedule set. Cell key: `${day}-${slot}`.
+const SJ_GEO_IDS = ["wa", "nh", "ak", "custom"] as const;
 
-export default function VocrehabGameScheduleJuggle({
+const SJ_DAY_MIN = 0;
+const SJ_DAY_MAX = 24 * 60;
+
+/** One learner-placed block with its 24h clock position. */
+type SjDayBlock = {
+  id: string;
+  title: string;
+  activityId: string;
+  startMin: number;
+  endMin: number;
+  locked?: boolean;
+};
+
+type SjTravelTrip = {
+  fromId: string;
+  toId: string;
+  uiMode: VocrehabTravelMode;
+  title: string;
+};
+
+function sjMonthLabel(year: number, monthIndex: number): string {
+  return `${SJ_MONTH_NAMES[monthIndex] ?? `Month ${monthIndex + 1}`} ${year}`;
+}
+
+function sjTodayDayId(): string {
+  const now = new Date();
+  return toDayId(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+function sjValidPresetId(value: unknown): string {
+  return typeof value === "string" && (SJ_GEO_IDS as readonly string[]).includes(value)
+    ? value
+    : DEFAULT_GEO_PRESET_ID;
+}
+
+function sjValidDifficulty(value: unknown): VocrehabScheduleDifficulty {
+  return value === "medium" || value === "hard" ? value : "easy";
+}
+
+/** Preset address → address-book entry (only home/work map 1:1, rest plan as other). */
+function sjPresetAddressToSaved(address: SavedAddress): VocrehabSavedAddress {
+  const category =
+    address.category === "home" ? "home" : address.category === "work" ? "work" : "other";
+  return {
+    id: address.id,
+    label: address.label,
+    address: address.address,
+    category,
+  };
+}
+
+function sjCoerceAddresses(value: unknown): VocrehabSavedAddress[] {
+  if (!Array.isArray(value)) return [];
+  const out: VocrehabSavedAddress[] = [];
+  for (const item of value) {
+    if (typeof item !== "object" || item === null) continue;
+    const entry = item as Record<string, unknown>;
+    if (
+      typeof entry.id !== "string" ||
+      typeof entry.label !== "string" ||
+      typeof entry.address !== "string"
+    ) {
+      continue;
+    }
+    const category =
+      entry.category === "home" ||
+      entry.category === "work" ||
+      entry.category === "training" ||
+      entry.category === "other"
+        ? entry.category
+        : "other";
+    out.push({ id: entry.id, label: entry.label, address: entry.address, category });
+  }
+  return out;
+}
+
+/** Encode a positioned block into the store's free-form DayEvent shape. */
+function sjBlockToStored(block: SjDayBlock): DayEvent {
+  return {
+    id: block.id,
+    title: block.title,
+    slot: `${block.startMin}-${block.endMin}`,
+    notes: JSON.stringify({ a: block.activityId, l: block.locked === true ? 1 : 0 }),
+  };
+}
+
+/** Decode a stored DayEvent back into a positioned block (null when unreadable). */
+function sjBlockFromStored(event: DayEvent): SjDayBlock | null {
+  const slot = typeof event.slot === "string" ? event.slot : "";
+  const match = /^(\d+)-(\d+)$/.exec(slot);
+  if (!match) return null;
+  const startMin = Math.min(SJ_DAY_MAX, Math.max(SJ_DAY_MIN, Number(match[1])));
+  const endMin = Math.min(SJ_DAY_MAX, Math.max(SJ_DAY_MIN, Number(match[2])));
+  if (!(endMin > startMin)) return null;
+  let activityId = "personal";
+  let locked = false;
+  try {
+    const meta = JSON.parse(typeof event.notes === "string" ? event.notes : "") as {
+      a?: unknown;
+      l?: unknown;
+    };
+    if (typeof meta.a === "string") activityId = meta.a;
+    locked = meta.l === 1;
+  } catch {
+    // Keep kind defaults — a stored block still plans fine without its meta.
+  }
+  return {
+    id: event.id,
+    title: event.title,
+    activityId,
+    startMin,
+    endMin,
+    locked: locked ? true : undefined,
+  };
+}
+
+function sjBlocksToScheduleEvents(blocks: SjDayBlock[]): ScheduleEvent[] {
+  return blocks.map((block) => ({
+    id: block.id,
+    startMin: block.startMin,
+    endMin: block.endMin,
+    title: block.title,
+  }));
+}
+
+function sjCountConflicts(blocksByDay: Record<string, SjDayBlock[]>): number {
+  return Object.values(blocksByDay).reduce(
+    (total, blocks) => total + checkOverlaps(sjBlocksToScheduleEvents(blocks)).length,
+    0,
+  );
+}
+
+function sjLockedMinutes(blocks: SjDayBlock[]): number {
+  return blocks
+    .filter((block) => block.locked === true)
+    .reduce((total, block) => total + Math.max(0, block.endMin - block.startMin), 0);
+}
+
+function sjUiModeToTravelMode(mode: VocrehabTravelMode): TravelMode {
+  return mode === "drive" ? "car" : mode;
+}
+
+function ScheduleJuggleRoot({
   vocrehabEmit,
   vocrehabFinish,
   vocrehabSeed,
   vocrehabRunKey,
 }: VocrehabGameRunProps) {
-  // Seeded schedule set, resolved once per run key.
+  // Re-resolve when the frame issues a fresh run key.
+  const seed = useMemo(
+    () => vocrehabSeed ?? makeSeed(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [vocrehabSeed, vocrehabRunKey],
+  );
+  const seedPreset = presetIdForSeed(seed);
+  const seedDifficulty = useMemo(() => {
+    try {
+      return difficultyForSetId(vocrehabSelectJuggle(seed).setId);
+    } catch {
+      return "easy" as VocrehabScheduleDifficulty;
+    }
+  }, [seed]);
+
+  const seedAnchor = useMemo(() => getInitialMonthParts(), []);
+  const seedAddresses = useMemo(
+    () => getGeoPreset(seedPreset).addresses.map(sjPresetAddressToSaved),
+    [seedPreset],
+  );
+
+  // Month store (explicit-save localStorage, version-guarded). The store is
+  // the source of truth for persisted month fields; UI-only state lives below.
+  const [scheduleState, scheduleDispatch] = useScheduleStore({
+    presetId: seedPreset,
+    difficulty: seedDifficulty,
+    monthAnchor: seedAnchor,
+    addresses: seedAddresses,
+  });
+
+  const presetId = sjValidPresetId(scheduleState.presetId);
+  const difficulty = sjValidDifficulty(scheduleState.difficulty);
+  const anchor = scheduleState.monthAnchor;
+  const geoPreset = getGeoPreset(presetId);
+
+  const storedAddresses = useMemo(
+    () => sjCoerceAddresses(scheduleState.addresses),
+    [scheduleState.addresses],
+  );
+  const addresses = storedAddresses.length > 0 ? storedAddresses : seedAddresses;
+
+  const blocksByDay = useMemo(() => {
+    const parsed: Record<string, SjDayBlock[]> = {};
+    for (const [dayId, events] of Object.entries(scheduleState.events)) {
+      const blocks = events
+        .map(sjBlockFromStored)
+        .filter((block): block is SjDayBlock => block !== null)
+        .sort((a, b) => a.startMin - b.startMin);
+      if (blocks.length > 0) parsed[dayId] = blocks;
+    }
+    return parsed;
+  }, [scheduleState.events]);
+
+  // Coordinate lookup across every geo preset so estimates survive preset hops.
+  const coordById = useMemo(() => {
+    const map = new Map<string, { lat: number; lng: number }>();
+    for (const id of ["wa", "nh", "ak"] as const) {
+      for (const entry of getGeoPreset(id).addresses) {
+        map.set(entry.id, { lat: entry.lat, lng: entry.lng });
+      }
+    }
+    return map;
+  }, []);
+
+  const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+  const [travelResult, setTravelResult] = useState<VocrehabTravelResult | null>(null);
+  const [travelTrip, setTravelTrip] = useState<SjTravelTrip | null>(null);
+  const [travelLoading, setTravelLoading] = useState(false);
+  const [liveMessage, setLiveMessage] = useState(
+    "Schedule Juggle month view. Open any day to build its 24-hour plan.",
+  );
+  const [note, setNote] = useState<string | null>(null);
+  const [finishNote, setFinishNote] = useState<string | null>(null);
+  const [conflictsResolved, setConflictsResolved] = useState(0);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [hasSave, setHasSave] = useState<boolean>(() => readStoredSchedule() !== null);
+  const [showWelcome, setShowWelcome] = useState<boolean>(() => readStoredSchedule() !== null);
+  const doneRef = useRef(false);
+  const idCounter = useRef(0);
+
+  const todayId = sjTodayDayId();
+  const monthLabel = sjMonthLabel(anchor.year, anchor.monthIndex);
+
+  const say = (message: string) => {
+    setLiveMessage(message);
+    announceLive(message);
+  };
+
+  const nextBlockId = (prefix: string) => {
+    idCounter.current += 1;
+    return `${prefix}-${Date.now().toString(36)}-${idCounter.current}`;
+  };
+
+  const totalBlocks = useMemo(
+    () => Object.values(blocksByDay).reduce((total, blocks) => total + blocks.length, 0),
+    [blocksByDay],
+  );
+  const totalConflicts = useMemo(() => sjCountConflicts(blocksByDay), [blocksByDay]);
+  const travelMinTotal = useMemo(
+    () => Object.values(blocksByDay).reduce((total, blocks) => total + sjLockedMinutes(blocks), 0),
+    [blocksByDay],
+  );
+
+  const eventCounts = useMemo(() => {
+    const counts: Record<string, { events: number; conflicts: number; travelMin: number }> = {};
+    for (const [dayId, blocks] of Object.entries(blocksByDay)) {
+      counts[dayId] = {
+        events: blocks.length,
+        conflicts: checkOverlaps(sjBlocksToScheduleEvents(blocks)).length,
+        travelMin: sjLockedMinutes(blocks),
+      };
+    }
+    return counts;
+  }, [blocksByDay]);
+
+  const selectedBlocks = useMemo(
+    () => (selectedDayId ? (blocksByDay[selectedDayId] ?? []) : []),
+    [selectedDayId, blocksByDay],
+  );
+  const selectedDayEvents: VocrehabScheduleDayEvent[] = selectedBlocks.map((block) => ({
+    id: block.id,
+    title: block.title,
+    startMin: block.startMin,
+    endMin: block.endMin,
+    locked: block.locked,
+  }));
+  const selectedActivity = ACTIVITY_KINDS.find((kind) => kind.id === selectedActivityId) ?? null;
+  const selectedConflicts = useMemo(
+    () => checkOverlaps(sjBlocksToScheduleEvents(selectedBlocks)),
+    [selectedBlocks],
+  );
+
+  const paletteBurdens = useMemo(
+    () =>
+      burdensForDifficulty(difficulty)
+        .map((id) => BURDENS.find((def) => def.id === id))
+        .filter((def): def is (typeof BURDENS)[number] => def !== undefined)
+        .map((def) => ({ id: def.id, title: def.title, why: def.why })),
+    [difficulty],
+  );
+
+  const transitNotice =
+    travelTrip?.uiMode === "transit" ? (geoPreset.transitGaps[0]?.detail ?? null) : null;
+
+  const mutateDay = (dayId: string, fn: (current: SjDayBlock[]) => SjDayBlock[]) => {
+    const current = blocksByDay[dayId] ?? [];
+    const next = [...fn(current)].sort((a, b) => a.startMin - b.startMin);
+    const before = sjCountConflicts(blocksByDay);
+    const afterMap = { ...blocksByDay, [dayId]: next };
+    if (next.length === 0) delete afterMap[dayId];
+    const after = sjCountConflicts(afterMap);
+    if (after < before) setConflictsResolved((count) => count + (before - after));
+    for (const block of next) {
+      scheduleDispatch({ type: "upsertEvent", dayId, event: sjBlockToStored(block) });
+    }
+    const removed = current.filter((block) => !next.some((kept) => kept.id === block.id));
+    for (const block of removed) {
+      scheduleDispatch({ type: "removeEvent", dayId, eventId: block.id });
+    }
+  };
+
+  const openDay = (dayId: string) => {
+    setSelectedDayId(dayId);
+    const count = blocksByDay[dayId]?.length ?? 0;
+    say(dayAriaLabel(dayId, count, selectedActivity?.label ?? null));
+  };
+
+  const goMonth = (delta: number) => {
+    const next = addMonths(anchor.year, anchor.monthIndex, delta);
+    if (!isInRange(next.year, next.monthIndex, seedAnchor.year, seedAnchor.monthIndex)) {
+      const edge = "That is the edge of the planning window — one month back, three months ahead.";
+      setNote(edge);
+      say(edge);
+      return;
+    }
+    scheduleDispatch({ type: "setMonth", monthAnchor: next });
+    setNote(null);
+  };
+
+  const goToday = () => {
+    if (!isInRange(seedAnchor.year, seedAnchor.monthIndex, seedAnchor.year, seedAnchor.monthIndex)) return;
+    scheduleDispatch({ type: "setMonth", monthAnchor: seedAnchor });
+    setSelectedDayId(todayId);
+    say("Back to the current month — today is open and ready.");
+  };
+
+  const jumpToDay1 = () => {
+    const dayId = toDayId(anchor.year, anchor.monthIndex, 1);
+    openDay(dayId);
+  };
+
+  const choosePreset = (id: string) => {
+    const nextId = sjValidPresetId(id);
+    scheduleDispatch({ type: "setPreset", presetId: id });
+    if (id !== "custom") {
+      const customs = addresses.filter((entry) => entry.id.startsWith("addr-"));
+      const fresh = [...getGeoPreset(nextId).addresses.map(sjPresetAddressToSaved), ...customs];
+      scheduleDispatch({ type: "setAddresses", addresses: fresh });
+      say(`${getGeoPreset(nextId).title} starts loaded — your added places stay on the list.`);
+    } else {
+      say("Custom mix — your current places stay exactly as they are.");
+    }
+    vocrehabEmit("action", { preset: id });
+    setNote(null);
+  };
+
+  const chooseDifficulty = (value: string) => {
+    scheduleDispatch({ type: "setDifficulty", difficulty: value });
+    say(`${sjValidDifficulty(value)} pace — a steady speed that fits real life.`);
+    vocrehabEmit("action", { difficulty: value });
+  };
+
+  const createBlock = (startMin: number) => {
+    if (!selectedDayId) return;
+    if (!selectedActivity) {
+      const hint = "Pick an activity first, then choose any half-hour target — every small step counts.";
+      setNote(hint);
+      say(hint);
+      return;
+    }
+    const start = snapToHalfHour(startMin);
+    const duration = defaultDuration(selectedActivity.id);
+    const end = Math.min(SJ_DAY_MAX, start + duration);
+    if (!(end > start)) return;
+    const block: SjDayBlock = {
+      id: nextBlockId("block"),
+      title: selectedActivity.label,
+      activityId: selectedActivity.id,
+      startMin: start,
+      endMin: end,
+    };
+    mutateDay(selectedDayId, (current) => [...current, block]);
+    const message = `${selectedActivity.label} added ${minutesToLabel(start)} to ${minutesToLabel(end)} — nice steady planning.`;
+    setNote(null);
+    say(message);
+    vocrehabEmit("action", { day: selectedDayId, activity: selectedActivity.id, startMin: start });
+  };
+
+  const moveBlock = (id: string, startMin: number) => {
+    if (!selectedDayId) return;
+    mutateDay(selectedDayId, (current) =>
+      current.map((block) => {
+        if (block.id !== id || block.locked === true) return block;
+        const duration = Math.max(30, block.endMin - block.startMin);
+        const start = Math.min(SJ_DAY_MAX - duration, Math.max(SJ_DAY_MIN, snapToHalfHour(startMin)));
+        return { ...block, startMin: start, endMin: start + duration };
+      }),
+    );
+    say("Block moved — the rest of the day flexes right along with it.");
+  };
+
+  const resizeBlock = (id: string, endMin: number) => {
+    if (!selectedDayId) return;
+    mutateDay(selectedDayId, (current) =>
+      current.map((block) => {
+        if (block.id !== id || block.locked === true) return block;
+        const end = Math.min(SJ_DAY_MAX, Math.max(block.startMin + 30, snapToHalfHour(endMin)));
+        return { ...block, endMin: end };
+      }),
+    );
+    say("Block extended — more room for that win.");
+  };
+
+  const removeBlock = (id: string) => {
+    if (!selectedDayId) return;
+    const target = selectedBlocks.find((block) => block.id === id);
+    mutateDay(selectedDayId, (current) => current.filter((block) => block.id !== id));
+    say(
+      target
+        ? eventAriaLabel(target.title, target.startMin, target.endMin, false) + " Freed up — open time, not a setback."
+        : "Block freed up — open time, not a setback.",
+    );
+  };
+
+  const repeatSleep = () => {
+    if (!selectedDayId) {
+      const hint = "Open a day first, then repeat last sleep carries the win into tonight.";
+      setNote(hint);
+      say(hint);
+      return;
+    }
+    const sleeps = Object.values(blocksByDay)
+      .flat()
+      .filter((block) => block.activityId === "sleep")
+      .sort((a, b) => a.startMin - b.startMin);
+    if (sleeps.length === 0) {
+      const hint = "No sleep block yet — pick Sleep from the palette to protect tonight first.";
+      setNote(hint);
+      say(hint);
+      return;
+    }
+    const last = sleeps[sleeps.length - 1];
+    const duration = Math.max(30, last.endMin - last.startMin);
+    const start = Math.min(SJ_DAY_MAX - duration, Math.max(SJ_DAY_MIN, snapToHalfHour(last.startMin)));
+    const copy: SjDayBlock = {
+      id: nextBlockId("sleep"),
+      title: "Sleep",
+      activityId: "sleep",
+      startMin: start,
+      endMin: start + duration,
+    };
+    mutateDay(selectedDayId, (current) => [...current, copy]);
+    const message = `Last sleep repeated ${minutesToLabel(start)} to ${minutesToLabel(start + duration)} — rest stays protected.`;
+    setNote(null);
+    say(message);
+    vocrehabEmit("action", { repeatedSleep: true, day: selectedDayId });
+  };
+
+  const runEstimate = (fromId: string, toId: string, uiMode: VocrehabTravelMode) => {
+    const from = addresses.find((entry) => entry.id === fromId);
+    const to = addresses.find((entry) => entry.id === toId);
+    if (!from || !to) {
+      const hint = "Pick a From place and a To place, then run the estimate.";
+      setNote(hint);
+      say(hint);
+      return;
+    }
+    const fromCoord = coordById.get(fromId);
+    const toCoord = coordById.get(toId);
+    // Plausible pins estimate live; custom places plan on a 2-mile neighborhood hop.
+    const miles =
+      fromCoord && toCoord
+        ? haversineMi(
+            { lat: fromCoord.lat, lng: fromCoord.lng },
+            { lat: toCoord.lat, lng: toCoord.lng },
+          )
+        : 2;
+    const mode = sjUiModeToTravelMode(uiMode);
+    const estimate = estimateLeg(mode, miles);
+    const title = `${from.label} → ${to.label}`;
+    setTravelResult({
+      minMin: estimate.minMin,
+      maxMin: estimate.maxMin,
+      miles: estimate.miles,
+      source: "planning",
+      label: title,
+    });
+    setTravelTrip({ fromId, toId, uiMode, title: `Travel: ${title}` });
+    const message = `${title}: ${estimate.label}. A steady planning figure to build around.`;
+    setNote(null);
+    say(message);
+    vocrehabEmit("action", { travelEstimate: true, mode: uiMode, miles: estimate.miles });
+  };
+
+  const recalcTravel = () => {
+    if (!travelTrip) {
+      say("Run an estimate first — then the trip can be checked again anytime.");
+      return;
+    }
+    setTravelLoading(true);
+    runEstimate(travelTrip.fromId, travelTrip.toId, travelTrip.uiMode);
+    setTravelLoading(false);
+  };
+
+  const applyTravel = () => {
+    if (!travelResult || !travelTrip) {
+      say("Run an estimate first — then the trip can join the day.");
+      return;
+    }
+    const dayId = selectedDayId ?? todayId;
+    const current = blocksByDay[dayId] ?? [];
+    const duration = Math.max(15, travelResult.maxMin);
+    const lastEnd = current.reduce((max, block) => Math.max(max, block.endMin), 8 * 60);
+    const start = Math.min(SJ_DAY_MAX - duration, Math.max(SJ_DAY_MIN, snapToHalfHour(lastEnd)));
+    const block: SjDayBlock = {
+      id: nextBlockId("travel"),
+      title: travelTrip.title,
+      activityId: "travel",
+      startMin: start,
+      endMin: start + duration,
+      locked: true,
+    };
+    mutateDay(dayId, (prev) => [...prev, block]);
+    setSelectedDayId(dayId);
+    say(
+      `${eventAriaLabel(block.title, block.startMin, block.endMin, true)} Set as steady travel time so the rest of the day can flex around it.`,
+    );
+    vocrehabEmit("action", { travelApplied: true, day: dayId, minutes: duration });
+  };
+
+  const saveMonth = (includeAddresses: boolean) => {
+    const snapshot: ScheduleState = {
+      version: SCHEDULE_VERSION,
+      presetId,
+      difficulty,
+      monthAnchor: anchor,
+      addresses: includeAddresses
+        ? addresses
+        : addresses.map((entry) => ({ id: entry.id, category: entry.category })),
+      events: scheduleState.events,
+      updatedAt: new Date().toISOString(),
+    };
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    } catch {
+      const hint = "This browser could not keep the save — your plan is still right here, nothing lost.";
+      setNote(hint);
+      say(hint);
+      return;
+    }
+    scheduleDispatch({ type: "hydrate", state: snapshot });
+    setSavedAt(snapshot.updatedAt);
+    setHasSave(true);
+    const message = includeAddresses
+      ? "Month saved — places included, the way you chose."
+      : "Month saved — counts and day cells kept, places left private.";
+    say(message);
+    vocrehabEmit("action", { saved: true, includeAddresses });
+  };
+
+  const loadMonth = () => {
+    const stored = readStoredSchedule();
+    if (!stored) {
+      const hint = "No saved month on this device yet — keep building, then Save my month.";
+      setNote(hint);
+      say(hint);
+      return;
+    }
+    scheduleDispatch({ type: "resume", state: stored });
+    setSavedAt(stored.updatedAt ?? null);
+    setHasSave(true);
+    setNote(null);
+    say("Saved month back on the board — pick up right where the wins left off.");
+    vocrehabEmit("action", { loaded: true });
+  };
+
+  const clearMonth = () => {
+    scheduleDispatch({ type: "clearMonth" });
+    say("This month is a clean slate — every open day is ready when you are.");
+  };
+
+  const clearAll = () => {
+    scheduleDispatch({ type: "clearAll" });
+    setSelectedDayId(null);
+    setTravelResult(null);
+    setTravelTrip(null);
+    say("Brand-new month — same steady tools, fresh open days.");
+  };
+
+  const exportMonth = (includeAddresses: boolean) => {
+    const payload = {
+      game: "schedule-juggle",
+      version: SCHEDULE_VERSION,
+      exportedAt: new Date().toISOString(),
+      presetId,
+      difficulty,
+      seed,
+      placements: totalBlocks,
+      travelMinTotal,
+      conflictsResolved,
+      days: Object.fromEntries(
+        Object.entries(blocksByDay).map(([dayId, blocks]) => [
+          dayId,
+          { blocks: blocks.length, travelMin: sjLockedMinutes(blocks) },
+        ]),
+      ),
+      // Anonymized by default: categories only unless the learner opts in.
+      addresses: includeAddresses
+        ? addresses
+        : addresses.map((entry) => ({ category: entry.category })),
+    };
+    try {
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `schedule-juggle-${seed}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      say("Month exported — your planning progress, ready to keep anywhere.");
+      vocrehabEmit("action", { exported: true, includeAddresses });
+    } catch {
+      const hint = "Export did not start in this browser — Save my month keeps the same progress here.";
+      setNote(hint);
+      say(hint);
+    }
+  };
+
+  const finishMonth = () => {
+    if (doneRef.current || totalBlocks === 0) return;
+    doneRef.current = true;
+    const summary = buildFinishSummary({
+      presetId,
+      difficulty,
+      placements: totalBlocks,
+      travelMinTotal,
+      conflictsResolved,
+      seed,
+    });
+    setFinishNote(summary);
+    say(summary);
+    vocrehabEmit("complete", { placements: totalBlocks, travelMinTotal });
+    vocrehabFinish({
+      placements: totalBlocks,
+      travelMinTotal,
+      conflictsResolved,
+      presetId,
+      difficulty,
+      seed,
+    });
+  };
+
+  return (
+    <div className="vocrehab-game-schedule-juggle space-y-4">
+      <ScheduleLiveRegion message={liveMessage} />
+      <p className="text-sm text-muted-foreground" role="status">
+        {totalBlocks} {totalBlocks === 1 ? "block" : "blocks"} placed · {travelMinTotal} min travel
+        planned · {conflictsResolved}{" "}
+        {conflictsResolved === 1 ? "puzzle" : "puzzles"} worked through · {monthLabel} ·{" "}
+        {totalConflicts === 0 ? "✓ no open overlaps" : `▲ ${totalConflicts} open to explore`}
+      </p>
+
+      {showWelcome && hasSave ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm">
+          <p className="font-medium">Welcome back — your saved month is on the board.</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setShowWelcome(false)}
+              className="rounded-lg border border-emerald-600 bg-white px-3 py-1.5 font-medium"
+            >
+              Keep building
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                clearAll();
+                setShowWelcome(false);
+              }}
+              className="rounded-lg border px-3 py-1.5"
+            >
+              Start fresh instead
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <VocrehabScheduleControls
+        presetId={presetId}
+        onPreset={choosePreset}
+        difficulty={difficulty}
+        onDifficulty={chooseDifficulty}
+        monthLabel={monthLabel}
+        onPrev={() => goMonth(-1)}
+        onNext={() => goMonth(1)}
+        onToday={goToday}
+        onJumpToDay1={jumpToDay1}
+        savedAt={savedAt}
+      />
+
+      <div className="grid gap-4 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <VocrehabScheduleMonth
+            year={anchor.year}
+            monthIndex={anchor.monthIndex}
+            selectedDayId={selectedDayId}
+            eventCounts={eventCounts}
+            onSelect={openDay}
+            todayDayId={todayId}
+          />
+        </div>
+        <div className="lg:col-span-2">
+          <VocrehabSchedulePalette
+            activities={ACTIVITY_KINDS.map((kind) => ({
+              id: kind.id,
+              label: kind.label,
+              blurb: kind.blurb,
+            }))}
+            selectedId={selectedActivityId}
+            onSelect={(id) => {
+              setSelectedActivityId(id);
+              const kind = ACTIVITY_KINDS.find((entry) => entry.id === id);
+              say(
+                kind
+                  ? `${kind.label} picked — ${kind.blurb}`
+                  : "Activity picked — open a day and choose a half-hour target.",
+              );
+            }}
+            burdens={paletteBurdens}
+            onRepeatSleep={repeatSleep}
+          />
+        </div>
+      </div>
+
+      {note ? (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm" role="status">
+          {note}
+        </p>
+      ) : null}
+
+      {selectedDayId ? (
+        <section aria-label={`Day drawer for ${selectedDayId}`} className="space-y-3 rounded-xl border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold">{selectedDayId} — 24-hour plan</h3>
+            <button
+              type="button"
+              onClick={() => setSelectedDayId(null)}
+              aria-label={`Close day ${selectedDayId}`}
+              className="rounded-lg border px-3 py-1 text-sm"
+            >
+              Close day
+            </button>
+          </div>
+          <p className="text-sm text-muted-foreground" role="status">
+            {dayAriaLabel(selectedDayId, selectedBlocks.length, selectedActivity?.label ?? null)}
+          </p>
+          {selectedConflicts.length > 0 ? (
+            <ul className="space-y-2">
+              {selectedConflicts.map((conflict, index) => (
+                <li
+                  key={`${conflict.burdenId}-${index}`}
+                  className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-sm"
+                >
+                  <p>{conflict.message}</p>
+                  <p className="mt-1 text-xs font-medium">Fix idea: {conflict.fixLabel}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {selectedBlocks.length === 0
+                ? "A fresh day with room for wins — pick an activity, then tap a half-hour target."
+                : "✓ This day is holding together nicely — every block has its own room."}
+            </p>
+          )}
+          <VocrehabScheduleDay
+            dayId={selectedDayId}
+            events={selectedDayEvents}
+            selectedActivity={
+              selectedActivity
+                ? {
+                    id: selectedActivity.id,
+                    label: selectedActivity.label,
+                    defaultDurMin: selectedActivity.defaultDurMin,
+                  }
+                : null
+            }
+            onCreate={createBlock}
+            onMove={moveBlock}
+            onResize={resizeBlock}
+            onRemove={removeBlock}
+          />
+        </section>
+      ) : (
+        <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground" role="status">
+          Pick any day on the month grid to open its 24-hour plan — open days are ready when you are.
+        </p>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <VocrehabScheduleAddresses
+          addresses={addresses}
+          onChange={(next) => {
+            scheduleDispatch({ type: "setAddresses", addresses: next });
+            vocrehabEmit("action", { addresses: next.length });
+          }}
+          onEstimate={runEstimate}
+        />
+        <VocrehabScheduleTravel
+          result={travelResult}
+          loading={travelLoading}
+          onApply={applyTravel}
+          onRecalc={recalcTravel}
+          notice={transitNotice}
+        />
+      </div>
+
+      <VocrehabSchedulePersist
+        onSave={({ includeAddresses }) => saveMonth(includeAddresses)}
+        onLoad={loadMonth}
+        onClearMonth={clearMonth}
+        onClearAll={clearAll}
+        onExport={({ includeAddresses }) => exportMonth(includeAddresses)}
+        savedAt={savedAt}
+        hasSave={hasSave}
+      />
+
+      <p className="text-xs text-muted-foreground">{geoPreset.briefing}</p>
+
+      {finishNote ? (
+        <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm" role="status">
+          {finishNote}
+        </p>
+      ) : null}
+      <button
+        type="button"
+        onClick={finishMonth}
+        disabled={totalBlocks === 0}
+        className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-50"
+      >
+        Finish my month
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Legacy 7-day x 3-slot grid (pre-monthly-calander fallback).
+ * Renders only when the URL carries `?legacy=1`. Seeded pool, blocks, and
+ * constraints come from `lib/vocrehab-seed-pools3` exactly as before.
+ */
+function VocrehabGameScheduleJuggleLegacy({
+  vocrehabEmit,
+  vocrehabFinish,
+  vocrehabSeed,
+  vocrehabRunKey,
+}: VocrehabGameRunProps) {
+  const VOCREHAB_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+  const VOCREHAB_SLOTS = ["Morning", "Afternoon", "Evening"] as const;
+
   const vocrehabPool = useMemo(() => {
     const seed = vocrehabSeed ?? makeSeed();
     const selection = vocrehabSelectJuggle(seed);
@@ -31,6 +984,7 @@ export default function VocrehabGameScheduleJuggle({
       blocks: selection.blocks,
       constraints: selection.constraints,
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vocrehabSeed, vocrehabRunKey]);
 
   const VOCREHAB_BLOCKS = vocrehabPool.blocks;
@@ -207,5 +1161,27 @@ export default function VocrehabGameScheduleJuggle({
         Finish schedule
       </button>
     </div>
+  );
+}
+
+function ScheduleJuggleSwitch(props: VocrehabGameRunProps) {
+  const params = useSearchParams();
+  if (params.get("legacy") === "1") {
+    return <VocrehabGameScheduleJuggleLegacy {...props} />;
+  }
+  return <ScheduleJuggleRoot {...props} />;
+}
+
+export default function VocrehabGameScheduleJuggle(props: VocrehabGameRunProps) {
+  return (
+    <Suspense
+      fallback={
+        <p className="text-sm text-muted-foreground" role="status">
+          Opening your month — steady planning starts here.
+        </p>
+      }
+    >
+      <ScheduleJuggleSwitch {...props} />
+    </Suspense>
   );
 }

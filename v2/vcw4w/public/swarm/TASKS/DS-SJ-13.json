@@ -1,0 +1,23 @@
+{
+  "id": "DS-SJ-13",
+  "title": "SJ controls UI",
+  "goal": "NEW controls bar: preset picker, Easy/Med/Hard, month nav Today/Day1, last-saved stamp, aria-live. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-schedule-controls.tsx"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-13",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T03:05:00.000Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:04:00.000Z DS-SJ-13: claimed owner=DS-SJ-13, status in_progress.",
+    "2026-09-16T03:05:00.000Z DS-SJ-13: created v2/vcw4w/components/vocrehab/vocrehab-schedule-controls.tsx (use client, no SJ imports; props presetId/onPreset/difficulty/onDifficulty/monthLabel/onPrev/onNext/onToday/onJumpToDay1/savedAt; WA/NH/AK/Custom picker + Easy/Med/Hard segmented + month nav Today/Day1 + saved stamp + aria-live polite status; strengths-first, never red). Gates: npx tsc --noEmit exit 0 (no output), npx eslint components/vocrehab/vocrehab-schedule-controls.tsx exit 0 (no output). Scope-only, one NEW file. Status done."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "DS-SJ-04",
+  "title": "SJ geo presets",
+  "goal": "WA/NH/AK address presets with lat/lng + transit-gap tables + airport map in NEW lib file. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/lib/vocrehab-schedule-presets.ts"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-04",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T02:46:00.449Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:10:00.000Z DS-SJ-04: claimed, starting WA/NH/AK geo presets file.",
+    "2026-09-16T03:20:00.000Z DS-SJ-04: created v2/vcw4w/lib/vocrehab-schedule-presets.ts (NEW, pure, zero imports) with SavedAddress/GeoPreset types + wa (default, 15 addresses incl. Westerly home, 3 medical, work-local + work-dc) / nh (Elm Grove + Elliot + community five) / ak (Turnagain + 2 hospitals + community five + Wasilla/Eagle River/Girdwood ring) presets, transit-gap tables, airport maps (SEA+TIW, MHT+BOS, ANC+MRI).",
+    "2026-09-16T03:21:00.000Z DS-SJ-04: gate eslint lib/vocrehab-schedule-presets.ts PASS (no output). gate tsc --noEmit: zero errors in scope file; only repo error is lib/vocrehab-travel-estimate.ts(62,19+36) TS2339 latitude/longitude, a sibling lane's untracked file outside my scope_paths, left untouched. node --check N/A (no JS). Scope-only: one new file, no shared-manifest edits, no QUEUE wiring needed. DONE."
+  ]
+}

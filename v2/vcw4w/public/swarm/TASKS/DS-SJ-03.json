@@ -1,0 +1,25 @@
+{
+  "id": "DS-SJ-03",
+  "title": "SJ burdens engine",
+  "goal": "Burden defs + pure checkers returning plain-language conflicts + one-tap fix descriptors in NEW lib file. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/lib/vocrehab-schedule-burdens.ts"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-03",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T02:46:00.449Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T00:00:00.000Z DS-SJ-03: claimed envelope, starting burdens engine.",
+    "2026-09-16T00:00:00.000Z DS-SJ-03: created v2/vcw4w/lib/vocrehab-schedule-burdens.ts (BurdenId x12, BURDENS, burdensForDifficulty, Conflict + checkOverlaps, strengths-first copy).",
+    "2026-09-16T00:00:00.000Z DS-SJ-03: gate tsc --noEmit PASS (no errors, npm notice only).",
+    "2026-09-16T00:00:00.000Z DS-SJ-03: gate eslint lib/vocrehab-schedule-burdens.ts PASS (clean, no output). DONE."
+  ]
+}

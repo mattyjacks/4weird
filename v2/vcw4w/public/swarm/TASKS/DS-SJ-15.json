@@ -1,0 +1,24 @@
+{
+  "id": "DS-SJ-15",
+  "title": "SJ seed bridge",
+  "goal": "NEW seed-compat bridge mapping pool3 setIds to Easy difficulties + extended finish-summary builder, no edits to pools. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/lib/vocrehab-schedule-seed.ts"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-15",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T03:10:00.000Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:05:00.000Z DS-SJ-15: claimed envelope, owner=DS-SJ-15.",
+    "2026-09-16T03:08:00.000Z DS-SJ-15: created v2/vcw4w/lib/vocrehab-schedule-seed.ts (NEW, pure; imports only @/lib/vocrehab-seed; exports presetIdForSeed, difficultyForSetId, buildFinishSummary + types). vocrehab-seed-pools3.ts untouched (not in git status modified list).",
+    "2026-09-16T03:09:00.000Z DS-SJ-15: gates green — npx tsc --noEmit clean (no output), npx eslint lib/vocrehab-schedule-seed.ts clean (no output); node --check N/A (no .js touched). Scope-only: single new file in envelope scope_paths."
+  ]
+}

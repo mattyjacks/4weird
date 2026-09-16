@@ -1,0 +1,24 @@
+{
+  "id": "DS-SJ-10",
+  "title": "SJ store hook",
+  "goal": "NEW useReducer + localStorage persistence hook, versioned key vocrehab-schedule-juggle-v2, resume-vs-fresh offer. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-schedule-store.ts"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-10",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T02:46:00.449Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:00:00.000Z DS-SJ-10: claimed by DS-SJ-10 (web lane), scope v2/vcw4w/components/vocrehab/vocrehab-schedule-store.ts.",
+    "2026-09-16T03:20:00.000Z DS-SJ-10: created v2/vcw4w/components/vocrehab/vocrehab-schedule-store.ts (NEW, 260 lines, react-only imports, no SJ imports). STORAGE_KEY=vocrehab-schedule-juggle-v2, ScheduleState v2, 11 actions incl. hydrate/resume + clearMonth/clearAll, useScheduleStore->[state,dispatch,saveNow,loadOffer], SSR-safe mount restore, explicit-save-only (no autosave), unknown-version->fresh guard.",
+    "2026-09-16T03:21:00.000Z DS-SJ-10: gates green — npx tsc --noEmit exit 0 (repo-wide, zero errors); npx eslint components/vocrehab/vocrehab-schedule-store.ts exit 0; node --check N/A (no .js touched, .ts covered by tsc). Scope-only: 1 NEW file + this envelope; no shared-manifest edits, no QUEUE wiring needed. STATUS.json untouched (steward-owned)."
+  ]
+}

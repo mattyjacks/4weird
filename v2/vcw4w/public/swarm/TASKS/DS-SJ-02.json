@@ -1,0 +1,25 @@
+{
+  "id": "DS-SJ-02",
+  "title": "SJ activities lib",
+  "goal": "Activity kinds, default durations, colors, required-vs-optional flags in NEW lib file. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/lib/vocrehab-schedule-activities.ts"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-02",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T02:46:00.449Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T02:47:00Z DS-SJ-02 claimed envelope (status=claimed).",
+    "2026-09-16T02:47:30Z DS-SJ-02 in progress: creating lib/vocrehab-schedule-activities.ts (status=in_progress).",
+    "2026-09-16T02:52:00Z DS-SJ-02 verify: npx tsc --noEmit exit 0, zero errors; npx eslint lib/vocrehab-schedule-activities.ts exit 0, zero findings; file BOM-less UTF-8, zero imports (no SJ imports).",
+    "2026-09-16T02:52:00Z DS-SJ-02 done: NEW v2/vcw4w/lib/vocrehab-schedule-activities.ts (12 kinds, ACTIVITY_KINDS + ActivityKind/ActivityKindId + defaultDuration), scope-only, no shared manifests, no old-v1."
+  ]
+}

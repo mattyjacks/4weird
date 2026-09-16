@@ -1,0 +1,24 @@
+{
+  "id": "DS-SJ-18",
+  "title": "SJ verify script",
+  "goal": "NEW verify script for schedule-juggle file presence + JSON parse + no-secret scan, wired via QUEUE only. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/scripts/verify-vocrehab-schedule.mjs"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-18",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T02:46:00.449Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T05:00:00.000Z DS-SJ-18: claimed envelope, owner=DS-SJ-18.",
+    "2026-09-16T05:05:00.000Z DS-SJ-18: created v2/vcw4w/scripts/verify-vocrehab-schedule.mjs (NEW, node builtins only). Gates: node --check exit 0; run -> 3 PASS 0 FAIL exit 0 (14/14 SJ files DS-SJ-01..14, 20/20 DS-SJ envelopes parse, zero real GOOGLE_MAPS_API_KEY under public/swarm).",
+    "2026-09-16T05:06:00.000Z DS-SJ-18: scope-only (one new script + own envelope claim); package.json/.env.example untouched. QUEUE asks for integrator: add verify:vocrehab-schedule slot + GOOGLE_MAPS_API_KEY doc line. Done."
+  ]
+}

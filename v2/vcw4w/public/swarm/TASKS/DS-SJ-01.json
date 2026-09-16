@@ -1,0 +1,28 @@
+{
+  "id": "DS-SJ-01",
+  "title": "SJ calendar engine",
+  "goal": "Pure month-grid + day-id + 30min snap helpers in NEW lib file; month containing today, Mon-first grid, -1/+3 month cap. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/lib/vocrehab-schedule-calendar.ts"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-01",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T02:46:00.449Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:00:00.000Z DS-SJ-01: claimed envelope, starting calendar engine.",
+    "2026-09-16T03:01:00.000Z DS-SJ-01: in_progress, building pure month-grid helpers.",
+    "2026-09-16T03:10:00.000Z DS-SJ-01: created v2/vcw4w/lib/vocrehab-schedule-calendar.ts (pure, zero imports, no browser globals; CalendarDayId/toDayId/buildMonthGrid Mon-first/getInitialMonthParts/addMonths/monthDiff/isInRange -1/+3/snapToHalfHour/minutesToLabel).",
+    "2026-09-16T03:12:00.000Z DS-SJ-01: gate eslint lib/vocrehab-schedule-calendar.ts -> clean, no findings (exit ok).",
+    "2026-09-16T03:14:00.000Z DS-SJ-01: gate npx tsc --noEmit (v2/vcw4w project) -> clean, no output (exit ok).",
+    "2026-09-16T03:15:00.000Z DS-SJ-01: runtime smoke SMOKE_OK (leap Feb 29d, Feb2023 28d, Mon-first blanks, Sep2026 grid, addMonths wrap, snap 47->60/44->30, labels 12:00 AM/9:00 AM/1:30 PM, -1/+3 cap edges).",
+    "2026-09-16T03:16:00.000Z DS-SJ-01: done, scope-only single new file, no shared-manifest touches, no secrets."
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "DS-SJ-14",
+  "title": "SJ save/load UI",
+  "goal": "NEW save/load/clear/export component: two-step clear, privacy opt-in, anonymized telemetry payload builder. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-schedule-persist.tsx"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-14",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T03:12:00.000Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:00:00.000Z DS-SJ-14: claimed, starting persist component.",
+    "2026-09-16T03:12:00.000Z DS-SJ-14: created v2/vcw4w/components/vocrehab/vocrehab-schedule-persist.tsx ('use client', react-only, props onSave/onLoad/onClearMonth/onClearAll/onExport/savedAt/hasSave, inline two-step clear arm, includeAddresses opt-in + anonymized-payload note). Gates: npx tsc --noEmit clean (no output), npx eslint components/vocrehab/vocrehab-schedule-persist.tsx clean (no output). Scope-only, no shared-manifest edits."
+  ]
+}

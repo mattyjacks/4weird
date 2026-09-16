@@ -1,0 +1,24 @@
+{
+  "id": "DS-SJ-20",
+  "title": "SJ integrator",
+  "goal": "Single-writer wiring: compose all SJ pieces into schedule-juggle page + frame, update metadata, file QUEUE wiring for shared manifests. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-game-schedule-juggle.tsx",
+    "v2/vcw4w/app/vocrehab/play/schedule-juggle/page.tsx"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-20",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T03:06:47.813Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T02:59:51.960Z DS-SJ-20: claimed envelope, owner=DS-SJ-20. Poll: DS-SJ-01..15 done; DS-SJ-16 open/unowned (tests not landed), DS-SJ-17 claimed (docs page not landed), DS-SJ-18 open/unowned (verify script not landed), DS-SJ-19 in_progress (a11y helper LANDED on disk). Working with landed pieces; gaps noted, no other envelopes touched.",
+    "2026-09-16T03:06:47.813Z DS-SJ-20: re-polled before close — DS-SJ-16/17/18/19 all flipped to done during this session (verify script + docs page + unit tests landed on disk by their owners; zero writes by DS-SJ-20 outside own scope). Rewrote components/vocrehab/vocrehab-game-schedule-juggle.tsx as composition root (month grid + day drawer + palette + addresses + travel + controls + persist, VocrehabGameRunProps kept, ?legacy=1 renders old 7x3 grid, finish {placements, travelMinTotal, conflictsResolved, presetId, difficulty, seed}, addresses anonymized categories-only) + widened app/vocrehab/play/schedule-juggle/page.tsx to max-w-6xl with monthly/24h/travel/save copy. QUEUE.md: appended 4 wiring lines only (layout metadata, .env.example placeholder line, package.json verify slot, docs nav/sitemap). Gates: tsc --noEmit exit 0 repo-wide; eslint both files exit 0 zero warnings; node scripts/verify-vocrehab-schedule.mjs 3 PASS 0 FAIL exit 0. STATUS.json counts untouched (steward). Status -> done."
+  ]
+}

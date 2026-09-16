@@ -1,0 +1,23 @@
+{
+  "id": "DS-SJ-11",
+  "title": "SJ palette + burdens UI",
+  "goal": "NEW palette + burden-cards component: activity picker, burden list, recurring-sleep helper button. DONE-when: file(s) exist on disk, scope-only, gates green, evidence in log. Shared-manifest edits forbidden; file QUEUE wiring requests instead. vocrehab tone: strengths-first, never red errors.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/components/vocrehab/vocrehab-schedule-palette.tsx"
+  ],
+  "gates": [
+    "node --check (js)",
+    "npx tsc --noEmit (ts scope)",
+    "eslint touched paths"
+  ],
+  "status": "done",
+  "owner": "DS-SJ-11",
+  "created": "2026-09-16T02:46:00.449Z",
+  "updated": "2026-09-16T02:46:00.449Z",
+  "log": [
+    "2026-09-16T02:46:00.449Z schedule-swarm-lead: envelope created, awaiting claim.",
+    "2026-09-16T03:00:00.000Z DS-SJ-11: claimed. Creating scope-only components/vocrehab/vocrehab-schedule-palette.tsx.",
+    "2026-09-16T03:05:00.000Z DS-SJ-11: done. Created v2/vcw4w/components/vocrehab/vocrehab-schedule-palette.tsx (use client, zero imports incl. no SJ imports; props activities/selectedId/onSelect/burdens/onRepeatSleep; aria-pressed palette buttons, amber-info burden cards, repeat-sleep helper, strengths-first copy). Gates: npx tsc --noEmit clean (no output), npx eslint components/vocrehab/vocrehab-schedule-palette.tsx clean (no output). Scope-only: one NEW file, no shared-manifest edits."
+  ]
+}
