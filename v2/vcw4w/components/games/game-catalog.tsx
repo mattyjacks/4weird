@@ -138,6 +138,7 @@ export function GameCatalog({ games }: { games: Game[] }) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [genre, setGenre] = useState("All");
+  const [ageFilter, setAgeFilter] = useState<"all" | "kids" | "teens" | "adults">("all");
   const [kids, setKids] = useState(false);
   // A live child session filters by parent-attested band: kid band hides
   // Teens + Adults, teen band hides Adults. 99 = no child session.
@@ -230,11 +231,14 @@ export function GameCatalog({ games }: { games: Game[] }) {
   }, [items, debouncedQuery, genre]);
   const filtered = useMemo(() => {
     // Kids Mode hides Adults; a live child session additionally caps by
-    // parent-attested band (kid band hides Teens too).
+    // parent-attested band (kid band hides Teens too). The age filter
+    // narrows to exactly one band so each audience sees its own range.
     const visible = (Array.isArray(games) ? games : []).filter((g) => {
-      const minAge = requiredAgeFor(g.rating ?? "kids");
+      const rating = g.rating ?? "kids";
+      if (ageFilter !== "all" && rating !== ageFilter) return false;
+      const minAge = requiredAgeFor(rating);
       if (minAge > kidMaxAge) return false;
-      if (kids && (g.rating ?? "kids") === "adults") return false;
+      if (kids && rating === "adults") return false;
       return true;
     });
     if (!workerSlugs) {
@@ -243,9 +247,9 @@ export function GameCatalog({ games }: { games: Game[] }) {
     }
     const order = new Map((workerSlugs ?? []).map((s, i) => [s, i]));
     return visible.filter(g => order.has(g.slug)).sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
-  }, [games, workerSlugs, debouncedQuery, genre, kids, kidMaxAge]);
+  }, [games, workerSlugs, debouncedQuery, genre, kids, kidMaxAge, ageFilter]);
   // Reset the window whenever the result set identity changes.
-  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [debouncedQuery, genre, kids, kidMaxAge, games]);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [debouncedQuery, genre, kids, kidMaxAge, ageFilter, games]);
   const visible = useMemo(() => (filtered ?? []).slice(0, visibleCount), [filtered, visibleCount]);
   const showMore = useCallback(() => { setVisibleCount((n) => Math.min(n + PAGE_SIZE, (filtered ?? []).length)); }, [filtered.length]);
   const hiddenAdults = kids ? (Array.isArray(games) ? games : []).filter((g) => (g.rating ?? "kids") === "adults").length : 0;
@@ -273,9 +277,22 @@ export function GameCatalog({ games }: { games: Game[] }) {
   const recommended = picks
     .map(slug => (Array.isArray(games) ? games : []).find(g => g.slug === slug))
     .filter((g): g is Game => Boolean(g))
-    .filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge && (!kids || (g.rating ?? "kids") !== "adults"));
+    .filter((g) => {
+      const rating = g.rating ?? "kids";
+      if (ageFilter !== "all" && rating !== ageFilter) return false;
+      return requiredAgeFor(rating) <= kidMaxAge && (!kids || rating !== "adults");
+    });
   const drawerGame = drawerSlug ? ((Array.isArray(games) ? games : []).find((g) => g.slug === drawerSlug) ?? null) : null;
-  const isSearching = String(debouncedQuery ?? "").trim().length > 0 || genre !== "All";
+  const isSearching = String(debouncedQuery ?? "").trim().length > 0 || genre !== "All" || ageFilter !== "all";
+  const ageCounts = useMemo(() => {
+    const list = Array.isArray(games) ? games : [];
+    return {
+      all: list.length,
+      kids: list.filter((g) => (g.rating ?? "kids") === "kids").length,
+      teens: list.filter((g) => (g.rating ?? "kids") === "teens").length,
+      adults: list.filter((g) => (g.rating ?? "kids") === "adults").length,
+    };
+  }, [games]);
   return (
     <div className={styles.wrap}>
       {/* Sticky 48px filter bar: title + search + category pills + kids + surprise */}
@@ -307,6 +324,33 @@ export function GameCatalog({ games }: { games: Game[] }) {
             </button>
           ))}
         </div>
+        <div className={styles.pills} role="group" aria-label="Filter by age rating">
+          {([
+            ["all", `All ages (${ageCounts.all})`],
+            ["kids", `Kids (0-12) (${ageCounts.kids})`],
+            ["teens", `Teens (13-17) (${ageCounts.teens})`],
+            ["adults", `Adults (18+) (${ageCounts.adults})`],
+          ] as const).map(([band, label]) => (
+            <button
+              type="button"
+              key={band}
+              aria-pressed={ageFilter === band}
+              className={ageFilter === band ? styles.active : ""}
+              onClick={() => setAgeFilter(band)}
+              title={
+                band === "all"
+                  ? "Show every age band"
+                  : band === "kids"
+                    ? "Show only Kids (0-12) games"
+                    : band === "teens"
+                      ? "Show only Teens (13-17) games"
+                      : "Show only Adults (18+) games"
+              }
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <label className={styles.kids} title="Hides Adults (18+) games across the catalog. Teens games still ask a 13+ check before playing.">
           <input type="checkbox" checked={kids} onChange={e => toggleKids(e.target.checked)} />
           🔒 Kids
@@ -315,6 +359,16 @@ export function GameCatalog({ games }: { games: Game[] }) {
           ⌘ Surprise
         </button>
       </div>
+      {ageFilter !== "all" && (
+        <p role="status" className={styles.kidsNote}>
+          {ageFilter === "kids" && `Showing Kids (0-12) games only — ${filtered.length} in this range.`}
+          {ageFilter === "teens" && `Showing Teens (13-17) games only — ${filtered.length} in this range.`}
+          {ageFilter === "adults" && `Showing Adults (18+) games only — ${filtered.length} in this range. Turn on Kids to hide these.`}{" "}
+          <button type="button" className={styles.infoBtn} onClick={() => setAgeFilter("all")}>
+            Clear age filter
+          </button>
+        </p>
+      )}
       <div className="mx-auto max-w-6xl px-4 pt-4">
         <KidBanner />
       </div>

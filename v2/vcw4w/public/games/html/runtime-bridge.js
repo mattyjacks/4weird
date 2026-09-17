@@ -156,16 +156,30 @@
   // Forward fatal runtime errors so the shell shows the real failure instead
   // of "Loading original HTML runtime..." forever. Resource 404s do not reach
   // a bubble-phase window listener, so this only fires for JS exceptions.
+  // Benign "ResizeObserver loop completed with undelivered notifications" is
+  // filtered: Chrome fires it as an error event whenever a RO callback (e.g.
+  // orbitaldrift's fitToContainer refit) causes another observation in the
+  // same frame. The layout still converges on the next frame; surfacing it
+  // as a shell "Runtime error" scares players over a no-op warning.
+  function isBenignLoopNoise(detail) {
+    try {
+      return typeof detail === "string" && detail.indexOf("ResizeObserver loop") !== -1;
+    } catch (e) {
+      return false;
+    }
+  }
   window.addEventListener("error", function (event) {
     var detail =
       (event && (event.message || (event.error && event.error.message))) ||
       "failed to load";
+    if (isBenignLoopNoise(detail)) return;
     post({ type: "error", message: "Runtime error: " + detail });
   });
   window.addEventListener("unhandledrejection", function (event) {
     var reason =
       (event && event.reason && (event.reason.message || String(event.reason))) ||
       "failed to load";
+    if (isBenignLoopNoise(reason)) return;
     post({ type: "error", message: "Runtime error: " + reason });
   });
 

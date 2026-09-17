@@ -53,11 +53,20 @@
         { id: 'orc', name: 'Orc', emoji: '🟢👹', hp: 116, armor: 18, speed: 1.08, jump: 0.96 }
     ];
     var CLASSES = [
-        { id: 'warrior', name: 'Warrior', ability: 'Breach Dash', melee: 'Power strike', weapon: 'pulse', damage: 1.18 },
+        { id: 'warrior', name: 'Warrior', ability: 'Breach Dash', melee: 'Power strike', weapon: 'saw', damage: 1.18 },
         { id: 'tank', name: 'Tank', ability: 'Bulwark', melee: 'Shield bash', weapon: 'scatter', damage: 0.92 },
-        { id: 'support', name: 'Support', ability: 'Supply Drop', melee: 'Shock baton', weapon: 'pulse', damage: 0.96 },
-        { id: 'mage', name: 'Mage', ability: 'Arc Pulse', melee: 'Arc blade', weapon: 'scatter', damage: 1.05 }
+        { id: 'support', name: 'Support', ability: 'Supply Drop', melee: 'Shock baton', weapon: 'harpoon', damage: 0.96 },
+        { id: 'mage', name: 'Mage', ability: 'Arc Pulse', melee: 'Arc blade', weapon: 'moonbeam', damage: 1.05 }
     ];
+    /* Starter weapon per race x class: every combo gets its own flavor, so
+     * race AND class both change what you shoot with. All starters are
+     * infinite-ammo and solo-viable; loot still outscales them. */
+    var STARTER_BY_BUILD = {
+        'human:warrior': 'pulse', 'human:tank': 'scatter', 'human:support': 'harpoon', 'human:mage': 'moonbeam',
+        'elf:warrior': 'saw', 'elf:tank': 'harpoon', 'elf:support': 'cryo', 'elf:mage': 'moonbeam',
+        'dwarf:warrior': 'saw', 'dwarf:tank': 'scatter', 'dwarf:support': 'sun', 'dwarf:mage': 'cryo',
+        'orc:warrior': 'launcher', 'orc:tank': 'sun', 'orc:support': 'saw', 'orc:mage': 'scatter'
+    };
     var BUILDS = {};
     var BUILD_TITLES = { 'human:warrior':'Soldier','human:tank':'Paladin','human:support':'Medic','human:mage':'Tinkerer', 'elf:warrior':'Warden','elf:tank':'Paladin','elf:support':'Druid','elf:mage':'Warlock', 'dwarf:warrior':'Berserker','dwarf:tank':'Brute','dwarf:support':'Tinkerer','dwarf:mage':'Warlock', 'orc:warrior':'Berserker','orc:tank':'Brute','orc:support':'Medic','orc:mage':'Druid' };
     RACES.forEach(function (r, ri) { CLASSES.forEach(function (c, ci) {
@@ -65,7 +74,7 @@
         BUILDS[id] = { id: id, race: r.id, cls: c.id, name: r.name + ' ' + (BUILD_TITLES[id] || c.name), emoji: r.emoji,
             hp: r.hp + (ci === 1 ? 12 : ci === 2 ? 4 : 0), armor: r.armor + (ci === 1 ? 16 : ci === 2 ? 4 : 0),
             speed: r.speed * (c.id === 'warrior' ? 1.02 : 1), jump: r.jump, damage: c.damage,
-            weapon: c.weapon, ability: ['Jet Burst','Nature Burst','Stone Form','Rage Stomp'][ri] + ' / ' + c.ability,
+            weapon: STARTER_BY_BUILD[id] || c.weapon, ability: ['Jet Burst','Nature Burst','Stone Form','Rage Stomp'][ri] + ' / ' + c.ability,
             melee: r.id + ' ' + c.melee, abilityKind: ['dash','snare','guard','shock'][ri], meleeDamage: 25 + ri * 3 + ci * 2 };
     }); });
 
@@ -76,8 +85,13 @@
 
     var WEAPONS = {
         pulse:   { name: 'Breach rifle',    cd: 0.105, dmg: 18, speed: 1050, pierce: true },
-        scatter: { name: 'Scatter blaster', cd: 0.38, dmg: 12, speed: 780, pellets: 7 },
-        launcher:{ name: 'Grave launcher', cd: 0.62,  dmg: 54, speed: 600, blast: 126 }
+        scatter: { name: 'Scatter blaster', cd: 0.38,  dmg: 12, speed: 780, pellets: 7 },
+        launcher:{ name: 'Grave launcher',  cd: 0.62,  dmg: 54, speed: 600, blast: 126 },
+        moonbeam:{ name: 'Moonbeam',        cd: 0.07,  dmg: 9,  speed: 1150, pierce: true },
+        saw:     { name: 'Forged saw',      cd: 0.22,  dmg: 26, speed: 700, life: 0.32 },
+        cryo:    { name: 'Cryo charm',      cd: 0.16,  dmg: 14, speed: 900, pierce: true, slow: 1.6 },
+        sun:     { name: 'Sun grenade',     cd: 0.55,  dmg: 40, speed: 640, blast: 118 },
+        harpoon: { name: 'Harpoon',         cd: 0.30,  dmg: 30, speed: 1250, pierce: true }
     };
 
     var FOES = {
@@ -101,17 +115,83 @@
         };
     }
 
+    /* Terraria-flavored breach generation: 8 distinct biomes, each with its
+     * own building style, nature, palette accent, and spacing rhythm. The
+     * mandatory ground-lane route always stays passable (props are
+     * destructible, platforms optional); vertical shafts, rooftops, and
+     * supported catwalks add the dig-up/climb-over Terraria feel. */
+    var BIOMES = [
+        { id: 'crater',     accent: '#e88153', nature: ['tree', 'ruin'],   building: 'bunker',     gap: [420, 560] },
+        { id: 'mines',      accent: '#f2ad5d', nature: ['crystal', 'ruin'], building: 'shaft',      gap: [380, 520] },
+        { id: 'grove',      accent: '#66dfb4', nature: ['tree', 'shroom'],  building: 'hut',        gap: [460, 640] },
+        { id: 'wastes',     accent: '#d38c59', nature: ['ruin', 'crystal'], building: 'convoy',     gap: [520, 700] },
+        { id: 'cathedral',  accent: '#b5efff', nature: ['crystal', 'ruin'], building: 'tower',      gap: [400, 540] },
+        { id: 'nursery',    accent: '#c084fc', nature: ['shroom', 'tree'],  building: 'nest',       gap: [440, 600] },
+        { id: 'foundry',    accent: '#ff725b', nature: ['crystal', 'ruin'], building: 'forge',      gap: [380, 520] },
+        { id: 'perimeter',  accent: '#ffdb70', nature: ['ruin', 'tree'],    building: 'bunker',     gap: [460, 620] }
+    ];
+    var NATURE_HP = { tree: 34, crystal: 60, shroom: 26, ruin: 90 };
+    var LOOT_WEAPONS = ['scatter', 'launcher', 'moonbeam', 'saw', 'cryo', 'harpoon', 'sun'];
+
+    function biomeAt(seg, rand, waveMode) {
+        // Deterministic walk through biomes: mostly forward, sometimes repeat
+        // or jump, so every seed feels different but coherent.
+        if (seg === 0) return BIOMES[Math.floor(rand() * 3)];
+        var prev = biomeAt._prev || BIOMES[0];
+        var roll = rand();
+        var next;
+        if (roll < 0.55) next = BIOMES[(BIOMES.indexOf(prev) + 1) % BIOMES.length];
+        else if (roll < 0.8) next = prev;
+        else next = BIOMES[Math.floor(rand() * BIOMES.length)];
+        biomeAt._prev = next;
+        return next;
+    }
+
     function generateRoute(seed, waveMode) {
         var rand = rng32(seed), foes = [], civs = [], props = [], pickups = [], platforms = [];
-        var kinds = ['bunker', 'fuel', 'watchtower', 'crate'];
         var types = ['zed', 'rifle', 'sapper'];
-        var length = waveMode ? 4500 : 7200;
-        for (var seg = 0; seg < (waveMode ? 8 : 12); seg++) {
-            var base = 430 + seg * (waveMode ? 510 : 570) + Math.floor(rand() * 100);
-            if (rand() > 0.18) {
-                var kind = kinds[Math.floor(rand() * kinds.length)];
-                var hp = kind === 'fuel' ? 24 : kind === 'crate' ? 34 : kind === 'watchtower' ? 72 : 86;
-                props.push({ id: props.length, kind: kind, x: base, y: kind === 'watchtower' ? -42 : 0, hp: hp, maxHp: hp, alive: true, shake: 0, destructible: true });
+        biomeAt._prev = null;
+        var segs = waveMode ? 8 : 12;
+        var cursor = 430;
+        var biomesUsed = [];
+        for (var seg = 0; seg < segs; seg++) {
+            var biome = biomeAt(seg, rand, waveMode);
+            biomesUsed.push(biome.id);
+            // Random spacing per biome: gap range + jitter, so buildings and
+            // nature never sit on a grid.
+            var gap = biome.gap[0] + rand() * (biome.gap[1] - biome.gap[0]);
+            var base = cursor + Math.floor(rand() * 110);
+            cursor += gap;
+            var propCount = 1 + Math.floor(rand() * 3);
+            for (var pi = 0; pi < propCount; pi++) {
+                var bx = base + Math.floor(rand() * 220) - 40;
+                var roll = rand();
+                var kind;
+                if (roll < 0.30) kind = biome.building === 'tower' ? 'watchtower' : biome.building === 'shaft' ? 'crate' : 'bunker';
+                else if (roll < 0.45) kind = 'fuel';
+                else if (roll < 0.62) kind = 'watchtower';
+                else if (roll < 0.78) kind = biome.nature[Math.floor(rand() * biome.nature.length)];
+                else kind = ['bunker', 'crate'][Math.floor(rand() * 2)];
+                var hp = kind === 'fuel' ? 24 : kind === 'crate' ? 34 : kind === 'watchtower' ? 72 :
+                    kind === 'tree' ? NATURE_HP.tree : kind === 'crystal' ? NATURE_HP.crystal :
+                    kind === 'shroom' ? NATURE_HP.shroom : kind === 'ruin' ? NATURE_HP.ruin : 86;
+                var prop = { id: props.length, kind: kind, x: bx, y: kind === 'watchtower' ? -42 : 0,
+                    hp: hp, maxHp: hp, alive: true, shake: 0, destructible: true, biome: biome.id };
+                props.push(prop);
+                // Buildings get roofs: a supported catwalk bolted to the prop
+                // so blowing the support drops the roof (collapse chain).
+                if ((kind === 'bunker' || kind === 'watchtower') && rand() > 0.35) {
+                    platforms.push({ x: bx - 70 - Math.floor(rand() * 30), w: 150 + Math.floor(rand() * 90),
+                        y: kind === 'watchtower' ? -195 - Math.floor(rand() * 40) : -105 - Math.floor(rand() * 45),
+                        supportsBy: prop.id, biome: biome.id });
+                }
+            }
+            // Nature clusters: 0-2 extra destructible trees/crystals/shrooms.
+            var natureExtra = Math.floor(rand() * 3);
+            for (var nn = 0; nn < natureExtra; nn++) {
+                var nk = biome.nature[Math.floor(rand() * biome.nature.length)];
+                props.push({ id: props.length, kind: nk, x: base + 60 + Math.floor(rand() * 320), y: 0,
+                    hp: NATURE_HP[nk], maxHp: NATURE_HP[nk], alive: true, shake: 0, destructible: true, biome: biome.id });
             }
             var count = 1 + Math.floor(rand() * 3);
             for (var e = 0; e < count; e++) {
@@ -122,13 +202,28 @@
                 var sp = SPECIES[Math.floor(rand() * SPECIES.length)], combo = Object.keys(BUILDS)[Math.floor(rand() * 16)];
                 civs.push({ id: civs.length, x: base + 270, species: sp.name, emoji: sp.emoji, buildId: combo, saved: false, brokenT: 0 });
             }
-            if (seg % 2 === 1) platforms.push({ x: base - 85, w: 170 + Math.floor(rand() * 100), y: -85 - Math.floor(rand() * 70) });
-            if (rand() > 0.4) pickups.push({ x: base + 180, y: -12, weapon: rand() > 0.5 ? 'scatter' : 'launcher', ammo: 18 + Math.floor(rand() * 15), taken: false });
+            // Verticality: free catwalks at varied heights + occasional
+            // climbable shaft (stacked platforms) with a rooftop reward.
+            var tiers = 1 + Math.floor(rand() * 2);
+            for (var t = 0; t < tiers; t++) {
+                platforms.push({ x: base - 85 + Math.floor(rand() * 120) - 60, w: 140 + Math.floor(rand() * 130),
+                    y: -70 - Math.floor(rand() * 60) - t * (70 + Math.floor(rand() * 50)), biome: biome.id });
+            }
+            if (rand() > 0.62) {
+                var shaftX = base + 120 + Math.floor(rand() * 200);
+                var shaftBase = -60;
+                for (var lvl = 0; lvl < 3; lvl++) {
+                    platforms.push({ x: shaftX + (lvl % 2 ? 60 : -60), w: 120, y: shaftBase - lvl * 85, biome: biome.id });
+                }
+                pickups.push({ x: shaftX, y: shaftBase - 3 * 85 - 20, weapon: LOOT_WEAPONS[Math.floor(rand() * LOOT_WEAPONS.length)], ammo: 18 + Math.floor(rand() * 15), taken: false });
+            }
+            if (rand() > 0.4) pickups.push({ x: base + 180, y: -12, weapon: LOOT_WEAPONS[Math.floor(rand() * LOOT_WEAPONS.length)], ammo: 18 + Math.floor(rand() * 15), taken: false });
             if (rand() > 0.43) pickups.push({ x: base + 360, y: -12, ammoPack: 16 + Math.floor(rand() * 15), taken: false });
             if (rand() > 0.65) pickups.push({ x: base + 450, y: -12, heal: 24, taken: false });
         }
+        biomeAt._prev = null;
         if (!waveMode && civs.length === 0) civs.push({ id: 0, x: 1700, species: 'Human', emoji: '👩‍🚀', buildId: 'elf:warrior', saved: false, brokenT: 0 });
-        return { foes: foes, civs: civs, props: props, pickups: pickups, platforms: platforms, worldLength: length };
+        return { foes: foes, civs: civs, props: props, pickups: pickups, platforms: platforms, worldLength: Math.max(4500, Math.floor(cursor + 600)), biomes: biomesUsed };
     }
 
     /* ---------------- Pure core ---------------- */
@@ -208,7 +303,8 @@
             var a = p.aim + spread;
             s.shots.push({
                 x: p.x, y: p.y - 20, vx: Math.cos(a) * w.speed, vy: Math.sin(a) * w.speed,
-                dmg: Math.round(w.dmg * buildDmg), pierce: !!w.pierce, blast: w.blast || 0, life: 1.2, foe: false
+                dmg: Math.round(w.dmg * buildDmg), pierce: !!w.pierce, blast: w.blast || 0,
+                life: typeof w.life === 'number' ? w.life : 1.2, slow: w.slow || 0, foe: false
             });
         }
         s.shotsFired += n;
@@ -440,6 +536,7 @@
                     var dx = foe.x - sh.x, dy = (foe.y - 20) - sh.y;
                     if (dx * dx + dy * dy < 900) {
                         foe.hp -= sh.dmg;
+                        if (sh.slow > 0) foe.touchCd = Math.max(foe.touchCd || 0, sh.slow);
                         if (sh.blast > 0) {
                             breachExplosion(s, sh.x, sh.y, sh.dmg, sh.blast, ev, foe);
                         }
@@ -467,6 +564,14 @@
                                 s.comboBest = Math.max(s.comboBest, s.chain);
                                 ev.push({ t: 'demolish', kind: target.kind, x: Math.round(target.x), chain: s.chain });
                                 if (target.kind === 'fuel') breachExplosion(s, target.x, -40, 48, 118, ev);
+                                // Support collapse: platforms bolted to this prop fall too.
+                                for (var cp = (s.platforms || []).length - 1; cp >= 0; cp--) {
+                                    if (s.platforms[cp].supportsBy === target.id) {
+                                        var fell = s.platforms.splice(cp, 1)[0];
+                                        s.shake = Math.max(s.shake, 7);
+                                        ev.push({ t: 'demolish', kind: 'platform', x: Math.round(fell.x), chain: s.chain });
+                                    }
+                                }
                             }
                         }
                         dead = true; break;
@@ -734,14 +839,16 @@
             if (!s) return;
             var p = s.player;
             var px = p.x - cam;
-            /* Raised catwalks; their broken ends remain visible as route clues. */
+            /* Raised catwalks + supported roofs; bolted ends mark collapse links. */
             for (var pi = 0; pi < (s.platforms || []).length; pi++) {
                 var plat = s.platforms[pi], platX = plat.x - cam;
                 if (platX + plat.w < -20 || platX > W + 20) continue;
-                ctx.fillStyle = '#545b6b'; ctx.fillRect(platX, H - 110 + plat.y, plat.w, 17);
+                var supported = typeof plat.supportsBy === 'number';
+                ctx.fillStyle = supported ? '#6b545b' : '#545b6b'; ctx.fillRect(platX, H - 110 + plat.y, plat.w, 17);
                 ctx.fillStyle = '#c49b65'; ctx.fillRect(platX, H - 110 + plat.y, plat.w, 5);
                 ctx.fillStyle = '#858a8d';
                 for (var bolt = 0; bolt < plat.w; bolt += 44) ctx.fillRect(platX + bolt + 8, H - 94 + plat.y, 6, 24);
+                if (supported) { ctx.fillStyle = '#ffd166'; ctx.font = '12px sans-serif'; ctx.fillText('⚙', platX + plat.w / 2, H - 114 + plat.y); }
             }
             /* Rubble-strewn trench floor with moving rails, cracks and sparks. */
             var floorY = H - 110;
@@ -780,6 +887,13 @@
                     ctx.fillStyle = '#805c38'; ctx.fillRect(wx - 25, base - 45, 50, 41);
                     ctx.strokeStyle = '#d4ac64'; ctx.lineWidth = 4; ctx.strokeRect(wx - 22, base - 42, 44, 35); ctx.beginPath(); ctx.moveTo(wx - 18, base - 40); ctx.lineTo(wx + 18, base - 7); ctx.moveTo(wx + 18, base - 40); ctx.lineTo(wx - 18, base - 7); ctx.stroke();
                     ctx.font = '22px sans-serif'; ctx.fillText('📦', wx, base - 15);
+                } else if (prop.kind === 'tree' || prop.kind === 'shroom' || prop.kind === 'crystal' || prop.kind === 'ruin') {
+                    var natureGlyph = prop.kind === 'tree' ? '🌳' : prop.kind === 'shroom' ? '🍄' : prop.kind === 'crystal' ? '💎' : '🪦';
+                    var natureH = prop.kind === 'tree' ? 78 : prop.kind === 'crystal' ? 62 : prop.kind === 'shroom' ? 44 : 70;
+                    ctx.fillStyle = prop.kind === 'crystal' ? '#3b2d5e' : prop.kind === 'shroom' ? '#3d2b4f' : '#2c3327';
+                    ctx.fillRect(wx - 22, base - natureH, 44, natureH);
+                    ctx.font = (prop.kind === 'tree' ? '40px' : '32px') + ' sans-serif'; ctx.fillText(natureGlyph, wx, base - 8);
+                    top = base - natureH;
                 } else {
                     var tall = prop.kind === 'watchtower';
                     top = base - (tall ? 188 : 94);
@@ -803,7 +917,8 @@
                 var pickup = s.pickups[pk], pickX = pickup.x - cam;
                 if (pickup.taken || pickX < -30 || pickX > W + 30) continue;
                 ctx.globalAlpha = 0.5 + Math.sin(now * 5 + pk) * 0.22; ctx.fillStyle = '#ffe68a'; ctx.beginPath(); ctx.arc(pickX, floorY - 35, 23, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
-                ctx.font = '25px sans-serif'; ctx.fillText(pickup.ammoPack ? '🔋' : pickup.weapon === 'launcher' ? '🚀' : pickup.weapon ? '💥' : '🩹', pickX, floorY - 26);
+                var pglyph = pickup.ammoPack ? '🔋' : pickup.weapon === 'launcher' ? '🚀' : pickup.weapon === 'moonbeam' ? '⚡' : pickup.weapon === 'saw' ? '🪚' : pickup.weapon === 'cryo' ? '❄️' : pickup.weapon === 'sun' ? '☀️' : pickup.weapon === 'harpoon' ? '⚓' : pickup.weapon ? '💥' : '🩹';
+                ctx.font = '25px sans-serif'; ctx.fillText(pglyph, pickX, floorY - 26);
             }
             /* Foes. */
             var glyph = s.contentMode === 'kids' ? { zed: '👻', rifle: '🤖', sapper: '👾' } : (s.contentMode === 'adult' ? { zed: '🧟', rifle: '💀', sapper: '🧌' } : { zed: '🧟', rifle: '💀', sapper: '👾' });
@@ -947,16 +1062,20 @@
             inp.climb = !!K.climb;
             if (K.swap) { inp.swap = K.swap; K.swap = null; }
             inp.fire = !!K.fireHeld;
-            /* Mouse aim when active; IJKL / numpad direction for no-mouse play. */
+            /* 360 mouse auto-aim (default) — IJKL / numpad overrides while held,
+             * gamepad right stick overrides when deflected. All math stays in
+             * game px (960x540) so canvas CSS scaling can never skew it. */
             if (K.aimUp || K.aimDown || K.aimLeft || K.aimRight) {
                 inp.aim = Math.atan2((K.aimDown ? 1 : 0) - (K.aimUp ? 1 : 0), (K.aimRight ? 1 : 0) - (K.aimLeft ? 1 : 0));
-            } else if (G.run && K.aimingMouse) {
+            } else if (G.run && G.canvas) {
                 var rect = G.canvas.getBoundingClientRect();
+                var rw = Math.max(1, rect.width), rh = Math.max(1, rect.height);
                 var cam = clamp(G.run.player.x - 350, 0, Math.max(0, G.run.worldLength - 960));
-                var px = (G.run.player.x - cam) / 960 * rect.width;
-                var canvasX = K.mx / rect.width * 960;
-                var canvasY = K.my / rect.height * 540;
-                inp.aim = Math.atan2(canvasY - (430 + G.run.player.y), canvasX - px);
+                var pxGame = G.run.player.x - cam;
+                var heroYGame = 430 + G.run.player.y - 22;
+                var canvasX = (typeof K.mx === 'number' ? K.mx : rw / 2) / rw * 960;
+                var canvasY = (typeof K.my === 'number' ? K.my : rh / 2) / rh * 540;
+                inp.aim = Math.atan2(canvasY - heroYGame, canvasX - pxGame);
             }
             var gp = readPad();
             if (gp) {
@@ -1049,7 +1168,7 @@
             var buildId = 'human:warrior', gameMode = 'real-time', routeMode = 'roguelite', contentMode = 'teens';
             try { var modeApi = opt('GG2DB_Modes'), shellMode = modeApi && typeof modeApi.mode === 'function' ? modeApi.mode() : null; if (shellMode) contentMode = normalizeContentMode(shellMode); } catch (_) {}
             G.effects = [];
-            G.keys = { left: false, right: false, jump: false, fireHeld: false, alt: false, dash: false, interact: false, melee: false, ability: false, climb: false, swap: null, mx: 480, my: 200, aimingMouse: false, aimUp: false, aimDown: false, aimLeft: false, aimRight: false };
+            G.keys = { left: false, right: false, jump: false, fireHeld: false, alt: false, dash: false, interact: false, melee: false, ability: false, climb: false, swap: null, mx: 640, my: 270, aimingMouse: true, aimUp: false, aimDown: false, aimLeft: false, aimRight: false };
             var savedProfile = loadProfile(); if (savedProfile && BUILDS[savedProfile.buildId]) buildId = savedProfile.buildId;
             var pick = el('gg2dbHeroPick');
             if (pick) pick.innerHTML = Object.keys(BUILDS).map(function (id) { var b = BUILDS[id]; return '<button type="button" data-build="' + id + '"' + (id === buildId ? ' class="sel"' : '') + '>' + b.emoji + ' ' + b.name + '<small>HP ' + b.hp + ' · AR ' + b.armor + ' · SPD ' + Math.round(MOVE * b.speed) + ' · ' + WEAPONS[b.weapon].name + '<br>' + b.ability + ' · ' + b.melee + '</small></button>'; }).join('');

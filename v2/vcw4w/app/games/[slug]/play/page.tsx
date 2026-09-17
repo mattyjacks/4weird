@@ -160,13 +160,13 @@ async function CachedPlayHeader({ slug }: { slug: string }) {
         )}
         {/* Plain anchor (no searchParams read) so this shell stays fully
             static. Jumps to the frame shell below, whose own controls carry
-            the Fullscreen button (F key works there too). */}
+            the Fullscreen button. */}
         <a
           href="#game-frame"
           className="mt-1 text-sm font-semibold text-cyan-300 hover:underline"
-          title="Jump to the game frame — use its Fullscreen button or press F"
+          title="Jump to the game frame — use its Fullscreen button"
         >
-          ⛶ Fullscreen (F)
+          ⛶ Fullscreen
         </a>
         <FullscreenHint />
       </div>

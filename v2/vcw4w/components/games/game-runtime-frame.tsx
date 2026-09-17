@@ -297,8 +297,8 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
   // NOTE: no auto-focus steal to an exit control on entering fullscreen.
   // A focused "Exit fullscreen" pill turned every Space/Enter gameplay key
   // (jump/attack/confirm) into an exit-fullscreen click and pulled keyboard
-  // focus out of the iframe. Exit lives in the toolbar (always visible),
-  // on native Esc, and on F — no overlay over the canvas.
+  // focus out of the iframe. Exit lives in the toolbar (always visible) and
+  // on native Esc — no overlay over the canvas.
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
@@ -358,8 +358,11 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
     };
   }, [fakeFullscreen]);
 
-  // "f" toggles fullscreen (desktop); Esc exits the CSS fallback (native
-  // fullscreen exits itself). Ignored while typing so chat/inputs keep "f".
+  // No F-key fullscreen toggle: F is gameplay input (Ability/fire/typing in
+  // gravegain, lastwordszombies, neonbreaker, orbitaldrift, …) and several
+  // runtimes own F themselves — a shell toggle double-fires against them and
+  // desyncs shell/bridge fullscreen state. Fullscreen is button-only; Esc
+  // exits the CSS fallback (native fullscreen exits itself).
   useEffect(() => {
     if (typeof window === "undefined") return;
     const onKeyDown = (event: KeyboardEvent) => {
@@ -369,29 +372,11 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         // exit too, or a CSS-fallback Esc leaves the game stuck fullscreen.
         postToRuntime({ version: 1, type: "fullscreen", slug, mode: "exit" });
         focusGame();
-        return;
       }
-      if (event.key !== "f" && event.key !== "F") return;
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      const target = event.target as HTMLElement | null;
-      if (target) {
-        const tag = target.tagName?.toLowerCase();
-        if (tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable) return;
-        // Same-origin runtimes bubble game key events up to the shell window:
-        // an F pressed as game input (Ability/fire/typing) inside the frame
-        // must not toggle fullscreen. Button/toolbar F still toggles.
-        try {
-          if (frame.current && (target === frame.current || frame.current.contains(target))) return;
-        } catch {
-          /* frame access failed; fall through to toggle */
-        }
-      }
-      event.preventDefault();
-      void toggleFullscreen();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [fakeFullscreen, focusGame, toggleFullscreen, postToRuntime, slug]);
+  }, [fakeFullscreen, focusGame, postToRuntime, slug]);
 
   // Shell-side a11y changes (colorblind filter, reduced motion, …) must
   // reach the game document, where shell CSS cannot penetrate.
@@ -708,11 +693,10 @@ export function GameRuntimeFrame({ slug, title, src }: { slug: string; title: st
         {barsOpen ? (
         <div className="absolute right-2 top-2 z-20 flex max-w-[calc(100%-1rem)] flex-wrap items-center justify-end gap-1.5 rounded bg-black/70 p-1.5">
           {score !== null && <span role="status" className="px-2 py-1 text-xs text-cyan-200">Score: {score}</span>}
-          <span className="hidden px-2 py-1 text-[11px] text-white/60 lg:inline" aria-hidden="true">Press F for fullscreen</span>
           <button type="button" onClick={focusGame} className="hidden min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline-flex" title="Focus the game so keyboard controls respond">Focus</button>
           <button type="button" onClick={() => command("pause")} className="hidden min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline-flex">Pause</button>
           <button type="button" onClick={() => command("resume")} className="hidden min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:inline-flex">Resume</button>
-          <button type="button" onClick={() => command("fullscreen")} aria-pressed={fullscreenActive} aria-label={fullscreenActive ? "Exit fullscreen" : "Enter fullscreen"} title={fullscreenActive ? "Exit fullscreen (Esc)" : "Enter fullscreen (F)"} className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20">{fullscreenActive ? "Exit fullscreen" : "Fullscreen"}</button>
+          <button type="button" onClick={() => command("fullscreen")} aria-pressed={fullscreenActive} aria-label={fullscreenActive ? "Exit fullscreen" : "Enter fullscreen"} title={fullscreenActive ? "Exit fullscreen (Esc)" : "Enter fullscreen"} className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20">{fullscreenActive ? "Exit fullscreen" : "Fullscreen"}</button>
           <a href={src} target="_blank" rel="noopener" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20" title="Open the standalone game window in a new tab">Pop out</a>
           <button type="button" onClick={() => setShowTouchPad((v) => !v)} aria-pressed={showTouchPad} aria-label="Toggle touch controls" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20 sm:hidden" title="Toggle touch controls">Pad</button>
           <button type="button" onClick={() => { setBarsOpen(false); focusGame(); }} aria-label="Hide game controls" title="Hide controls" className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 text-xs text-white hover:bg-white/20">×</button>

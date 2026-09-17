@@ -70,8 +70,8 @@ export function PlayExtras() {
           <li>Touch controls appear automatically on phones and tablets — no setup needed.</li>
           <li>Rotate to landscape for the roomiest view of the fridge shelves.</li>
           <li>
-            Use the frame&apos;s <b className="text-white">Fullscreen</b> button (or press F on
-            desktop) for the biggest play area.
+            Use the frame&apos;s <b className="text-white">Fullscreen</b> button for the
+            biggest play area.
           </li>
           <li>
             On a small screen, the <b className="text-white">Pop out</b> control opens the runtime

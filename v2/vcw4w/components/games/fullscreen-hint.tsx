@@ -38,7 +38,7 @@ export function FullscreenHint() {
   };
   return (
     <p className="mt-2 text-xs text-slate-500">
-      Press F for fullscreen · Esc to exit{" "}
+      Use the Fullscreen button for big-screen play · Esc to exit{" "}
       <button type="button" onClick={dismiss} className="ml-2 underline hover:no-underline">
         Dismiss
       </button>

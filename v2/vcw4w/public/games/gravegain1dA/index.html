@@ -30,6 +30,17 @@ body{display:block!important}
    flashes a light native scrollbar inside the dark game window. */
 [class*="game-main"]{display:grid!important;grid-template-columns:1fr!important;gap:0!important;width:100%!important}
 [class*="game-frame"]{aspect-ratio:auto!important;height:100%!important;min-height:100%!important}
+/* Stripped-bundle fallback for the v1 TEMPLATE-4weird layout: styles.css is
+   removed above, but kouzi/orbitaldrift-style bundles rely on it for frame
+   sizing, canvas fill, overlay cover, and .hidden. Without these the frame
+   collapses to a black box with always-visible pause/game-over screens.
+   Placed after the generic game-frame override so these more-specific class
+   rules win for TEMPLATE bundles only (non-TEMPLATE bundles unaffected). */
+.TEMPLATE-4weird-game-frame{position:relative!important;width:100%!important;height:auto!important;aspect-ratio:4/3!important;min-height:320px!important;background:#000!important;overflow:hidden!important}
+#TEMPLATE-4weird-gameCanvas,.TEMPLATE-4weird-gameCanvas{width:100%!important;height:100%!important;display:block!important;background:#000!important}
+.TEMPLATE-4weird-game-overlay{position:absolute!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;background:rgba(0,0,0,.92)!important;z-index:10!important;text-align:center!important;overflow:auto!important}
+.TEMPLATE-4weird-game-overlay.hidden{display:none!important}
+.TEMPLATE-4weird-fullscreen-btn{position:absolute!important;top:10px!important;right:10px!important;z-index:20!important}
 html{scrollbar-color:rgba(255,255,255,.25) #000}
 [class*="game-overlay"]{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
 [class*="game-overlay"]::-webkit-scrollbar{width:8px}
