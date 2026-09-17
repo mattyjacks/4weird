@@ -1,0 +1,24 @@
+{
+  "id": "DS-BLDFIX-04",
+  "title": "Economy verifiers",
+  "goal": "npm run build (v2/vcw4w) is green: Economy verifiers. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "economy",
+  "scope": [
+    "v2/vcw4w/app/api/coins",
+    "v2/vcw4w/app/api/clans",
+    "v2/vcw4w/lib/economy.ts"
+  ],
+  "gates": [
+    "npm run verify:economy",
+    "npm run verify:crowns"
+  ],
+  "status": "done",
+  "owner": "bldfix-04",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T05:16:10.152Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T05:09:37.330Z bldfix-04: claimed envelope (tag bldfix-04 for DS-BLDFIX-04).",
+    "2026-09-17T05:16:10.153Z bldfix-04: DONE. Gates green: verify-economy OK, verify-crowns OK, verify-ledger-pairing OK, verify-clan-economy OK, tsc exit 0 zero errors. Zero scope writes by design: no scope-only build cause found. Scope audit: all coin movement via ledger RPCs or paired UNIQUE(grant_id) inserts, no parallel balance column. In-scope working-tree edits (checkout age gate, valleynetCheck userId) belong to another worker and are coherent (imports resolve, tsc clean) - left untouched. Global finalize stall is extrinsic, steward-owned."
+  ]
+}

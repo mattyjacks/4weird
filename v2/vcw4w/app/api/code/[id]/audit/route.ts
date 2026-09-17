@@ -7,6 +7,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 import { isUuid } from "@/lib/validate";
 import { quoteAuditSplit, SUBMIT_CUT_NOTE } from "@/lib/zip-submit";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 
 /**
@@ -43,6 +44,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     body = {};
   }
   const deep = (body as Record<string, unknown>)?.deep === true;
+  if (deep) {
+    let ageSvc;
+    try { ageSvc = serviceClient(); } catch { return fail("Unable to verify age eligibility.", 503); }
+    const vendorAge = await checkAuthenticatedVendorEligibility(ageSvc, userId, "openai");
+    if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
+  }
   const quote = quoteAuditSplit(deep);
 
   let svc;

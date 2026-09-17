@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Family - Kids & Parents on 4weird",
   description:
-    "Parents create child accounts, fund wallets, and set controls; kids log in with a username#1234 handle — no email needed.",
+    "Parents create child accounts and set play, spending, and access controls; kids log in with a username#1234 handle — no email needed.",
   alternates: { canonical: "/family" },
 };
 
@@ -17,7 +17,7 @@ export default function FamilyPage() {
         </p>
         <h1 className="mt-2 text-4xl font-black">Play together, safely</h1>
         <p className="mt-4 text-slate-300">
-          Parents create child accounts, fund their wallets, and set controls.
+          Parents create child accounts and set play, access, and spending limits against the parent&apos;s coin balance.
           Kids and teens log in with their{" "}
           <span className="font-semibold text-white">username#1234</span>{" "}
           handle and password — no email needed.

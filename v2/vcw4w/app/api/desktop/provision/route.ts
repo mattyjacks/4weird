@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
@@ -89,6 +90,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const providerAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "runpod");
+  if (!providerAge.allowed) return fail(providerAge.reason, 403);
   const botBlock = await requireHuman(req, "POST /api/desktop/provision", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const rl = rateLimit(`desktop:provision:${data.user.id}`, 10, 60_000);

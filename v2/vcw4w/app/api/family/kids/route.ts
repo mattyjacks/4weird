@@ -5,18 +5,20 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isPassword } from "@/lib/validate";
 import { isKidBand, isKidUsername, MAX_KIDS_PER_PARENT } from "@/lib/family";
-import { hashKidPassword, randomDiscriminator } from "@/lib/kid-session";
+import { hasKidSessionCookie, hashKidPassword, randomDiscriminator } from "@/lib/kid-session";
 import { rpcStatus } from "@/lib/agent-market";
 import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
 
 /**
  * GET /api/family/kids; the signed-in parent lists their child accounts
- * (handles, bands, balances, controls, today's play). Secrets (password
+ * (handles, bands, the parent's balance and each child's spend, controls,
+ * today's play). Secrets (password
  * hashes, session tokens) never leave the database.
  */
-export async function GET() {
+export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  if (hasKidSessionCookie(req)) return fail("Exit the child account before managing family accounts.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
@@ -38,18 +40,25 @@ export async function GET() {
   const list = Array.isArray(kids) ? kids : [];
   const ids = list.map((k) => String(k.id));
   const controls: Record<string, unknown> = {};
-  const balances: Record<string, number> = {};
+  const spent: Record<string, number> = {};
   const today: Record<string, number> = {};
+  let parentBalance = 0;
   if (ids.length) {
-    const [{ data: c }, { data: w }, { data: d }] = await Promise.all([
-      service.from("kid_controls").select("kid_id,daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hard_stop,updated_at").in("kid_id", ids),
-      service.from("kid_wallet_ledger").select("kid_id,delta").in("kid_id", ids),
+    const [{ data: c }, { data: w }, { data: legacySpent }, { data: d }, { data: parentLots }] = await Promise.all([
+      service.from("kid_controls").select("kid_id,daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hourly_cap_coins,hard_stop,allowed_games,allowed_features,updated_at").in("kid_id", ids),
+      service.from("coin_ledger").select("kid_account_id,delta").in("kid_account_id", ids).lt("delta", 0).gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
+      service.from("kid_wallet_ledger").select("kid_id,delta").in("kid_id", ids).lt("delta", 0).gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()),
       service.from("kid_play_days").select("kid_id,seconds").in("kid_id", ids).eq("day", new Date().toISOString().slice(0, 10)),
+      service.from("coin_lots").select("remaining_coins").eq("user_id", u.id).gt("expires_at", new Date().toISOString()),
     ]);
     for (const row of (Array.isArray(c) ? c : []) as Array<Record<string, unknown>>) controls[String(row.kid_id)] = row;
-    for (const row of (Array.isArray(w) ? w : []) as Array<{ kid_id: string; delta: number }>) {
-      balances[row.kid_id] = Math.round(((balances[row.kid_id] ?? 0) + Number(row.delta ?? 0)) * 100) / 100;
+    for (const row of (Array.isArray(w) ? w : []) as Array<{ kid_account_id: string; delta: number }>) {
+      spent[row.kid_account_id] = Math.round(((spent[row.kid_account_id] ?? 0) - Number(row.delta ?? 0)) * 100) / 100;
     }
+    for (const row of (Array.isArray(legacySpent) ? legacySpent : []) as Array<{ kid_id: string; delta: number }>) {
+      spent[row.kid_id] = Math.round(((spent[row.kid_id] ?? 0) - Number(row.delta ?? 0)) * 100) / 100;
+    }
+    parentBalance = Math.round((Array.isArray(parentLots) ? parentLots : []).reduce((sum, row) => sum + Number(row.remaining_coins ?? 0), 0) * 100) / 100;
     for (const row of (Array.isArray(d) ? d : []) as Array<{ kid_id: string; seconds: number }>) {
       today[row.kid_id] = Number(row.seconds ?? 0);
     }
@@ -59,7 +68,8 @@ export async function GET() {
       ...k,
       handle: `${k.username}#${k.discriminator}`,
       controls: controls[String(k.id)] ?? null,
-      balance: balances[String(k.id)] ?? 0,
+      balance: parentBalance,
+      spent_month: spent[String(k.id)] ?? 0,
       seconds_today: today[String(k.id)] ?? 0,
     })),
   });
@@ -73,6 +83,7 @@ export async function GET() {
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (hasKidSessionCookie(req)) return fail("Exit the child account before managing family accounts.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;

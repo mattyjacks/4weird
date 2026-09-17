@@ -24,6 +24,7 @@ import { memoryPromptSection, mergeBuddyMemory } from "@/lib/buddy-memory";
 import { BUDDY_SSE_HEADERS, isBuddyStreamRequested, isResponsesCompleted, isResponsesFailed, responsesDeltaFromEvent, sseEncode } from "@/lib/buddy-stream";
 import { falConfigured } from "@/lib/fal";
 import { OPENROUTER_ENDPOINT, OPENROUTER_REFERER, OPENROUTER_TITLE, parseOpenRouterText } from "@/lib/openrouter-plays";
+import { checkAuthenticatedVendorEligibility, isGoogleGeminiModel } from "@/lib/vendor-eligibility";
 
 
 /**
@@ -143,6 +144,17 @@ export async function POST(req: Request) {
   const openrouterKey = process.env.OPENROUTER_API_KEY ?? "";
   const openrouterModel = process.env.OPENROUTER_MODEL ?? "meta-llama/llama-4-scout-17b-16e-instruct";
   const brain = pickBuddyBrain({ openaiKey, openrouterKey, requested: input.brain });
+  if (brain === "openrouter" && isGoogleGeminiModel(openrouterModel)) {
+    return fail("Google Gemini models are unavailable on this service because it is likely to be used by people under 18.", 403);
+  }
+  if (brain !== "none") {
+    const vendorAge = await checkAuthenticatedVendorEligibility(
+      supabase,
+      data.user.id,
+      brain === "openrouter" ? "openrouter" : "openai",
+    );
+    if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
+  }
   const model = brain === "openrouter" ? openrouterModel : (process.env.BUDDY_MODEL ?? "gpt-4o-mini");
   const wantStream = isBuddyStreamRequested(input);
   // Fail fast when the wallet cannot cover even the smallest chat leg -

@@ -4,7 +4,7 @@
  * VocRehab Schedule Juggle — composition root (DS-SJ-20 integrator).
  *
  * Composes every landed SJ piece into one practice board:
- * - calendar lib (`lib/vocrehab-schedule-calendar`) for month nav + half-hour snaps
+ * - calendar lib (`lib/vocrehab-schedule-calendar`) for month nav + five-minute snaps
  * - activities (`lib/vocrehab-schedule-activities`) for the palette
  * - burdens (`lib/vocrehab-schedule-burdens`) for difficulty sets + overlap notes
  * - geo presets (`lib/vocrehab-schedule-presets`) for home-base addresses
@@ -21,7 +21,7 @@
  * Legacy fallback: `?legacy=1` renders the original 7-day x 3-slot grid.
  */
 
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { makeSeed } from "@/lib/vocrehab-seed";
 import {
@@ -39,7 +39,6 @@ import {
 } from "@/lib/vocrehab-schedule-calendar";
 import {
   ACTIVITY_KINDS,
-  defaultDuration,
 } from "@/lib/vocrehab-schedule-activities";
 import {
   BURDENS,
@@ -79,6 +78,7 @@ import type {
 import {
   SCHEDULE_VERSION,
   STORAGE_KEY,
+  isScheduleStateV2,
   readStoredSchedule,
   useScheduleStore,
 } from "./vocrehab-schedule-store";
@@ -123,9 +123,9 @@ const SJ_MAX_BLOCK_MIN = 12 * 60;
 type SjTab = "month" | "day" | "plan" | "travel" | "save";
 
 const SJ_TABS: Array<{ id: SjTab; label: string }> = [
-  { id: "month", label: "Month" },
-  { id: "day", label: "Day" },
-  { id: "plan", label: "Activities" },
+  { id: "month", label: "Calendar" },
+  { id: "day", label: "Day details" },
+  { id: "plan", label: "More activities" },
   { id: "travel", label: "Travel" },
   { id: "save", label: "Save" },
 ];
@@ -274,7 +274,9 @@ function ScheduleJuggleRoot({
   vocrehabFinish,
   vocrehabSeed,
   vocrehabRunKey,
-}: VocrehabGameRunProps) {
+  savedStateId,
+  targetKidId,
+}: VocrehabGameRunProps & { savedStateId?: string | null; targetKidId?: string | null }) {
   // Re-resolve when the frame issues a fresh run key.
   const seed = useMemo(
     () => vocrehabSeed ?? makeSeed(),
@@ -303,7 +305,7 @@ function ScheduleJuggleRoot({
     difficulty: seedDifficulty,
     monthAnchor: seedAnchor,
     addresses: seedAddresses,
-  });
+  }, Boolean(savedStateId));
 
   const presetId = sjValidPresetId(scheduleState.presetId);
   const difficulty = sjValidDifficulty(scheduleState.difficulty);
@@ -341,7 +343,7 @@ function ScheduleJuggleRoot({
 
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
   const [tab, setTab] = useState<SjTab>("month");
-  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>("personal");
   const [travelResult, setTravelResult] = useState<VocrehabTravelResult | null>(null);
   const [travelTrip, setTravelTrip] = useState<SjTravelTrip | null>(null);
   const [travelLoading, setTravelLoading] = useState(false);
@@ -349,13 +351,43 @@ function ScheduleJuggleRoot({
     "Schedule Juggle month view. Open any day to build its 24-hour plan.",
   );
   const [note, setNote] = useState<string | null>(null);
+  const [templateLoad, setTemplateLoad] = useState<"idle" | "loading" | "loaded" | "error">(savedStateId ? "loading" : "idle");
   const [finishNote, setFinishNote] = useState<string | null>(null);
   const [conflictsResolved, setConflictsResolved] = useState(0);
   const [savedAt, setSavedAt] = useState<string | null>(null);
-  const [hasSave, setHasSave] = useState<boolean>(() => readStoredSchedule() !== null);
-  const [showWelcome, setShowWelcome] = useState<boolean>(() => readStoredSchedule() !== null);
+  const [hasSave, setHasSave] = useState<boolean>(() => !savedStateId && readStoredSchedule() !== null);
+  const [showWelcome, setShowWelcome] = useState<boolean>(() => !savedStateId && readStoredSchedule() !== null);
   const doneRef = useRef(false);
   const idCounter = useRef(0);
+
+  useEffect(() => {
+    if (!savedStateId) return;
+    const requestedStateId = savedStateId;
+    let cancelled = false;
+    async function loadTemplateState() {
+      try {
+        const query = new URLSearchParams({ id: requestedStateId });
+        if (targetKidId) query.set("kid_id", targetKidId);
+        const response = await fetch(`/api/vocrehab/saved-states?${query.toString()}`, { credentials: "include", cache: "no-store" });
+        const data = await response.json() as { saved_state?: { game_id?: string; state?: unknown }; error?: string };
+        if (!response.ok || data.saved_state?.game_id !== "schedule-juggle" || !isScheduleStateV2(data.saved_state.state)) throw new Error(data.error || "This starting calendar is unavailable or invalid.");
+        if (cancelled) return;
+        const loaded = data.saved_state.state;
+        scheduleDispatch({ type: "hydrate", state: loaded });
+        setSelectedDayId(Object.keys(loaded.events).sort()[0] ?? null);
+        setTemplateLoad("loaded");
+        setTab("month");
+        setNote("Starting calendar loaded. You can adjust any item before saving your month.");
+      } catch {
+        if (!cancelled) {
+          setTemplateLoad("error");
+          setNote("This starting calendar could not be loaded. Your private device calendar was left untouched.");
+        }
+      }
+    }
+    void loadTemplateState();
+    return () => { cancelled = true; };
+  }, [savedStateId, targetKidId, scheduleDispatch]);
 
   const todayId = sjTodayDayId();
   const monthLabel = sjMonthLabel(anchor.year, anchor.monthIndex);
@@ -440,7 +472,6 @@ function ScheduleJuggleRoot({
 
   const openDay = (dayId: string) => {
     setSelectedDayId(dayId);
-    setTab("day");
     const count = blocksByDay[dayId]?.length ?? 0;
     say(dayAriaLabel(dayId, count, selectedActivity?.label ?? null));
   };
@@ -461,8 +492,8 @@ function ScheduleJuggleRoot({
     if (!isInRange(seedAnchor.year, seedAnchor.monthIndex, seedAnchor.year, seedAnchor.monthIndex)) return;
     scheduleDispatch({ type: "setMonth", monthAnchor: seedAnchor });
     setSelectedDayId(todayId);
-    setTab("day");
-    say("Back to the current month — today is open and ready.");
+    setTab("month");
+    say("Back to the current month — today is selected on the calendar.");
   };
 
   const jumpToDay1 = () => {
@@ -491,32 +522,47 @@ function ScheduleJuggleRoot({
     vocrehabEmit("action", { difficulty: value });
   };
 
-  const createBlock = (startMin: number) => {
-    if (!selectedDayId) return;
-    if (!selectedActivity) {
-      const hint = "Pick an activity first, then choose any half-hour target — every small step counts.";
+  const createBlock = (startMin: number, requestedActivityId?: string, requestedDayId?: string) => {
+    const targetDayId = requestedDayId ?? selectedDayId;
+    if (!targetDayId) return;
+    const activity = ACTIVITY_KINDS.find((kind) => kind.id === (requestedActivityId ?? selectedActivityId));
+    if (!activity) {
+      const hint = "Choose an activity above, then tap Add on a calendar day.";
       setNote(hint);
       say(hint);
       return;
     }
-    const start = snapToHalfHour(startMin);
+    const start = Math.round(Math.max(SJ_DAY_MIN, Math.min(SJ_DAY_MAX - 60, startMin)) / 5) * 5;
     // Single stretches cap at half a day — long days become two blocks so
     // each part of the day keeps its own plan.
-    const duration = Math.min(defaultDuration(selectedActivity.id), SJ_MAX_BLOCK_MIN);
+    const duration = Math.min(60, SJ_MAX_BLOCK_MIN);
     const end = Math.min(SJ_DAY_MAX, start + duration);
     if (!(end > start)) return;
     const block: SjDayBlock = {
       id: nextBlockId("block"),
-      title: selectedActivity.label,
-      activityId: selectedActivity.id,
+      title: activity.label,
+      activityId: activity.id,
       startMin: start,
       endMin: end,
     };
-    mutateDay(selectedDayId, (current) => [...current, block]);
-    const message = `${selectedActivity.label} added ${minutesToLabel(start)} to ${minutesToLabel(end)} — nice steady planning.`;
+    mutateDay(targetDayId, (current) => [...current, block]);
+    const message = `${activity.label} added ${minutesToLabel(start)} to ${minutesToLabel(end)} — nice steady planning.`;
     setNote(null);
     say(message);
-    vocrehabEmit("action", { day: selectedDayId, activity: selectedActivity.id, startMin: start });
+    vocrehabEmit("action", { day: targetDayId, activity: activity.id, startMin: start });
+  };
+
+  const createBlockForDay = (dayId: string, activityId: string) => {
+    const existing = blocksByDay[dayId] ?? [];
+    const starts = [...Array.from({ length: 16 }, (_, index) => (8 + index) * 60), ...Array.from({ length: 8 }, (_, index) => index * 60)];
+    const start = starts.find((candidate) =>
+      candidate + 60 <= SJ_DAY_MAX && existing.every((block) => candidate + 60 <= block.startMin || candidate >= block.endMin),
+    );
+    if (start === undefined) {
+      setNote("There is no open one-hour space left in this day. Open the day details to adjust its schedule.");
+      return;
+    }
+    createBlock(start, activityId, dayId);
   };
 
   const moveBlock = (id: string, startMin: number) => {
@@ -524,8 +570,8 @@ function ScheduleJuggleRoot({
     mutateDay(selectedDayId, (current) =>
       current.map((block) => {
         if (block.id !== id || block.locked === true) return block;
-        const duration = Math.max(30, block.endMin - block.startMin);
-        const start = Math.min(SJ_DAY_MAX - duration, Math.max(SJ_DAY_MIN, snapToHalfHour(startMin)));
+        const duration = Math.max(5, block.endMin - block.startMin);
+        const start = Math.min(SJ_DAY_MAX - duration, Math.max(SJ_DAY_MIN, Math.round(startMin / 5) * 5));
         return { ...block, startMin: start, endMin: start + duration };
       }),
     );
@@ -540,7 +586,7 @@ function ScheduleJuggleRoot({
         const end = Math.min(
           SJ_DAY_MAX,
           block.startMin + SJ_MAX_BLOCK_MIN,
-          Math.max(block.startMin + 30, snapToHalfHour(endMin)),
+          Math.max(block.startMin + 5, Math.round(endMin / 5) * 5),
         );
         if (end === block.startMin + SJ_MAX_BLOCK_MIN) {
           const hint = "That stretch is at its fullest — split the rest into a second block so each part keeps its own plan.";
@@ -550,7 +596,7 @@ function ScheduleJuggleRoot({
         return { ...block, endMin: end };
       }),
     );
-    say("Block extended — more room for that win.");
+    say("Block length updated in five-minute steps.");
   };
 
   const removeBlock = (id: string) => {
@@ -873,9 +919,11 @@ function ScheduleJuggleRoot({
           {note}
         </p>
       ) : null}
+      {templateLoad === "loading" ? <p className="rounded-lg border p-2 text-sm" role="status">Loading the assigned starting calendar…</p> : null}
+      {templateLoad === "loaded" ? <p className="rounded-lg border border-emerald-300 bg-emerald-50 p-2 text-sm text-emerald-950" role="status">Assigned starting calendar loaded.</p> : null}
 
       {tab === "month" ? (
-        <div role="tabpanel" aria-label="Month calendar" className="max-h-[62vh] space-y-2 overflow-y-auto sm:max-h-[66vh]">
+        <div role="tabpanel" aria-label="Month calendar" className="space-y-3">
           <VocrehabScheduleControls
             presetId={presetId}
             onPreset={choosePreset}
@@ -888,14 +936,52 @@ function ScheduleJuggleRoot({
             onJumpToDay1={jumpToDay1}
             savedAt={savedAt}
           />
+          <section aria-label="Choose an activity" className="rounded-2xl border border-stone-200 bg-white p-3 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-stone-900">Choose what to schedule</h3>
+                <p className="text-xs text-stone-600">Choose an activity, then use + Add on any date. Each block starts at 1 hour; adjust its length in 5-minute steps.</p>
+              </div>
+              <button type="button" onClick={() => setTab("save")} className="min-h-10 rounded-lg border border-stone-300 px-3 text-sm font-semibold text-stone-800">Save calendar</button>
+            </div>
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {ACTIVITY_KINDS.map((activity) => (
+                <button key={activity.id} type="button" aria-pressed={selectedActivityId === activity.id} onClick={() => { setSelectedActivityId(activity.id); say(`${activity.label} selected. Tap Add on a calendar day.`); }} className={`min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-semibold ${selectedActivityId === activity.id ? "border-emerald-600 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-600/30" : "border-stone-300 bg-white text-stone-800 hover:bg-stone-50"}`}>
+                  {activity.label}{selectedActivityId === activity.id ? " ✓" : ""}
+                </button>
+              ))}
+            </div>
+          </section>
           <VocrehabScheduleMonth
             year={anchor.year}
             monthIndex={anchor.monthIndex}
             selectedDayId={selectedDayId}
             eventCounts={eventCounts}
             onSelect={openDay}
+            quickAddActivity={selectedActivity ? { id: selectedActivity.id, label: selectedActivity.label } : null}
+            dayEvents={Object.fromEntries(Object.entries(blocksByDay).map(([dayId, blocks]) => [dayId, blocks.map((block) => ({ id: block.id, title: block.title, startMin: block.startMin, endMin: block.endMin }))]))}
+            onQuickAdd={(dayId, activityId) => { setSelectedDayId(dayId); createBlockForDay(dayId, activityId); }}
+            onQuickRemove={(dayId, eventId) => { mutateDay(dayId, (current) => current.filter((block) => block.id !== eventId)); say("Scheduled item removed. That time is open again."); }}
             todayDayId={todayId}
           />
+          {selectedDayId ? (
+            <section aria-label={`Edit schedule for ${selectedDayId}`} className="space-y-3 rounded-2xl border border-stone-200 bg-white p-3 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-base font-bold">{selectedDayId} <span className="font-normal text-stone-600">· tap an open hour to add</span></h3>
+                <button type="button" onClick={() => setSelectedDayId(null)} className="min-h-10 rounded-lg border px-3 text-sm">Close day</button>
+              </div>
+              {!selectedActivity ? <p className="text-sm text-amber-800">Choose an activity above first.</p> : null}
+              <VocrehabScheduleDay
+                dayId={selectedDayId}
+                events={selectedDayEvents}
+                selectedActivity={selectedActivity ? { id: selectedActivity.id, label: selectedActivity.label, defaultDurMin: 60 } : null}
+                onCreate={createBlock}
+                onMove={moveBlock}
+                onResize={resizeBlock}
+                onRemove={removeBlock}
+              />
+            </section>
+          ) : <p className="rounded-xl border border-dashed p-4 text-sm text-stone-600">Tap any calendar date to see its hours and scheduled items here.</p>}
           <p className="text-xs text-muted-foreground">{geoPreset.briefing}</p>
         </div>
       ) : null}
@@ -933,7 +1019,7 @@ function ScheduleJuggleRoot({
               ) : (
                 <p className="text-sm text-muted-foreground">
                   {selectedBlocks.length === 0
-                    ? "A fresh day with room for wins — pick an activity under Activities, then tap a half-hour target."
+                    ? "A fresh day with room for wins — choose an activity, then tap an open hour."
                     : "✓ This day is holding together nicely — every block has its own room."}
                 </p>
               )}
@@ -978,7 +1064,7 @@ function ScheduleJuggleRoot({
               say(
                 kind
                   ? `${kind.label} picked — ${kind.blurb}`
-                  : "Activity picked — open a day and choose a half-hour target.",
+                  : "Activity picked — return to the calendar and choose a date.",
               );
             }}
             burdens={paletteBurdens}
@@ -1256,7 +1342,7 @@ function ScheduleJuggleSwitch(props: VocrehabGameRunProps) {
   if (params.get("legacy") === "1") {
     return <VocrehabGameScheduleJuggleLegacy {...props} />;
   }
-  return <ScheduleJuggleRoot {...props} />;
+  return <ScheduleJuggleRoot {...props} savedStateId={params.get("savedStateId")} targetKidId={params.get("kid_id")} />;
 }
 
 export default function VocrehabGameScheduleJuggle(props: VocrehabGameRunProps) {

@@ -96,6 +96,16 @@ export type KidSession = {
   inWindow: boolean;
 };
 
+/** True whenever the request carries the child overlay cookie, even if it is
+ * malformed or expired. Parent-admin endpoints use this to fail closed on a
+ * shared device until the child context is explicitly exited. */
+export function hasKidSessionCookie(req: Pick<Request, "headers">): boolean {
+  return (req.headers.get("cookie") ?? "").split(";").some((part) => {
+    const separator = part.indexOf("=");
+    return separator >= 0 && part.slice(0, separator).trim() === "kid_session";
+  });
+}
+
 /** Resolve the `kid_session` cookie to a live child session (service client). */
 export async function getKidSession(
   service: SupabaseClient,
@@ -136,12 +146,14 @@ export async function getKidSession(
     .eq("id", session.kid_id)
     .maybeSingle();
   if (!kid || kid.status !== "active") return null;
-  const [{ data: controls }, { data: wallet }, { data: day }] = await Promise.all([
+  const [{ data: controls }, { data: parentLots }, { data: day }] = await Promise.all([
     service.from("kid_controls").select("*").eq("kid_id", kid.id).maybeSingle(),
-    service.from("kid_wallet_ledger").select("delta").eq("kid_id", kid.id),
+    service.from("coin_lots").select("remaining_coins").eq("user_id", kid.parent_id).gt("expires_at", new Date().toISOString()),
     service.from("kid_play_days").select("seconds").eq("kid_id", kid.id).eq("day", new Date().toISOString().slice(0, 10)).maybeSingle(),
   ]);
-  const balance = (Array.isArray(wallet) ? wallet : []).reduce((sum, row) => sum + Number(row.delta ?? 0), 0);
+  // Child sessions spend the parent's still-valid lots directly; there is no
+  // child-owned wallet balance.
+  const balance = (Array.isArray(parentLots) ? parentLots : []).reduce((sum, row) => sum + Number(row.remaining_coins ?? 0), 0);
   // Window check mirrors kid_in_window() for display; the RPCs enforce it.
   let inWindow = true;
   try {

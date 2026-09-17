@@ -20,6 +20,7 @@ export interface VocrehabGameRunProps {
   vocrehabRunKey: number;
   vocrehabSeed?: string;
   vocrehabNewSeed?: () => void;
+  vocrehabTemplateState?: Record<string, unknown>;
 }
 
 interface VocrehabGameFrameProps {
@@ -30,6 +31,10 @@ interface VocrehabGameFrameProps {
   vocrehabTimeLimitSec: number | null;
   vocrehabExitHref: string;
   vocrehabSeed?: string;
+  /** Start directly in no-timer practice when the game is a planning tool. */
+  vocrehabStartInPractice?: boolean;
+  /** Start directly in the game workspace for calendar-first planning games. */
+  vocrehabStartInWorkspace?: boolean;
   children: (run: VocrehabGameRunProps) => React.ReactNode;
 }
 
@@ -53,9 +58,11 @@ export default function VocrehabGameFrame({
   vocrehabTimeLimitSec,
   vocrehabExitHref,
   vocrehabSeed: vocrehabSeedProp,
+  vocrehabStartInPractice = false,
+  vocrehabStartInWorkspace = false,
   children,
 }: VocrehabGameFrameProps) {
-  const [vocrehabPhase, setVocrehabPhase] = useState<VocrehabPhase>("intro");
+  const [vocrehabPhase, setVocrehabPhase] = useState<VocrehabPhase>(vocrehabStartInWorkspace ? "run" : vocrehabStartInPractice ? "practice" : "intro");
   const [vocrehabPaused, setVocrehabPaused] = useState(false);
   const [vocrehabCountdown, setVocrehabCountdown] = useState(3);
   const [vocrehabRemainingMs, setVocrehabRemainingMs] = useState<number | null>(
@@ -82,10 +89,48 @@ export default function VocrehabGameFrame({
   // Seed: `?seed=` replay wins when valid, else a fresh random shuffle.
   // Resolved once per run key so retries deal fresh (replay stays pinned).
   const [vocrehabSeedOverride, setVocrehabSeedOverride] = useState<string | null>(null);
+  const [vocrehabUrlSeed] = useState<string | null>(() =>
+    typeof window === "undefined"
+      ? null
+      : vocrehabParseSeed(new URLSearchParams(window.location.search).get("seed")),
+  );
+  const [vocrehabTemplateState, setVocrehabTemplateState] = useState<Record<string, unknown> | undefined>(undefined);
+  const [vocrehabTemplateStatus, setVocrehabTemplateStatus] = useState<"idle" | "loading" | "loaded" | "error">("idle");
+  const [vocrehabTemplateKey] = useState(() => {
+    if (typeof window === "undefined") return { id: null, kidId: null };
+    const params = new URLSearchParams(window.location.search);
+    return { id: params.get("savedStateId"), kidId: params.get("kid_id") };
+  });
+  useEffect(() => {
+    if (!vocrehabTemplateKey.id) return;
+    let active = true;
+    const params = new URLSearchParams({ id: vocrehabTemplateKey.id });
+    if (vocrehabTemplateKey.kidId) params.set("kid_id", vocrehabTemplateKey.kidId);
+    fetch(`/api/vocrehab/saved-states?${params.toString()}`, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Could not load this setup.");
+        return response.json() as Promise<{ saved_state?: { game_id?: string; state?: unknown } }>;
+      })
+      .then((payload) => {
+        if (!active) return;
+        const state = payload.saved_state?.state;
+        if (payload.saved_state?.game_id !== vocrehabGameId || !state || typeof state !== "object" || Array.isArray(state)) {
+          throw new Error("This setup does not match this game.");
+        }
+        setVocrehabTemplateState(state as Record<string, unknown>);
+        setVocrehabTemplateStatus("loaded");
+      })
+      .catch(() => {
+        if (!active) return;
+        setVocrehabTemplateState(undefined);
+        setVocrehabTemplateStatus("error");
+      });
+    return () => { active = false; };
+  }, [vocrehabTemplateKey, vocrehabGameId]);
   const vocrehabSeed = useMemo(
     () =>
-      vocrehabParseSeed(vocrehabSeedOverride ?? vocrehabSeedProp ?? null) ?? vocrehabRandomSeed(),
-    [vocrehabSeedOverride, vocrehabSeedProp, vocrehabRunKey],
+      vocrehabParseSeed(vocrehabSeedOverride ?? vocrehabUrlSeed ?? vocrehabSeedProp ?? null) ?? vocrehabRandomSeed(),
+    [vocrehabSeedOverride, vocrehabUrlSeed, vocrehabSeedProp, vocrehabRunKey],
   );
   const vocrehabNewSeed = useCallback(() => {
     setVocrehabSeedOverride(vocrehabRandomSeed());
@@ -230,10 +275,10 @@ export default function VocrehabGameFrame({
     setVocrehabAnnounce("Added 60 seconds of extra time. No penalty — speed is informational only.");
   }, [vocrehabExtraTimeSec, vocrehabTimeLimitSec, vocrehabEmit]);
 
-  const vocrehabRetry = useCallback(() => {
+  const vocrehabRetry = useCallback((seed: string) => {
     setVocrehabEvents([]);
     setVocrehabSummaryExtra({});
-    setVocrehabSeedOverride(null);
+    setVocrehabSeedOverride(seed);
     setVocrehabFinished(false);
     setVocrehabPaused(false);
     setVocrehabPausedTotalMs(0);
@@ -242,7 +287,7 @@ export default function VocrehabGameFrame({
     setVocrehabRunKey((k) => k + 1);
     setVocrehabSaveState("idle");
     setVocrehabPhase("intro");
-    setVocrehabAnnounce(`${vocrehabTitle}. Ready for another try.`);
+    setVocrehabAnnounce(`${vocrehabTitle}. Ready to play this round again.`);
   }, [vocrehabTimeLimitSec, vocrehabTitle]);
 
   const vocrehabSendToProfile = useCallback(async () => {
@@ -254,7 +299,7 @@ export default function VocrehabGameFrame({
         body: JSON.stringify({
           game_id: vocrehabGameId,
           events: vocrehabEvents.slice(0, VOCREHAB_MAX_EVENTS),
-          summary: vocrehabSummaryExtra,
+          summary: { ...vocrehabSummaryExtra, display_summary: vocrehabSummary, seed: vocrehabSeed },
         }),
       });
       if (res.status === 401) {
@@ -270,7 +315,7 @@ export default function VocrehabGameFrame({
       // Fail-open: a network blip never destroys the local result.
       setVocrehabSaveState("error");
     }
-  }, [vocrehabGameId, vocrehabEvents, vocrehabSummaryExtra]);
+  }, [vocrehabGameId, vocrehabEvents, vocrehabSummaryExtra, vocrehabSummary, vocrehabSeed]);
 
   // Stable run-props identity so the render-prop child does not remount on
   // every 500ms timer tick; callbacks close over state only (no refs).
@@ -282,8 +327,9 @@ export default function VocrehabGameFrame({
       vocrehabRunKey,
       vocrehabSeed,
       vocrehabNewSeed,
+      vocrehabTemplateState,
     }),
-    [vocrehabEmit, vocrehabFinish, vocrehabExtraTimeSec, vocrehabRunKey, vocrehabSeed, vocrehabNewSeed],
+    [vocrehabEmit, vocrehabFinish, vocrehabExtraTimeSec, vocrehabRunKey, vocrehabSeed, vocrehabNewSeed, vocrehabTemplateState],
   );
 
   const timed = vocrehabTimeLimitSec !== null;
@@ -293,6 +339,10 @@ export default function VocrehabGameFrame({
       <p aria-live="polite" role="status" className="sr-only">
         {vocrehabAnnounce}
       </p>
+
+      {vocrehabTemplateKey.id && vocrehabTemplateStatus === "idle" && <p role="status" className="text-sm">Loading saved setup…</p>}
+      {vocrehabTemplateStatus === "loading" && <p role="status" className="text-sm">Loading saved setup…</p>}
+      {vocrehabTemplateStatus === "error" && <p role="status" className="text-sm">This saved setup could not be opened. You can still start a fresh round.</p>}
 
       {vocrehabPhase === "intro" && (
         <div className="vocrehab-game-intro space-y-3 rounded-lg border p-5">
@@ -406,7 +456,7 @@ export default function VocrehabGameFrame({
           <div className="text-sm">
             <p className="font-medium">What to try next</p>
             <p className="text-muted-foreground">
-              Retry the game, send this run to your profile, or keep exploring the arcade.
+              Replay this same round, try a new round, send this run to your profile, or keep exploring the arcade.
             </p>
           </div>
           {vocrehabSaveState === "saved" && (
@@ -425,8 +475,11 @@ export default function VocrehabGameFrame({
             </p>
           )}
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={vocrehabRetry} className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground">
-              Retry
+            <button type="button" onClick={() => vocrehabRetry(vocrehabSeed)} className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground">
+              Replay same round
+            </button>
+            <button type="button" onClick={() => vocrehabRetry(vocrehabRandomSeed())} className="rounded border px-4 py-2 font-medium">
+              Try a new round
             </button>
             <button
               type="button"

@@ -66,7 +66,7 @@ for (const token of ["create_kid_account", "hashKidPassword", "discriminator", "
   must(kids.includes(token), `family/kids route must include ${token}`);
 }
 const kidDetail = read("app/api/family/kids/[id]/route.ts");
-for (const token of ["set_kid_controls", "set_kid_password", "close_kid_account", "refunded_coins"]) {
+for (const token of ["set_kid_controls", "set_kid_password", "close_kid_account", "closed: true"]) {
   must(kidDetail.includes(token), `family/kids/[id] route must include ${token}`);
 }
 const login = read("app/api/family/kid-login/route.ts");
@@ -77,7 +77,7 @@ must(login.includes("slice(5)"), "kid-login must cap live sessions per child");
 const logout = read("app/api/family/kid-logout/route.ts");
 must(logout.includes("kid_sessions") && logout.includes("delete"), "kid-logout must destroy the session row");
 const fund = read("app/api/family/fund/route.ts");
-must(fund.includes("fund_kid_wallet"), "fund route must use the atomic funding RPC");
+must(fund.includes("410") && fund.includes("do not hold coins") && !fund.includes('.rpc("fund_kid_wallet"'), "legacy fund route must be blocked; children do not own coins");
 const sessionRoute = read("app/api/games/session/route.ts");
 for (const token of ["kidSessionPlay", "start_kid_session", "heartbeat_kid_session", "end_kid_session", "getGameRating"]) {
   must(sessionRoute.includes(token), `games/session route must include ${token}`);
@@ -105,9 +105,22 @@ must(!/console\.log/.test(kids + login), "family routes must not log credentials
 
 // 6. UI: parent dashboard, kid login, banner, account wiring, enforcement.
 const dash = read("components/family/parent-dashboard.tsx");
-for (const token of ["username#1234", "daily_minutes", "allowed_start", "allowed_end", "monthly_cap_coins", "hard_stop", "fund", "Suspend", "Close + refund", "reset", "seconds_today"]) {
+for (const token of ["username#1234", "daily_minutes", "allowed_start", "allowed_end", "monthly_cap_coins", "hourly_cap_coins", "allowed_games", "allowed_features", "hard_stop", "Suspend", "Close account", "reset", "seconds_today", "Parent balance"]) {
   must(dash.toLowerCase().includes(token.toLowerCase()), `parent-dashboard must include ${token}`);
 }
+const familyControls = read("supabase/migrations/20261226000002_family_game_allowlist.sql");
+for (const token of ["hourly_cap_coins", "allowed_features"]) {
+  must(familyControls.includes(token), `family controls migration must include ${token}`);
+}
+const parentSpend = read("supabase/migrations/20261226000004_family_parent_coin_spending.sql");
+for (const token of ["kid_account_id", "spend_parent_coins_for_kid", "insufficient parent balance", "hourly spend cap reached", "interval '1 hour'", "kid_wallet_reconciliations", "game not allowed by parent", "fund_kid_wallet"]) {
+  must(parentSpend.includes(token), `parent-owned spending migration must include ${token}`);
+}
+const familyLib = read("lib/family.ts");
+for (const token of ["isFeatureAllowlist", "canKidUseFeature", "allowed_features"]) {
+  must(familyLib.includes(token), `family policy helper must include ${token}`);
+}
+must(sessionRoute.includes("hourly spend cap") && sessionRoute.includes("allowedKidGames") && sessionRoute.includes("canKidUseFeature"), "child game metering must enforce parent limits");
 const form = read("components/family/kid-login-form.tsx");
 must(form.includes("name#1234") && form.includes("/api/family/kid-login"), "kid-login-form must post handle + password");
 const banner = read("components/family/kid-banner.tsx");
@@ -144,7 +157,7 @@ must(parseKidHandle("#1234") === null, "empty username must reject");
 
 // 8. Legal copy: family section in terms + privacy, warlord ranks in terms.
 const terms = read("app/terms/page.tsx");
-for (const token of ["4B. Parent and Child accounts", "username#1234", "daily play-time limit", "allowed play hours", "monthly coin budget", "Lord", "Captain", "Infantry", "Banker"]) {
+for (const token of ["4B. Parent and Child accounts", "username#1234", "daily play-time limit", "allowed play hours", "monthly budget", "rolling hourly spend cap", "Parents keep ownership", "Lord", "Captain", "Infantry", "Banker"]) {
   must(terms.includes(token), `terms must include ${token}`);
 }
 const privacy = read("app/privacy/page.tsx");

@@ -4,6 +4,7 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { describeFalStep, isRunUuid, isVcwRunKind, parseFalToolCall } from "@/lib/vcw-runs";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 
 /**
@@ -52,6 +53,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (JSON.stringify(extra).length > 10000) {
     return fail("data must fit in 10 KB.", 400);
   }
+  const falCall = parseFalToolCall(text, extra);
+  if (falCall) {
+    const ageGate = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "fal");
+    if (!ageGate.allowed) return fail(ageGate.reason, 403);
+  }
 
   const { data: run, error: runError } = await supabase
     .from("vcw_runs")
@@ -95,7 +101,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   // fal.ai meld: detect a loop tool call and hand back the validated next hop.
   // parseFalToolCall gates first so steps without a tag skip catalog
   // validation entirely; describeFalStep then validates + quotes the hop.
-  const falCall = parseFalToolCall(text, extra);
   const fal = falCall ? describeFalStep(String(input.kind), text, extra) : { detected: false as const };
   if (fal.detected) return ok({ step, fal }, 201);
   return ok({ step }, 201);

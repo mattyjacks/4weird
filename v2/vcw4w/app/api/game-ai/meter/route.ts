@@ -18,6 +18,13 @@ import { rpcStatus } from "@/lib/agent-market";
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  // A child session can coexist with a parent's Supabase cookie in the same
+  // browser. This RPC only knows auth.uid() and would debit the parent without
+  // applying the child's spend caps, so deny the overlay until child-scoped
+  // AI metering is supported.
+  if (req.headers.get("cookie")?.split(";").some((part) => part.trim().split("=", 1)[0] === "kid_session")) {
+    return fail("AI metering is unavailable during a child session.", 403);
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

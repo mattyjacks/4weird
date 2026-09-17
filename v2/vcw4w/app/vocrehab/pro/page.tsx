@@ -75,6 +75,18 @@ export default function Page() {
 
       <ul className="grid gap-3 sm:grid-cols-3">
         <li>
+          <Link href="/vocrehab/library" className="block rounded-xl border border-white/15 p-5 hover:bg-white/5">
+            <span className="font-bold">Game templates</span>
+            <span className="mt-1 block text-sm text-muted-foreground">Create shareable starting scenarios; clients can keep their own saved states.</span>
+          </Link>
+        </li>
+        <li>
+          <Link href="/vocrehab/pro/reports" className="block rounded-xl border border-white/15 p-5 hover:bg-white/5">
+            <span className="font-bold">State report worksheet</span>
+            <span className="mt-1 block text-sm text-muted-foreground">Prepare a reviewable activity summary for WA, NY, or NH.</span>
+          </Link>
+        </li>
+        <li>
           <Link
             href="/vocrehab/pro/sessions"
             className="block rounded-xl border border-white/15 p-5 hover:bg-white/5"

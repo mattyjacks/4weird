@@ -28,10 +28,12 @@ interface VocrehabPaycheckEvent {
 interface VocrehabPaycheckProps {
   vocrehabGameId?: string;
   vocrehabTimeLimitSec?: number;
-  vocrehabOnComplete?: (vocrehabTelemetry: VocrehabPaycheckEvent[]) => void;
+  vocrehabOnComplete?: (vocrehabTelemetry: VocrehabPaycheckEvent[], vocrehabSummary?: Record<string, unknown>) => Promise<boolean | "guest" | "error"> | boolean | "guest" | "error";
   vocrehabOnExit?: () => void;
   vocrehabSeed?: string;
-  vocrehabRunKey?: number;
+  vocrehabTemplateState?: Record<string, unknown>;
+  vocrehabSavedStateId?: string;
+  vocrehabKidId?: string;
 }
 
 interface VocrehabPaycheckRound {
@@ -85,6 +87,32 @@ function vocrehabPaycheckNorm(
       Math.round(vocrehabPaycheckNum(vocrehabRec.curveballCost, 40)),
     ),
   };
+}
+
+// Saved template schema: { rounds: [{ id?, title?, wage, hours, deductionRate?,
+// deductionLabel?, curveball?, curveballCost? }] }. Rounds replace the seeded set.
+function vocrehabPaycheckTemplateRounds(value: unknown): VocrehabPaycheckRound[] | null {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 3) return null;
+  const rounds: VocrehabPaycheckRound[] = [];
+  for (const [index, item] of value.entries()) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+    const raw = item as Record<string, unknown>;
+    if (typeof raw.wage !== "number" || !Number.isFinite(raw.wage) || raw.wage < 1 || raw.wage > 500 ||
+      typeof raw.hours !== "number" || !Number.isFinite(raw.hours) || raw.hours < 1 || raw.hours > 80) return null;
+    const deductionRate = raw.deductionRate === undefined ? 0.15 : raw.deductionRate;
+    if (typeof deductionRate !== "number" || !Number.isFinite(deductionRate) || deductionRate < 0 || deductionRate > 0.8) return null;
+    rounds.push(vocrehabPaycheckNorm({
+      id: typeof raw.id === "string" ? raw.id : `template-round-${index + 1}`,
+      title: typeof raw.title === "string" ? raw.title.slice(0, 80) : `Paycheck ${index + 1}`,
+      wage: raw.wage,
+      hours: raw.hours,
+      deductionRate,
+      deductionLabel: typeof raw.deductionLabel === "string" ? raw.deductionLabel.slice(0, 80) : "Taxes + fees",
+      curveball: typeof raw.curveball === "string" ? raw.curveball.slice(0, 240) : "An unexpected expense came up.",
+      curveballCost: typeof raw.curveballCost === "number" ? raw.curveballCost : 40,
+    } as unknown as VocrehabPaycheckPoolScenario, index));
+  }
+  return rounds;
 }
 
 function vocrehabPaycheckMoney(vocrehabAmount: number): string {
@@ -201,7 +229,26 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
   const [vocrehabPoints, setVocrehabPoints] = useState(0);
   const [vocrehabPointsLog, setVocrehabPointsLog] = useState<number[]>([]);
   const [vocrehabSent, setVocrehabSent] = useState(false);
+  const [vocrehabSaveState, setVocrehabSaveState] = useState<"idle" | "saving" | "saved" | "guest" | "error">("idle");
   const [vocrehabShowNumbers, setVocrehabShowNumbers] = useState(false);
+  const [vocrehabTemplateState, setVocrehabTemplateState] = useState<Record<string, unknown> | undefined>(vocrehabProps.vocrehabTemplateState);
+
+  useEffect(() => {
+    const id = vocrehabProps.vocrehabSavedStateId;
+    if (!id) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({ id });
+    if (vocrehabProps.vocrehabKidId) params.set("kid_id", vocrehabProps.vocrehabKidId);
+    void fetch(`/api/vocrehab/saved-states?${params}`, { credentials: "same-origin", signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((body) => {
+        const saved = body?.saved_state;
+        if (saved?.game_id === "paycheck-plan" && saved.state && typeof saved.state === "object" && !Array.isArray(saved.state)) {
+          setVocrehabTemplateState(saved.state as Record<string, unknown>);
+        }
+      }).catch(() => undefined);
+    return () => controller.abort();
+  }, [vocrehabProps.vocrehabSavedStateId, vocrehabProps.vocrehabKidId]);
 
   const vocrehabStartRef = useRef(0);
   const vocrehabPausedTotalRef = useRef(0);
@@ -213,12 +260,13 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
   const vocrehabSelected = useMemo(() => {
     const seed = vocrehabProps.vocrehabSeed ?? makeSeed();
     return vocrehabSelectPaycheck(seed);
-  }, [vocrehabProps.vocrehabSeed, vocrehabProps.vocrehabRunKey]);
+  }, [vocrehabProps.vocrehabSeed]);
   const vocrehabSeed = vocrehabSelected.seed;
   const vocrehabScenarios: readonly VocrehabPaycheckPoolScenario[] = vocrehabSelected.scenarios;
-  const vocrehabRounds: VocrehabPaycheckRound[] = vocrehabScenarios
+  const vocrehabSeededRounds: VocrehabPaycheckRound[] = vocrehabScenarios
     .slice(0, 3)
     .map((vocrehabS, vocrehabI) => vocrehabPaycheckNorm(vocrehabS, vocrehabI));
+  const vocrehabRounds = vocrehabPaycheckTemplateRounds(vocrehabTemplateState?.rounds) ?? vocrehabSeededRounds;
   const vocrehabActive: VocrehabPaycheckRound | null =
     vocrehabRounds.length > 0 ? vocrehabRounds[Math.min(vocrehabRound, vocrehabRounds.length - 1)] : null;
   const vocrehabGross = vocrehabActive ? vocrehabActive.vocrehabWage * vocrehabActive.vocrehabHours : 0;
@@ -472,10 +520,16 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
     setVocrehabPhase("practice");
   }
 
-  function vocrehabSend(): void {
-    vocrehabPush("complete", { game: vocrehabGameId, points: vocrehabPoints, sent: true, seed: vocrehabSeed });
-    if (vocrehabProps.vocrehabOnComplete) vocrehabProps.vocrehabOnComplete([...vocrehabEventsRef.current]);
+  async function vocrehabSend(): Promise<void> {
+    setVocrehabSaveState("saving");
+    const summary = { game: "paycheck-plan", points: vocrehabPoints, seed: vocrehabSeed };
+    vocrehabPush("complete", summary);
+    let saved: boolean | "guest" | "error" | undefined;
+    try { saved = await vocrehabProps.vocrehabOnComplete?.([...vocrehabEventsRef.current], summary); }
+    catch { saved = "error"; }
+    if (saved === "guest" || saved === "error") { setVocrehabSaveState(saved); return; }
     setVocrehabSent(true);
+    setVocrehabSaveState("saved");
   }
 
   const vocrehabBand = vocrehabPaycheckBand(vocrehabPoints);
@@ -735,10 +789,12 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
             <button type="button" style={vocrehabPaycheckPrimary} onClick={vocrehabRetry}>
               Retry
             </button>
-            <button type="button" style={vocrehabPaycheckBtn} onClick={vocrehabSend} disabled={vocrehabSent}>
-              {vocrehabSent ? "Sent to profile" : "Send to profile"}
+            <button type="button" style={vocrehabPaycheckBtn} onClick={() => void vocrehabSend()} disabled={vocrehabSent || vocrehabSaveState === "saving"}>
+              {vocrehabSaveState === "saving" ? "Saving…" : vocrehabSaveState === "saved" ? "Saved to profile" : "Send to profile"}
             </button>
           </div>
+          {vocrehabSaveState === "guest" && <p role="status">Sign in to save this run. Your result is still here.</p>}
+          {vocrehabSaveState === "error" && <p role="status">Could not save right now. Your result is safe; try again.</p>}
           <p style={{ fontSize: "14px" }}>Signed in? Send this run to your profile. Guests: sign in to save.</p>
         </div>
       )}

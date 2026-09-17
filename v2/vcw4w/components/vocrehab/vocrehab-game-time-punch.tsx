@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  vocrehabGame2AssessmentPayload,
   vocrehabGame2InteropChannel,
   vocrehabScoreTimePunch,
   type VocrehabGame2Event,
 } from "@/lib/vocrehab-games2";
 import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
 import { vocrehabSelectTimePunch } from "@/lib/vocrehab-seed-pools2";
+import { templateString, useVocrehabTemplateState } from "./use-vocrehab-template-state";
 
 interface VocrehabShiftTask {
   id: string;
@@ -26,6 +26,7 @@ const VOCREHAB_EXTRA_SEC = 60;
 interface VocrehabGameTimePunchProps {
   vocrehabSeed?: string;
   vocrehabRunKey?: number;
+  vocrehabTemplateState?: Record<string, unknown>;
 }
 
 type VocrehabTaskState = "upcoming" | "open" | "done" | "missed";
@@ -37,6 +38,7 @@ function vocrehabClock(sec: number): string {
 }
 
 export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): React.ReactNode {
+  const template = useVocrehabTemplateState("time-punch", props.vocrehabTemplateState);
   const [vocrehabStarted, setVocrehabStarted] = useState(false);
   const [vocrehabElapsed, setVocrehabElapsed] = useState(0);
   const [vocrehabPaused, setVocrehabPaused] = useState(false);
@@ -63,9 +65,24 @@ export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): R
     () => vocrehabSelectTimePunch(vocrehabSeed),
     [vocrehabSeed, vocrehabRunKey],
   );
-  const VOCREHAB_TASKS: VocrehabShiftTask[] = vocrehabDeal.tasks;
+  const boundedNumber = (value: unknown, fallback: number, min: number, max: number) =>
+    typeof value === "number" && Number.isFinite(value) ? Math.min(max, Math.max(min, Math.round(value))) : fallback;
+  const shiftDuration = boundedNumber(template.state?.shiftDurationSec, VOCREHAB_SHIFT_END, 60, 900);
+  const graceAt = boundedNumber(template.state?.graceAtSec, VOCREHAB_GRACE_AT, 30, shiftDuration - 10);
+  const graceDuration = boundedNumber(template.state?.graceDurationSec, VOCREHAB_GRACE_SEC, 0, 180);
+  const templateTasks = Array.isArray(template.state?.tasks) ? template.state.tasks.slice(0, 12) : null;
+  const VOCREHAB_TASKS: VocrehabShiftTask[] = templateTasks?.map((raw, index) => {
+    if (!raw || typeof raw !== "object") return null;
+    const row = raw as Record<string, unknown>;
+    const id = templateString(row.id, 80) ?? `provider-task-${index + 1}`;
+    const label = templateString(row.label, 160);
+    const openAt = boundedNumber(row.openAt, -1, 0, shiftDuration);
+    const closeAt = boundedNumber(row.closeAt, -1, 1, shiftDuration);
+    if (!label || openAt >= closeAt) return null;
+    return { id, label, openAt, closeAt };
+  }).filter((task): task is VocrehabShiftTask => task !== null) ?? vocrehabDeal.tasks;
 
-  const vocrehabEnd = VOCREHAB_SHIFT_END + vocrehabExtra;
+  const vocrehabEnd = shiftDuration + vocrehabExtra;
 
   function vocrehabPush(kind: VocrehabGame2Event["kind"], detail: Record<string, unknown>): void {
     if (eventsRef.current.length >= 200) return;
@@ -76,7 +93,7 @@ export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): R
   function vocrehabStart(): void {
     startRef.current = performance.now();
     pausedTotalRef.current = 0;
-    endAtRef.current = performance.now() + VOCREHAB_SHIFT_END * 1000;
+    endAtRef.current = performance.now() + shiftDuration * 1000;
     eventsRef.current = [{ t_ms: 0, kind: "start", detail: { game: "time-punch" } }];
     finishedRef.current = false;
     graceFiredRef.current = false;
@@ -95,10 +112,10 @@ export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): R
     const id = window.setInterval(() => {
       const elapsed = Math.max(0, (performance.now() - startRef.current - pausedTotalRef.current) / 1000);
       setVocrehabElapsed(elapsed);
-      if (!graceFiredRef.current && elapsed >= VOCREHAB_GRACE_AT) {
+      if (!graceFiredRef.current && elapsed >= graceAt) {
         graceFiredRef.current = true;
         setVocrehabGrace(true);
-        vocrehabPush("interrupt", { reason: "late-bus", graceSec: VOCREHAB_GRACE_SEC });
+        vocrehabPush("interrupt", { reason: "late-bus", graceSec: graceDuration });
         setVocrehabNote("Late bus: remaining windows extended by 20 seconds. No penalty.");
       }
       if (performance.now() >= endAtRef.current && !finishedRef.current) {
@@ -117,10 +134,10 @@ export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): R
       }
     }, 500);
     return () => window.clearInterval(id);
-  }, [vocrehabStarted, vocrehabPaused, vocrehabDone, vocrehabSeed]);
+  }, [vocrehabStarted, vocrehabPaused, vocrehabDone, vocrehabSeed, graceAt, graceDuration]);
 
   function vocrehabWindow(task: VocrehabShiftTask): { open: number; close: number } {
-    const shift = vocrehabGrace && task.openAt >= VOCREHAB_GRACE_AT ? VOCREHAB_GRACE_SEC : 0;
+    const shift = vocrehabGrace && task.openAt >= graceAt ? graceDuration : 0;
     return { open: task.openAt + shift, close: task.closeAt + shift };
   }
 
@@ -175,18 +192,9 @@ export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): R
   async function vocrehabSend(): Promise<void> {
     setVocrehabSave("saving");
     try {
-      const base = vocrehabGame2AssessmentPayload("time-punch", score);
-      const body = { ...base, payload: { ...base.payload, seed: vocrehabSeed } };
-      const res = await fetch("/api/vocrehab/assessments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (res.status === 401) {
-        setVocrehabSave("guest");
-        return;
-      }
-      setVocrehabSave(res.ok ? "saved" : "error");
+      vocrehabPush("complete", { seed: vocrehabSeed, headline: score.headline, band: score.band });
+      const savedRun = await fetch("/api/vocrehab/games", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game_id: "time-punch", events: eventsRef.current.slice(0, 200), summary: { ...score, seed: vocrehabSeed } }) });
+      setVocrehabSave(savedRun.status === 401 ? "guest" : savedRun.ok ? "saved" : "error");
     } catch {
       setVocrehabSave("error");
     }
@@ -218,7 +226,9 @@ export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): R
             always available, never penalized.
           </p>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={vocrehabStart} className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground">
+            {template.loading ? <p role="status">Loading your shift plan…</p> : null}
+            {template.error ? <p role="status">The assigned shift plan could not be loaded. You can still play the standard shift.</p> : null}
+            <button type="button" disabled={template.loading || VOCREHAB_TASKS.length === 0} onClick={vocrehabStart} className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-50">
               Clock in
             </button>
             <Link href="/vocrehab/play" className="rounded border px-4 py-2 font-medium">
@@ -232,7 +242,7 @@ export function VocrehabGameTimePunch(props: VocrehabGameTimePunchProps = {}): R
         <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2 rounded-lg border p-3">
             <p className="text-lg font-semibold tabular-nums">⏱ {vocrehabClock(vocrehabEnd - vocrehabElapsed)} left</p>
-            {vocrehabGrace && <p className="text-sm font-medium">🚌 Late-bus grace active (+20s windows)</p>}
+            {vocrehabGrace && <p className="text-sm font-medium">🚌 Late-bus grace active (+{graceDuration}s windows)</p>}
             <div className="ml-auto flex flex-wrap gap-2">
               <button type="button" onClick={vocrehabTogglePause} aria-pressed={vocrehabPaused} className="rounded border px-3 py-1.5 text-sm font-medium">
                 {vocrehabPaused ? "Resume" : "Pause"}

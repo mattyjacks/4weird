@@ -74,7 +74,7 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
             <PlayGate slug={game.slug} title={game.title} src={src} version={String(manifest.schemaVersion)} emoji={game.emoji} />
           </Suspense>
         </div>
-        {["gravegain1d", "gravegain2dA", "gravegain3d"].includes(game.slug) && (
+        {["gravegain1dA", "gravegain2dA", "gravegain3dA"].includes(game.slug) && (
           <Suspense fallback={<p className="mt-4 text-sm text-white/60">Loading party…</p>}>
             <GraveGainParty slug={game.slug} />
           </Suspense>

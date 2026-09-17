@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient, supabaseServiceRoleKey, supabaseUrl } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
@@ -56,12 +57,20 @@ export async function POST(
     .maybeSingle();
   if (listingError) return dbFail("api/agents/book", listingError, "Unable to load listing.");
   if (!listing) return fail("Listing not found.", 404);
+  const typed = listing as ListingRow;
+  if (typed.provider_code === "runpod" || typed.provider_code === "digitalocean") {
+    const providerAge = await checkAuthenticatedVendorEligibility(
+      supabase,
+      data.user.id,
+      typed.provider_code === "runpod" ? "runpod" : "digitalocean",
+    );
+    if (!providerAge.allowed) return fail(providerAge.reason, 403);
+  }
 
   // Dead-end guard BEFORE escrow: DigitalOcean has no auto-provision path
   // (see digitaloceanProvider), so a DO listing with a blank/auto endpoint
   // would lock escrow with no machine to connect to. Refuse upfront with
   // the honest reason instead of an escrowed no-op booking.
-  const typed = listing as ListingRow;
   if (typed.provider_code === "digitalocean" && (!typed.endpoint_url || typed.endpoint_url === RUNPOD_AUTO_ENDPOINT)) {
     return fail("This DigitalOcean listing has no endpoint yet; the host must supply one (or configure auto-provisioning) before it can be booked. No coins were escrowed.", 409);
   }

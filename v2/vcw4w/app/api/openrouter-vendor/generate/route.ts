@@ -5,6 +5,7 @@ import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { requireHuman } from "@/lib/botid";
 import { rpcStatus } from "@/lib/agent-market";
+import { checkAuthenticatedVendorEligibility, isGoogleGeminiModel } from "@/lib/vendor-eligibility";
 
 /**
  * POST /api/openrouter-vendor/generate; run one op from the 3 OpenRouter
@@ -206,6 +207,8 @@ export async function POST(req: Request) {
       "Authentication required. Sign in to run OpenRouter tools; the catalog + quotes on /openrouter-vendor/ops are free without login.",
       401,
     );
+  const ageGate = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "openrouter");
+  if (!ageGate.allowed) return fail(ageGate.reason, 403);
   const botBlock = await requireHuman(req, "POST /api/openrouter-vendor/generate", {
     allowAuthenticated: true,
   });
@@ -255,6 +258,13 @@ export async function POST(req: Request) {
     typeof input.model === "string" && input.model.trim()
       ? input.model.trim().slice(0, 128)
       : DEFAULT_MODEL;
+
+  // Gemini API terms prohibit using Gemini as part of a service likely to be
+  // accessed by under-18s. OpenRouter's model selector is caller-controlled,
+  // so reject Gemini IDs before any balance check, debit, or upstream request.
+  if (isGoogleGeminiModel(model)) {
+    return fail("Gemini models are unavailable on this mixed-age service.", 403);
+  }
 
   const qty = 1;
   const quote = quoteSplit(def.coinsPerUnit, qty);

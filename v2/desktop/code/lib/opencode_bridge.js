@@ -25,6 +25,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawn, spawnSync } = require('child_process');
+const { assertProviderEligible } = require('./vendor_eligibility');
 
 const DEFAULTS = {
   enabled: false,
@@ -342,7 +343,12 @@ function normalizeTimeoutMs(value, fallback) {
  * Per-run overrides `model` / `agent` / `autoApprove` / `timeoutMs` fall back
  * to the resolved config. `deps` is a test seam: `{ spawn, detect }`.
  */
-function runOpenCodeFix({ prompt, promptFile, dir, model, agent, autoApprove, timeoutMs, config: fileConfig, deps } = {}) {
+async function runOpenCodeFix({ prompt, promptFile, dir, model, agent, autoApprove, timeoutMs, config: fileConfig, deps } = {}) {
+  try {
+    await assertProviderEligible('opencode');
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : 'OpenCode is not eligible for this account.' };
+  }
   const config = getOpenCodeConfig(fileConfig);
   const spawnImpl = (deps && deps.spawn) || spawn;
   const detectImpl = (deps && deps.detect) || detectOpenCode;
@@ -550,6 +556,11 @@ async function serverRevert(config, sessionId, messageId) {
  * OpenCode edits files directly; we return its session diff for review.
  */
 async function runServerFix({ prompt, sessionId, title, config: fileConfig } = {}) {
+  try {
+    await assertProviderEligible('opencode');
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : 'OpenCode is not eligible for this account.' };
+  }
   const config = getOpenCodeConfig(fileConfig);
   try {
     let session = null;

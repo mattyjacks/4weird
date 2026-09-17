@@ -4,6 +4,7 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { getJobStatus, runEndpointJob, runpodConfigured } from "@/lib/runpod";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 
 function isEndpointId(v: unknown): v is string {
@@ -26,6 +27,8 @@ async function submitJob(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const ageGate = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "runpod");
+  if (!ageGate.allowed) return fail(ageGate.reason, 403);
   const rl = rateLimit(`runpod-run-submit:${data.user.id}`, 10, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
   if (!runpodConfigured()) return fail("RUNPOD_API_KEY is not set on the server.", 503);
@@ -55,6 +58,8 @@ async function readJobStatus(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const ageGate = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "runpod");
+  if (!ageGate.allowed) return fail(ageGate.reason, 403);
   const rl = rateLimit(`runpod-run-status:${data.user.id}`, 60, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
   if (!runpodConfigured()) return fail("RUNPOD_API_KEY is not set on the server.", 503);

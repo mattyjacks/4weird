@@ -2,8 +2,14 @@
 // Run: node tests/test_openrouter_plays.js (no keys, no network).
 const assert = require('node:assert');
 const { OPENROUTER_PLAYS, getPlay, fallbackPlay, runPlay } = require('../lib/openrouter_plays');
+const { assertProviderEligible } = require('../lib/vendor_eligibility');
 
 (async () => {
+  await assert.rejects(
+    () => assertProviderEligible('openrouter', { model: 'google/gemini-2.5-pro' }),
+    /Google Gemini models are disabled/,
+    'desktop OpenRouter guard rejects Gemini models even for adult profiles',
+  );
   // 1. Count + uniqueness.
   assert.strictEqual(OPENROUTER_PLAYS.length, 25, `expected 25 plays, got ${OPENROUTER_PLAYS.length}`);
   assert.strictEqual(new Set(OPENROUTER_PLAYS.map((p) => p.id)).size, 25, 'ids unique');
@@ -40,7 +46,12 @@ const { OPENROUTER_PLAYS, getPlay, fallbackPlay, runPlay } = require('../lib/ope
 
   // 6. Mocked live path: fake fetch returns canned text, fallback:false.
   const fakeFetch = async () => ({ ok: true, json: async () => ({ choices: [{ message: { content: 'LIVE LINE' } }] }) });
-  const live = await runPlay('hype-caster', 'goal!', { apiKey: 'sk-or-v1-test', fetch: fakeFetch });
+  let eligibilityChecked = false;
+  const live = await runPlay('hype-caster', 'goal!', {
+    apiKey: 'sk-or-v1-test', fetch: fakeFetch,
+    assertProviderEligible: async (vendor) => { assert.equal(vendor, 'openrouter'); eligibilityChecked = true; },
+  });
+  assert.equal(eligibilityChecked, true, 'live provider requests check age eligibility before fetch');
   assert.strictEqual(live.fallback, false, 'mocked live should not fall back');
   assert.strictEqual(live.output, 'LIVE LINE', 'mocked live text passthrough');
 

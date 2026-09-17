@@ -1,0 +1,32 @@
+{
+  "id": "DS-BLDFIX-STEWARD",
+  "title": "Steward pass: verifier scripts + STATUS recount + site-nav wiring + full npm test",
+  "goal": "All wave-blocked verifiers green: verify:games, verify:catalog, verify:sitemap, verify:migrations, verify:devswarm; STATUS.json recounted from TASKS; schedule-juggle docs-nav row wired; npm run build exit 0; full npm test chain assessed.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/scripts/verify-game-bundles.mjs",
+    "v2/vcw4w/scripts/verify-catalog-runtime.mjs",
+    "v2/vcw4w/scripts/verify-sitemap.mjs",
+    "v2/vcw4w/supabase/migrations/20261226000001_gravegain_progress.sql",
+    "v2/vcw4w/public/swarm/STATUS.json",
+    "v2/vcw4w/lib/site-nav.ts"
+  ],
+  "gates": [
+    "npm run verify:games",
+    "npm run verify:catalog",
+    "npm run verify:sitemap",
+    "npm run verify:migrations",
+    "npm run verify:devswarm",
+    "npm run build",
+    "npm test"
+  ],
+  "status": "blocked",
+  "owner": "steward-lead",
+  "created": "2026-09-17T05:56:38.986Z",
+  "updated": "2026-09-17T06:36:26.687Z",
+  "log": [
+    "2026-09-17T05:56:38.986Z steward-lead: envelope created+claimed for steward pass over BLDFIX wave handoffs.",
+    "2026-09-17T06:08:01.314Z steward-lead: legacy-parity 8/9 synced source->mirror byte-identical; fal_key.js two-implementation conflict held for lane-owner ruling (QUEUE filed), zero silent overwrites.",
+    "2026-09-17T06:36:26.687Z steward-lead: STEWARD PASS COMPLETE except one held item. GREEN: build exit 0 (final tree), tsc 0, eslint 0, verify:games/catalog/sitemap/migrations/devswarm/legacy + 35 post-parity gates incl. runpod-dashboard/pexels/support/age-gate/business-crm/ledger-pairing/scale-tribute/quantum-hardening/save-slots/music. npm test runs 16 gates green then stops at legacy-parity on ONLY vibecodeworker-legacy/modules/fal_key.js (two-implementation conflict, ruling filed, needs desktop/vcw owners). No silent overwrites anywhere; all script edits cite R2/R3 or Next cacheComponents docs."
+  ]
+}

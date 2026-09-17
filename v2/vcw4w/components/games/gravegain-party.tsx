@@ -4,12 +4,12 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export const GRAVE_PARTY_SLUGS = ["gravegain1d", "gravegain2dA", "gravegain2dB", "gravegain3d"] as const;
+export const GRAVE_PARTY_SLUGS = ["gravegain1dA", "gravegain2dA", "gravegain2dB", "gravegain3dA"] as const;
 
 type GraveSlug = (typeof GRAVE_PARTY_SLUGS)[number];
 
 const MODE_COPY: Record<GraveSlug, { mode: string; blurb: string }> = {
-  gravegain1d: {
+  gravegain1dA: {
     mode: "Ley-Line Race",
     blurb: "First courier to fell the sector-5 boss wins.",
   },
@@ -21,7 +21,7 @@ const MODE_COPY: Record<GraveSlug, { mode: string; blurb: string }> = {
     mode: "Dungeon Breach",
     blurb: "Side-scroll breach race: blast, breach, and bank salvage.",
   },
-  gravegain3d: {
+  gravegain3dA: {
     mode: "Spire Siege",
     blurb: "Floor race plus boss DPS.",
   },

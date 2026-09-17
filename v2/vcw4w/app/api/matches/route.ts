@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       : isSlug(requestedGame);
   const platform = String(input.platform ?? "");
   if (!game || !["phone", "desktop"].includes(platform)) return fail("Invalid match request.", 400);
-  const GRAVEGAIN = new Set(["gravegain1d", "gravegain2dA", "gravegain2dB", "gravegain3d"]);
+  const GRAVEGAIN = new Set(["gravegain1dA", "gravegain2dA", "gravegain2dB", "gravegain3dA"]);
   const rpcName = GRAVEGAIN.has(game)
     ? "gravegain_quick_match"
     : game === "platform-wars"

@@ -58,11 +58,11 @@ const NAV_GROUPS: { label: string; links: NavLink[] }[] = [
     label: "🎮 Play",
     links: [
       { href: "/games", label: "🎮 All Games" },
+      { href: "/gravegain", label: "🪦 GraveGain Universe" },
       { href: "/buddy", label: "🐶 Gaming Buddy" },
       { href: "/leaderboards", label: "🏆 Leaderboards" },
       { href: "/clans", label: "🏰 Clans" },
       { href: "/lobbies", label: "🎪 Lobbies" },
-      { href: "/xonotic", label: "🔫 Xonotic" },
     ],
   },
   {

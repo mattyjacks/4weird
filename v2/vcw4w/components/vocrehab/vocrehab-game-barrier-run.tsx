@@ -8,12 +8,14 @@ import {
   type VocrehabBarrierPoolChoice,
 } from "@/lib/vocrehab-seed-pools3";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
+import { barrierRunTemplate } from "@/lib/vocrehab-game-template-state";
 
 export default function VocrehabGameBarrierRun({
   vocrehabEmit,
   vocrehabFinish,
   vocrehabSeed,
   vocrehabRunKey,
+  vocrehabTemplateState,
 }: VocrehabGameRunProps) {
   const [vocrehabIndex, setVocrehabIndex] = useState(0);
   const [vocrehabPath, setVocrehabPath] = useState<string[]>([]);
@@ -24,11 +26,11 @@ export default function VocrehabGameBarrierRun({
   const vocrehabSelected = useMemo(() => {
     const seed = vocrehabSeed ?? makeSeed();
     const selection = vocrehabSelectBarrier(seed);
-    const variant =
+    const variant = barrierRunTemplate(vocrehabTemplateState) ??
       vocrehabBarrierPoolVariants.find((v) => v.variantId === selection.variantId) ??
       vocrehabBarrierPoolVariants[0];
     return { seed, variant };
-  }, [vocrehabSeed, vocrehabRunKey]);
+  }, [vocrehabSeed, vocrehabRunKey, vocrehabTemplateState]);
 
   const vocrehabNodes = vocrehabSelected.variant.beats;
   const node = vocrehabNodes[vocrehabIndex];

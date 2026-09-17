@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='.9em' font-size='56'%3E%F0%9F%8C%99%3C/text%3E%3C/svg%3E">
   <title>GraveGain2dB: Breach MoonRock</title>
-  <meta name="description" content="GraveGain2dB: Breach MoonRock — fast emoji-rendered 2D run-and-gun. Breach MoonRock, rescue survivors, collapse the Array.">
-  <link rel="stylesheet" href="game.css">
+  <meta name="description" content="GraveGain2dB: Breach MoonRock — a procedurally generated 2D roguelite with 16 race/class kits, rescues, destructible fortresses, and optional wave mode.">
+  <link rel="stylesheet" href="game.css?v=0.4.2">
 </head>
 <body data-slug="gravegain2dB">
   <div id="gg2dbWrap">
     <div id="gg2dbHud">
-      <div id="gg2dbHudTL"><span id="gg2dbHero">🧑‍🚀</span> <span>❤️ <span id="gg2dbHp">100</span></span> <span>🛡️ <span id="gg2dbArmor">25</span></span> <span>🔫 <span id="gg2dbWeapon">Pulse rifle</span></span> <span>💣 <span id="gg2dbAlt">Grenade×1</span></span></div>
-      <div id="gg2dbHudTC"><span id="gg2dbObjective">Secure survivors + black box</span></div>
+      <div id="gg2dbHudTL"><span id="gg2dbHero">🧑‍🚀</span> <span>❤️ <span id="gg2dbHp">100</span></span> <span>🛡️ <span id="gg2dbArmor">25</span></span> <span>🔫 <span id="gg2dbWeapon">Breach rifle</span></span> <span>💣 <span id="gg2dbAlt">Grenade×1</span></span></div>
+      <div id="gg2dbHudTC"><span id="gg2dbObjective">Choose your build · scout the generated breach · rescue crew</span></div>
       <div id="gg2dbHudTR"><span>📡 <span id="gg2dbRescues">0 rescued</span></span> <span id="gg2dbWaypoint">➡️ E</span></div>
     </div>
     <div id="gg2dbStage">
@@ -29,18 +29,30 @@
       <button data-act="alt" type="button">💥 ALT</button>
       <button data-act="dash" type="button">💨 DASH</button>
       <button data-act="interact" type="button">📡 USE</button>
+      <button data-act="melee" type="button">🥊 MELEE</button>
+      <button data-act="ability" type="button">✨ ABILITY</button>
     </div>
     <div id="gg2dbMenu">
       <h1>GRAVEGAIN2dB</h1>
-      <p class="gg2db-sub">Breach MoonRock — run right, aim 360°, collapse everything. Solo first; 2–4p co-op after core.</p>
-      <div class="gg2db-choices" id="gg2dbHeroPick">
-        <button data-hero="lisa" class="sel" type="button">🧑‍🚀 Lisa Park<small>Thruster Kick — all-rounder</small></button>
-        <button data-hero="arty" type="button">👨‍🔧 Arty Fisher<small>Remote Charge — demolition</small></button>
-        <button data-hero="groknak" type="button">👹 Groknak<small>Rage Ram — frontline</small></button>
-        <button data-hero="valley" type="button">🤖 Valley Net<small>Signal Pulse — support</small></button>
+      <p class="gg2db-sub">MOONROCK IS OVERRUN. Push through the fortress, steal their firepower, and turn the whole line into rubble.</p>
+      <p class="gg2db-sub">Choose a starting race + class. Rescued breach crews become your lives in reverse rescue order.</p>
+      <div class="gg2db-choices gg2db-build-grid" id="gg2dbHeroPick" aria-label="Choose starting race and class"></div>
+      <div class="gg2db-choices gg2db-mode-picks" id="gg2dbModePick" aria-label="Game mode">
+        <button data-mode="real-time" class="sel" type="button">REAL-TIME<small>Full-speed world simulation</small></button>
+        <button data-mode="chrono-lock" type="button">CHRONO-LOCK<small>World moves on your actions</small></button>
+        <button data-mode="turn-based" type="button">TURN-BASED<small>One action, enemy response</small></button>
+      </div>
+      <div class="gg2db-choices gg2db-mode-picks" id="gg2dbRoutePick" aria-label="Route type">
+        <button data-route="roguelite" class="sel" type="button">ROGUELITE<small>Generated breach route</small></button>
+        <button data-route="wave" type="button">WAVE MODE<small>Classic enemy waves</small></button>
+      </div>
+      <div class="gg2db-choices gg2db-mode-picks" id="gg2dbContentPick" aria-label="Content mode">
+        <button data-content="kids" type="button">KIDS<small>Bright, gentle, simple</small></button>
+        <button data-content="teens" class="sel" type="button">TEENS<small>Arcade action</small></button>
+        <button data-content="adult" type="button">ADULT<small>Darker style and writing</small></button>
       </div>
       <button id="gg2dbGoBtn" type="button">💥 BREACH</button>
-      <p class="gg2db-hint">WASD/arrows move · Space jump · mouse aim · LMB fire · RMB/Q grenade · Shift dash · E rescue · 1–3 swap · gamepad supported</p>
+      <p class="gg2db-hint">A/D MOVE · SPACE JUMP / WALL CLIMB · MOUSE AIM · LMB FIRE · Q GRENADE · SHIFT DASH · E RESCUE · F MELEE · C ABILITY · 1/2 WEAPON SWAP · R REDEPLOY</p>
     </div>
   </div>
 
@@ -57,7 +69,8 @@
   <script src="player/aim-fire.js" defer onerror="window.__gg2dbMissing && window.__gg2dbMissing('player-aimfire')"></script>
   <script src="player/camera.js" defer onerror="window.__gg2dbMissing && window.__gg2dbMissing('player-camera')"></script>
   <script src="campaign/00-campaign-registry.js" defer onerror="window.__gg2dbMissing && window.__gg2dbMissing('campaign')"></script>
-  <script src="game.js" defer></script>
+  <script src="modes.js?v=0.4.2" defer onerror="window.__gg2dbMissing && window.__gg2dbMissing('content-modes')"></script>
+  <script src="game.js?v=0.4.2" defer></script>
   <script src="/games/html/runtime-bridge.js" data-slug="gravegain2dB"></script>
 </body>
 </html>

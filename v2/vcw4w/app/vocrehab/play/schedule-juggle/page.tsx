@@ -3,10 +3,9 @@
  *
  * Usage: route `app/vocrehab/play/schedule-juggle/page.tsx`. Client
  * component composing the shared `VocrehabGameFrame` (untimed) with its game
- * via render prop. Practice-first copy and the no-test promise render above
- * the frame. The board is tabbed (Month / Day / Activities / Travel / Save)
- * so everything fits without page scrolling: each tab panel scrolls in
- * place. Each day opens a 24-hour view, trips estimate between saved
+ * via render prop. The calendar is the main screen: select a type, tap Add
+ * on a date, or tap a scheduled item to remove it. Day details adjust a
+ * one-hour block in five-minute steps. Trips estimate between saved
  * places, and the month saves to this device. `?legacy=1` keeps the
  * original 7-day grid. Follow-up for lead: route metadata + canonical until
  * a server layout covers this route (client components cannot export
@@ -26,21 +25,22 @@ export default function Page() {
         <Link href="/vocrehab/play">Practice arcade</Link> → Schedule Juggle
       </nav>
       <p className="text-sm text-muted-foreground">
-        No timer — plan a whole month at your own pace. Open days get plain-language notes with
-        one-tap fixes, never red errors. Practice, not a test — nothing here grades you.
+        Your calendar is ready first. Tap a date to plan its hours, or add and remove items right on the month view. Practice, not a test — nothing here grades you.
       </p>
       <VocrehabGameFrame
         vocrehabGameId="schedule-juggle"
         vocrehabTitle="Schedule Juggle"
-        vocrehabInstructions="Plan a whole month across five tabs — Month, Day, Activities, Travel, Save. Open any day for its 24-hour view, place sleep, shifts, meals, and training, estimate trips between your saved places, and save the month to this device. Overlaps get plain-language notes and one-tap fixes."
+        vocrehabInstructions="Start with the calendar. Choose an activity, tap + Add 1 hr on a date, and tap a scheduled item to remove it. Open a date for its hourly plan and adjust block length in five-minute steps. Save your month on this device."
         vocrehabPracticeSteps={[
-          "Month tab: pick a home base (Tacoma, Manchester, or Anchorage), then open a day.",
-          "Activities tab: choose an activity, then Day tab: tap half-hour targets — each stretch caps at half a day so every part keeps its own plan.",
+          "Calendar tab: tap a date to see its hourly plan. Personal is selected to start; choose another activity any time.",
+          "Tap + Add 1 hr on the calendar, or tap an open hour in day details. Tap a scheduled item to remove it.",
+          "In day details, move blocks or extend and reduce them in five-minute steps.",
           "Travel tab: estimate a trip between two saved places and apply it as steady travel time.",
           "Save tab: save the month to this device, then replay the seed to build on what worked.",
         ]}
         vocrehabTimeLimitSec={null}
         vocrehabExitHref="/vocrehab/play"
+        vocrehabStartInWorkspace
       >
         {(run) => <VocrehabGameScheduleJuggle {...run} />}
       </VocrehabGameFrame>

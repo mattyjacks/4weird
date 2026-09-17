@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
@@ -33,6 +34,8 @@ export async function POST(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "openai");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
   const rl = rateLimit(`buddy:tts:${data.user.id}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429, { "Retry-After": String(rl.retryAfter) });
   let body: unknown;

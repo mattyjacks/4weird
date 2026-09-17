@@ -39,7 +39,15 @@ const routes = {
 };
 for (const [path, handlers] of Object.entries(routes)) {
   const body = read(path);
-  must(body.includes('force-dynamic'), `${path} must set force-dynamic`);
+  // cacheComponents (next.config.ts): `export dynamic/revalidate/fetchCache`
+  // FAILS THE BUILD ("not compatible with nextConfig.cacheComponents"), and
+  // all routes are dynamic by default (Next docs "migrating-to-cache-components":
+  // dynamic = force-dynamic "Not needed"). So the gate asserts the compatible
+  // invariant: no static/cached segment config may be pinned on these routes.
+  must(
+    !/export\s+const\s+(dynamic|revalidate|fetchCache)\s*=/.test(body),
+    `${path} must not pin a static segment config (cacheComponents: routes are dynamic by default; the export breaks the build)`,
+  );
   for (const h of handlers) {
     must(
       new RegExp(`export\\s+async\\s+function\\s+${h}\\b`).test(body),

@@ -18,23 +18,7 @@
     styleLink.href = basePath + 'guide-style.css';
     document.head.appendChild(styleLink);
 
-    // 3. Inject Google Tag Manager (gtag.js)
-    if (!document.getElementById('ga-script')) {
-        const gaScript = document.createElement('script');
-        gaScript.id = 'ga-script';
-        gaScript.async = true;
-        gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-KZ03RW8P96';
-        document.head.appendChild(gaScript);
-
-        const gaConfig = document.createElement('script');
-        gaConfig.textContent = `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-KZ03RW8P96');
-        `;
-        document.head.appendChild(gaConfig);
-    }
+    // Analytics is provided by the consent-aware app shell, not static guides.
 
     // Helper function to build elements on DOM Ready
     function initLayout() {

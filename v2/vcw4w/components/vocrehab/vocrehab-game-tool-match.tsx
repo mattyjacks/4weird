@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import {
-  vocrehabGame2AssessmentPayload,
   vocrehabGame2InteropChannel,
   vocrehabScoreToolMatch,
   type VocrehabGame2Event,
@@ -11,6 +10,7 @@ import {
 } from "@/lib/vocrehab-games2";
 import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
 import { vocrehabSelectToolMatch } from "@/lib/vocrehab-seed-pools2";
+import { templateString, useVocrehabTemplateState } from "./use-vocrehab-template-state";
 
 interface VocrehabJob {
   job: string;
@@ -23,11 +23,13 @@ interface VocrehabJob {
 interface VocrehabGameToolMatchProps {
   vocrehabSeed?: string;
   vocrehabRunKey?: number;
+  vocrehabTemplateState?: Record<string, unknown>;
 }
 
 type VocrehabSaveState = "idle" | "saving" | "saved" | "guest" | "error";
 
 export function VocrehabGameToolMatch(props: VocrehabGameToolMatchProps = {}): React.ReactNode {
+  const template = useVocrehabTemplateState("tool-match", props.vocrehabTemplateState);
   const [vocrehabStarted, setVocrehabStarted] = useState(false);
   const [vocrehabJobIdx, setVocrehabJobIdx] = useState(0);
   const [vocrehabTool, setVocrehabTool] = useState<number | null>(null);
@@ -47,7 +49,17 @@ export function VocrehabGameToolMatch(props: VocrehabGameToolMatchProps = {}): R
     () => vocrehabSelectToolMatch(vocrehabSeed),
     [vocrehabSeed, vocrehabRunKey],
   );
-  const VOCREHAB_JOBS: VocrehabJob[] = vocrehabDeal.jobs;
+  const templateJobs = Array.isArray(template.state?.jobs) ? template.state.jobs.slice(0, 12) : null;
+  const VOCREHAB_JOBS: VocrehabJob[] = templateJobs?.map((raw) => {
+    if (!raw || typeof raw !== "object") return null;
+    const row = raw as Record<string, unknown>;
+    const tools = Array.isArray(row.tools) ? row.tools.slice(0, 4).map((value) => templateString(value, 120)) : [];
+    const answer = row.toolAnswer;
+    const job = templateString(row.job, 160);
+    const gearNote = templateString(row.gearNote, 300);
+    if (!job || tools.length !== 4 || !tools.every(Boolean) || typeof answer !== "number" || !Number.isInteger(answer) || answer < 0 || answer > 3 || typeof row.gearNeeded !== "boolean" || !gearNote) return null;
+    return { job, tools: tools as VocrehabJob["tools"], toolAnswer: answer, gearNeeded: row.gearNeeded, gearNote };
+  }).filter((job): job is VocrehabJob => job !== null) ?? vocrehabDeal.jobs;
 
   function vocrehabPush(kind: VocrehabGame2Event["kind"], detail: Record<string, unknown>): void {
     if (eventsRef.current.length >= 200) return;
@@ -97,18 +109,9 @@ export function VocrehabGameToolMatch(props: VocrehabGameToolMatchProps = {}): R
     setVocrehabSave("saving");
     try {
       const score = vocrehabScoreToolMatch(vocrehabPicks);
-      const base = vocrehabGame2AssessmentPayload("tool-match", score);
-      const body = { ...base, payload: { ...base.payload, seed: vocrehabSeed } };
-      const res = await fetch("/api/vocrehab/assessments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (res.status === 401) {
-        setVocrehabSave("guest");
-        return;
-      }
-      setVocrehabSave(res.ok ? "saved" : "error");
+      vocrehabPush("complete", { ...score, seed: vocrehabSeed });
+      const savedRun = await fetch("/api/vocrehab/games", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game_id: "tool-match", events: eventsRef.current.slice(0, 200), summary: { ...score, seed: vocrehabSeed } }) });
+      setVocrehabSave(savedRun.status === 401 ? "guest" : savedRun.ok ? "saved" : "error");
     } catch {
       setVocrehabSave("error");
     }
@@ -133,7 +136,9 @@ export function VocrehabGameToolMatch(props: VocrehabGameToolMatchProps = {}): R
             coached, never punished, and retry counts the same as the first try.
           </p>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={vocrehabStart} className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground">
+            {template.loading ? <p role="status">Loading your starting jobs…</p> : null}
+            {template.error ? <p role="status">The assigned scenario could not be loaded. You can still play the standard scenario.</p> : null}
+            <button type="button" disabled={template.loading || VOCREHAB_JOBS.length === 0} onClick={vocrehabStart} className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-50">
               Open the crib
             </button>
             <Link href="/vocrehab/play" className="rounded border px-4 py-2 font-medium">

@@ -41,6 +41,10 @@ const divergedPrefixes = [
   "friendslop/", // fullscreen/guard hardening wave (button upgrade, storage guards)
   "fridgesimulator/", // fullscreen/guard hardening wave (HUD button, panel overflow guards)
   "semester-survival/", // fullscreen/guard hardening wave (dead Expand button wired, copyGameLink dedupe, settings item)
+  "soundpainter/", // Pagefix-02 R2/R3 waiver: v2 audio evolution (see QUEUE.md)
+  "soundpainter2/", // Pagefix-02 R2/R3 waiver: v2 audio evolution
+  "venturemechanically/", // Pagefix-02 R2/R3 waiver: gameplay UI lives in the info-panel aside (KEEP_INFO_PANEL_SLUGS in sync-game-bundles.mjs)
+  "template-demo/", // Pagefix-02 R2/R3 waiver: foreign template bytes
 ];
 // Root-level shared files with intentional v2 divergence.
 const divergedFiles = new Set([

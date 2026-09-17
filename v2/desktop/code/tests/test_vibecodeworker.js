@@ -1,4 +1,5 @@
 const assert = require('assert');
+process.env.NODE_ENV = 'test';
 const fs = require('fs');
 const path = require('path');
 const projectRoot = path.resolve(__dirname, '..');

@@ -45,11 +45,18 @@ for (const name of canonicalShells) {
 if (chromed.length) { console.error(`Game runtimes still embed the legacy site chrome (sync-game-bundles must strip it):\n${chromed.join("\n")}`); process.exit(1); }
 // Closed catalogs: unknown slugs/sections must 404 with a real 404 status,
 // not render the not-found UI with a 200 (soft-404 leaks crawl budget and
-// misleads players). generateStaticParams + dynamicParams=false does that.
+// misleads players). Two accepted shapes (QUEUE Pagefix-02 R2/R3):
+//  - legacy: generateStaticParams + `export dynamicParams = false` + notFound()
+//  - cacheComponents: generateStaticParams + notFound() with NO dynamicParams
+//    export at all (`dynamicParams = false` fails the build under Next v16
+//    cacheComponents per the Next docs; any other dynamicParams export fails here).
 for (const page of ["app/games/[slug]/page.tsx", "app/games/[slug]/play/page.tsx", "app/vibecodeworker/[section]/page.tsx"]) {
   const src = await readFile(join(process.cwd(), page), "utf8");
-  if (!src.includes("generateStaticParams") || !src.includes("dynamicParams = false") || !src.includes("notFound()")) {
-    console.error(`${page} must be a closed static catalog (generateStaticParams + dynamicParams=false + notFound).`);
+  const dynamicExport = src.match(/export\s+(const|let|var)\s+dynamicParams\s*=\s*(\S+)/);
+  const closedLegacy = src.includes("generateStaticParams") && src.includes("notFound()") && dynamicExport !== null && dynamicExport[2].startsWith("false");
+  const closedCacheComponents = src.includes("generateStaticParams") && src.includes("notFound()") && dynamicExport === null;
+  if (!closedLegacy && !closedCacheComponents) {
+    console.error(`${page} must be a closed static catalog (generateStaticParams + dynamicParams=false + notFound, or the cacheComponents shape: generateStaticParams + notFound() with no dynamicParams export).`);
     process.exit(1);
   }
 }

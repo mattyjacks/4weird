@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
@@ -63,6 +64,8 @@ export async function POST(req: Request) {
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, u.id, "bouncer");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
   const throttle = rateLimit(`bouncer-check:${u.id}`, 60, 60_000);
   if (!throttle.allowed) return fail("Too many requests.", 429, rateLimitHeaders(throttle));
   let body: unknown;

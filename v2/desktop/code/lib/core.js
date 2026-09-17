@@ -16,6 +16,7 @@ const { minifyCode, buildCachedContext, truncateToTokens } = require('./minimiza
 const { recordTokenUsage } = require('./brain/token_tracker');
 const { getResolvedApiKey } = require('./storage');
 const { isMetaDirectUrl } = require('./meta_endpoint');
+const { assertProviderEligible } = require('./vendor_eligibility');
 
 class AutoCodeSystem {
   constructor() {
@@ -292,6 +293,8 @@ Output format:
         }
       }
     }
+
+    await assertProviderEligible(provider, { model: model || this.config.modelName });
     
     let url = '';
     let headers = { 'Content-Type': 'application/json' };

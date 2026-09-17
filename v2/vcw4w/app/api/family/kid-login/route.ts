@@ -136,9 +136,18 @@ export async function GET(req: NextRequest) {
   }
   const token = req.cookies.get("kid_session")?.value ?? null;
   const kid = await getKidSession(service, token);
-  if (!kid) return ok({ parent: data?.user ? { id: data.user.id } : null, kid: null });
+  if (!kid) return ok({ parent: data?.user ? { id: data.user.id } : null, kid: null, kid_session_present: req.cookies.has("kid_session") });
+  const { data: vocationalLink, error: vocationalLinkError } = await service
+    .from("vocrehab_provider_clients")
+    .select("id")
+    .eq("parent_id", kid.kid.parent_id)
+    .eq("kid_id", kid.kid.id)
+    .is("revoked_at", null)
+    .maybeSingle();
+  if (vocationalLinkError) return dbFail("api/family/kid-login:workspace", vocationalLinkError);
   return ok({
     parent: data?.user ? { id: data.user.id } : null,
+    kid_session_present: true,
     kid: {
       id: kid.kid.id,
       handle: `${kid.kid.username}#${kid.kid.discriminator}`,
@@ -150,6 +159,9 @@ export async function GET(req: NextRequest) {
       allowed_end: kid.controls ? String(kid.controls.allowed_end).slice(0, 5) : null,
       monthly_cap_coins: Number(kid.controls?.monthly_cap_coins ?? 0),
       in_window: kid.inWindow,
+      allowed_games: Array.isArray(kid.controls?.allowed_games) ? kid.controls.allowed_games : [],
+      allowed_features: Array.isArray(kid.controls?.allowed_features) ? kid.controls.allowed_features : [],
+      vocrehab_enabled: Boolean(vocationalLink),
     },
   });
 }

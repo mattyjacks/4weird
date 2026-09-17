@@ -1,6 +1,9 @@
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/validate";
+import { createClient } from "@/lib/supabase/server";
+import { hasServerSupabase } from "@/lib/supabase/service";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import {
   vocrehabBlocklistCheck,
   vocrehabFeedbackRubric,
@@ -32,9 +35,10 @@ async function modelReply(
   scenario: VocrehabRoleplayScenarioId,
   message: string,
   turn: number,
+  adultEligible: boolean,
 ): Promise<string | null> {
   const key = process.env.VOCREHAB_MODEL_KEY;
-  if (!key) return null;
+  if (!key || !adultEligible) return null;
   const url = process.env.VOCREHAB_MODEL_URL ?? "https://api.openai.com/v1/chat/completions";
   const model = process.env.VOCREHAB_MODEL_NAME ?? "gpt-4o-mini";
   const ctrl = new AbortController();
@@ -125,7 +129,20 @@ export async function POST(req: Request) {
   }
 
   const done = turnNumber >= vocrehabRoleplayTurnCap;
-  const modelText = await modelReply(scenario, message, turnNumber);
+  let adultEligible = false;
+  if (process.env.VOCREHAB_MODEL_KEY && hasServerSupabase()) {
+    try {
+      const supabase = await createClient();
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user) {
+        const eligibility = await checkAuthenticatedVendorEligibility(supabase, auth.user.id, "openai");
+        adultEligible = eligibility.allowed;
+      }
+    } catch {
+      adultEligible = false;
+    }
+  }
+  const modelText = await modelReply(scenario, message, turnNumber, adultEligible);
   // Wave 2: job-interview falls back to the static 20-job catalog line when offline.
   const reply =
     modelText ??

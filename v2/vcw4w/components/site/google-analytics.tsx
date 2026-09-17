@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { readCookieConsent } from "@/components/site/cookie-banner";
 
@@ -22,7 +22,6 @@ declare global {
 /** Loads GA4 only when configured AND the visitor accepted analytics cookies. */
 export function GoogleAnalytics() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
@@ -38,11 +37,12 @@ export function GoogleAnalytics() {
 
   useEffect(() => {
     if (!measurementId || !allowed) return;
-    const query = searchParams.toString();
-    const pagePath = `${pathname}${query ? `?${query}` : ""}`;
+    // Query strings can contain magic links or user-entered data. Send only
+    // the path to GA; never include URL parameters in analytics events.
+    const pagePath = pathname;
 
     window.gtag?.("config", measurementId, { page_path: pagePath });
-  }, [pathname, searchParams, allowed]);
+  }, [pathname, allowed]);
 
   if (!measurementId || !allowed) return null;
 

@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import { createHash } from "node:crypto";
 import { fetchEgressUrl } from "@/lib/ssrf-guard";
 import { createClient } from "@/lib/supabase/server";
@@ -27,6 +28,10 @@ export async function GET(req: Request) {
     if (!keyHasScope(bot, "meshy:read")) return fail("Key lacks scope: meshy:read.", 403);
     userId = bot.userId;
   }
+  let ageSvc;
+  try { ageSvc = serviceClient(); } catch { return fail("Unable to verify age eligibility.", 503); }
+  const meshyAge = await checkAuthenticatedVendorEligibility(ageSvc, userId, "meshy");
+  if (!meshyAge.allowed) return fail(meshyAge.reason, 403);
   const rl = rateLimit(`meshy:status:${userId}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
   const job = new URL(req.url).searchParams.get("job") ?? "";

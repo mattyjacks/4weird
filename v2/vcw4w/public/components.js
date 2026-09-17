@@ -1,6 +1,6 @@
 /**
  * 4weird Games - Shared Components
- * Injects navbar, footer, and analytics across all pages
+ * Injects navbar and footer across legacy pages; analytics is consent-gated
  * No build step required - pure vanilla JS
  */
 
@@ -170,24 +170,6 @@
     }
 
     function injectAnalytics() {
-        // Google Analytics
-        if (!document.getElementById('ga-script')) {
-            const gaScript = document.createElement('script');
-            gaScript.id = 'ga-script';
-            gaScript.async = true;
-            gaScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-KZ03RW8P96';
-            document.head.appendChild(gaScript);
-
-            const gaConfig = document.createElement('script');
-            gaConfig.textContent = `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-                gtag('config', 'G-KZ03RW8P96');
-            `;
-            document.head.appendChild(gaConfig);
-        }
-
         // Initialize Web Vitals and auto-event tracking
         initWebVitals();
         initAutomaticGameTracking();
@@ -800,7 +782,8 @@
     function init() {
         injectNavbar();
         injectFooter();
-        injectAnalytics();
+        // Do not load analytics from legacy static pages. These pages share
+        // the site's child audience but do not have the consent manager.
         
         // Defer non-critical elements to idle/timeout
         const deferInjections = () => {

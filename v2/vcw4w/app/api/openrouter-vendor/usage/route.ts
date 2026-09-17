@@ -13,8 +13,13 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
  * recent } JSON through with a vendor tag. RPC/thrown errors go to dbFail
  * (stable JSON, never an uncaught 500).
  */
-export async function GET() {
+export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // This response is scoped to auth.uid() (the parent when both cookies are
+  // present). Do not reveal the parent's OpenRouter usage under a child login.
+  if (req.headers.get("cookie")?.split(";").some((part) => part.trim().split("=", 1)[0] === "kid_session")) {
+    return fail("OpenRouter usage is unavailable during a child session.", 403);
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

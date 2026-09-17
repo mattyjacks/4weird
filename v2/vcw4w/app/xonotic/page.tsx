@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { cacheLife } from "next/cache";
 import { VcwAutoplay } from "@/components/games/vcw-autoplay";
 import { VCW_DESKTOP_PATH, XONOTIC_WEB_URL } from "@/lib/vcw-autoplay";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/xonotic" },
@@ -13,6 +14,11 @@ export const metadata: Metadata = {
 };
 
 export default function XonoticPage() {
+  notFound();
+}
+
+/* Kept for future reactivation: the public Xonotic route is intentionally not viewable. */
+function HiddenXonoticPage() {
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-slate-950 text-white">
       <section className="mx-auto flex w-full max-w-4xl min-h-0 flex-1 flex-col px-3 py-2">

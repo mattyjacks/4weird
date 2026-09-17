@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
 import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
 import { vocrehabSelectInbox } from "@/lib/vocrehab-seed-pools";
+import { inboxSprintTemplate } from "@/lib/vocrehab-game-template-state";
 
 type VocrehabTriage = "reply" | "schedule" | "file" | "flag";
 type VocrehabMsgKind = "urgent" | "normal" | "fyi" | "phishing" | "accommodation";
@@ -25,25 +26,37 @@ const VOCREHAB_ACTIONS: readonly { id: VocrehabTriage; label: string }[] = [
 
 const VOCREHAB_STARTER = "Thank you for sharing this. What would help is ";
 
-export default function VocrehabGameInboxSprint({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey }: VocrehabGameRunProps) {
+export default function VocrehabGameInboxSprint({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey, vocrehabTemplateState }: VocrehabGameRunProps) {
   // Seeded deal: 8 scenarios (4 phish + 4 legit), same seed replays the same set+order.
   const sel = useMemo(
     () => vocrehabSelectInbox(parseSeed(vocrehabSeed ?? null) ?? makeSeed()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [vocrehabSeed, vocrehabRunKey],
   );
-  const VOCREHAB_MESSAGES: readonly VocrehabMessage[] = sel.scenarios.map((s) => ({
+  const customTemplate = inboxSprintTemplate(vocrehabTemplateState);
+  const scenarios = customTemplate ? customTemplate.messages.map((message) => ({
+    id: message.id,
+    sender: message.from,
+    subject: message.subject,
+    bodySnippet: message.body,
+    verdict: message.kind === "phishing" ? "phish" as const : "legit" as const,
+    safeAction: message.kind === "phishing" ? "flag" as const : message.kind === "urgent" ? "reply" as const : message.kind === "fyi" ? "file" as const : "schedule" as const,
+    kind: message.kind,
+  })) : sel.scenarios.map((scenario) => ({
+    ...scenario,
+    kind: scenario.verdict === "phish" ? "phishing" as const : scenario.safeAction === "reply" ? "urgent" as const : scenario.safeAction === "file" ? "fyi" as const : "normal" as const,
+  }));
+  const VOCREHAB_MESSAGES: readonly VocrehabMessage[] = scenarios.map((s) => ({
     id: s.id,
     from: s.sender,
     subject: s.subject,
     body: s.bodySnippet,
-    kind: s.verdict === "phish" ? "phishing" : "normal",
+    kind: s.kind,
   }));
   // Reply-box target: first legit scenario asking for a reply, else first legit, else first dealt.
-  const vocrehabReplyTargetId =
-    sel.scenarios.find((s) => s.verdict === "legit" && s.safeAction === "reply")?.id ??
-    sel.scenarios.find((s) => s.verdict === "legit")?.id ??
-    sel.scenarios[0].id;
+  const vocrehabReplyTargetId = customTemplate?.replyTargetId ??
+    scenarios.find((s) => s.verdict === "legit" && s.safeAction === "reply")?.id ??
+    scenarios.find((s) => s.verdict === "legit")?.id ?? scenarios[0].id;
   const [vocrehabTriaged, setVocrehabTriaged] = useState<Record<string, VocrehabTriage>>({});
   const [vocrehabReply, setVocrehabReply] = useState("");
   const [vocrehabReplySaved, setVocrehabReplySaved] = useState(false);
@@ -76,10 +89,10 @@ export default function VocrehabGameInboxSprint({ vocrehabEmit, vocrehabFinish, 
   };
 
   const triagedCount = Object.keys(vocrehabTriaged).length;
-  const urgentRight = sel.scenarios
+  const urgentRight = scenarios
     .filter((s) => s.verdict === "legit")
     .filter((s) => vocrehabTriaged[s.id] === "reply" || vocrehabTriaged[s.id] === "schedule").length;
-  const phishingFlagged = sel.scenarios
+  const phishingFlagged = scenarios
     .filter((s) => s.verdict === "phish")
     .every((s) => vocrehabTriaged[s.id] === "flag");
 

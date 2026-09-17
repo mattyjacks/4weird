@@ -1,0 +1,23 @@
+{
+  "id": "DS-BLDFIX-08",
+  "title": "Lint + typecheck",
+  "goal": "npm run build (v2/vcw4w) is green: Lint + typecheck. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/scripts",
+    "v2/vcw4w/tsconfig.json"
+  ],
+  "gates": [
+    "npm run lint",
+    "npx tsc --noEmit"
+  ],
+  "status": "done",
+  "owner": "bldfix-08",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T05:07:03.592Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T12:00:00.000Z bldfix-08: claimed, scope scripts/** + tsconfig.json read-only, running lint+tsc gates.",
+    "2026-09-17T12:15:00.000Z bldfix-08: DONE green, zero writes. eslint scripts: 0 errors 4 warnings exit 0 (verify-game-fixes 23:24 existsSync unused; verify-gravegain-mmorpg 82:12 e unused; verify-gravegain2db 486:16 e unused; verify-vendor-metering 108:7 refundSql unused). tsc --noEmit exit 0 no output. Scope .mjs excluded from tsconfig include (**/*.ts, **/*.tsx) so tsc trivially clean for scope; tsconfig.json left untouched (read-only). No scope-local reds; baseline build hang is extrinsic to this scope."
+  ]
+}

@@ -11,6 +11,7 @@ import {
   generateBatchHash,
 } from "@/lib/easydnc";
 import { createHash } from "crypto";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 export const maxDuration = 60; // Allow sufficient time for batch checks
 
@@ -48,6 +49,8 @@ export async function GET(req: Request) {
     if (!data.user) {
       return fail("Authentication required. Log in or supply a BYOK key.", 401);
     }
+    const vendorAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "easydnc");
+    if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
     const throttle = rateLimit(`easydnc-single:${data.user.id}`, 30, 60_000);
     if (!throttle.allowed) {
       return fail("Rate limit exceeded.", 429);
@@ -58,12 +61,11 @@ export async function GET(req: Request) {
   if (!apiKey) {
     return fail("Lookup service not configured.", 503);
   }
-  const url = `${EASYDNC_API_ENDPOINT}?key=${encodeURIComponent(apiKey)}&number=${encodeURIComponent(normalized)}`;
-
   try {
-    const upstreamRes = await fetch(url, {
-      method: "GET",
-      headers: { "Accept": "application/json" },
+    const upstreamRes = await fetch(EASYDNC_API_ENDPOINT, {
+      method: "POST",
+      headers: { "Accept": "application/json", "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      body: JSON.stringify({ number: normalized }),
       signal: AbortSignal.timeout(10000),
     });
 
@@ -105,6 +107,25 @@ export async function POST(req: Request) {
     api_key?: string;
     org_id?: string;
   };
+  const isByok = Boolean(input.is_byok && input.api_key);
+  let sessionClient: Awaited<ReturnType<typeof createClient>> | null = null;
+  let sessionUserId: string | null = null;
+  if (hasServerSupabase()) {
+    sessionClient = await createClient();
+    const { data: authData } = await sessionClient.auth.getUser();
+    sessionUserId = authData?.user?.id ?? null;
+  }
+  if (sessionUserId && sessionClient && !isByok) {
+    const vendorAge = await checkAuthenticatedVendorEligibility(sessionClient, sessionUserId, "easydnc");
+    if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
+  }
+  if (isByok && !sessionUserId) {
+    return fail("BYOK DNC checks require an Adult-band signed-in account; anonymous key use cannot verify eligibility.", 403);
+  }
+  if (isByok && sessionUserId && sessionClient) {
+    const vendorAge = await checkAuthenticatedVendorEligibility(sessionClient, sessionUserId, "easydnc");
+    if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
+  }
 
   const rawNumbers = Array.isArray(input.numbers) ? input.numbers : [];
   // CSRF guard for the cookie-authed (Vibe-Coin) path: that path debits
@@ -145,18 +166,11 @@ export async function POST(req: Request) {
 
   // Economic calculations
   const cost = calculateEasyDncCost(uniqueNormalized.length);
-  const isByok = Boolean(input.is_byok && input.api_key);
   const activeApiKey = isByok ? input.api_key! : (process.env.EASYDNC_API_KEY || "DEMO_KEY");
 
-  let userId: string | null = null;
   let batchId: string | null = null;
-  let supabaseClient: Awaited<ReturnType<typeof createClient>> | null = null;
-
-  if (hasServerSupabase()) {
-    supabaseClient = await createClient();
-    const { data: authData } = await supabaseClient.auth.getUser();
-    userId = authData?.user?.id ?? null;
-  }
+  const userId = sessionUserId;
+  const supabaseClient = sessionClient;
 
   // If paying with Vibe Coins, user must be logged in
   if (!isByok) {
@@ -211,10 +225,10 @@ export async function POST(req: Request) {
     await Promise.all(
       chunk.map(async (num) => {
         try {
-          const url = `${EASYDNC_API_ENDPOINT}?key=${encodeURIComponent(activeApiKey)}&number=${encodeURIComponent(num)}`;
-          const res = await fetch(url, {
-            method: "GET",
-            headers: { "Accept": "application/json" },
+          const res = await fetch(EASYDNC_API_ENDPOINT, {
+            method: "POST",
+            headers: { "Accept": "application/json", "Content-Type": "application/json", "Authorization": `Bearer ${activeApiKey}` },
+            body: JSON.stringify({ number: num }),
             signal: AbortSignal.timeout(8000),
           });
 

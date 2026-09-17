@@ -1,0 +1,24 @@
+{
+  "id": "DS-BLDFIX-05",
+  "title": "VCW gateway + runs",
+  "goal": "npm run build (v2/vcw4w) is green: VCW gateway + runs. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "vcw",
+  "scope": [
+    "v2/vcw4w/app/vibecodeworker",
+    "v2/vcw4w/app/api/vcw",
+    "v2/vcw4w/lib/vcw-runs.ts"
+  ],
+  "gates": [
+    "npm run verify:vcw-runs",
+    "npm run verify:vcw-gateway"
+  ],
+  "status": "done",
+  "owner": "bldfix-05",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T05:07:03.592Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T worker bldfix-05: claimed (tag == envelope id DS-BLDFIX-05).",
+    "2026-09-17T bldfix-05 DONE: gates green + full build green, zero scope writes (no scope-only causes found). verify:vcw-runs PASS (VCW runs integrity OK), verify:vcw-gateway PASS (VCW gateway integrity OK). npm run build exit 0 twice: compile OK ~14s, tsc OK ~6-9s, 601/601 static pages, Finalizing page optimization completes, full route table emitted (all /api/vcw/* present as dynamic, /vibecodeworker/* static). Baseline hang was extrinsic (120s lead timeout < full-build duration), not a gateway/runs defect. Scope scan: no module-scope timers/awaits, no build-time fetch, no force-static API routes in app/vibecodeworker + app/api/vcw + lib/vcw-runs.ts. No NEW files needed; no QUEUE/shared-manifest edits (steward-owned)."
+  ]
+}

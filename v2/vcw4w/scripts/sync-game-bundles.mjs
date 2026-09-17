@@ -22,9 +22,9 @@ const bundles = [
   ["assassinanimals", "assassinanimals"],
   ["battlesharks2", "battlesharks2"],
   ["gravegain2dA", "gravegain2dA"],
-  ["gravegain3d", "gravegain3d"],
-  ["gravegain4d", "gravegain4d"],
-  ["gravegain1d", "gravegain1d"],
+  ["gravegain3dA", "gravegain3d"],
+  ["gravegain4dA", "gravegain4d"],
+  ["gravegain1dA", "gravegain1d"],
   ["demolichdom", "demolichdom"],
   ["fridgesimulator", "fridgesimulator"],
   // NOTE: source dir keeps its v1 capitalisation; the destination slug is

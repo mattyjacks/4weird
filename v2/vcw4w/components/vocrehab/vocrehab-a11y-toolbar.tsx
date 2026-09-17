@@ -105,7 +105,7 @@ export function VocrehabA11yToolbar() {
   }
 
   return (
-    <details className="fixed bottom-4 right-4 z-40 max-w-[calc(100vw-2rem)] rounded-2xl border border-stone-300 bg-white/95 shadow-xl backdrop-blur">
+    <details className="vocrehab-a11y-panel fixed bottom-4 right-4 z-40 max-w-[calc(100vw-2rem)] rounded-2xl border border-stone-300 bg-white/95 shadow-xl backdrop-blur">
       <summary
         aria-label="Open display and access options"
         className="cursor-pointer list-none rounded-2xl px-3.5 py-2 text-sm font-semibold text-stone-900 hover:bg-stone-100 [&::-webkit-details-marker]:hidden"

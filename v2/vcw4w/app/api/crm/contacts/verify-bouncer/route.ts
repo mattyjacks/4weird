@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { ok, fail, dbFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 // NOTE (DS-BOUNCER-02): the shared client at `@/lib/bouncer`
 // (verifySingleEmail) is owned by another in-progress envelope, so the
@@ -97,6 +98,8 @@ export async function POST(req: Request) {
   const { data: authData } = await supabase.auth.getUser();
   const u = authData?.user;
   if (!u) return fail("Login required.", 401);
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, u.id, "bouncer");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
 
   let body: unknown;
   try {

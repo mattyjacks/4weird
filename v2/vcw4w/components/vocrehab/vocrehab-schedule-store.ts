@@ -113,12 +113,24 @@ export function isScheduleStateV2(value: unknown): value is ScheduleState {
   if (typeof value !== "object" || value === null) return false;
   const candidate = value as Record<string, unknown>;
   if (candidate.version !== SCHEDULE_VERSION) return false;
-  if (typeof candidate.presetId !== "string") return false;
-  if (typeof candidate.difficulty !== "string") return false;
-  if (typeof candidate.events !== "object" || candidate.events === null) return false;
+  if (typeof candidate.presetId !== "string" || candidate.presetId.length > 64) return false;
+  if (typeof candidate.difficulty !== "string" || candidate.difficulty.length > 32) return false;
+  if (!Array.isArray(candidate.addresses) || candidate.addresses.length > 100) return false;
+  if (typeof candidate.events !== "object" || candidate.events === null || Array.isArray(candidate.events)) return false;
   const anchor = candidate.monthAnchor as MonthAnchor | null | undefined;
   if (typeof anchor !== "object" || anchor === null) return false;
-  if (typeof anchor.year !== "number" || typeof anchor.monthIndex !== "number") return false;
+  if (!Number.isInteger(anchor.year) || anchor.year < 1970 || anchor.year > 2200) return false;
+  if (!Number.isInteger(anchor.monthIndex) || anchor.monthIndex < 0 || anchor.monthIndex > 11) return false;
+  for (const [dayId, events] of Object.entries(candidate.events as Record<string, unknown>)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dayId) || !Array.isArray(events) || events.length > 100) return false;
+    for (const event of events) {
+      if (typeof event !== "object" || event === null || Array.isArray(event)) return false;
+      const item = event as Record<string, unknown>;
+      if (typeof item.id !== "string" || item.id.length > 128 || typeof item.title !== "string" || item.title.length > 160) return false;
+      if (item.slot !== undefined && (typeof item.slot !== "string" || !/^\d{1,4}-\d{1,4}$/.test(item.slot))) return false;
+      if (typeof item.notes === "string" && item.notes.length > 2048) return false;
+    }
+  }
   return true;
 }
 
@@ -197,7 +209,7 @@ export function scheduleReducer(state: ScheduleState, action: ScheduleAction): S
  * - Persists ONLY via saveNow() — there is no autosave, so addresses and
  *   events stay in memory until the learner chooses to keep them.
  */
-export function useScheduleStore(initial?: Partial<ScheduleState>) {
+export function useScheduleStore(initial?: Partial<ScheduleState>, preferExternalSnapshot = false) {
   const [state, dispatch] = useReducer(scheduleReducer, undefined, () =>
     makeFreshSchedule(initial),
   );
@@ -214,13 +226,14 @@ export function useScheduleStore(initial?: Partial<ScheduleState>) {
   /* eslint-disable react-hooks/set-state-in-effect -- mount-time localStorage
      restore: syncing React state with an external system exactly once. */
   useEffect(() => {
+    if (preferExternalSnapshot) return;
     const stored = readStoredSchedule();
     if (stored) {
       setLastRestored(stored);
       setOffer({ available: true, savedAt: stored.updatedAt ?? null });
       dispatch({ type: "hydrate", state: stored });
     }
-  }, []);
+  }, [preferExternalSnapshot]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   /** Explicit save: writes the full snapshot (addresses included). */

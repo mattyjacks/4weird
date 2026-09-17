@@ -87,7 +87,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
   // Valley Net automod: block refuses + logs, quarantine forces pending + logs.
   // valleynetCheck already runs the Luna (GPT 5.6) judge once; that single
   // check is the metered AI cost (no duplicate moderation call).
-  const valley = await valleynetCheck(`${title}\n${postBody}`);
+  const valley = await valleynetCheck(`${title}\n${postBody}`, { userId: u.id });
   void meterLunaCheck(supabase, clanId, 1);
   if (valley.verdict === "block") {
     await logValleynetAction({

@@ -9,6 +9,7 @@ import {
   calculateEasyDncCost,
   generateBatchHash,
 } from "@/lib/easydnc";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 function isUuid(v: unknown): string {
   const s = String(v ?? "").trim();
@@ -25,6 +26,8 @@ export async function POST(req: Request) {
   const { data: authData } = await supabase.auth.getUser();
   const u = authData?.user;
   if (!u) return fail("Login required.", 401);
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, u.id, "easydnc");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
 
   let body: unknown;
   try {
@@ -140,8 +143,12 @@ export async function POST(req: Request) {
   const dncStatusMap = new Map<string, boolean>();
   for (const num of uniqueNormalized) {
     try {
-      const url = `${EASYDNC_API_ENDPOINT}?key=${encodeURIComponent(activeKey)}&number=${encodeURIComponent(num)}`;
-      const res = await fetch(url, { headers: { "Accept": "application/json" }, signal: AbortSignal.timeout(8000) });
+      const res = await fetch(EASYDNC_API_ENDPOINT, {
+        method: "POST",
+        headers: { "Accept": "application/json", "Content-Type": "application/json", "Authorization": `Bearer ${activeKey}` },
+        body: JSON.stringify({ number: num }),
+        signal: AbortSignal.timeout(8000),
+      });
       const data = await res.json().catch(() => ({}));
       dncStatusMap.set(num, Boolean(data.dnc));
     } catch {

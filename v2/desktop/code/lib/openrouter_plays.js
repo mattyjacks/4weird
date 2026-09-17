@@ -13,6 +13,7 @@ const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 const OPENROUTER_REFERER = 'https://github.com/mattyjacks/4weird';
 const OPENROUTER_TITLE = '4weird VibeCodeWorker';
 const DEFAULT_MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-4-scout-17b-16e-instruct';
+const { assertProviderEligible } = require('./vendor_eligibility');
 
 function clean(v, max = 800) {
   return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, max) || '(no input provided)';
@@ -86,6 +87,7 @@ async function runPlay(playId, input, opts = {}) {
   const text = clean(input, 2000);
   const key = resolveKey(opts.apiKey);
   if (!key) return { playId: play.id, output: fallbackPlay(play, text), fallback: true, voiceBackend: play.voiceBackend, voiceId: play.voiceId };
+  await (opts.assertProviderEligible || assertProviderEligible)('openrouter', { botKey: opts.botKey, model: play.model });
   const fetchFn = opts.fetch || globalThis.fetch;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), opts.timeoutMs || 15000);

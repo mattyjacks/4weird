@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
@@ -15,6 +16,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const providerAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "runpod");
+  if (!providerAge.allowed) return fail(providerAge.reason, 403);
   const { id } = await ctx.params;
   let svc;
   try {

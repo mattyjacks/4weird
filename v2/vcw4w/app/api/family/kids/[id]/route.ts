@@ -4,8 +4,8 @@ import { fail, ok, rpcFail } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { isPassword } from "@/lib/validate";
-import { isAgeBand } from "@/lib/family";
-import { hashKidPassword } from "@/lib/kid-session";
+import { isAgeBand, isFeatureAllowlist, isGameAllowlist } from "@/lib/family";
+import { hasKidSessionCookie, hashKidPassword } from "@/lib/kid-session";
 import { rpcStatus } from "@/lib/agent-market";
 import { botTesterBlocked, isBotTester } from "@/lib/bot-auth";
 
@@ -40,6 +40,7 @@ function toTime(v: unknown): string | null | undefined {
 export async function PATCH(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (hasKidSessionCookie(req)) return fail("Exit the child account before managing family accounts.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
@@ -61,7 +62,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   }
   const input = (body ?? {}) as Record<string, unknown>;
   for (const k of Object.keys(input)) {
-    if (!["daily_minutes", "allowed_start", "allowed_end", "timezone", "monthly_cap_coins", "hard_stop", "age_band", "status", "password"].includes(k)) {
+    if (!["daily_minutes", "allowed_start", "allowed_end", "timezone", "monthly_cap_coins", "hourly_cap_coins", "hard_stop", "allowed_games", "allowed_features", "age_band", "status", "password"].includes(k)) {
       return fail("Invalid field.", 400);
     }
   }
@@ -74,7 +75,13 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const tz = input.timezone === undefined ? undefined : String(input.timezone).trim().slice(0, 64) || undefined;
   const cap = input.monthly_cap_coins === undefined ? undefined : Number(input.monthly_cap_coins);
   if (cap !== undefined && (!Number.isFinite(cap) || cap < 0 || cap > 100000000)) return fail("Invalid monthly cap.", 400);
+  const hourlyCap = input.hourly_cap_coins === undefined ? undefined : Number(input.hourly_cap_coins);
+  if (hourlyCap !== undefined && (!Number.isFinite(hourlyCap) || hourlyCap < 0 || hourlyCap > 100000000)) return fail("Invalid hourly cap.", 400);
   const hardStop = input.hard_stop === undefined ? undefined : Boolean(input.hard_stop);
+  const allowedGames = input.allowed_games === undefined ? undefined : isGameAllowlist(input.allowed_games);
+  if (input.allowed_games !== undefined && allowedGames === null) return fail("allowed_games must be an array of valid game slugs (maximum 500).", 400);
+  const allowedFeatures = input.allowed_features === undefined ? undefined : isFeatureAllowlist(input.allowed_features);
+  if (input.allowed_features !== undefined && allowedFeatures === null) return fail("allowed_features must contain IDs like app:slug or ai:vendor (maximum 500).", 400);
   const band = input.age_band === undefined ? undefined : isAgeBand(input.age_band);
   if (input.age_band !== undefined && (band === null || band === "unknown")) return fail("age_band must be kid, teen, or adult.", 400);
   const status = input.status === undefined ? undefined : String(input.status);
@@ -82,7 +89,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   const wantsControls =
     minutes !== undefined || start !== undefined || end !== undefined || tz !== undefined ||
-    cap !== undefined || hardStop !== undefined || band !== undefined || status !== undefined;
+    cap !== undefined || hourlyCap !== undefined || hardStop !== undefined || allowedGames !== undefined || allowedFeatures !== undefined || band !== undefined || status !== undefined;
   if (wantsControls) {
     // Merge over current controls so partial updates never reset siblings
     // to defaults (the RPC replaces start/end/tz/cap/hard_stop wholesale).
@@ -105,7 +112,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     }
     const { data: current } = await service
       .from("kid_controls")
-      .select("daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hard_stop")
+      .select("daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hourly_cap_coins,hard_stop,allowed_games,allowed_features")
       .eq("kid_id", kidId)
       .maybeSingle();
     const cur = (current ?? {}) as Record<string, unknown>;
@@ -117,6 +124,9 @@ export async function PATCH(req: Request, { params }: Ctx) {
       p_tz: tz ?? (typeof cur.timezone === "string" ? cur.timezone : null),
       p_cap: cap ?? (cur.monthly_cap_coins !== undefined && cur.monthly_cap_coins !== null && Number.isFinite(Number(cur.monthly_cap_coins)) ? Number(cur.monthly_cap_coins) : null),
       p_hard_stop: hardStop ?? (typeof cur.hard_stop === "boolean" ? cur.hard_stop : null),
+      p_allowed_games: allowedGames ?? (Array.isArray(cur.allowed_games) ? cur.allowed_games : []),
+      p_allowed_features: allowedFeatures ?? (Array.isArray(cur.allowed_features) ? cur.allowed_features : []),
+      p_hourly_cap: hourlyCap ?? (cur.hourly_cap_coins !== undefined ? Number(cur.hourly_cap_coins) : 0),
       p_age_band: band ?? null,
       p_status: status ?? null,
     });
@@ -133,17 +143,18 @@ export async function PATCH(req: Request, { params }: Ctx) {
 }
 
 /**
- * DELETE /api/family/kids/[id]; close a child account. Remaining wallet
- * coins refund to the parent; sessions/controls/history cascade away.
+ * DELETE /api/family/kids/[id]; close a child account. Parent coin debits
+ * remain in the parent's ledger with child attribution for audit.
  */
 export async function DELETE(req: Request, { params }: Ctx) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  if (hasKidSessionCookie(req)) return fail("Exit the child account before managing family accounts.", 403);
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   const u = data?.user;
   if (!u) return fail("Login required.", 401);
-  // Closing refunds the wallet to the parent: play/test sessions never do it.
+  // Closing changes the child account only; parent-owned coins stay untouched.
   if (isBotTester(req)) return fail(botTesterBlocked(), 403);
   const kidId = (await params).id;
   if (!isUuidLike(kidId)) return fail("Invalid child account.", 400);
@@ -151,7 +162,7 @@ export async function DELETE(req: Request, { params }: Ctx) {
   if (!throttle.allowed) {
     return fail("Too many requests. Try again shortly.", 429, { "Retry-After": String(throttle.retryAfter) });
   }
-  const { data: refunded, error } = await supabase.rpc("close_kid_account", { p_kid: kidId });
+  const { error } = await supabase.rpc("close_kid_account", { p_kid: kidId });
   if (error) return rpcFail("api/family/kids:close", error, rpcStatus, "Unable to close child account.");
-  return ok({ refunded_coins: Number(refunded ?? 0) });
+  return ok({ closed: true });
 }

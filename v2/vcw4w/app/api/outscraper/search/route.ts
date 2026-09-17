@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
@@ -206,6 +207,8 @@ export async function POST(req: Request) {
       "Authentication required. Sign in to run Outscraper tools; the catalog + quotes on /outscraper/ops are free without login.",
       401,
     );
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "outscraper");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
   const botBlock = await requireHuman(req, "POST /api/outscraper/search", {
     allowAuthenticated: true,
   });

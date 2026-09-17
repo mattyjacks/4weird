@@ -17,11 +17,23 @@
 
 import { el, synth, isTauriRuntime, invokeTauriCommand } from './core_state.js';
 import { log } from './telemetry_logger.js';
+import { getBotToken, BOT_API_BASE } from './bot_token.js';
 
 export const FAL_QUEUE_BASE = 'https://queue.fal.run';
 export const FAL_CHEAP_MODEL = 'fal-ai/flux/schnell';
 const FAL_KEY_LS_KEY = 'vcw_fal_key';
 const NIL_REQUEST_ID = '00000000-0000-0000-0000-000000000000';
+
+async function requireFalEligibility() {
+  const botKey = await getBotToken();
+  if (!botKey) throw new Error('Connect an Adult-band 4weird account before using fal.ai.');
+  const response = await fetch(`${BOT_API_BASE}/api/bot/vendor-eligibility?vendor=fal`, {
+    headers: { 'x-bot-key': botKey, accept: 'application/json' },
+    cache: 'no-store',
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || result.allowed !== true) throw new Error(result.error || 'This 4weird account is not eligible to use fal.ai.');
+}
 
 export function isFalKeyShape(value) {
   const t = String(value || '').trim();
@@ -121,6 +133,8 @@ async function saveFalKeyFromInput() {
 /** FREE key check: a nil-UUID status poll. 401/403 = bad key, anything else = accepted. */
 async function verifyFalKey() {
   synth.playClick();
+  try { await requireFalEligibility(); }
+  catch (e) { setStatus(e.message, 'error'); synth.playFail(); return; }
   const key = (el.falKeyInput && el.falKeyInput.value.trim()) || (await readStoredKey());
   if (!isFalKeyShape(key)) {
     setStatus('Paste a fal.ai key first, or save one and VERIFY the stored key.', 'error');
@@ -161,6 +175,8 @@ function sleep(ms) {
  */
 async function cheapTestFal() {
   synth.playClick();
+  try { await requireFalEligibility(); }
+  catch (e) { setStatus(e.message, 'error'); synth.playFail(); return; }
   const key = (el.falKeyInput && el.falKeyInput.value.trim()) || (await readStoredKey());
   if (!isFalKeyShape(key)) {
     setStatus('Paste a fal.ai key first - CHEAP TEST spends a fraction of a cent.', 'error');

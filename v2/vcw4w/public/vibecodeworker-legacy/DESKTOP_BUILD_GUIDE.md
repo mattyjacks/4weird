@@ -138,6 +138,34 @@ Frontend integration is automatically handled in `website/v1/vibecodeworker/app.
 
 ---
 
+## 🤖 OpenCode CLI: install matrix + server mode + Heal loop
+
+The desktop **Enable OpenCode** toggle (and `Fix` / `Heal` buttons) shells out to the
+`opencode` binary on `PATH`. Install it for your OS, then verify with `opencode --version`:
+
+| OS | Install command(s) |
+| :--- | :--- |
+| 🪟 Windows | `choco install opencode` **or** `npm install -g opencode-ai` |
+| 🍎 macOS | `curl -fsSL https://opencode.ai/install \| bash` **or** `brew install opencode` |
+| 🐧 Linux | `curl -fsSL https://opencode.ai/install \| bash` |
+
+Need a different location? Point `OPENCODE_BINARY` at an absolute path (see `.env.example` §11).
+Without the binary the bridge degrades gracefully — toggles report "not found" instead of failing.
+
+**Server mode (no CLI cold boot per fix):** run `opencode serve --port 4096` once, then set
+`OPENCODE_MODE=server` (+ `OPENCODE_SERVER_URL`, default `http://127.0.0.1:4096`) in `.env`
+or the dashboard. Docker users: `docker compose --profile opencode up` starts the
+`opencode-server` sidecar. Set `OPENCODE_SERVER_PASSWORD` locally if the port is reachable
+beyond loopback — never commit it.
+
+**Heal loop + budget:** `Heal` loops test → fix → re-test until clean or the iteration
+budget is spent. Long runs are additionally capped by the token/spend budget
+(`maxTokens` / `maxSpendUSD` / `model` options); when the budget trips, the run stops
+with a `budget_exhausted` verdict instead of looping forever. `Export` writes
+`BUGFIX-<game>-<stamp>.{md,json}` for `opencode run -f file` or the `Fix` button.
+
+---
+
 ## 🪟 Windows .exe: paste key + run opencode inside
 
 1. **Install the .exe** — build with `npm run tauri:build:win` (in `v2/desktop/code`), then run the installer from `src-tauri/target/release/bundle/nsis/` (`.exe`; `.msi` beside it).

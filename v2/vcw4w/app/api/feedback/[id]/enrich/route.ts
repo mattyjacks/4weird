@@ -14,6 +14,7 @@ import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { clientIp, isUuid } from "@/lib/validate";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 // POST /api/feedback/[id]/enrich — fire-and-forget AI enrichment stub.
 //
@@ -134,10 +135,12 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // Admin session OR verified bot key — nothing else.
   let authorized = false;
   let signedIn = false;
+  let actorId: string | null = null;
   try {
     const supabase = await createClient();
     const { data } = await supabase.auth.getUser();
     const user = data?.user;
+    actorId = user?.id ?? null;
     signedIn = Boolean(user);
     if ((user?.app_metadata as Record<string, unknown> | null)?.role === "admin") {
       authorized = true;
@@ -147,7 +150,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
   if (!authorized) {
     try {
-      authorized = (await resolveBotKey(req)) !== null;
+      const bot = await resolveBotKey(req);
+      authorized = bot !== null;
+      actorId = bot?.userId ?? actorId;
     } catch {
       authorized = false;
     }
@@ -244,6 +249,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   });
 
   const apiKey = process.env.OPENAI_API_KEY ?? "";
+  let openAiEligible = false;
+  if (apiKey && actorId) {
+    const vendorAge = await checkAuthenticatedVendorEligibility(serviceClient(), actorId, "openai");
+    openAiEligible = vendorAge.allowed;
+  }
   let parsed: ParsedEnrichment;
   let model: string;
   let promptVersion: string;
@@ -252,7 +262,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   let processed = true;
   let reason: string | null = null;
 
-  if (!apiKey) {
+  if (!apiKey || !openAiEligible) {
     parsed = toParsedEnrichment(
       stubEnrichFeedback({ text: report.text_body ?? "", rating: report.rating ?? "okay" }),
     );
@@ -261,7 +271,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     raw = { stub: { ...parsed }, reason: "no-key" };
     cost = null;
     processed = false;
-    reason = "no-key";
+    reason = !apiKey ? "no-key" : "adult-account-required";
   } else {
     const llmModel = process.env.FEEDBACK_ENRICH_MODEL?.trim() || LLM_DEFAULT_MODEL;
     try {

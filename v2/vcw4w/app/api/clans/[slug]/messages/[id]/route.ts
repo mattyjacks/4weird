@@ -99,7 +99,7 @@ export async function POST(
     // Re-moderate edits like fresh sends: otherwise a benign post passes
     // Valley Net + fee once, then swaps in spam/scam via edit.
     const clanId = (clan as { id?: string } | null)?.id ?? "";
-    const valley = await valleynetCheck(text);
+    const valley = await valleynetCheck(text, { userId: u.id });
     void meterLunaCheck(supabase, clanId, 1);
     if (valley.verdict === "block") {
       await logValleynetAction({

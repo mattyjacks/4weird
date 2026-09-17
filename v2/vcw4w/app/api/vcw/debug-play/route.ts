@@ -5,6 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/csrf";
 import { clientIp } from "@/lib/validate";
 import { resolveVcwCaller, vcwWriteScope } from "@/lib/vcw-gateway-auth";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import {
   DEBUG_PLAY_LOOP_WINDOW,
   DEBUG_PLAY_MAX_FRAME_CHARS,
@@ -45,6 +46,8 @@ export async function POST(req: Request) {
   if (!caller) return fail("Authentication required.", 401);
   if (!vcwWriteScope(caller)) return fail("Write scope required.", 403);
   if (caller.mode === "session" && !sameOrigin(req)) return fail("Invalid request origin.", 403);
+  const vendorAge = await checkAuthenticatedVendorEligibility(serviceClient(), caller.userId, "openrouter");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
   // Per-IP throttle (kept: each call can spend OpenRouter budget) plus a
   // per-caller throttle so one credential cannot exhaust the shared window.
   const rl = rateLimit(`vcw:debug-play:${clientIp(req)}`, 20, 60_000);

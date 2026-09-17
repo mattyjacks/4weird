@@ -1,0 +1,154 @@
+/* GraveGain5D styles: game-only, multiverse theme. No site chrome.
+ * Narrow-iframe hardening baked in from the 1D/2D/3D fix pass:
+ * touch bar wraps (never truncates), stage clips overlays, canvas keeps aspect. */
+:root {
+    --gg5d-gold: #fbbf24;
+    --gg5d-purple: #a855f7;
+    --gg5d-cyan: #22d3ee;
+    --gg5d-red: #ef4444;
+    --gg5d-ink: #e2e8f0;
+    --gg5d-dim: #94a3b8;
+}
+* { box-sizing: border-box; }
+html, body {
+    margin: 0; padding: 0; min-height: 100%; background: #000; color: var(--gg5d-ink);
+    font-family: Outfit, Inter, system-ui, sans-serif;
+    overscroll-behavior: none;
+}
+#gg5dWrap { position: relative; width: 100%; max-width: 1100px; margin: 0 auto; padding: 10px; }
+#gg5dHud {
+    display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+    background: rgba(10, 8, 24, 0.9); border: 1px solid rgba(34, 211, 238, 0.4);
+    border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 0.85rem;
+}
+#gg5dHud .bar { position: relative; width: 150px; height: 12px; background: #1e1b2e; border-radius: 6px; overflow: hidden; }
+#gg5dHud .bar > div { position: absolute; inset: 0 auto 0 0; border-radius: 6px; }
+#gg5dHpFill { background: linear-gradient(90deg, #ef4444, #f97316); }
+#gg5dParadoxFill { background: linear-gradient(90deg, #22d3ee, #e879f9); }
+#gg5dHud .gold { color: var(--gg5d-gold); font-weight: 700; }
+#gg5dHud .dim { color: var(--gg5d-dim); }
+#gg5dUniverseBadge { font-weight: 800; color: var(--gg5d-cyan); }
+#gg5dParadoxBadge.hot { color: var(--gg5d-red); font-weight: 800; }
+#gg5dStage { position: relative; width: 100%; overflow: hidden; border-radius: 10px; }
+#gg5dCanvas { display: block; width: 100%; height: auto; aspect-ratio: 16/10; border-radius: 10px; border: 1px solid rgba(34, 211, 238, 0.35); background: #05030d; touch-action: none; }
+#gg5dBanner {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    text-align: center; pointer-events: none; padding: 0 8%;
+}
+#gg5dBanner.on { display: flex; }
+#gg5dBannerCard {
+    background: rgba(5, 5, 14, 0.88); border: 1px solid var(--gg5d-cyan);
+    border-radius: 12px; padding: 16px 22px; max-width: 620px;
+    box-shadow: 0 0 40px rgba(34, 211, 238, 0.35);
+}
+#gg5dBannerTitle { font-family: Orbitron, Outfit, sans-serif; color: var(--gg5d-gold); letter-spacing: 0.1em; font-size: 0.95rem; margin: 0 0 8px; }
+#gg5dBannerText { font-size: 0.92rem; line-height: 1.55; margin: 0; white-space: pre-line; }
+#gg5dTouch { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+#gg5dTouch button {
+    flex: 1 1 96px; min-width: 88px; padding: 12px 4px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    background: rgba(20, 14, 40, 0.95); color: #fff; border: 1px solid var(--gg5d-purple);
+    border-radius: 10px; font-family: Orbitron, Outfit, sans-serif;
+}
+#gg5dTouch button:active { background: #0e7490; }
+#gg5dMenu {
+    background: rgba(10, 8, 24, 0.94); border: 1px solid rgba(34, 211, 238, 0.5);
+    border-radius: 12px; padding: 22px; margin-top: 8px; text-align: center;
+}
+#gg5dMenu h1 { font-family: Orbitron, sans-serif; letter-spacing: 0.14em; color: var(--gg5d-gold); margin: 0 0 4px; font-size: 1.6rem; }
+#gg5dMenu p.sub { color: var(--gg5d-dim); margin: 0 0 16px; font-size: 0.9rem; }
+.gg5dChoices { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 12px 0; }
+.gg5dChoices button {
+    min-width: 150px; padding: 12px 14px; cursor: pointer; border-radius: 10px;
+    background: rgba(30, 20, 60, 0.9); color: #fff; border: 1px solid var(--gg5d-purple);
+    font-family: Outfit, sans-serif; font-size: 0.88rem; line-height: 1.4;
+}
+.gg5dChoices button small { display: block; color: var(--gg5d-dim); font-size: 0.75rem; margin-top: 4px; }
+.gg5dChoices button.sel { outline: 2px solid var(--gg5d-cyan); background: rgba(20, 40, 80, 0.95); }
+#gg5dGoBtn {
+    margin-top: 8px; padding: 12px 42px; font-size: 1rem; font-weight: 800; cursor: pointer;
+    background: linear-gradient(135deg, #22d3ee, #a855f7); color: #fff; border: 1px solid #67e8f9;
+    border-radius: 10px; font-family: Orbitron, sans-serif; letter-spacing: 0.08em;
+}
+#gg5dFsBtn { position: absolute; top: 8px; right: 8px; z-index: 5; background: rgba(10,8,24,.8); color: #e2e8f0; border: 1px solid rgba(34,211,238,.5); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: .8rem; }
+/* Fullscreen contract: black stage, centered canvas. */
+#gg5dStage:fullscreen { background: #000; display: flex; align-items: center; justify-content: center; width: 100vw; }
+#gg5dStage:fullscreen #gg5dCanvas { width: min(100vw, 166.67vh); height: auto; }
+@media (prefers-reduced-motion: reduce) {
+    #gg5dBannerCard { box-shadow: none; }
+}
+/* --- GraveGain5D RPG HUD chrome (series-true, teen-clean dark fantasy) ---
+ * Additive only: every selector above this block is untouched.
+ * Naming follows index.html gg5d* ids + gravegain1d series conventions
+ * (gg1dHpFill / gg1dXpFill / gg1dBossBar). New ids are forward-compatible
+ * hooks for mmorpg-5d.js; nothing here renames existing markup. */
+:root {
+    --gg5d-green: #22c55e;
+    --gg5d-blue: #6366f1;
+    --gg5d-ink-deep: #05030d;
+    --gg5d-panel: rgba(10, 8, 24, 0.9);
+    --gg5d-hp-low: #f87171;
+}
+/* HP / XP bars (series parity with gg1dHpFill / gg1dXpFill). */
+#gg5dHud .bar.hp { border: 1px solid rgba(239, 68, 68, 0.45); }
+#gg5dHud .bar.xp { border: 1px solid rgba(168, 85, 247, 0.45); }
+#gg5dHud .bar.paradox { border: 1px solid rgba(34, 211, 238, 0.45); }
+#gg5dXpFill { background: linear-gradient(90deg, #a855f7, #6366f1); }
+#gg5dHud .bar.low #gg5dHpFill { background: linear-gradient(90deg, #7f1d1d, var(--gg5d-hp-low)); }
+#gg5dHud .hpLabel, #gg5dHud .xpLabel { font-weight: 700; white-space: nowrap; }
+#gg5dHud .hpLabel { color: #fca5a5; }
+#gg5dHud .xpLabel { color: #c4b5fd; }
+/* Paradox meter states. Base fill + badge hook already exist above. */
+#gg5dParadoxBadge { font-weight: 700; color: var(--gg5d-cyan); }
+#gg5dParadoxBadge.warn { color: var(--gg5d-gold); font-weight: 800; }
+#gg5dHud .bar.paradox.hot { outline: 1px solid var(--gg5d-red); }
+#gg5dHud .bar.paradox.hot #gg5dParadoxFill { background: linear-gradient(90deg, #f97316, var(--gg5d-red), #e879f9); }
+/* Doom-clock / collapse banner state. */
+#gg5dDoomClock { font-weight: 800; color: var(--gg5d-gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
+#gg5dDoomClock.urgent { color: var(--gg5d-red); }
+#gg5dBanner.doom #gg5dBannerCard { border-color: var(--gg5d-red); box-shadow: 0 0 40px rgba(239, 68, 68, 0.4); }
+#gg5dBanner.doom #gg5dBannerTitle { color: var(--gg5d-red); }
+#gg5dBanner.collapse #gg5dBannerCard { border-color: var(--gg5d-gold); box-shadow: 0 0 48px rgba(251, 191, 36, 0.45); }
+/* Universe-hop readout. */
+#gg5dHopReadout { color: var(--gg5d-dim); white-space: nowrap; }
+#gg5dHopReadout b { color: var(--gg5d-cyan); }
+#gg5dUniverseBadge.hop { animation: gg5dHopFlash 0.9s ease-out; }
+@keyframes gg5dHopFlash { 0% { text-shadow: 0 0 18px var(--gg5d-cyan); } 100% { text-shadow: none; } }
+/* Combat damage floaters (clipped by #gg5dStage overflow:hidden). */
+#gg5dFloatLayer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 4; }
+.gg5dFloater {
+    position: absolute; transform: translate(-50%, 0); font-weight: 800; font-size: 0.95rem;
+    color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9); white-space: nowrap;
+    animation: gg5dFloatUp 1.1s ease-out forwards;
+}
+.gg5dFloater.dmg { color: #fecaca; }
+.gg5dFloater.crit { color: var(--gg5d-gold); font-size: 1.15rem; }
+.gg5dFloater.heal { color: #86efac; }
+.gg5dFloater.xp { color: #c4b5fd; }
+.gg5dFloater.paradox { color: var(--gg5d-cyan); }
+@keyframes gg5dFloatUp { 0% { opacity: 0; margin-top: 10px; } 15% { opacity: 1; } 100% { opacity: 0; margin-top: -46px; } }
+/* Class / race select buttons (builds on .gg5dChoices; race row is optional future markup). */
+#gg5dClassPick button[aria-pressed="true"], #gg5dRacePick button[aria-pressed="true"] { outline: 2px solid var(--gg5d-cyan); background: rgba(20, 40, 80, 0.95); }
+#gg5dClassPick button:focus-visible, #gg5dRacePick button:focus-visible,
+#gg5dUniversePick button:focus-visible, #gg5dGoBtn:focus-visible, #gg5dTouch button:focus-visible { outline: 3px solid var(--gg5d-gold); outline-offset: 2px; }
+#gg5dRacePick { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 12px 0; }
+#gg5dRacePick button {
+    min-width: 150px; padding: 12px 14px; cursor: pointer; border-radius: 10px;
+    background: rgba(30, 20, 60, 0.9); color: #fff; border: 1px solid var(--gg5d-purple);
+    font-family: Outfit, sans-serif; font-size: 0.88rem; line-height: 1.4;
+}
+#gg5dRacePick button small { display: block; color: var(--gg5d-dim); font-size: 0.75rem; margin-top: 4px; }
+/* Responsive + touch-friendly (narrow-iframe safe: wrap, never truncate). */
+#gg5dTouch button { min-height: 48px; }
+@media (max-width: 520px) {
+    #gg5dWrap { padding: 8px; }
+    #gg5dHud { font-size: 0.8rem; gap: 6px 10px; }
+    #gg5dHud .bar { width: 110px; height: 14px; }
+    #gg5dMenu { padding: 16px 12px; }
+    #gg5dMenu h1 { font-size: 1.25rem; }
+    .gg5dChoices button, #gg5dRacePick button { flex: 1 1 140px; min-width: 140px; min-height: 48px; }
+    #gg5dGoBtn { width: 100%; padding: 14px 12px; }
+    .gg5dFloater { font-size: 0.85rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #gg5dUniverseBadge.hop, .gg5dFloater { animation: none; }
+}

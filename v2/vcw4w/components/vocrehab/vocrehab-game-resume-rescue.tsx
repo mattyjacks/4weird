@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { makeSeed } from "@/lib/vocrehab-seed";
 import { vocrehabSelectResume, type VocrehabResumePoolLine } from "@/lib/vocrehab-seed-pools3";
+import { templateString, useVocrehabTemplateState } from "./use-vocrehab-template-state";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
 import type { VocrehabGameEvent, VocrehabGameEventKind } from "@/lib/vocrehab-games";
 
@@ -19,7 +20,10 @@ export interface VocrehabResumeRescueProps {
   onEvent?: (event: VocrehabGameEvent) => void;
   onDone?: (summary: Record<string, unknown>) => void;
   vocrehabSeed?: string;
+  vocrehabTemplateState?: Record<string, unknown>;
 }
+
+type VocrehabResumeRunProps = VocrehabGameRunProps & { vocrehabTemplateState?: Record<string, unknown> };
 
 type VocrehabResumePhase = "intro" | "practice" | "countdown" | "run" | "results";
 type VocrehabResumeIssue = "typo" | "vague-verb" | "missing-number" | "clean";
@@ -91,6 +95,25 @@ function vocrehabResumeBuildLines(pool: readonly VocrehabResumePoolLine[]): Vocr
   });
 }
 
+function vocrehabTemplateLines(state?: Record<string, unknown>): VocrehabResumePoolLine[] | null {
+  if (!Array.isArray(state?.lines)) return null;
+  return state.lines.slice(0, 12).map((raw, index) => {
+    if (!raw || typeof raw !== "object") return null;
+    const row = raw as Record<string, unknown>;
+    const text = templateString(row.text, 500);
+    const fix = templateString(row.fix, 500);
+    const errorHint = templateString(row.errorHint, 300) ?? "Review this resume line and choose a stronger version.";
+    if (!text || !fix) return null;
+    return {
+      id: templateString(row.id, 80) ?? `provider-line-${index + 1}`,
+      text,
+      fix,
+      errorHint,
+      strengthNote: templateString(row.strengthNote, 240) ?? "You practiced making this resume line clearer.",
+    };
+  }).filter((line): line is VocrehabResumePoolLine => line !== null);
+}
+
 function vocrehabIssueLabel(issue: VocrehabResumeIssue): string {
   const found = VOCREHAB_SPOT_OPTIONS.find((o) => o.id === issue);
   return found ? found.label : issue;
@@ -115,12 +138,12 @@ function vocrehabRunSummaryText(spot: number, rewrite: number, total: number): s
 // into VocrehabGameFrame unchanged once the game id is registered.
 // Identity reset is owned by the parent via React `key` (fresh mount = fresh
 // state), so this view holds no reset effect.
-function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey }: VocrehabGameRunProps) {
+function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey, vocrehabTemplateState }: VocrehabResumeRunProps) {
   // Seeded lines, resolved once per run key.
   const vocrehabSelected = useMemo(() => {
     const seed = vocrehabSeed ?? makeSeed();
-    return { seed, lines: vocrehabResumeBuildLines(vocrehabSelectResume(seed).lines) };
-  }, [vocrehabSeed, vocrehabRunKey]);
+    return { seed, lines: vocrehabResumeBuildLines(vocrehabTemplateLines(vocrehabTemplateState) ?? vocrehabSelectResume(seed).lines) };
+  }, [vocrehabSeed, vocrehabRunKey, vocrehabTemplateState]);
   const vocrehabLines = vocrehabSelected.lines;
   const [vocrehabIndex, setVocrehabIndex] = useState(0);
   const [vocrehabStep, setVocrehabStep] = useState<VocrehabResumeStep>("spot");
@@ -326,11 +349,13 @@ function VocrehabResumeRescueRun({ vocrehabEmit, vocrehabFinish, vocrehabSeed, v
   );
 }
 
-export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed }: VocrehabResumeRescueProps) {
+export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed, vocrehabTemplateState }: VocrehabResumeRescueProps) {
+  const template = useVocrehabTemplateState("resume-rescue", vocrehabTemplateState);
   const [vocrehabPhase, setVocrehabPhase] = useState<VocrehabResumePhase>("intro");
   const [vocrehabCountdown, setVocrehabCountdown] = useState(3);
   const [vocrehabRunKey, setVocrehabRunKey] = useState(0);
   const [vocrehabSummary, setVocrehabSummary] = useState("");
+  const [vocrehabSaveState, setVocrehabSaveState] = useState<"idle" | "saving" | "saved" | "guest" | "error">("idle");
   const [vocrehabAnnounce, setVocrehabAnnounce] = useState("Resume Rescue. Introduction.");
   const [vocrehabPracticeStep, setVocrehabPracticeStep] = useState<VocrehabResumeStep>("spot");
   const [vocrehabPracticePicked, setVocrehabPracticePicked] = useState<number | string | null>(null);
@@ -339,12 +364,14 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
   // resolved seed so both agree on the same line set.
   const vocrehabSelected = useMemo(() => {
     const seed = vocrehabSeed ?? makeSeed();
-    return { seed, lineCount: vocrehabSelectResume(seed).lines.length };
-  }, [vocrehabSeed, vocrehabRunKey]);
+    const lines = vocrehabTemplateLines(template.state) ?? vocrehabSelectResume(seed).lines;
+    return { seed, lineCount: lines.length };
+  }, [vocrehabSeed, vocrehabRunKey, template.state]);
   const vocrehabLineCount = vocrehabSelected.lineCount;
 
   const eventsRef = useRef<VocrehabGameEvent[]>([]);
   const startRef = useRef(0);
+  const summaryRef = useRef<Record<string, unknown>>({});
 
   const vocrehabNow = useCallback(() => {
     if (!startRef.current) return 0;
@@ -368,7 +395,9 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
         typeof summary?.["rewriteCorrect"] === "number" ? (summary["rewriteCorrect"] as number) : 0;
       const total = typeof summary?.["total"] === "number" ? (summary["total"] as number) : vocrehabLineCount;
       const text = vocrehabRunSummaryText(spot, rewrite, total);
+      summaryRef.current = { ...summary, seed: vocrehabSelected.seed, spotCorrect: spot, rewriteCorrect: rewrite, total };
       setVocrehabSummary(text);
+      setVocrehabSaveState("idle");
       setVocrehabPhase("results");
       setVocrehabAnnounce("Resume Rescue finished. Results are shown below.");
       onDone?.({ ...summary, seed: vocrehabSelected.seed });
@@ -376,12 +405,13 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
     [onDone, vocrehabLineCount, vocrehabSelected],
   );
 
-  const vocrehabRunProps: VocrehabGameRunProps = {
+  const vocrehabRunProps: VocrehabResumeRunProps = {
     vocrehabEmit,
     vocrehabFinish,
     vocrehabSeed: vocrehabSelected.seed,
     vocrehabExtraTimeSec: 0,
     vocrehabRunKey,
+    vocrehabTemplateState: template.state,
   };
 
   // Countdown ticker: plain numerals, no animation (safe for reduced motion).
@@ -425,8 +455,23 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
     eventsRef.current = [];
     setVocrehabRunKey((k) => k + 1);
     setVocrehabSummary("");
+    setVocrehabSaveState("idle");
     setVocrehabPhase("intro");
     setVocrehabAnnounce("Resume Rescue. Ready for another try.");
+  }, []);
+
+  const vocrehabSaveRun = useCallback(async () => {
+    setVocrehabSaveState("saving");
+    try {
+      const res = await fetch("/api/vocrehab/games", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ game_id: "resume-rescue", events: eventsRef.current.slice(0, 200), summary: summaryRef.current }),
+      });
+      setVocrehabSaveState(res.status === 401 ? "guest" : res.ok ? "saved" : "error");
+    } catch {
+      setVocrehabSaveState("error");
+    }
   }, []);
 
   const vocrehabPracticeSpot = (choice: VocrehabResumeIssue) => {
@@ -455,17 +500,21 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
             There is no timer and no fail state; retry always counts the same.
           </p>
           <div className="flex flex-wrap gap-2">
+            {template.loading ? <p role="status">Loading your resume practice…</p> : null}
+            {template.error ? <p role="status">The assigned resume scenario could not be loaded. The standard lines are available.</p> : null}
             <button
               type="button"
+              disabled={template.loading}
               onClick={vocrehabStartPractice}
-              className="rounded border px-4 py-2 font-medium"
+              className="rounded border px-4 py-2 font-medium disabled:opacity-50"
             >
               Try practice (no timer)
             </button>
             <button
               type="button"
+              disabled={template.loading || vocrehabLineCount === 0}
               onClick={vocrehabStartRun}
-              className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground"
+              className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-50"
             >
               Start
             </button>
@@ -543,6 +592,7 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
           vocrehabFinish={vocrehabRunProps.vocrehabFinish}
           vocrehabExtraTimeSec={vocrehabRunProps.vocrehabExtraTimeSec}
           vocrehabRunKey={vocrehabRunProps.vocrehabRunKey}
+          vocrehabTemplateState={vocrehabRunProps.vocrehabTemplateState}
         />
       )}
 
@@ -550,6 +600,9 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
         <div className="space-y-3 rounded-lg border p-5">
           <h2 className="text-xl font-semibold">✓ What happened</h2>
           <p>{vocrehabSummary}</p>
+          {vocrehabSaveState === "saved" && <p role="status" className="text-sm">✓ Saved to your profile.</p>}
+          {vocrehabSaveState === "guest" && <p role="status" className="text-sm">Sign in to save runs to your profile.</p>}
+          {vocrehabSaveState === "error" && <p role="status" className="text-sm">Could not save this run right now. Your result is still shown here.</p>}
           <div className="text-sm">
             <p className="font-medium">What to try next</p>
             <p className="text-muted-foreground">
@@ -558,6 +611,9 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={vocrehabSaveRun} disabled={vocrehabSaveState === "saving" || vocrehabSaveState === "saved"} className="rounded border px-4 py-2 font-medium disabled:opacity-50">
+              {vocrehabSaveState === "saving" ? "Saving…" : "Save this run"}
+            </button>
             <button
               type="button"
               onClick={vocrehabRetry}

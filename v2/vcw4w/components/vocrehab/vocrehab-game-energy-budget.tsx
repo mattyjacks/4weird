@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { makeSeed } from "@/lib/vocrehab-seed";
 import { vocrehabSelectEnergy } from "@/lib/vocrehab-seed-pools3";
 import { vocrehabEmit as vocrehabPostInterop } from "@/lib/vocrehab-interop";
@@ -55,7 +55,8 @@ function vocrehabReadRuns(): number {
   }
 }
 
-export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?: string } = {}) {
+// Saved template schema: { weekBudget?, dayPace?, palette?: [{id,label,cost,hint,kind}], placed?: { "Mon-Morning": "item-id" } }.
+export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?: string; vocrehabTemplateState?: Record<string, unknown>; vocrehabSavedStateId?: string; vocrehabKidId?: string } = {}) {
   // Seeded weekly menu: every seed replays the same fair 6-item set.
   const vocrehabPool = useMemo(() => {
     const seed = vocrehabProps.vocrehabSeed ?? makeSeed();
@@ -72,17 +73,61 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
     };
   }, [vocrehabProps.vocrehabSeed]);
   const vocrehabSeed = vocrehabPool.seed;
-  const vocrehabPalette: readonly VocrehabPaletteBlock[] = vocrehabPool.palette;
+  const [vocrehabTemplateState, setVocrehabTemplateState] = useState<Record<string, unknown> | undefined>(vocrehabProps.vocrehabTemplateState);
+  const vocrehabTemplate = vocrehabTemplateState ?? {};
+  const vocrehabTemplatePalette = Array.isArray(vocrehabTemplate.palette) && vocrehabTemplate.palette.length >= 1 && vocrehabTemplate.palette.length <= 12
+    ? vocrehabTemplate.palette.flatMap((item, index): VocrehabPaletteBlock[] => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+        const raw = item as Record<string, unknown>;
+        if (typeof raw.id !== "string" || !/^[a-zA-Z0-9_-]{1,40}$/.test(raw.id) || typeof raw.label !== "string" ||
+          typeof raw.cost !== "number" || !Number.isFinite(raw.cost) || raw.cost < 0 || raw.cost > 10) return [];
+        return [{ id: raw.id, label: raw.label.slice(0, 80), cost: raw.cost, hint: typeof raw.hint === "string" ? raw.hint.slice(0, 160) : "", kind: typeof raw.kind === "string" ? raw.kind.slice(0, 30) : `custom-${index}` }];
+      })
+    : [];
+  const vocrehabPalette: readonly VocrehabPaletteBlock[] = Array.isArray(vocrehabTemplate.palette) && vocrehabTemplatePalette.length === vocrehabTemplate.palette.length ? vocrehabTemplatePalette : vocrehabPool.palette;
+  const vocrehabWeekBudget = typeof vocrehabTemplate.weekBudget === "number" && Number.isFinite(vocrehabTemplate.weekBudget) ? Math.max(1, Math.min(40, Math.round(vocrehabTemplate.weekBudget))) : VOCREHAB_WEEK_BUDGET;
+  const vocrehabDayPace = typeof vocrehabTemplate.dayPace === "number" && Number.isFinite(vocrehabTemplate.dayPace) ? Math.max(1, Math.min(12, Math.round(vocrehabTemplate.dayPace))) : VOCREHAB_DAY_PACE;
+  const vocrehabInitialPlaced = useMemo(() => {
+    const raw = vocrehabTemplate.placed;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+    const allowedCells = new Set(VOCREHAB_DAYS.flatMap((day) => VOCREHAB_SLOTS.map((slot) => vocrehabCellKey(day, slot))));
+    return Object.fromEntries(Object.entries(raw as Record<string, unknown>).filter(([cell, id]) => allowedCells.has(cell) && typeof id === "string" && vocrehabPalette.some((block) => block.id === id)) as [string, string][]);
+  }, [vocrehabTemplate.placed, vocrehabPalette]);
   const vocrehabWorkLabel = vocrehabPalette.find((b) => b.kind === "work")?.label ?? "Work shift";
   const vocrehabRestLabel = vocrehabPalette.find((b) => b.kind === "rest")?.label ?? "Rest";
   const [vocrehabPhase, setVocrehabPhase] = useState<VocrehabPhase>("intro");
   const [vocrehabPaused, setVocrehabPaused] = useState(false);
   const [vocrehabSelected, setVocrehabSelected] = useState<string | null>(null);
-  const [vocrehabPlaced, setVocrehabPlaced] = useState<Record<string, string>>({});
+  const [vocrehabPlaced, setVocrehabPlaced] = useState<Record<string, string>>(() => vocrehabInitialPlaced);
+  useEffect(() => {
+    const id = vocrehabProps.vocrehabSavedStateId;
+    if (!id) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({ id });
+    if (vocrehabProps.vocrehabKidId) params.set("kid_id", vocrehabProps.vocrehabKidId);
+    void fetch(`/api/vocrehab/saved-states?${params}`, { credentials: "same-origin", signal: controller.signal })
+      .then((response) => response.ok ? response.json() : null)
+      .then((body) => {
+        const saved = body?.saved_state;
+        if (saved?.game_id === "energy-budget" && saved.state && typeof saved.state === "object" && !Array.isArray(saved.state)) {
+          const state = saved.state as Record<string, unknown>;
+          setVocrehabTemplateState(state);
+          const rawPlaced = state.placed;
+          if (rawPlaced && typeof rawPlaced === "object" && !Array.isArray(rawPlaced)) {
+            const palette = Array.isArray(state.palette) ? state.palette : vocrehabPool.palette;
+            const ids = new Set(palette.flatMap((item) => item && typeof item === "object" && typeof (item as Record<string, unknown>).id === "string" ? [(item as Record<string, unknown>).id as string] : []));
+            const cells = new Set(VOCREHAB_DAYS.flatMap((day) => VOCREHAB_SLOTS.map((slot) => vocrehabCellKey(day, slot))));
+            setVocrehabPlaced(Object.fromEntries(Object.entries(rawPlaced as Record<string, unknown>).filter(([cell, itemId]) => cells.has(cell) && typeof itemId === "string" && ids.has(itemId)) as [string, string][]));
+          }
+        }
+      }).catch(() => undefined);
+    return () => controller.abort();
+  }, [vocrehabProps.vocrehabSavedStateId, vocrehabProps.vocrehabKidId, vocrehabPool.palette]);
   const [vocrehabNote, setVocrehabNote] = useState<string | null>(null);
   const [vocrehabHint, setVocrehabHint] = useState<string | null>(null);
   const [vocrehabAnnounce, setVocrehabAnnounce] = useState("Energy Budget. Introduction.");
   const [vocrehabSummary, setVocrehabSummary] = useState("");
+  const [vocrehabSaveState, setVocrehabSaveState] = useState<"idle" | "saving" | "saved" | "guest" | "error">("idle");
   const [vocrehabRuns, setVocrehabRuns] = useState<number>(() => vocrehabReadRuns());
   const [vocrehabPracticeRemoved, setVocrehabPracticeRemoved] = useState(false);
 
@@ -183,7 +228,7 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
     const next = { ...vocrehabPlaced, [cell]: block.id };
     setVocrehabPlaced(next);
     const total = vocrehabDayTotal(day, next);
-    if (total > VOCREHAB_DAY_PACE) {
+    if (total > vocrehabDayPace) {
       setVocrehabNote(
         `Heads up: ${day} now uses ${total} tokens, which is a big day. That is fine to try — you could move something to a lighter day, or keep it and spend less elsewhere.`,
       );
@@ -216,8 +261,8 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
     const week = vocrehabWeekTotal(vocrehabPlaced);
     const free = vocrehabFreeEvenings(vocrehabPlaced);
     setVocrehabHint(
-      week > VOCREHAB_WEEK_BUDGET
-        ? `Gentle idea: the week uses ${week} of ${VOCREHAB_WEEK_BUDGET} tokens. Try swapping a higher-cost block for ${vocrehabRestLabel}, or moving something to a lighter day.`
+      week > vocrehabWeekBudget
+        ? `Gentle idea: the week uses ${week} of ${vocrehabWeekBudget} tokens. Try swapping a higher-cost block for ${vocrehabRestLabel}, or moving something to a lighter day.`
         : free.length === 0
           ? `Gentle idea: every evening is busy. Leaving one evening with only ${vocrehabRestLabel} protects recovery time.`
           : `Gentle idea: ${vocrehabRestLabel} is the lightest way to hold a slot. An evening with only ${vocrehabRestLabel} keeps that evening protected.`,
@@ -245,9 +290,10 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
     setVocrehabHint(null);
     setVocrehabPaused(false);
     setVocrehabPhase("run");
+    setVocrehabSaveState("idle");
     setVocrehabAnnounce("Energy Budget scored run started. Place blocks for Monday to Friday.");
     try {
-      eventsRef.current.push({ t_ms: 0, kind: "start", detail: { budget: VOCREHAB_WEEK_BUDGET } });
+      eventsRef.current.push({ t_ms: 0, kind: "start", detail: { budget: vocrehabWeekBudget } });
     } catch {
       // Fail-open.
     }
@@ -279,10 +325,10 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
       VOCREHAB_SLOTS.some((slot) => vocrehabPlaced[vocrehabCellKey(day, slot)]),
     );
     const free = vocrehabFreeEvenings(vocrehabPlaced);
-    if (week > VOCREHAB_WEEK_BUDGET) {
-      vocrehabRecord("error", { reason: "over-budget", weekTotal: week, budget: VOCREHAB_WEEK_BUDGET });
+    if (week > vocrehabWeekBudget) {
+      vocrehabRecord("error", { reason: "over-budget", weekTotal: week, budget: vocrehabWeekBudget });
       setVocrehabNote(
-        `The week uses ${week} of ${VOCREHAB_WEEK_BUDGET} tokens — a little over. That is okay, it just needs trimming before finishing. Try swapping a block for Rest or moving something to a lighter day.`,
+        `The week uses ${week} of ${vocrehabWeekBudget} tokens — a little over. That is okay, it just needs trimming before finishing. Try swapping a block for Rest or moving something to a lighter day.`,
       );
       setVocrehabAnnounce("Week is over budget. Adjust the plan and try finishing again.");
       return;
@@ -299,7 +345,7 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
       return;
     }
     finishedRef.current = true;
-    const detail = { weekTotal: week, freeEvenings: free.length, budget: VOCREHAB_WEEK_BUDGET, seed: vocrehabSeed };
+    const detail = { weekTotal: week, freeEvenings: free.length, budget: vocrehabWeekBudget, seed: vocrehabSeed };
     try {
       if (eventsRef.current.length < VOCREHAB_MAX_EVENTS) {
         eventsRef.current.push({ t_ms: vocrehabNow(), kind: "complete", detail });
@@ -310,7 +356,7 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
 
     // Strengths-first summary — observations and supports, never grades or percentiles.
     const strengths: string[] = [
-      `You planned the whole week inside ${VOCREHAB_WEEK_BUDGET} energy tokens, using ${week}.`,
+      `You planned the whole week inside ${vocrehabWeekBudget} energy tokens, using ${week}.`,
     ];
     if (free.length >= 2) {
       strengths.push(`You protected ${free.length} evenings for rest (${free.join(", ")}), which guards recovery time.`);
@@ -339,27 +385,23 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
       `${strengths.join(" ")} Balanced weeks finished so far: ${next}. This is one short activity, not a verdict about you — a counselor can help decide what it means.`,
     );
     setVocrehabPhase("results");
+    if (eventsRef.current.length < VOCREHAB_MAX_EVENTS) eventsRef.current.push({ t_ms: vocrehabNow(), kind: "complete", detail });
     setVocrehabAnnounce("Energy Budget finished. Results are shown below.");
 
-    // Best-effort save (games2 precedent): fail-open and silent.
-    try {
-      void fetch("/api/vocrehab/assessments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          game: "energy-budget",
-          events: eventsRef.current.slice(0, VOCREHAB_MAX_EVENTS),
-          summary: detail,
-        }),
-      }).catch(() => undefined);
-    } catch {
-      // Fail-open: never surface save problems in the game.
-    }
+    setVocrehabSaveState("idle");
     try {
       vocrehabPostInterop("vocrehab:game:completed", { game: "energy-budget", ...detail });
     } catch {
       // Fail-open: interop never breaks results.
     }
+  };
+
+  const vocrehabSaveRun = async () => {
+    setVocrehabSaveState("saving");
+    try {
+      const res = await fetch("/api/vocrehab/games", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game_id: "energy-budget", events: eventsRef.current.slice(0, VOCREHAB_MAX_EVENTS), summary: { seed: vocrehabSeed, summary: vocrehabSummary } }) });
+      setVocrehabSaveState(res.status === 401 ? "guest" : res.ok ? "saved" : "error");
+    } catch { setVocrehabSaveState("error"); }
   };
 
   const vocrehabRetry = () => {
@@ -390,7 +432,7 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
         <div className="vocrehab-energy-intro space-y-3 rounded-lg border p-5">
           <h2 className="vocrehab-energy-title text-xl font-semibold">Energy Budget</h2>
           <p className="vocrehab-energy-instructions">
-            You have {VOCREHAB_WEEK_BUDGET} energy tokens for the Monday to Friday week. Plan Morning,
+            You have {vocrehabWeekBudget} energy tokens for the Monday to Friday week. Plan Morning,
             Afternoon, and Evening blocks from this week&apos;s menu:{" "}
             {vocrehabPalette.map((b) => `${b.label} (${b.cost})`).join(", ")}. Blocks costing 3 or more
             are limited to one per day. Keep the week within budget and leave one evening with only rest.
@@ -443,7 +485,7 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
             </Link>
           </div>
           <div className="vocrehab-energy-board-wrap">
-            <VocrehabEnergyBoard
+      <VocrehabEnergyBoard
               placed={vocrehabPlaced}
               palette={vocrehabPalette}
               selected={vocrehabSelected}
@@ -452,7 +494,8 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
               onRemove={vocrehabRemove}
               paused={false}
               dayTotal={(day) => vocrehabDayTotal(day, vocrehabPlaced)}
-              weekTotal={weekTotal}
+        weekTotal={weekTotal}
+        weekBudget={vocrehabWeekBudget}
             />
           </div>
           {vocrehabNote && (
@@ -467,8 +510,8 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
         <div className="vocrehab-energy-run space-y-3">
           <div className="vocrehab-energy-toolbar flex flex-wrap items-center gap-2 rounded-lg border p-3">
             <p className="vocrehab-energy-week text-sm font-medium" role="status">
-              Week: {weekTotal} of {VOCREHAB_WEEK_BUDGET} tokens
-              {weekTotal > VOCREHAB_WEEK_BUDGET ? " — a little over, easy to trim" : ""}
+              Week: {weekTotal} of {vocrehabWeekBudget} tokens
+              {weekTotal > vocrehabWeekBudget ? " — a little over, easy to trim" : ""}
             </p>
             <div className="vocrehab-energy-toolbar-actions ml-auto flex flex-wrap gap-2">
               <button
@@ -517,6 +560,7 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
                 paused={vocrehabPaused}
                 dayTotal={(day) => vocrehabDayTotal(day, vocrehabPlaced)}
                 weekTotal={weekTotal}
+                weekBudget={vocrehabWeekBudget}
               />
               {vocrehabNote && (
                 <p className="vocrehab-energy-note rounded-lg border p-3 text-sm" role="status">
@@ -544,6 +588,9 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
         <div className="vocrehab-energy-results space-y-3 rounded-lg border p-5">
           <h2 className="vocrehab-energy-title text-xl font-semibold">✓ What happened</h2>
           <p className="vocrehab-energy-summary">{vocrehabSummary}</p>
+          {vocrehabSaveState === "saved" && <p role="status">Saved to your profile.</p>}
+          {vocrehabSaveState === "guest" && <p role="status">Sign in to save this run. Your result is still here.</p>}
+          {vocrehabSaveState === "error" && <p role="status">Could not save right now. Your result is safe; try again.</p>}
           <div className="vocrehab-energy-next text-sm">
             <p className="vocrehab-energy-next-title font-medium">What this suggests</p>
             <p className="vocrehab-energy-next-body text-muted-foreground">
@@ -565,6 +612,9 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
             >
               Retry
             </button>
+            <button type="button" onClick={vocrehabSaveRun} disabled={vocrehabSaveState === "saving" || vocrehabSaveState === "saved"} className="vocrehab-energy-btn rounded border px-4 py-2 font-medium">
+              {vocrehabSaveState === "saving" ? "Saving…" : "Save this run"}
+            </button>
             <Link href="/vocrehab/play" className="vocrehab-energy-btn rounded border px-4 py-2 font-medium">
               Back to arcade
             </Link>
@@ -585,14 +635,15 @@ interface VocrehabEnergyBoardProps {
   paused: boolean;
   dayTotal: (day: VocrehabDay) => number;
   weekTotal: number;
+  weekBudget: number;
 }
 
 function VocrehabEnergyBoard(props: VocrehabEnergyBoardProps) {
-  const { palette, placed, selected, onSelect, onPlace, onRemove, paused, dayTotal, weekTotal } = props;
+  const { palette, placed, selected, onSelect, onPlace, onRemove, paused, dayTotal, weekTotal, weekBudget } = props;
   return (
     <div className="vocrehab-energy-board space-y-3">
       <p className="vocrehab-energy-week text-sm text-muted-foreground" role="status">
-        Week total: {weekTotal} of {VOCREHAB_WEEK_BUDGET} tokens
+        Week total: {weekTotal} of {weekBudget} tokens
       </p>
       <div className="vocrehab-energy-palette flex flex-wrap gap-1.5" role="group" aria-label="Energy blocks">
         {palette.map((b) => (

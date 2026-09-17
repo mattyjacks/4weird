@@ -1,0 +1,24 @@
+{
+  "id": "DS-BLDFIX-01",
+  "title": "Build finalizing + cache-headers",
+  "goal": "npm run build (v2/vcw4w) is green: Build finalizing + cache-headers. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/next.config.ts",
+    "v2/vcw4w/vercel.json"
+  ],
+  "gates": [
+    "npm run build"
+  ],
+  "status": "done",
+  "owner": "bldfix-01",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T06:20:00.000Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T06:00:00.000Z bldfix-01: claimed (status=in_progress owner=bldfix-01).",
+    "2026-09-17T06:05:00.000Z bldfix-01: fix next.config.ts removed custom /_next/static/:path* Cache-Control (Next sets immutable natively; docs headers.md Cache-Control + cdn-caching.md Static assets). vercel.json needs no change (crons only, no headers key). Running gate npm run build.",
+    "2026-09-17T06:10:00.000Z bldfix-01: gate attempt 1 blocked-extrinsic: concurrent lane build held the build lock (PID 15608 next build + PID 31620 npm run build); stood off, no kill.",
+    "2026-09-17T06:20:00.000Z bldfix-01: GATE GREEN npm run build EXIT:0 — Compiled 12.4s, TypeScript 4.9s, 601/601 static pages 12.5s, Finalizing page optimization completed + route table printed. No Custom Cache-Control warning in 58KB build log (verified HAS-WARNING:False). Baseline stall was extrinsic (120s timeout + contended lock), not scope config. Status=done."
+  ]
+}

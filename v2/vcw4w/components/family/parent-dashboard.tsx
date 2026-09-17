@@ -12,6 +12,7 @@ type Kid = {
   created_at: string;
   last_login_at: string | null;
   balance: number;
+  spent_month?: number;
   seconds_today: number;
   controls: {
     daily_minutes: number | null;
@@ -19,7 +20,10 @@ type Kid = {
     allowed_end: string;
     timezone: string;
     monthly_cap_coins: number;
+    hourly_cap_coins?: number;
     hard_stop: boolean;
+    allowed_games?: string[];
+    allowed_features?: string[];
   } | null;
 };
 
@@ -39,8 +43,8 @@ function fmtTime(totalSeconds: number): string {
 /**
  * ParentDashboard - Parent accounts manage Child sub-accounts here: create
  * `username#1234` logins, set budgets / daily minutes / allowed hours,
- * fund wallets from the parent's own coins, reset passwords, suspend, and
- * close (refunds the wallet). Children never touch checkout or Supabase auth.
+ * authorize child play against the parent's own balance, reset passwords,
+ * suspend, and close accounts. Children never own coins or touch checkout.
  */
 export function ParentDashboard() {
   const [kids, setKids] = useState<Kid[]>([]);
@@ -60,7 +64,10 @@ export function ParentDashboard() {
       setMessage(error instanceof Error ? error.message : "Unable to load child accounts.");
     }
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void load(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -89,8 +96,8 @@ export function ParentDashboard() {
         <h2 className="text-xl font-bold">👨‍👩‍👧 Parent Mode; child accounts</h2>
         <p className="mt-2 text-sm text-slate-300">
           Children log in with a <b>username#1234 + password</b>; no email, no Supabase account. You attest their age
-          band (kid 0-12, teen 13-17, adult 18+); the band gates ratings with zero date-of-birth collection. Wallets
-          hold only coins you grant from your own balance; children can spend them on play, never check out, tip, or
+          band (kid 0-12, teen 13-17, adult 18+); the band gates ratings with zero date-of-birth collection. Play
+          charges your coin balance directly within the limits you set; children never own coins and never check out, tip, or
           subscribe. At most 10 children per parent.
         </p>
         <p role="status" className="mt-2 text-sm text-slate-400">{message}</p>
@@ -135,9 +142,11 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
   const [end, setEnd] = useState((c?.allowed_end ?? "22:00:00").slice(0, 5));
   const [tz, setTz] = useState(c?.timezone ?? "UTC");
   const [cap, setCap] = useState(String(c?.monthly_cap_coins ?? 0));
+  const [hourlyCap, setHourlyCap] = useState(String(c?.hourly_cap_coins ?? 0));
   const [hardStop, setHardStop] = useState(Boolean(c?.hard_stop));
+  const [allowedGames, setAllowedGames] = useState((c?.allowed_games ?? []).join(", "));
+  const [allowedFeatures, setAllowedFeatures] = useState((c?.allowed_features ?? []).join(", "));
   const [band, setBand] = useState(kid.age_band);
-  const [fund, setFund] = useState("");
   const [newPass, setNewPass] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -153,7 +162,10 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
           allowed_end: end,
           timezone: tz || "UTC",
           monthly_cap_coins: Number(cap),
+          hourly_cap_coins: Number(hourlyCap),
           hard_stop: hardStop,
+          allowed_games: allowedGames.split(",").map((slug) => slug.trim()).filter(Boolean),
+          allowed_features: allowedFeatures.split(",").map((feature) => feature.trim()).filter(Boolean),
           age_band: band,
           status: kid.status,
         }),
@@ -183,24 +195,6 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
     }
   }
 
-  async function fundWallet(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      const r = await request<{ balance: number }>("/api/family/fund", {
-        method: "POST",
-        body: JSON.stringify({ kid_id: kid.id, coins: Number(fund) }),
-      });
-      setFund("");
-      setMessage(`Funded. New wallet balance: ${r.balance} coins.`);
-      refresh();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Unable to fund.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function resetPassword(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -217,11 +211,11 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
   }
 
   async function close() {
-    if (!window.confirm(`Close ${kid.handle}? The remaining ${kid.balance} coins refund to you.`)) return;
+    if (!window.confirm(`Close ${kid.handle}? Your coin balance will remain unchanged.`)) return;
     setBusy(true);
     try {
-      const r = await request<{ refunded_coins: number }>(`/api/family/kids/${kid.id}`, { method: "DELETE" });
-      setMessage(`Closed. Refunded ${r.refunded_coins} coins.`);
+      await request(`/api/family/kids/${kid.id}`, { method: "DELETE" });
+      setMessage("Closed. Parent-owned coins remain in your account.");
       refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Unable to close.");
@@ -232,6 +226,10 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
 
   const limit = c?.daily_minutes;
   const remaining = limit === null || limit === undefined ? null : Math.max(0, limit * 60 - kid.seconds_today);
+  const monthlyCap = Number(c?.monthly_cap_coins ?? 0);
+  const monthSpent = Number(kid.spent_month ?? 0);
+  const monthlyRemaining = monthlyCap > 0 ? Math.max(0, monthlyCap - monthSpent) : null;
+  const monthlyUsagePct = monthlyCap > 0 ? Math.min(100, (monthSpent / monthlyCap) * 100) : 0;
 
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[.04] p-6">
@@ -243,10 +241,35 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
           </span>
         </h3>
         <span className="text-sm text-slate-300">
-          💰 {kid.balance} coins · ⏱️ {fmtTime(kid.seconds_today)} today
+          💰 Parent balance {kid.balance} coins · child used {kid.spent_month ?? 0} this month · ⏱️ {fmtTime(kid.seconds_today)} today
           {remaining !== null && <> · {fmtTime(remaining)} left</>}
         </span>
       </div>
+      {monthlyCap > 0 && (
+        <div className="mt-3" aria-label={`Monthly parent coin budget for ${kid.handle}`}>
+          <div className="flex flex-wrap justify-between gap-2 text-sm text-slate-300">
+            <span>Monthly budget: {monthSpent.toFixed(2)} of {monthlyCap.toFixed(2)} parent coins used</span>
+            <span>
+              {monthlyRemaining!.toFixed(2)} remaining
+              {hardStop ? " before the spend limit" : " (monitoring only; spending can continue)"}
+            </span>
+          </div>
+          <div
+            className="mt-1 h-2 overflow-hidden rounded-full bg-white/10"
+            role="progressbar"
+            aria-label="Monthly coin budget used"
+            aria-valuemin={0}
+            aria-valuemax={monthlyCap}
+            aria-valuenow={Math.min(monthSpent, monthlyCap)}
+            aria-valuetext={`${monthSpent.toFixed(2)} of ${monthlyCap.toFixed(2)} parent coins used`}
+          >
+            <div
+              className={`h-full rounded-full ${monthlyUsagePct >= 100 ? "bg-rose-400" : monthlyUsagePct >= 80 ? "bg-amber-300" : "bg-cyan-300"}`}
+              style={{ width: `${monthlyUsagePct}%` }}
+            />
+          </div>
+        </div>
+      )}
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <label className="text-sm" htmlFor={`minutes-${kid.id}`}>
           Time limit per day (minutes, -1 = unlimited)
@@ -265,11 +288,23 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
           <input id={`tz-${kid.id}`} name="timezone" value={tz} maxLength={64} onChange={(e) => setTz(e.target.value)} placeholder="UTC" className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2" />
         </label>
         <label className="text-sm" htmlFor={`cap-${kid.id}`}>
-          Monthly budget (coins, 0 = no cap)
+          Monthly parent coin budget (0 = no cap)
           <input id={`cap-${kid.id}`} name="monthlyCap" type="number" min={0} max={100000000} step="0.01" value={cap} onChange={(e) => setCap(e.target.value)} className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2" />
         </label>
         <label className="flex items-end gap-2 pb-2 text-sm" htmlFor={`hard-${kid.id}`}>
-          <input id={`hard-${kid.id}`} name="hardStop" type="checkbox" checked={hardStop} onChange={(e) => setHardStop(e.target.checked)} /> Stop spend at cap
+          <input id={`hard-${kid.id}`} name="hardStop" type="checkbox" checked={hardStop} onChange={(e) => setHardStop(e.target.checked)} /> Enforce cap; block new spending above budget
+        </label>
+        <label className="text-sm" htmlFor={`hourly-cap-${kid.id}`}>
+          Rolling hourly spend cap (coins, 0 = no cap)
+          <input id={`hourly-cap-${kid.id}`} name="hourlyCap" type="number" min={0} max={100000000} step="0.01" value={hourlyCap} onChange={(e) => setHourlyCap(e.target.value)} className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2" />
+        </label>
+        <label className="text-sm sm:col-span-2" htmlFor={`games-${kid.id}`}>
+          Allowed games (comma-separated slugs; blank allows all)
+          <input id={`games-${kid.id}`} name="allowedGames" value={allowedGames} onChange={(e) => setAllowedGames(e.target.value)} placeholder="game-one, game-two" className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2" />
+        </label>
+        <label className="text-sm sm:col-span-2" htmlFor={`features-${kid.id}`}>
+          App/AI access settings (saved for staged rollout; game access is enforced now)
+          <input id={`features-${kid.id}`} name="allowedFeatures" value={allowedFeatures} onChange={(e) => setAllowedFeatures(e.target.value)} placeholder="app:music, ai:openrouter" className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2" />
         </label>
         <label className="text-sm" htmlFor={`band-${kid.id}`}>
           Age band (you attest this)
@@ -285,16 +320,9 @@ function KidCard({ kid, refresh }: { kid: Kid; refresh: () => void }) {
         <button disabled={busy} onClick={toggleSuspend} className="rounded-lg border border-white/20 px-4 py-2 disabled:opacity-50">
           {kid.status === "active" ? "Suspend" : "Reactivate"}
         </button>
-        <button disabled={busy} onClick={close} className="rounded-lg border border-red-400/40 px-4 py-2 text-red-200 disabled:opacity-50">Close + refund</button>
+        <button disabled={busy} onClick={close} className="rounded-lg border border-red-400/40 px-4 py-2 text-red-200 disabled:opacity-50">Close account</button>
       </div>
       <div className="mt-4 grid gap-3 border-t border-white/10 pt-4 sm:grid-cols-2">
-        <form onSubmit={fundWallet} className="flex items-end gap-2">
-          <label className="text-sm" htmlFor={`fund-${kid.id}`}>
-            Fund from my coins
-            <input id={`fund-${kid.id}`} name="fund" type="number" min={0.01} max={100000} step="0.01" value={fund} required onChange={(e) => setFund(e.target.value)} className="mt-1 w-full rounded-lg border border-white/15 bg-black/30 px-3 py-2" placeholder="25" />
-          </label>
-          <button disabled={busy} className="rounded-lg border border-white/20 px-4 py-2 disabled:opacity-50">Send</button>
-        </form>
         <form onSubmit={resetPassword} className="flex items-end gap-2">
           <label className="text-sm" htmlFor={`pass-${kid.id}`}>
             New password (logs them out everywhere)

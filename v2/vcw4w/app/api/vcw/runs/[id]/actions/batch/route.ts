@@ -4,6 +4,7 @@ import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
 import { cleanBatchSteps, describeFalStep, isRunUuid } from "@/lib/vcw-runs";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 
 /**
@@ -41,6 +42,10 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const cleaned = cleanBatchSteps((body as Record<string, unknown> | null)?.steps);
   if (!cleaned.ok) return fail(cleaned.error, 400);
   const items = cleaned.items;
+  if (items.some((item) => describeFalStep(item.kind, item.text, item.data).detected)) {
+    const ageGate = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "fal");
+    if (!ageGate.allowed) return fail(ageGate.reason, 403);
+  }
 
   const { data: run, error: runError } = await supabase
     .from("vcw_runs")

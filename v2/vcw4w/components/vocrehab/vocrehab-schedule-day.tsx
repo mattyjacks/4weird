@@ -13,8 +13,7 @@
  *     onRemove={(id) => ...}
  *   />
  *
- * Renders 24 hourly rows with two half-hour create targets each
- * (00:00–23:30), placed blocks with button-only Move ±30m / Resize +30m /
+ * Renders 24 hourly rows as direct add targets (00:00–23:00), placed blocks with button-only Move ±5m / Resize ±5m /
  * Remove controls (no drag dependency), hatched locked travel blocks, and a
  * <details> list-select alternative for assistive tech. Strengths-first
  * vocrehab tone throughout; guidance copy never uses error-red styling.
@@ -48,7 +47,7 @@ export type VocrehabScheduleDayProps = {
 
 const VOCREHAB_DAY_MIN = 0;
 const VOCREHAB_DAY_MAX = 24 * 60;
-const VOCREHAB_STEP = 30;
+const VOCREHAB_STEP = 5;
 const VOCREHAB_HOURS = Array.from({ length: 24 }, (_, h) => h);
 
 function vocrehabClampMin(value: number): number {
@@ -81,12 +80,12 @@ export default function VocrehabScheduleDay({
   onRemove,
 }: VocrehabScheduleDayProps) {
   const sorted = [...events].sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
-  const slotOptions = Array.from({ length: 48 }, (_, i) => i * VOCREHAB_STEP);
-  const endOptions = Array.from({ length: 48 }, (_, i) => (i + 1) * VOCREHAB_STEP);
+  const slotOptions = Array.from({ length: 24 * 12 }, (_, i) => i * VOCREHAB_STEP);
+  const endOptions = Array.from({ length: 24 * 12 }, (_, i) => (i + 1) * VOCREHAB_STEP);
 
   const createHint = selectedActivity
-    ? `Adding “${selectedActivity.label}” (${selectedActivity.defaultDurMin} min). Pick any half-hour target below — every small step counts.`
-    : "Pick an activity first, then choose any half-hour target below to build your day one win at a time.";
+    ? `Adding “${selectedActivity.label}” (1 hour). Tap an open hour below — adjust in 5-minute steps.`
+    : "Pick an activity first, then tap an open hour below to add it.";
 
   return (
     <section
@@ -113,26 +112,33 @@ export default function VocrehabScheduleDay({
               {vocrehabFormatMin(hour * 60)}
             </span>
             <div className="grid flex-1 grid-cols-2 gap-1" role="group" aria-label={`${vocrehabFormatMin(hour * 60)} hour targets`}>
-              {[0, VOCREHAB_STEP].map((offset) => {
+              {[0].map((offset) => {
                 const startMin = hour * 60 + offset;
                 const occupant = vocrehabEventAt(sorted, startMin);
+                const overlapping = sorted.filter((event) => event.startMin < startMin + 60 && event.endMin > startMin);
+                const open = overlapping.length === 0;
                 return (
                   <button
                     key={`${dayId}-slot-${startMin}`}
                     type="button"
-                    onClick={() => onCreate(startMin)}
+                    onClick={() => occupant ? onRemove(occupant.id) : (open ? onCreate(startMin) : undefined)}
                     aria-label={
                       occupant
-                        ? `${vocrehabFormatMin(startMin)} — holds ${occupant.title}`
+                        ? `${vocrehabFormatMin(startMin)} — ${occupant.title}; tap to remove`
+                        : !open
+                          ? `${vocrehabFormatMin(startMin)} — part of an existing block`
                         : selectedActivity
                           ? `Add ${selectedActivity.label} at ${vocrehabFormatMin(startMin)}`
                           : `Choose ${vocrehabFormatMin(startMin)}`
                     }
-                    className="rounded-md border border-stone-200 bg-stone-50 px-2 py-1 text-left text-xs text-stone-700 hover:border-amber-300 hover:bg-amber-50 focus-visible:outline-2 focus-visible:outline-amber-500"
+                    disabled={!occupant && !open}
+                    className={`min-h-11 rounded-md border px-2 py-1 text-left text-xs focus-visible:outline-2 focus-visible:outline-amber-500 ${occupant ? "vocrehab-schedule-occupied-slot border-emerald-300 bg-emerald-50 text-emerald-950 hover:bg-amber-50" : open ? "border-stone-200 bg-stone-50 text-stone-700 hover:border-amber-300 hover:bg-amber-50" : "border-stone-200 bg-stone-100 text-stone-500"}`}
                   >
                     <span className="font-semibold tabular-nums">{vocrehabFormatMin(startMin)}</span>
                     {occupant ? (
                       <span className="block truncate text-stone-500">{occupant.title}</span>
+                    ) : !open ? (
+                      <span className="block truncate text-stone-500">Part of scheduled block</span>
                     ) : (
                       <span className="block text-stone-400">
                         {selectedActivity ? `+ ${selectedActivity.label}` : "Open"}
@@ -150,7 +156,7 @@ export default function VocrehabScheduleDay({
         <h3 className="text-sm font-semibold text-stone-900">Placed blocks ({sorted.length})</h3>
         {sorted.length === 0 ? (
           <p className="mt-1 text-sm text-stone-600">
-            Nothing placed yet — that&apos;s a clean slate, not a setback. Tap a half-hour target above to start.
+            Nothing placed yet — tap an open hour above to add your first activity.
           </p>
         ) : (
           <ul className="mt-2 space-y-2">
@@ -162,6 +168,7 @@ export default function VocrehabScheduleDay({
                 Math.min(event.startMin + VOCREHAB_STEP, VOCREHAB_DAY_MAX - duration),
               );
               const longerEnd = vocrehabClampMin(event.endMin + VOCREHAB_STEP);
+              const shorterEnd = vocrehabClampMin(Math.max(event.startMin + 5, event.endMin - VOCREHAB_STEP));
               return (
                 <li
                   key={event.id}
@@ -193,34 +200,35 @@ export default function VocrehabScheduleDay({
                       onClick={() => onMove(event.id, earlierStart)}
                       disabled={locked}
                       aria-disabled={locked}
-                      aria-label={`Move ${event.title} 30 minutes earlier`}
+                      aria-label={`Move ${event.title} 5 minutes earlier`}
                       title={locked ? "Travel time is set and stays put" : `Move to ${vocrehabFormatMin(earlierStart)}`}
                       className="rounded-md border border-stone-300 bg-white px-2 py-1 text-xs text-stone-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      −30m
+                      −5m
                     </button>
                     <button
                       type="button"
                       onClick={() => onMove(event.id, laterStart)}
                       disabled={locked}
                       aria-disabled={locked}
-                      aria-label={`Move ${event.title} 30 minutes later`}
+                      aria-label={`Move ${event.title} 5 minutes later`}
                       title={locked ? "Travel time is set and stays put" : `Move to ${vocrehabFormatMin(laterStart)}`}
                       className="rounded-md border border-stone-300 bg-white px-2 py-1 text-xs text-stone-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      +30m
+                      +5m
                     </button>
                     <button
                       type="button"
                       onClick={() => onResize(event.id, longerEnd)}
                       disabled={locked}
                       aria-disabled={locked}
-                      aria-label={`Extend ${event.title} by 30 minutes`}
+                      aria-label={`Extend ${event.title} by 5 minutes`}
                       title={locked ? "Travel time is set and stays put" : `Extend to ${vocrehabFormatMin(longerEnd)}`}
                       className="rounded-md border border-stone-300 bg-white px-2 py-1 text-xs text-stone-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      +30m longer
+                      +5m longer
                     </button>
+                    <button type="button" onClick={() => onResize(event.id, shorterEnd)} disabled={locked || duration <= 5} aria-label={`Shorten ${event.title} by 5 minutes`} className="rounded-md border border-stone-300 bg-white px-2 py-1 text-xs text-stone-700 hover:bg-amber-50 disabled:opacity-50">−5m shorter</button>
                     <button
                       type="button"
                       onClick={() => onRemove(event.id)}
@@ -248,7 +256,7 @@ export default function VocrehabScheduleDay({
           Same day, calmer controls — choose a start and end for each block. Changes apply right away.
         </p>
         {sorted.length === 0 ? (
-          <p className="mt-2 text-sm text-stone-600">No blocks yet. Add one from the half-hour targets above.</p>
+          <p className="mt-2 text-sm text-stone-600">No blocks yet. Add one from an open hour above.</p>
         ) : (
           <ul className="mt-2 space-y-3">
             {sorted.map((event) => {

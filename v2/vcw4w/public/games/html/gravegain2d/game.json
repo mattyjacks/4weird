@@ -1,0 +1,55 @@
+{
+    "title": "GraveGain2D",
+    "slug": "gravegain2d",
+    "description": "A dark fantasy action RPG featuring emoji-based visuals, 2.5D lighting, procedural dungeons, dialogue system, and a starship management hub.",
+    "genre": "RPG",
+    "tags": ["HTML5", "Action", "RPG", "Rogue-like"],
+    "maker": {
+        "name": "Antigravity Dev",
+        "bio": "Specializing in high-fidelity HTML5 game experiences with immersive systems and rich game-feel.",
+        "url": "https://4weird.com",
+        "urlLabel": "4weird"
+    },
+    "credits": [
+        {
+            "name": "Antigravity",
+            "role": "Lead Architect",
+            "avatar": "🧙",
+            "primary": true,
+            "url": "https://4weird.com",
+            "urlLabel": "4weird"
+        }
+    ],
+    "controls": {
+        "keyboard": {
+            "WASD / Arrow Keys": "Move through the dungeon",
+            "Space": "Dodge roll / wait a turn in Turn-Based mode",
+            "Left-Click": "Melee attack",
+            "Right-Click": "Timed block",
+            "F": "Use your race ability",
+            "Shift": "Sprint while moving; use race ability while standing still",
+            "1 / 2 / 3": "Select Realtime, Chrono-Lock, or Turn-Based play from the game interface",
+            "Escape / P": "Pause Game"
+        },
+        "touch": {
+            "left side": "Movement joystick and facing direction",
+            "right side": "Attack, block, class ability, and turn wait buttons"
+        },
+        "mouse": true
+    },
+    "instructions": "Choose a race, class, and temporal mode: Realtime, Chrono-Lock, or Turn-Based. Play a 10-mission campaign or endless procedural runs, collect Gold, and develop your LuckyStarShip through botany, exchange, repairs, and lore.",
+    "technical": {
+        "canvasSize": {"width": 1000, "height": 600},
+        "targetFPS": 60,
+        "mobileOptimized": true
+    },
+    "assets": {
+        "external": [],
+        "local": ["game.js", "game.css"]
+    },
+    "meta": {
+        "version": "1.2.0",
+        "created": "2026-06-08",
+        "license": "MIT"
+    }
+}

@@ -93,11 +93,15 @@ if (!support.includes("no equity")) fail("support.ts must disclaim investments."
 if (!support.includes("LAUNCH_CATEGORIES")) fail("support.ts must define launch categories.");
 
 // --- API routes -------------------------------------------------------------------
-for (const [name, src] of [["tiers", tiers], ["subscribe", subscribe], ["tip", tip], ["verification", verification], ["fundraisers", fundraisers], ["contribute", contribute], ["close", close]]) {
-  if (!src.includes('force-dynamic')) fail(`${name} route must be force-dynamic.`);
+// cacheComponents (next.config.ts): `export dynamic/revalidate/fetchCache`
+// FAILS THE BUILD ("not compatible with nextConfig.cacheComponents"), and all
+// routes are dynamic by default (Next docs "migrating-to-cache-components":
+// dynamic = force-dynamic "Not needed"). The gate asserts the compatible
+// invariant instead: no static/cached segment config may be pinned here.
+for (const [name, src] of [["tiers", tiers], ["subscribe", subscribe], ["tip", tip], ["verification", verification], ["fundraisers", fundraisers], ["contribute", contribute], ["close", close], ["detail", detail]]) {
+  if (/export\s+const\s+(dynamic|revalidate|fetchCache)\s*=/.test(src)) fail(`${name} route must not pin a static segment config (cacheComponents: dynamic by default; the export breaks the build).`);
   if (!src.includes("rateLimit")) fail(`${name} route must rate-limit.`);
 }
-if (!detail.includes('force-dynamic')) fail("detail route must be force-dynamic.");
 // Public GETs (tier catalog, campaign catalog/detail) stay unauthenticated like
 // the clan economy GET; every mutation above is authenticated + rate-limited.
 if (!tiers.includes("create_support_tier")) fail("Tiers route must create via RPC.");

@@ -101,6 +101,13 @@ const STATS = [
 // so the link is declared object-style and rendered in the legal bar below.
 const DESKTOP_SHORTCUT = { href: "/desktop", label: "Virtual Desktop" };
 
+// Canonical service shortcuts (steward wiring 2026-09-17).
+// verify-runpod-dashboard.mjs requires the literal `href: "/runpods"` and
+// verify-pexels.mjs requires `"/stock"` in this file; both render as
+// legal-bar pills below (data modules stay untouched).
+const RUNPODS_SHORTCUT = { href: "/runpods", label: "My RunPods" };
+const STOCK_SHORTCUT = { href: "/stock", label: "Free Stock Media" };
+
 export function SiteFooter() {
   return (
     <footer id="site-footer" className="relative overflow-hidden border-t border-border bg-background dark:border-white/10 dark:bg-slate-950">
@@ -286,6 +293,8 @@ export function SiteFooter() {
             <Link href="/terms" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Terms</Link>
             <Link href="/privacy" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Privacy</Link>
             <Link href={DESKTOP_SHORTCUT.href} className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">{DESKTOP_SHORTCUT.label}</Link>
+            <Link href={RUNPODS_SHORTCUT.href} className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">{RUNPODS_SHORTCUT.label}</Link>
+            <Link href={STOCK_SHORTCUT.href} className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">{STOCK_SHORTCUT.label}</Link>
             <Link href="/my/rights" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Privacy Rights</Link>
             <Link href="/accessibility" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">Accessibility</Link>
             <Link href="/docs/faq" className="rounded-full border border-border px-3 py-1.5 font-semibold text-muted-foreground transition hover:text-foreground hover:bg-accent">FAQ</Link>

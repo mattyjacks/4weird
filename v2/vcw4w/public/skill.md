@@ -14,6 +14,10 @@ Cookie session (`credentials: "include"`) or bot key (`x-bot-key: bot4weird_...`
 >
 > 🔒 PARITY LOCK: `v2/vcw4w/public/games/html/**` files mirrored from `old-v1/` are byte-parity enforced (`scripts/verify-game-bundles.mjs`); editing them fails `npm test`. Improve games via the v2 layer only (autoplay harness, `lib/`, `content/`).
 
+## Repository collaboration protocol
+
+When a human explicitly requests parallel agents, split work into bounded scopes with disjoint file ownership. Before editing, inspect `git status` and each owned file's current diff; the shared checkout may contain the human's in-progress changes. Preserve those changes, never reset/revert the tree, and coordinate before touching a file owned by another worker. Keep feature-specific extensions in their own module namespace and make shared account/permission primitives the source of truth. Each worker should report files changed, assumptions, checks run, and remaining risks. The integrator resolves cross-scope interfaces and runs the narrow relevant gates. Do not start unrelated queue work as part of a user-scoped task.
+
 ## 0. Add 4weird to your agent in 30 seconds (humans: start here)
 
 You do this once. Your agent does the rest by reading this file itself.
@@ -492,3 +496,9 @@ Supabase changes: add a rerunnable migration (`IF NOT EXISTS / OR REPLACE / DROP
 - Command: `/swarm` (Agent Swarm Chat: hire 1-5 agents as one chatbot; see §6) — repo-write agents coordinate through the public brain (BRAIN/LANES/QUEUE/MEMORY/STATUS/schema/TASKS/_template).
 - Envelope lifecycle: (1) claim an open envelope in `TASKS/` (`status` → claimed/in_progress, `owner` = you); (2) work its `scope` only until its gates pass; (3) set `status` (done/blocked) + append `log` lines + file shared wiring in `QUEUE.md`.
 - Bot entry point: `https://4weird.com/swarm/SwarmStart.md` (repo: `v2/vcw4w/public/swarm/SwarmStart.md`) — self-boot in one file: point any agent here and it picks one open task, claims it, works it, gates it, lands it. Deep protocol lives in `FOR-BOTS.md` (repo: `v2/vcw4w/public/swarm/FOR-BOTS.md`) — inventory, envelope v0, read/write protocols, NEVER rules. `old-v1/` stays read-only; parity-locked game bundles stay untouched.
+
+### In-session collaboration (user-directed work)
+
+When the user explicitly asks for parallel agents, split the requested outcome into bounded workstreams and start independent agents together. Do not start the autonomous open-task pickup loop unless the user separately says yes to that workflow. Keep the user's full objective as the shared context; assign each agent a distinct file or subsystem scope, name the owner and expected evidence, and tell agents not to edit another agent's files. The lead owns integration files and the end-to-end requirements audit.
+
+Before dispatch, inspect the current worktree, `STATUS.json`, `QUEUE.md`, and relevant envelopes for live owners or scope collisions. Resolve these from the checked-out repository root (currently `v2/vcw4w/public/swarm/`); do not assume the files sit beside `AGENTS.md`, and if status counts are stale, inspect the task envelopes and honor their live owners. For an existing claimed envelope, respect the owner; for user-directed work without an envelope, use agent messages as the scope ledger. A single shared filesystem means parallel work is only safe when write sets are disjoint. Agents should report changed paths, checks run, failures, and follow-ups; the lead reviews diffs and reruns appropriate gates before reporting completion. Never give multiple agents the same target file just to get a second opinion: use a read-only reviewer for that scope.

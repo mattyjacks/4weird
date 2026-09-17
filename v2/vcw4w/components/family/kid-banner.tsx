@@ -15,7 +15,8 @@ type KidMe = {
 
 /**
  * KidBanner; shown whenever a child session is live on this device: who is
- * playing, wallet balance, time used/left, and a switch-back (logout) button.
+ * playing, the parent coin balance (spend remains subject to parent caps), time used/left,
+ * and a switch-back (logout) button.
  * Mount it on play + catalog surfaces; it renders nothing otherwise.
  */
 export function KidBanner() {
@@ -51,7 +52,7 @@ export function KidBanner() {
       <span>
         🎮 Playing as <b className="text-white">{kid.handle}</b> ({kid.age_band})
       </span>
-      <span>💰 {kid.balance} coins</span>
+      <span>💰 Parent balance: {kid.balance} coins · parent spending limits apply</span>
       <span>
         ⏱️ {usedMin} min today
         {left !== null && <> · {Math.floor(left / 60)} min left</>}

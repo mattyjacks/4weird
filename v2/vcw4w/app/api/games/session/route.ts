@@ -15,6 +15,7 @@ import {
   parseContentMode,
 } from "@/lib/content-modes";
 import { getKidSession, hashKidToken } from "@/lib/kid-session";
+import { canKidUseFeature } from "@/lib/family";
 import {
   GAME_HEARTBEAT_MAX_SECONDS,
   GAME_HEARTBEAT_SECONDS,
@@ -37,6 +38,9 @@ function playRpcStatus(message: string): number {
     m.includes("daily time") ||
     m.includes("allowed play hours") ||
     m.includes("monthly budget") ||
+    m.includes("hourly spend cap") ||
+    m.includes("not allowed by parent") ||
+    m.includes("feature not allowed") ||
     m.includes("suspended") ||
     m.includes("session expired") ||
     m.includes("age band") ||
@@ -76,6 +80,12 @@ export async function POST(req: NextRequest) {
   // (cheat_mode save invariant, server rate limits, leaderboard aggregates).
   // Anonymous free-play abuse is still gated at /api/games/guest-pass.
   const supabase = await createClient();
+  // A child login may coexist with the parent's Supabase cookie on a shared
+  // device. The child overlay is authoritative for play: never let a retained
+  // adult session select the parent metering path or bypass child limits.
+  // kidSessionPlay validates the cookie and fails closed when it is malformed
+  // or expired.
+  if (req.cookies.has("kid_session")) return kidSessionPlay(req, supabase);
   const { data } = await supabase.auth.getUser();
   if (!data.user) {
     // Child session branch: no Supabase user, but a live `kid_session`
@@ -300,6 +310,13 @@ async function kidSessionPlay(req: NextRequest, supabase: Awaited<ReturnType<typ
     // source of truth (same closed catalog the [slug] page enforces via
     // generateStaticParams/notFound).
     if (!getGame(game)) return fail("Unknown game.", 404);
+    const allowedKidGames = Array.isArray(session.controls?.allowed_games) ? session.controls.allowed_games : [];
+    if (allowedKidGames.length > 0 && !allowedKidGames.includes(game)) {
+      return fail("This game is not allowed by your parent.", 403);
+    }
+    if (!canKidUseFeature(session.controls, `game:${game}`)) {
+      return fail("This game is not allowed by your parent.", 403);
+    }
     const version = isBundleVersion(input.bundle_version ?? input.version ?? "1") || "1";
     const bytes = isNewBytes(input.new_bytes ?? input.bytes ?? 0);
     if (bytes < 0) return fail("Invalid new_bytes.", 400);

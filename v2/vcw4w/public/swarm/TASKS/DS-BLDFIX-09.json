@@ -1,0 +1,26 @@
+{
+  "id": "DS-BLDFIX-09",
+  "title": "Swarm board health",
+  "goal": "npm run build (v2/vcw4w) is green: Swarm board health. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/scripts/verify-devswarm.mjs",
+    "v2/vcw4w/scripts/verify-migration-versions.mjs"
+  ],
+  "gates": [
+    "npm run verify:devswarm",
+    "npm run verify:migrations"
+  ],
+  "status": "blocked",
+  "owner": "bldfix-09",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T12:00:00.000Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T12:00:00.000Z bldfix-09: claimed (tag == envelope id). Scope read+diagnose only: verify-devswarm.mjs, verify-migration-versions.mjs.",
+    "2026-09-17T12:05:00.000Z bldfix-09 EVIDENCE verify:devswarm EXIT 1: TASKS/DS-BLDFIX-06.json status 'in-progress' must be one of open|claimed|in_progress|blocked|done. Sibling-owned (owner bldfix-06, live) + DS-BLDFIX-08.json same hyphen status (owner bldfix-08, live) — both out of scope, no edit, stand down on those files.",
+    "2026-09-17T12:05:00.000Z bldfix-09 EVIDENCE board scan (read-only node): 712 DS-*.json, all parse (0 torn), 0 BOM. Actual counts {done:543, blocked:149, in_progress:14, open:3, claimed:1, in-progress:2-invalid}. STATUS.json stale 2026-09-15 says {open:1, claimed:0, in_progress:7, blocked:121, done:397} (sums 526 vs 712) — open-drift confirmed. No hand-edit (steward-owned).",
+    "2026-09-17T12:06:00.000Z bldfix-09 EVIDENCE verify:migrations EXIT 1: 20261226000001_gravegain_progress.sql policy 'players without a preceding DROP ... IF EXISTS (line 11 CREATE POLICY, no DROP POLICY IF EXISTS). Version prefixes unique across 215 files (0 collisions) — QUEUE standing collision ruling already applied. Guard failure is data-side in another lane's migration, out of scope; verifier semantics left untouched.",
+    "2026-09-17T12:06:00.000Z bldfix-09 STEWARD REQUEST: (1) recount STATUS.json from TASKS (true counts above); (2) repair DS-BLDFIX-06/08 hyphen status to in_progress via owners; (3) route 20261226000001 DROP-POLICY-IF-EXISTS guard fix via migration owner. No scope-local NEW-file-safe fix exists — verifiers read correct. Status -> blocked-honest."
+  ]
+}

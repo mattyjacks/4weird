@@ -1,0 +1,423 @@
+/* GraveGain4D - Premium Styling (mirrors GraveGain3D shell) */
+:root {
+    --grave-crimson: hsl(350, 80%, 45%);
+    --grave-crimson-glow: hsl(350, 90%, 55%);
+    --grave-purple: hsl(270, 75%, 35%);
+    --grave-purple-glow: hsl(270, 85%, 50%);
+    --grave-gold: hsl(45, 90%, 55%);
+    --grave-gold-dark: hsl(45, 80%, 35%);
+    --grave-bg: hsl(240, 25%, 6%);
+    --grave-card: rgba(20, 15, 30, 0.75);
+    --grave-border: rgba(140, 40, 80, 0.3);
+    --grave-border-hover: rgba(220, 60, 110, 0.6);
+    --grave-text: hsl(220, 15%, 85%);
+    --grave-text-muted: hsl(220, 10%, 60%);
+    --grave-font: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+    /* 4D accent: W-axis rift cyan + brane violet */
+    --rift-cyan: hsl(190, 95%, 60%);
+    --brane-violet: hsl(285, 90%, 65%);
+}
+
+.TEMPLATE-4weird-game-page {
+    background-color: var(--grave-bg);
+    color: var(--grave-text);
+    font-family: var(--grave-font);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Glassmorphism Panels */
+.glass-panel {
+    background: var(--grave-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--grave-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.glass-panel:hover {
+    border-color: var(--grave-border-hover);
+    box-shadow: 0 8px 32px 0 rgba(220, 60, 110, 0.2);
+}
+
+/* Container & Layout */
+.game-wrapper {
+    position: relative;
+    max-width: 1100px;
+    margin: 80px auto 40px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* HUD System */
+.game-hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.hud-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.hud-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hud-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grave-text-muted);
+}
+
+.hud-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.hud-bar-container {
+    width: 140px;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--grave-border);
+}
+
+.hud-bar {
+    height: 100%;
+    width: 100%;
+    border-radius: 5px;
+    transition: width 0.2s ease;
+}
+
+.bar-hp { background: linear-gradient(90deg, var(--grave-crimson), var(--grave-crimson-glow)); }
+.bar-resource { background: linear-gradient(90deg, var(--rift-cyan), var(--brane-violet)); }
+.bar-xp { background: linear-gradient(90deg, var(--grave-gold-dark), var(--grave-gold)); }
+
+.badge-level {
+    background: var(--grave-purple);
+    border-radius: 8px;
+    padding: 1px 8px;
+    font-size: 0.7rem;
+    color: #fff;
+}
+
+.gold-display { color: var(--grave-gold); }
+.uusd-display { color: var(--rift-cyan); }
+.highlight-cyan { color: var(--rift-cyan); }
+.highlight-gold { color: var(--grave-gold); }
+
+/* Viewport & Canvas styling (fullscreen-bugfix pass: letterboxed, gesture-safe) */
+.canvas-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    min-height: 240px;
+    max-width: 100%;
+    background: #020205;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--grave-border);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+}
+
+.canvas-container:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: auto;
+    border-radius: 0;
+    border: none;
+}
+
+#gameCanvas, #effectsCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Letterbox the 4D projection surface; never stretch, never capture gestures. */
+    object-fit: contain;
+    touch-action: none;
+}
+
+#effectsCanvas {
+    pointer-events: none;
+    z-index: 4;
+}
+
+.canvas-container:fullscreen #gameCanvas {
+    object-fit: contain;
+}
+
+/* Fullscreen button: overlay ONLY trigger (⛶), top-right of viewport. */
+.gg4d-fullscreen-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border: 1px solid var(--grave-border);
+    border-radius: 8px;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.gg4d-fullscreen-btn:hover {
+    border-color: var(--grave-border-hover);
+    background: rgba(40, 10, 30, 0.8);
+}
+
+/* Screen Overlays */
+.screen-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 3, 10, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.screen-overlay.hidden {
+    display: none !important;
+}
+
+.menu-content {
+    width: 90%;
+    max-width: 600px;
+    padding: 40px;
+    text-align: center;
+    box-sizing: border-box;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+}
+
+#charSelectScreen .menu-content {
+    width: min(100%, 980px) !important;
+    max-width: 980px !important;
+}
+
+.menu-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 20%, var(--rift-cyan) 60%, var(--brane-violet) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 0 5px 0;
+}
+
+.menu-subtitle {
+    color: var(--grave-text-muted);
+    margin: 0 0 20px 0;
+}
+
+/* Buttons */
+.btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btn-game {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--grave-text);
+    border: 1px solid var(--grave-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-game:hover {
+    border-color: var(--grave-border-hover);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--grave-crimson), var(--grave-purple));
+    border-color: var(--grave-crimson-glow);
+    color: #fff;
+    font-weight: 700;
+}
+
+.controls-hint {
+    font-size: 0.8rem;
+    color: var(--grave-text-muted);
+}
+
+/* HUD extras */
+.hud-crosshair {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 12px;
+    height: 12px;
+    margin: -6px 0 0 -6px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.combat-text-container {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 6;
+}
+
+.hud-notification {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--grave-gold);
+    color: #fff;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    z-index: 15;
+}
+
+/* Hub */
+.hub-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.hub-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.hub-tab-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--grave-text);
+    border: 1px solid var(--grave-border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.hub-tab-btn.active {
+    border-color: var(--grave-gold);
+    color: var(--grave-gold);
+}
+
+.hub-pane { display: none; }
+.hub-pane.active { display: block; }
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.9rem;
+    padding: 4px 0;
+}
+
+.armory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.char-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.class-select {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.perk-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.level-up-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.daily-challenges-container {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--grave-border);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    text-align: left;
+}
+
+/* Touch devices: canvas never captures page gestures. */
+body.touch-enabled .canvas-container,
+body.touch-enabled #gameCanvas {
+    touch-action: none;
+}
+
+/* Small screens */
+@media (max-width: 720px) {
+    .canvas-container {
+        aspect-ratio: 4 / 3;
+    }
+    .menu-content {
+        padding: 24px;
+    }
+    .menu-title {
+        font-size: 2rem;
+    }
+    .desktop-only {
+        display: none !important;
+    }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "DS-BLDFIX-06",
+  "title": "Docs + sitemap robots",
+  "goal": "npm run build (v2/vcw4w) is green: Docs + sitemap robots. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "docs",
+  "scope": [
+    "v2/vcw4w/app/docs",
+    "v2/vcw4w/app/sitemap.ts",
+    "v2/vcw4w/app/robots.ts"
+  ],
+  "gates": [
+    "npm run verify:sitemap",
+    "npm run verify:robots"
+  ],
+  "status": "blocked",
+  "owner": "bldfix-06",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T12:00:00.000Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T12:00:00.000Z bldfix-06: claimed (was open/unowned). Worker tag == envelope id DS-BLDFIX-06.",
+    "2026-09-17 bldfix-06 EVIDENCE baseline: verify:robots PASS (Robots policy checks OK); verify:sitemap FAIL: Indexable route missing from sitemap: /docs/vocrehab/schedule-juggle. Page exists on disk (app/docs/vocrehab/schedule-juggle/page.tsx, static, canonical metadata, landed by SJ wave) but had no DOCS entry in app/sitemap.ts — the SJ-wave sitemap wiring (QUEUE DS-SJ-20 ask) was never applied. Scope-owned cause.",
+    "2026-09-17 bldfix-06 FIX (scope file app/sitemap.ts, additive 1 line, sibling PRIMARY-hunk changes preserved): added { path: /docs/vocrehab/schedule-juggle, monthly, 0.6 } to DOCS after ssi-math. No docs pages rewritten; robots.ts untouched (already green); lib/site-nav.ts untouched (integrator-owned, QUEUE request filed instead).",
+    "2026-09-17 bldfix-06 GATES after fix: eslint app/sitemap.ts + app/robots.ts + app/docs/vocrehab/schedule-juggle/page.tsx CLEAN exit 0; verify:robots PASS; verify:sitemap STILL RED, now failing on /games/gravegain2dB — OUT OF SCOPE (games lane; route is static AND slug is in content/games catalog so runtime sitemap covers it via game.slug template; only the verifier literal-string check misses it). Did not stretch: games entries belong to games lane (BLDFIX-03 blocked).",
+    "2026-09-17 bldfix-06 REMAINING verify:sitemap failures are all out-of-scope and need verifier-side SKIP_ROUTES (scripts/verify-sitemap.mjs owned by live BLDFIX-08, not touched): /games/gravegain2dB/play (robots index:false noindex shell — listing it would violate GSC rules), /vocrehab/library (use-client per-user session console), /vocrehab/pro/reports (gated counselor tooling under /vocrehab/pro, header says stays out), /xonotic (calls notFound() always — listing submits a 404). HANDOFF 1: BLDFIX-08 add these 4 (+ confirm gravegain2dB literal policy) to SKIP_ROUTES. HANDOFF 2 (QUEUE.md filed): integrator wire docs-nav for /docs/vocrehab/schedule-juggle in lib/site-nav.ts. STATUS blocked-honest: my lane green, gate red on others lanes."
+  ]
+}

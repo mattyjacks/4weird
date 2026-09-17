@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
 import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
 import { vocrehabSelectFileSort } from "@/lib/vocrehab-seed-pools";
+import { fileSortTemplate } from "@/lib/vocrehab-game-template-state";
 
 type VocrehabFolder = "Invoices" | "Schedules" | "Client Notes";
 
@@ -15,14 +16,14 @@ interface VocrehabFileCard {
 
 const VOCREHAB_FOLDERS: readonly VocrehabFolder[] = ["Invoices", "Schedules", "Client Notes"];
 
-export default function VocrehabGameFileSort({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey }: VocrehabGameRunProps) {
+export default function VocrehabGameFileSort({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey, vocrehabTemplateState }: VocrehabGameRunProps) {
   // Seeded deal: 12 cards (4 per folder), same seed replays the same set+order.
   const sel = useMemo(
     () => vocrehabSelectFileSort(parseSeed(vocrehabSeed ?? null) ?? makeSeed()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [vocrehabSeed, vocrehabRunKey],
   );
-  const VOCREHAB_CARDS = sel.cards;
+  const VOCREHAB_CARDS = fileSortTemplate(vocrehabTemplateState) ?? sel.cards;
   const [vocrehabPlaced, setVocrehabPlaced] = useState<Record<string, VocrehabFolder>>({});
   const [vocrehabNotice, setVocrehabNotice] = useState<string | null>(null);
   const [vocrehabInterrupted, setVocrehabInterrupted] = useState(false);

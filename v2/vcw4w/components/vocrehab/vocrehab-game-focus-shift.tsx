@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { VocrehabGameRunProps } from "./vocrehab-game-frame";
 import { makeSeed, mulberry32, parseSeed, shuffle, xmur3 } from "@/lib/vocrehab-seed";
 import { vocrehabSelectFocus } from "@/lib/vocrehab-seed-pools";
+import { focusShiftTemplate } from "@/lib/vocrehab-game-template-state";
 
 interface VocrehabCard {
   key: string;
@@ -14,19 +15,22 @@ interface VocrehabCard {
 export default function VocrehabGameFocusShift(props: VocrehabGameRunProps) {
   // Remount per run key so retry reshuffles from a lazy initializer —
   // no effects, SSR-stable first render, no hydration mismatch.
-  return <VocrehabFocusShiftBoard key={props.vocrehabRunKey} {...props} />;
+  return <VocrehabFocusShiftBoard key={`${props.vocrehabRunKey}:${JSON.stringify(props.vocrehabTemplateState ?? null)}`} {...props} />;
 }
 
-function VocrehabFocusShiftBoard({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey }: VocrehabGameRunProps) {
+function VocrehabFocusShiftBoard({ vocrehabEmit, vocrehabFinish, vocrehabSeed, vocrehabRunKey, vocrehabTemplateState }: VocrehabGameRunProps) {
   // Seeded deal: 10 pair types, same seed replays the same set+order.
   const sel = useMemo(
     () => vocrehabSelectFocus(parseSeed(vocrehabSeed ?? null) ?? makeSeed()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [vocrehabSeed, vocrehabRunKey],
   );
+  const template = focusShiftTemplate(vocrehabTemplateState);
+  const pairTypes = template?.pairs ?? sel.pairs;
+  const interruptionAfterPairs = template?.interruptionAfterPairs ?? Math.min(5, pairTypes.length);
   const [vocrehabDeck] = useState<VocrehabCard[]>(() => {
     const deck: VocrehabCard[] = [];
-    sel.pairs.forEach((p, i) => {
+    pairTypes.forEach((p, i) => {
       deck.push({ key: `a${i}`, symbol: p.symbol, label: p.label });
       deck.push({ key: `b${i}`, symbol: p.symbol, label: p.label });
     });
@@ -69,17 +73,17 @@ function VocrehabFocusShiftBoard({ vocrehabEmit, vocrehabFinish, vocrehabSeed, v
           }
           vocrehabEmit("action", { match: first.label, pairs: matchedNow.length / 2 });
           // Scripted interruption fires when the 6th pair is on the board (5 matched).
-          if (matchedNow.length / 2 === 5 && !vocrehabInterrupted) {
+          if (matchedNow.length / 2 === interruptionAfterPairs && !vocrehabInterrupted) {
             setVocrehabInterrupted(true);
             setVocrehabOverlay(true);
-            vocrehabEmit("interrupt", { source: "announcement", atPair: 6 });
+            vocrehabEmit("interrupt", { source: "announcement", atPair: interruptionAfterPairs + 1 });
           }
           if (matchedNow.length === deck.length && !doneRef.current) {
             doneRef.current = true;
             vocrehabFinish({
               pairs: matchedNow.length / 2,
               mismatches: vocrehabMismatches,
-              interruptionShown: vocrehabInterrupted || matchedNow.length / 2 >= 5,
+              interruptionShown: vocrehabInterrupted || matchedNow.length / 2 >= interruptionAfterPairs,
               refocusMs: refocusMsRef.current,
               seed: sel.seed,
             });
@@ -91,13 +95,13 @@ function VocrehabFocusShiftBoard({ vocrehabEmit, vocrehabFinish, vocrehabSeed, v
         }
       }
     },
-    [vocrehabOverlay, vocrehabOpen, vocrehabMatched, deck, vocrehabMismatches, vocrehabInterrupted, vocrehabEmit, vocrehabFinish, sel.seed],
+    [vocrehabOverlay, vocrehabOpen, vocrehabMatched, deck, vocrehabMismatches, vocrehabInterrupted, vocrehabEmit, vocrehabFinish, sel.seed, interruptionAfterPairs],
   );
 
   return (
     <div className="vocrehab-game-focus-shift space-y-3">
       <p className="text-sm text-muted-foreground" role="status">
-        Matched {pairs} of 10 pairs · Mismatches: {vocrehabMismatches}
+        Matched {pairs} of {pairTypes.length} pairs · Mismatches: {vocrehabMismatches}
         {vocrehabInterrupted ? " · 📢 Announcement happened (see below)" : ""}
       </p>
       {vocrehabOverlay ? (

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok } from "@/lib/api-respond";
+import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 
 function isUuid(v: unknown): string {
@@ -8,8 +9,19 @@ function isUuid(v: unknown): string {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(s) ? s : "";
 }
 
+function clientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for") ?? "";
+  const first = fwd.split(",")[0]?.trim();
+  if (first) return first.slice(0, 80);
+  const real = req.headers.get("x-real-ip") ?? "";
+  if (real.trim()) return real.trim().slice(0, 80);
+  return "anon";
+}
+
 // GET /api/fundraisers/[id]; public campaign detail + progress.
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const rl = rateLimit(`fundraisers-detail:${clientIp(req)}`, 60, 60_000);
+  if (!rl.allowed) return fail("Rate limited. Slow down a touch.", 429, rateLimitHeaders(rl));
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   const { id: raw } = await params;
   const id = isUuid(raw);

@@ -31,12 +31,13 @@ Each mission begins with a short radio exchange from familiar faces—Valley Net
 
 ## Core loop
 
-1. Drop into a compact side-scrolling combat zone.
-2. Move, jump, dodge, and aim independently while fighting an escalating enemy mix.
-3. Break terrain, vehicles, shields, and supports to create routes or erase threats.
-4. Grab temporary weapons, save trapped allies, and choose risky shortcuts.
-5. Complete the mission objective, defeat or bypass the commander, and extract.
-6. Earn KillCredits, rescue medals, codex entries, and cosmetic emoji loadout unlocks.
+1. Drop into a seeded, procedurally generated left-to-right breach route.
+2. Scout cover and enemy placements; clear a lane carefully or sprint through at greater risk.
+3. Break structures, vehicles, shields, and supports to open routes or erase threats.
+4. Free linked crew to recruit their random race/class build into the reverse-order life queue.
+5. Reach extraction; the end card records kills, damage taken, accuracy, demolitions, time, and personal-best pace.
+
+Roguelite is the default route. Classic escalating encounters are available only in Wave Mode. The clock is selected separately: Real-time, Chrono-lock (simulation advances while the player acts), or turn-based (one command followed by enemy responses) can run either route.
 
 ### Combat rhythm
 
@@ -48,17 +49,19 @@ The game should never make players wait for enemies to become vulnerable. Every 
 
 | Action | Keyboard | Gamepad |
 | --- | --- | --- |
-| Move / climb | A/D or Left/Right; W/S on ladders | Left stick / D-pad |
-| Jump / double-jump | Space | South button |
+| Move | A/D or Left/Right | Left stick / D-pad |
+| Jump / wall jump | Space | South button |
+| Wall climb | W or Up while touching a wall | Hold toward the wall and jump |
 | Aim | Mouse | Right stick |
 | Fire | Left mouse | Right trigger |
 | Alt-fire / grenade | Right mouse or Q | Left trigger / shoulder |
 | Dash / slide | Shift | East button |
 | Interact / rescue | E | West button |
-| Swap weapon | 1–3 / mouse wheel | D-pad |
+| Swap weapon | 1 starter / 2 scavenged / mouse wheel | D-pad |
+| Melee / ability | F / C | West / North button |
 | Pause | Esc | Menu |
 
-Movement is intentionally simple: forgiving coyote time, jump buffering, air steering, and a short dash with invulnerability frames. Players aim in 360° with mouse/right stick; keyboard-only players use eight-direction aim with the arrow cluster as a fallback.
+Movement uses buffered acceleration, coyote time, jump buffering, air steering, wall climbs and wall jumps, and a short dash with invulnerability frames. Players aim in 360° with mouse/right stick; keyboard-only players use eight-direction aim with I/J/K/L.
 
 ## Heroes
 
@@ -95,7 +98,7 @@ Unlocks alter presentation and small tactical choices, not fundamental power. A 
 
 ## Arsenal and pickups
 
-Each hero begins with a reliable infinite-ammo sidearm and can carry two scavenged weapons plus one alt-fire charge.
+Each hero begins with a reliable infinite-ammo starter weapon and can carry one scavenged weapon at a time. Scavenged weapons have limited ammo; ammo pickups refill that slot. Every race/class combination has its own body stats, starter weapon, active ability, and melee attack.
 
 | Pickup | Emoji | Function |
 | --- | --- | --- |
@@ -108,7 +111,11 @@ Each hero begins with a reliable infinite-ammo sidearm and can carry two scaveng
 | Sun grenade | ☀️ | area clear; ignites oil, spores, and fuel crates |
 | Rescue beacon | 📡 | revives allies / marks civilians; replaces grenade for one use |
 
-Ammo is generous. The tension comes from positioning, civilians, timed objectives, and the consequences of collapse—not from withholding bullets.
+Starter ammo is infinite. Scavenged ammo is scarce enough to make pickup choice matter. Explosions can hurt the breacher, so heavy destruction trades quick clears for self-risk.
+
+## Content presentation
+
+The standalone game offers Kids, Teens, and Adult presentation. These change enemy styling, atmosphere, and short descriptions while leaving the route seed, physics, damage, enemy behavior, and score rules intact. Kids mode uses friendly non-gore creature art and encouraging rescue copy; Teens uses arcade action; Adult uses darker art and language.
 
 ## Destruction system — “Breach Physics”
 

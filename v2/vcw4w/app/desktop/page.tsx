@@ -44,10 +44,6 @@ async function CachedTestingGuide() {
         <Link href="/agents" className="text-cyan-300 hover:underline">
           Rent an AI agent →
         </Link>{" "}
-        GPU play station:{" "}
-        <Link href="/xonotic" className="text-cyan-300 hover:underline">
-          Xonotic autoplay →
-        </Link>{" "}
         All your remotes:{" "}
         <Link href="/runpods" className="text-cyan-300 hover:underline">
           My RunPods →
@@ -133,10 +129,7 @@ async function CachedPlansGuide() {
           <Link href="/agents" className="text-cyan-300 hover:underline">
             Rent an AI agent →
           </Link>{" "}
-          Want a worker to play for you?{" "}
-          <Link href="/xonotic" className="text-cyan-300 hover:underline">
-            Xonotic autoplay →
-          </Link>
+
         </p>
       </details>
     </>

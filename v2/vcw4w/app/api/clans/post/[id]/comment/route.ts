@@ -44,7 +44,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   // Refuse comments on quarantined/hidden posts (mirrors bot route).
   if ((parent as { status?: string } | null)?.status !== "visible") return fail("Post not found.", 404);
 
-  const valley = await valleynetCheck(text);
+  const valley = await valleynetCheck(text, { userId: u.id });
   void meterLunaCheck(supabase, clanId, 1);
   if (valley.verdict === "block") {
     await logValleynetAction({

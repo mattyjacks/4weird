@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  vocrehabGame2AssessmentPayload,
   vocrehabGame2InteropChannel,
   vocrehabScorePhoneGreeting,
   type VocrehabGame2Event,
@@ -11,6 +10,7 @@ import {
 } from "@/lib/vocrehab-games2";
 import { makeSeed, parseSeed } from "@/lib/vocrehab-seed";
 import { vocrehabSelectPhone } from "@/lib/vocrehab-seed-pools2";
+import { templateString, useVocrehabTemplateState } from "./use-vocrehab-template-state";
 
 interface VocrehabCallOption {
   text: string;
@@ -30,11 +30,13 @@ interface VocrehabCall {
 interface VocrehabGamePhoneGreetingProps {
   vocrehabSeed?: string;
   vocrehabRunKey?: number;
+  vocrehabTemplateState?: Record<string, unknown>;
 }
 
 type VocrehabSaveState = "idle" | "saving" | "saved" | "guest" | "error";
 
 export function VocrehabGamePhoneGreeting(props: VocrehabGamePhoneGreetingProps = {}): React.ReactNode {
+  const template = useVocrehabTemplateState("phone-greeting", props.vocrehabTemplateState);
   const [vocrehabStarted, setVocrehabStarted] = useState(false);
   const [vocrehabCallIdx, setVocrehabCallIdx] = useState(0);
   const [vocrehabAwaitRecall, setVocrehabAwaitRecall] = useState(false);
@@ -54,7 +56,29 @@ export function VocrehabGamePhoneGreeting(props: VocrehabGamePhoneGreetingProps 
     () => vocrehabSelectPhone(vocrehabSeed),
     [vocrehabSeed, vocrehabRunKey],
   );
-  const VOCREHAB_CALLS: VocrehabCall[] = vocrehabDeal.callers;
+  const templateCalls = Array.isArray(template.state?.calls) ? template.state.calls.slice(0, 10) : null;
+  const VOCREHAB_CALLS: VocrehabCall[] = templateCalls?.map((raw, index) => {
+    if (!raw || typeof raw !== "object") return null;
+    const row = raw as Record<string, unknown>;
+    const options = Array.isArray(row.options) ? row.options.slice(0, 3) : [];
+    const recallOptions = Array.isArray(row.recallOptions) ? row.recallOptions.slice(0, 3) : [];
+    if (options.length !== 3 || recallOptions.length !== 3) return null;
+    const parsedOptions = options.map((option) => {
+      if (!option || typeof option !== "object") return null;
+      const item = option as Record<string, unknown>;
+      return typeof item.courtesy === "number" && [0, 1, 2].includes(item.courtesy) && templateString(item.text, 500)
+        ? { text: templateString(item.text, 500)!, courtesy: item.courtesy as 0 | 1 | 2 }
+        : null;
+    });
+    const parsedRecall = recallOptions.map((option) => templateString(option, 240));
+    const answer = row.recallAnswer;
+    const caller = templateString(row.caller, 80);
+    const line = templateString(row.line, 500);
+    const context = templateString(row.context, 500);
+    const recallQuestion = templateString(row.recallQuestion, 300);
+    if (!caller || !line || !context || !recallQuestion || !parsedOptions.every(Boolean) || !parsedRecall.every(Boolean) || typeof answer !== "number" || !Number.isInteger(answer) || answer < 0 || answer > 2) return null;
+    return { caller, line, context, options: parsedOptions as VocrehabCall["options"], recallQuestion, recallOptions: parsedRecall as VocrehabCall["recallOptions"], recallAnswer: answer };
+  }).filter((call): call is VocrehabCall => call !== null) ?? vocrehabDeal.callers;
 
   const vocrehabNow = useCallback((): number =>
     startRef.current === 0 ? 0 : Math.max(0, Math.round(performance.now() - startRef.current)),
@@ -115,12 +139,11 @@ export function VocrehabGamePhoneGreeting(props: VocrehabGamePhoneGreetingProps 
     setVocrehabSave("saving");
     try {
       const score = vocrehabScorePhoneGreeting(vocrehabPicks);
-      const base = vocrehabGame2AssessmentPayload("phone-greeting", score);
-      const body = { ...base, payload: { ...base.payload, seed: vocrehabSeed } };
-      const res = await fetch("/api/vocrehab/assessments", {
+      vocrehabPush("complete", { ...score, seed: vocrehabSeed });
+      const res = await fetch("/api/vocrehab/games", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ game_id: "phone-greeting", events: eventsRef.current.slice(0, 200), summary: { ...score, seed: vocrehabSeed } }),
       });
       if (res.status === 401) {
         setVocrehabSave("guest");
@@ -150,7 +173,9 @@ export function VocrehabGamePhoneGreeting(props: VocrehabGamePhoneGreetingProps 
             state. Retry any time; every try counts the same.
           </p>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={vocrehabStart} className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground">
+            {template.loading ? <p role="status">Loading your starting calls…</p> : null}
+            {template.error ? <p role="status">The assigned scenario could not be loaded. You can still play the standard scenario.</p> : null}
+            <button type="button" disabled={template.loading || VOCREHAB_CALLS.length === 0} onClick={vocrehabStart} className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-50">
               Answer the first call
             </button>
             <Link href="/vocrehab/play" className="rounded border px-4 py-2 font-medium">

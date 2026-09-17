@@ -10,7 +10,7 @@ Goal: desktop (`v2/desktop/`) can do anything web (`v2/vcw4w/`) can.
   scripts to keep Tauri `frontendDist` raw):
   - `config.js` — apiBase/siteUrl (default `https://4weird.com`, loopback http
     allowed for dev only), sessionStorage-persisted.
-  - `auth_store.js` — bot (`bot4weird_` + 20 or 32) + gateway (`vcw_live_` + 32)
+  - `auth_store.js` — bot (`bot4weird_` + 20-32) + gateway (`vcw_live_` + 32)
     slots, fingerprint-only status, header order gateway → bot (matches server
     `resolveVcwCaller`). RunPod key stays session-only.
   - `api_client.js` — single fetch wrapper (10s abort, JSON-safe errors,

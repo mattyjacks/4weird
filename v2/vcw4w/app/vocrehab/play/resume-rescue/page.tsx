@@ -18,6 +18,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import VocrehabGameResumeRescue from "@/components/vocrehab/vocrehab-game-resume-rescue";
+import { parseSeed } from "@/lib/vocrehab-seed";
 import { POST as vocrehabAssessmentsPost } from "@/app/api/vocrehab/assessments/route";
 import {
   vocrehabGame3AssessmentPayload,
@@ -130,7 +131,9 @@ async function vocrehabHandleResumeRescueDone(
   }
 }
 
-export default function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ seed?: string | string[] }> }) {
+  const params = await searchParams;
+  const seed = parseSeed(typeof params.seed === "string" ? params.seed : null) ?? undefined;
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
@@ -143,6 +146,7 @@ export default function Page() {
         playable: Tab to move, arrows to choose, Enter to confirm. Practice, not a test.
       </p>
       <VocrehabGameResumeRescue
+        vocrehabSeed={seed}
         onEvent={vocrehabHandleResumeRescueEvent}
         onDone={vocrehabHandleResumeRescueDone}
       />

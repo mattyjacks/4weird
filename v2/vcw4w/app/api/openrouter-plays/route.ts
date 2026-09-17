@@ -6,6 +6,7 @@ import { requireHuman } from "@/lib/botid";
 import { rateLimit } from "@/lib/rate-limit";
 import { rpcStatus } from "@/lib/agent-market";
 import { clientIp } from "@/lib/validate";
+import { checkAuthenticatedVendorEligibility, isGoogleGeminiModel } from "@/lib/vendor-eligibility";
 import {
   OPENROUTER_DEFAULT_MODEL,
   OPENROUTER_ENDPOINT,
@@ -90,6 +91,13 @@ export async function POST(req: Request) {
       note: "Sign in for live OpenRouter output; this offline reply is free.",
     });
   }
+
+  const selectedModel = play.model || OPENROUTER_DEFAULT_MODEL;
+  if (isGoogleGeminiModel(selectedModel)) {
+    return fail("Google Gemini models are unavailable on this service because it is likely to be used by people under 18.", 403);
+  }
+  const ageGate = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "openrouter");
+  if (!ageGate.allowed) return fail(ageGate.reason, 403);
   // Live path is metered to the caller's coins: logged-in bots may play.
   const botBlock = await requireHuman(req, "POST /api/openrouter-plays", { allowAuthenticated: true });
   if (botBlock) return botBlock;
@@ -109,7 +117,7 @@ export async function POST(req: Request) {
           "X-Title": OPENROUTER_TITLE,
         },
         body: JSON.stringify({
-          model: play.model || OPENROUTER_DEFAULT_MODEL,
+          model: selectedModel,
           messages: [
             { role: "system", content: play.system },
             { role: "user", content: play.userPrompt(text) },

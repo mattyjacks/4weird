@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility, isGoogleGeminiModel } from "@/lib/vendor-eligibility";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
@@ -152,6 +153,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "openai");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
   const botBlock = await requireHuman(req, "POST /api/swarm/chat", { allowAuthenticated: true });
   if (botBlock) return botBlock;
   const rl = rateLimit(`swarm:chat:${data.user.id}`, 30, 60_000);
@@ -256,6 +259,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const modelPref = String(row.model ?? "auto").toLowerCase();
   const wantOpenAi = modelPref !== "local" && modelPref !== "openrouter" && Boolean(openaiKey.trim());
   const wantOpenRouter = !wantOpenAi && modelPref !== "local" && Boolean(openrouterKey.trim()) && !isPlaceholderKey(openrouterKey);
+  if (wantOpenRouter && isGoogleGeminiModel(openrouterModel)) {
+    return fail("Google Gemini models are unavailable on this service because it is likely to be used by people under 18.", 403);
+  }
 
   const replies = await Promise.all(
     plan.steps.map(async (step, i) => {

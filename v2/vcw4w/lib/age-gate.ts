@@ -41,10 +41,14 @@ export const DEFAULT_DOB_ISO = "1970-04-20";
 export const GAME_RATINGS: Record<string, AgeRating> = {
   // Intense violence / horror themes - 18+.
   assassinanimals: "adults",
+  gravegain2d: "adults",
   gravegain2dA: "adults",
   gravegain2dB: "adults",
   gravegain3d: "adults",
+  gravegain3dA: "adults",
   gravegain4d: "adults",
+  gravegain4dA: "adults",
+  gravegain5dA: "teens",
   demolichdom: "adults",
   lastwordszombies: "adults",
   // Cartoon/fantasy combat - 13+.
@@ -52,7 +56,7 @@ export const GAME_RATINGS: Record<string, AgeRating> = {
   serversavershield: "teens",
   "platform-wars": "teens",
   neoninvaders: "teens",
-  gravegain1d: "teens",
+  gravegain1dA: "teens",
 };
 
 export function getGameRating(slug: string): AgeRating {

@@ -4,7 +4,8 @@ import { Suspense } from "react";
 import { Marketplace } from "@/components/agents/marketplace";
 import { MyCompute } from "@/components/agents/my-compute";
 import { NanoclawDeploy } from "@/components/agents/nanoclaw-deploy";
-import { AgentBotNav } from "@/components/agents/agent-bot-nav";
+import { AgentBotNav } from "@/components/agents/agent-bot-nav";
+
 
 export const metadata: Metadata = {
   alternates: { canonical: "/agents" },
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
 export default function AgentsPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      
+
       <section className="mx-auto max-w-6xl px-4 pb-3 pt-2 sm:px-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
@@ -132,12 +133,8 @@ export default function AgentsPage() {
         </p>
         <p className="mt-2 text-sm text-slate-400">
           Want a worker to play for you? Every game page has a{" "}
-          <strong>VibeCodeWorker autoplay</strong> panel (RunPod CPU/GPU, on-site browser control for 4weird games
-          only).{" "}
-          <Link href="/xonotic" className="text-cyan-300 hover:underline">
-            Xonotic autoplay lives here
-          </Link>{" "}
-          - GPU boosted + off-site, desktop app required.
+          only).
+          only).
         </p>
         <p className="mt-2 text-sm text-slate-400">
           Need a full computer instead of an agent?{" "}

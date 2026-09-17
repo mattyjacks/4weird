@@ -667,7 +667,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   // quota, the coin session, and the iframe bytes must all wait for the
   // click, so landing on the page costs nothing.
   // A live child session skips straight to metering - /api/games/session
-  // routes the kid_session cookie to the child wallet RPCs server-side.
+  // routes the kid_session cookie to parent-owned, child-attributed metering RPCs.
   useEffect(() => {
     if (age !== "passed" || !entered) return;
     let live = true;

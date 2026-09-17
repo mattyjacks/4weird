@@ -6,6 +6,7 @@ import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { requireHuman } from "@/lib/botid";
 import { CUSTOM_COINS_MAX, CUSTOM_COINS_MIN } from "@/lib/economy";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 
 const variantPattern = /^\d+$/;
@@ -33,8 +34,11 @@ export async function POST(request: Request) {
   if (!sameOrigin(request)) return fail("Invalid request origin.", 403);
   const botBlock = await requireHuman(request, "POST /api/coins/checkout");
   if (botBlock) return botBlock;
-  const { data } = await (await createClient()).auth.getUser();
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
+  const purchaseAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "shopify-checkout");
+  if (!purchaseAge.allowed) return fail("Only Adult-band accounts may purchase coins.", 403);
   const throttle = rateLimit(`checkout:${data.user.id}`, 10, 60_000);
   if (!throttle.allowed) {
     return fail("Too many checkout attempts. Try again shortly.", 429, {

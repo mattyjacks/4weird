@@ -1,4 +1,5 @@
 const assert = require('assert');
+process.env.NODE_ENV = 'test';
 const fs = require('fs');
 const path = require('path');
 const projectRoot = path.resolve(__dirname, '..');
@@ -562,7 +563,10 @@ async function runTests() {
       };
     };
 
-    const resOpenRouter = await autoCode.callLLM("test prompt", "google/gemini-2.5-flash");
+    interceptedUrl = '';
+    await assert.rejects(() => autoCode.callLLM("test prompt", "google/gemini-2.5-flash"), /Google Gemini models are disabled/);
+    assert.strictEqual(interceptedUrl, '', "Google Gemini model IDs must be rejected before any upstream request");
+    const resOpenRouter = await autoCode.callLLM("test prompt", "meta-llama/llama-4-scout-17b-16e-instruct");
     assert.strictEqual(interceptedAuth, "Bearer sk-or-v1-mock-test-key-456", "Should use process.env.OPENROUTER_API_KEY");
     assert(interceptedUrl.includes("openrouter.ai"), "Should call openrouter endpoint");
     assert.strictEqual(resOpenRouter.usage.totalTokens, 150, "Should report total tokens");

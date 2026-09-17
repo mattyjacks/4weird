@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/docs/explore-more" },
   title: "Explore more",
   description:
-    "The rest of 4weird: classic exhibits (Spaceships, Academy, Tech, Web Apps, Xonotic), competitive play (leaderboards, lobbies), and your account hub (pricing, usage, rights, accessibility).",
+    "The rest of 4weird: classic exhibits (Spaceships, Academy, Tech, Web Apps), competitive play (leaderboards, lobbies), and your account hub (pricing, usage, rights, accessibility).",
 };
 
 const theme = {
@@ -47,7 +47,6 @@ export default function ExploreMorePage() {
           ["🎓 Academy", "/academy", "Learn-by-playing: the concepts behind the games, taught where they&apos;re used."],
           ["🔬 Tech", "/tech", "The technology shelf - what the arcade runs on and why."],
           ["🧪 Web Apps", "/web-apps", "Small interactive web toys and tools from the early 4weird lab."],
-          ["💥 Xonotic", "/xonotic", "The arena shooter corner - open-source FPS action alongside the browser catalog."],
         ].map(([t, href, b]) => (
           <Link key={t} href={href} className="group rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:border-cyan-400/50">
             <p className="font-black group-hover:underline">{t}</p>

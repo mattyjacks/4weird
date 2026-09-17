@@ -18,6 +18,7 @@
 
 const { getResolvedApiKey, isPlaceholderKey } = require('./storage');
 const { calculateCost: _calcCost } = require('./pricing');
+const { assertProviderEligible } = require('./vendor_eligibility');
 
 const ELEVENLABS_BASE = 'https://api.elevenlabs.io/v1';
 
@@ -57,6 +58,7 @@ async function throwIfBad(response, context) {
 // ─── Voices ──────────────────────────────────────────────────────────
 
 async function listVoices(explicitKey = '') {
+  await assertProviderEligible('elevenlabs');
   const apiKey = resolveElevenLabsKey(explicitKey);
   if (!apiKey) throw new Error('Missing ELEVENLABS_API_KEY. Add one via settings, credentials store, or env.');
   const response = await fetch(`${ELEVENLABS_BASE}/voices`, { headers: elevenHeaders(apiKey) });
@@ -74,6 +76,7 @@ async function listVoices(explicitKey = '') {
 // ─── Text-to-Speech ──────────────────────────────────────────────────
 
 async function textToSpeech(text, options = {}) {
+  await assertProviderEligible('elevenlabs');
   const apiKey = resolveElevenLabsKey(options.apiKey);
   if (!apiKey) throw new Error('Missing ELEVENLABS_API_KEY. Add one via settings, credentials store, or env.');
   const clean = String(text || '').trim();
@@ -119,6 +122,7 @@ async function textToSpeech(text, options = {}) {
 // ─── Speech-to-Text (Scribe) ─────────────────────────────────────────
 
 async function speechToText(audioInput, options = {}) {
+  await assertProviderEligible('elevenlabs');
   const apiKey = resolveElevenLabsKey(options.apiKey);
   if (!apiKey) throw new Error('Missing ELEVENLABS_API_KEY. Add one via settings, credentials store, or env.');
   const buffer = toAudioBuffer(audioInput);
@@ -155,6 +159,7 @@ async function speechToText(audioInput, options = {}) {
 // ─── Sound effects generation ────────────────────────────────────────
 
 async function generateSoundEffect(prompt, options = {}) {
+  await assertProviderEligible('elevenlabs');
   const apiKey = resolveElevenLabsKey(options.apiKey);
   if (!apiKey) throw new Error('Missing ELEVENLABS_API_KEY. Add one via settings, credentials store, or env.');
   const clean = String(prompt || '').trim();
@@ -183,6 +188,7 @@ async function generateSoundEffect(prompt, options = {}) {
 // ─── Music composition ───────────────────────────────────────────────
 
 async function composeMusic(prompt, options = {}) {
+  await assertProviderEligible('elevenlabs');
   const apiKey = resolveElevenLabsKey(options.apiKey);
   if (!apiKey) throw new Error('Missing ELEVENLABS_API_KEY. Add one via settings, credentials store, or env.');
   const clean = String(prompt || '').trim();
@@ -211,6 +217,7 @@ async function composeMusic(prompt, options = {}) {
 // ─── Audio isolation (voice/dialogue cleanup for QA) ─────────────────
 
 async function isolateVocals(audioInput, options = {}) {
+  await assertProviderEligible('elevenlabs');
   const apiKey = resolveElevenLabsKey(options.apiKey);
   if (!apiKey) throw new Error('Missing ELEVENLABS_API_KEY. Add one via settings, credentials store, or env.');
   const buffer = toAudioBuffer(audioInput);

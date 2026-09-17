@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 const VOCREHAB_SUITES = [
   { href: "/vocrehab/interview", title: "Interview", blurb: "Rehearse out loud with a practice partner, then keep your script." },
   { href: "/vocrehab/pro", title: "For counselors", blurb: "Paste notes once, review four drafts. Nothing files itself." },
-  { href: "/vocrehab/play", title: "Arcade", blurb: "All five micro-games in one place. Practice free, save when you choose." },
+  { href: "/vocrehab/play", title: "Arcade", blurb: "Nine work and life practice games. Play free, save when you choose." },
   { href: "/docs/vocrehab", title: "Guides", blurb: "Getting started, counselor notes, privacy, and the SSI math explainer." },
 ] as const;
 

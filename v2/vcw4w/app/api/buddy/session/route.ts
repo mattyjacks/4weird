@@ -15,6 +15,11 @@ import { BUDDY_DEFAULT_VOICE, cleanBuddyVoice } from "@/lib/game-ai";
  */
 export async function GET(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
+  // Do not expose a parent's buddy session history through an adult auth
+  // cookie that remains in the browser during a child session.
+  if (req.headers.get("cookie")?.split(";").some((part) => part.trim().split("=", 1)[0] === "kid_session")) {
+    return fail("Buddy sessions are unavailable during a child session.", 403);
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);
@@ -45,6 +50,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  // A child overlay must not open or close sessions attributed to the parent.
+  if (req.headers.get("cookie")?.split(";").some((part) => part.trim().split("=", 1)[0] === "kid_session")) {
+    return fail("Buddy sessions are unavailable during a child session.", 403);
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

@@ -23,7 +23,7 @@ async function CachedTermsBody() {
       <div className="grid gap-2.5 sm:grid-cols-3">
         <a href="#terms-s1" className="rounded-2xl border border-border bg-card p-3 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
           <p className="text-[15px] font-black">🧾 Eligibility &amp; Accounts</p>
-          <p className="mt-0.5 text-[13px] text-muted-foreground">13+ only · Adult 18+ buys &amp; payouts · §1 →</p>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">13+ only · Adult 18+ purchases · §1 →</p>
         </a>
         <a href="#terms-s8" className="rounded-2xl border border-border bg-card p-3 transition hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-xl">
           <p className="text-[15px] font-black">🪙 Vibe Coins &amp; Billing</p>
@@ -113,7 +113,7 @@ async function CachedTermsBody() {
           4B); do not enter a Teen/Adult band for an under-13. If you are a minor in your jurisdiction, you may use
           the Service only with the involvement and consent of a parent or legal guardian who accepts these Terms on
           your behalf. Only Adult (18+) accounts may create Child sub-accounts, make purchases, or receive fiat
-          payouts. You must provide accurate registration information, keep your credentials confidential, and promptly
+          cash out Crowns to fiat. You must provide accurate registration information, keep your credentials confidential, and promptly
           notify us of any unauthorized access. You are responsible for all activity through your account and for all
           information or content you submit. One promotional trial per person applies (see Section 8); we use
           privacy-preserving signals to enforce it. We may refuse registration, reclaim usernames, or suspend, limit,
@@ -288,12 +288,13 @@ async function CachedTermsBody() {
           log in with a parent-chosen <strong>username#1234 + password</strong> and have no email, no checkout, and no
           Supabase login of their own. You attest each child&apos;s age band (Kid 0-12, Teen 13-17, Adult 18+) when you
           create the account; the band gates ratings with no date of birth collected from anyone (Kid plays Kids
-          titles, Teen adds Teens, Adult plays everything, all enforced server-side). Children spend only
-          coins you grant from your own balance into their wallet (spendable on play like normal coins, no cash value,
-          never withdrawable); you set their monthly coin budget (with optional hard stop), daily play-time limit, and
+          titles, Teen adds Teens, Adult plays everything, all enforced server-side). Parents keep ownership of
+          their Vibe Coins; child play charges are debited directly from the parent&apos;s coin balance and attributed
+          to the child for usage records. Children never receive or own coins. Parents set a monthly budget (with
+          optional hard stop), a rolling hourly spend cap, daily play-time limit, and
           allowed play hours in your timezone; all enforced server-side, including mid-play. Children cannot check out,
-          tip, subscribe, or receive payouts. Suspending a child stops
-          play immediately; closing an account refunds its remaining wallet to you. You are responsible for your
+          tip, subscribe, or cash out Crowns. Suspending a child stops
+          play immediately; closing an account does not change the parent&apos;s coin balance. You are responsible for your
           children&apos;s activity, for keeping their passwords safe on shared devices (resetting logs them out
           everywhere), and for complying with parental-consent and child-privacy laws where you live (including COPPA,
           the EU GDPR consent ages 13-16, the UK Age Appropriate Design Code and Data Protection Act 2018, the EU
@@ -481,9 +482,9 @@ async function CachedTermsBody() {
           shares, interest, dividends, profit-shares, guaranteed returns, or any ownership or financial return, and any
           campaign using charity, medical, emergency, disaster-relief, political, or investment language is rejected.
           Coins have no cash value, are licensed platform features under Section 8, and can never be redeemed, cashed
-          out, withdrawn, or converted to money by anyone; individual recipients receive time-locked Crowns under Section 8A.1 (spendable on-site only after 1:1 convert, or withdrawable in fiat only through our licensed payout provider), and clan recipients receive shared wallet credits spendable on cloud computing, game credits, and other on-site services only.
+          out, withdrawn, or converted to money by anyone; individual recipients receive time-locked Crowns under Section 8A.1 (currently convertible to Coins for on-site use only), and clan recipients receive shared wallet credits spendable on cloud computing, game credits, and other on-site services only.
           Because no money is transmitted to third parties on the gift itself and no direct coin cash-out exists, the gift leg does not act as a money
-          transmitter, e-money issuer, bank, broker, or investment platform; fiat payouts under Section 8A.1 are executed by our licensed payout provider, not by us as transmitter.
+          transmitter, e-money issuer, bank, broker, or investment platform. Cash-out and fiat payouts are not currently available.
         </p>
         <p>
           <strong>Subscriptions and tips.</strong> Subscribing charges the first 30-day period immediately and renews
@@ -529,88 +530,56 @@ async function CachedTermsBody() {
         </details>
         <details id="terms-s8a1" data-legal className="group scroll-mt-20 overflow-hidden rounded-2xl border border-border bg-card/40">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
-        <h2 className={h2}>8A.1. Crowns (earn): time locks, convert, and fiat payouts</h2>
+        <h2 className={h2}>8A.1. Crowns (earn): time locks and on-site conversion</h2>
             <span aria-hidden="true" className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border text-sm font-black text-cyan-300 transition group-open:rotate-45">+</span>
           </summary>
           <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
-          <strong>The timelines, up front.</strong> Crowns you earn today are locked for 30 days by
-          anti-fraud and payments regulations - this cannot be bypassed, not by us and not by support.
-          After that: converting Crowns to Coins takes effect immediately (1+ crowns, 1:1, no fee) once
-          unlocked; cashing Crowns out to fiat takes a minimum of 30 days after earning plus provider
-          processing time (typically 5-10 business days after you request a payout). There is no instant
-          cash-out on this Service, ever.
+          <strong>The timelines, up front.</strong> Crowns you earn today are locked for 30 days.
+          After that, converting Crowns to Coins takes effect immediately (1+ crowns, 1:1, no fee) once
+          unlocked. Cash-out to fiat is not available on this Service.
         </p>
         <p>
           <strong>What Crowns are.</strong> Crowns are earn-only, non-transferable payout points, not
           currency, money, property, securities, or crypto. They cannot be bought, sold, gifted,
           transferred, or spent directly. They are minted only when your gifted Coins net settles:
           Support tips/subscriptions, creator-direct Campaign backing, and compute-provider shares
-          (Section 9). Clan, org, and shared-wallet credits are not Crowns and never become payout-eligible.
+          (Section 9). Clan, org, and shared-wallet credits are not Crowns and cannot be converted.
           Balances earned before the Crowns launch remain Coins and never become Crowns.
         </p>
         <p>
-          <strong>Time locks and expiry.</strong> Every Crown lot unlocks 30 days after receipt
-          (fraud/chargeback clearing required by our anti-money-laundering, sanctions, and payments
-          compliance duties - including card-network chargeback windows and the 90-day Coin refund window;
-          locked Crowns cannot be paid out, converted, or expedited for any reason), expires 1 year after receipt, and is consumable only while
+          <strong>Time locks and expiry.</strong> Every Crown lot unlocks 30 days after receipt; locked
+          Crowns cannot be converted or expedited. Each lot expires 1 year after receipt and is consumable only while
           unlocked and unexpired, oldest eligible first. Locked or expired Crowns do not count toward
-          payouts or converts. If the underlying Coin gift refunds or chargebacks inside 90 days, we
+          converts. If the underlying Coin gift refunds or chargebacks inside 90 days, we
           may claw back the corresponding Crowns from remaining lots first, then carry any shortfall as
-          ledger debt against future earnings. Payout and convert calls serialize on the same
+          ledger debt against future earnings. Convert calls serialize on the same
           per-account lock so concurrent requests cannot double-spend one lot.
         </p>
         <p>
-          <strong>Two exits, your choice.</strong> (a) <em>Convert to Coins (on-site, 1:1, no fee):</em>{" "}
+          <strong>On-site conversion.</strong> <em>Convert to Coins (1:1, no fee):</em>{" "}
           convert any amount from 1 crown upward into your own Coins at exactly 100 Crowns = 100 Coins,
           available only after the 30-day unlock and effective immediately once requested.
           Converted Coins are ordinary spend Coins with a fresh 1-year expiry: spendable on-site, giftable
-          with a fresh 25% cut if re-gifted, never directly cashable. Converts are final. (b){" "}
-          <em>Fiat payout via our licensed payout provider:</em> request 5,000+ crowns ($50 minimum) for
-          payout in fiat to your verified account, available only after the 30-day unlock plus provider
-          processing (typically 5-10 business days). We do not transmit the money ourselves; a licensed
-          provider (such as Stripe, Hyperwallet, or Tipalti) performs identity verification, sanctions
-          screening, tax reporting, and the transfer under its own terms. We never pay out in crypto
-          directly; if the provider offers a crypto rail on its side, that is between you and the provider.
+          with a fresh 25% cut if re-gifted, never directly cashable. Converts are final.
         </p>
         <p>
-          <strong>KYC is mandatory for cash-out.</strong> Fiat payouts require government-issued identity
-          verification, sanctions screening, and tax documentation (W-9/W-8BEN or local equivalents) through
-          our payout provider before the first payout, plus re-verification whenever the provider or the law
-          requires it. We may also require proof of address or source-of-funds information,
-          and we will hold or refuse payouts until verification completes. Converting Crowns to Coins does not
-          require provider KYC, but still requires the 30-day unlock and a verified creator account standing.
+          <strong>No cash-out workflow is currently available.</strong> No payout provider is integrated,
+          and we do not collect identity or tax documents for payouts. We will publish updated terms before
+          enabling an external payout provider.
         </p>
         <p>
-          <strong>Who can cash out, and where.</strong> Payouts require: (i) age 18+ with a verified
-          creator account (minors, child sub-accounts, and unverified accounts may earn and convert but
-          may never receive fiat); (ii) residence in a currently allowlisted payout country - which we have
-          not yet finalized or published, so fiat payouts are currently unavailable everywhere and Crowns
-          are convertible to Coins only until we announce the country list (once published, everywhere else
-          stays credits-and-convert only); (iii) clean fraud standing and completed
-          provider KYC. Prohibited persons, sanctioned jurisdictions, and export-controlled dealings are
-          excluded entirely. We may change the allowlist, hold, delay, split, or refuse any payout for fraud,
-          safety, compliance, or provider-capacity reasons, without liability.
+          Crowns can only be converted to Coins by the account holder after the 30-day lock and while
+          the account is in good standing. Child sessions do not own Crowns or receive cash-out.
         </p>
         <p>
-          <strong>No payout guarantee; availability risk is yours.</strong> You acquire and hold Crowns at
-          your own risk. We do not promise that fiat payouts will ever be available to you - not in your
-          country, not at any amount, not at any time. If you cannot cash out because you live in a
-          restricted or unlisted country, fail or cannot complete KYC, are sanctioned or otherwise
-          ineligible, lose verification or good standing, or because the law, our provider, capacity, fraud
-          controls, or our own discretion prevents it, that is not our fault and gives rise to no claim:
-          no compensation, no refund of gifted amounts, no damages, no exchange or alternative payout. Your
-          Crowns remain usable as on-site Coins via 1:1 convert where eligible, and that is the full extent
-          of what we owe. To the fullest extent permitted by law, Sections 14 and 15 apply to Crowns in full:
-          the Service is as-is with no guarantee of payout availability, our aggregate liability is $0, and
-          your sole remedy for dissatisfaction is to stop using the Service.
+          Earned Crowns remain subject to the conversion and expiry rules above. Fiat payout availability
+          may be introduced only after a separate provider integration and updated terms.
         </p>
         <p>
-          <strong>Taxes are on earn, not on exit.</strong> The taxable event is earning Crowns, not
-          converting or cashing them out. Recipients are solely responsible for all tax consequences and
-          should consult a tax advisor; the provider collects W-9/W-8BEN (or equivalents) and issues
-          1099-NEC/1099-K/1042-S, DAC7, or other required reports. We provide transaction records on the
-          account and usage pages but no tax advice. Nothing here is employment, partnership, or agency.
+          <strong>Taxes.</strong> Recipients are solely responsible for any tax consequences of Crowns or Coins
+          they receive and should consult a tax advisor. We provide transaction records on the account and usage
+          pages but no tax advice. No payout provider currently collects tax forms or issues payout tax reports.
         </p>
 
         </div>
@@ -773,8 +742,10 @@ async function CachedTermsBody() {
           Stock photo and video search via Pexels costs <strong>0 coins</strong> and is free to browse. Use
           requires sign-in and is rate-limited to <strong>20 requests per minute and 200 per day</strong>,
           enforced server-side; excess requests are refused. Pexels media remains third-party content under its
-          own license: where the license or photographer asks for credit, you must give it with a credit and
-          linkback, and you are responsible for lawful use. The stock endpoint is provided as-is with no SLA and
+          own license. The Pexels API requires a prominent link to Pexels whenever we make an API request and
+          we credit photographers when possible; you must retain applicable asset credits and may not redistribute
+          unmodified assets as standalone media or use API results to reproduce a stock-library service. You are
+          responsible for lawful use. The stock endpoint is provided as-is with no SLA and
           no availability promise under Section 4, and where the Pexels integration reports{" "}
           <strong>configured:false</strong>, search is honestly unavailable until configured.
         </p>
@@ -913,16 +884,17 @@ async function CachedTermsBody() {
           <div className="space-y-4 border-t border-border/60 px-4 py-4">
         <p>
           The Service runs on third-party providers that process information on our behalf, and may include
-          third-party links, tools, or listings. Our providers are: Google Analytics (usage measurement, Google LLC);
+          third-party links, tools, or listings. Providers and third-party tools that may process data include Google Analytics (usage measurement, Google LLC);
           Vercel (hosting, analytics, and edge routing); Cloudflare (network delivery and security); Supabase
-          (authentication and database); Shopify (checkout and order reconciliation); OpenAI (chat, moderation
-          assistance, and text-to-speech); OpenRouter (multi-model AI routing, including Meta Muse Spark, Google
-          Gemini, and Anthropic Claude models); DeepSeek (AI chat and reasoning); Google Gemini (AI chat, directly or
-          via OpenRouter); Anthropic Claude (AI chat, via OpenRouter); Meta (Muse Spark AI, directly or via
-          OpenRouter);           ElevenLabs (text-to-speech, speech-to-text, sound and music generation); fal.ai (image, video,
+          (authentication, database, and object storage for uploaded scenes and rendered files); Shopify (checkout and order reconciliation); OpenAI (chat, moderation
+          assistance, and text-to-speech); OpenRouter (multi-model AI routing, including Meta Muse Spark and
+          Anthropic Claude models); DeepSeek (direct desktop AI chat and reasoning); Google Gemini (disabled in
+          the mixed-age Service, including through OpenRouter); Anthropic Claude (AI chat, via OpenRouter); Meta (Llama API and Muse Spark models, directly or via
+          OpenRouter); ElevenLabs (text-to-speech, speech-to-text, sound and music generation); fal.ai (image, video,
           audio, and 3D generation); Meshy.ai (3D generation; prompts/assets sent to produce models); Pexels (stock photo/video); RunPod (GPU cloud compute); DigitalOcean (compute);
           Kasada/BotID (bot/fraud prevention screening of request metadata); and CDNs/edge delivery (including
-          jsDelivr, cdnjs, Google Tag Manager for consented analytics, esm.sh, blender.org for worker downloads).
+          jsDelivr, cdnjs, Google Fonts, Google Tag Manager for consented analytics, esm.sh, blender.org and John Van Sickle&apos;s FFmpeg builds for worker downloads; optional user-installed OpenCode and Godot tooling);
+          Outscraper (business search); Bouncer (email verification); EasyDNC (phone suppression); Discord (community bot interactions); OpenCode (optional local coding assistant); GitHub, Ollama, Google, and Ubuntu mirrors (software/runtime downloads).
           Supabase sends transactional auth emails; we use no third-party marketing-email provider (marketing email
           is off by default). Some AI/provider paths route via OpenRouter or run locally/on-device (no third-party
           transfer), and desktop/BYOK keys you supply operate under those providers&apos; terms. We do not control,
@@ -931,10 +903,42 @@ async function CachedTermsBody() {
           and the third party under their terms. Affiliate/sponsor channels may earn us or clans compensation and
           are labeled as such; creators must disclose material connections per FTC rules. If you obtain the Service
           via Apple, Google, Microsoft, Steam, or another platform, that platform&apos;s terms also apply and control
-          for distribution (Apple has no liability for the app); sideloading requires meeting stated system/GPU/OS/
+          for distribution; sideloading requires meeting stated system/GPU/OS/
           network requirements, and antivirus/anti-cheat flags are not our fault. Beta/experimental features are
           labeled as such and carry no warranty. See the Privacy Policy for provider categories and data flows.
         </p>
+        <p>
+          <strong>Provider-specific terms and access rules.</strong> These links identify the providers used by
+          features in this Service; provider terms can change and apply in addition to ours when you use their
+          services. We do not represent that a provider has approved every feature or every class of user. Access
+          controls below apply to the 4weird server routes; they cannot control a provider account or API key you
+          use directly outside 4weird. Desktop cloud-provider calls in the official VibeCodeWorker desktop client
+          require a linked 4weird account and server-side age eligibility; the provider API key and prompt remain
+          on-device. These provider-specific restrictions override the general parent-consent
+          language elsewhere in these Terms: a parent cannot authorize a minor to use a provider whose terms
+          prohibit that access.
+        </p>
+        <ul className="list-disc space-y-2 pl-6">
+          <li><strong>Blender rendering and storage.</strong> Uploaded .blend scenes and rendered videos are stored in Supabase Storage and temporarily made available to a RunPod worker through signed URLs; the worker downloads Blender from blender.org and FFmpeg from John Van Sickle&apos;s static build site, then uploads the rendered output to storage. These services receive the files and ordinary network metadata needed to provide the rendering workflow. Do not upload material you lack rights to use or sensitive personal information. See <a className={a} href="https://www.blender.org/about/license/" target="_blank" rel="noreferrer">Blender license information</a>, <a className={a} href="https://johnvansickle.com/ffmpeg/" target="_blank" rel="noreferrer">FFmpeg static builds</a>, <a className={a} href="https://supabase.com/terms" target="_blank" rel="noreferrer">Supabase Terms</a>, and <a className={a} href="https://www.runpod.io/legal/terms-of-service" target="_blank" rel="noreferrer">RunPod Terms</a>.</li>
+          <li><strong>QR Server pairing.</strong> The desktop phone-link screen requests a QR image from QR Server and includes the temporary pairing URL in the request. QR Server states that it records request origin, referrer, and IP, does not log QR contents, and briefly caches the generated image. Treat the pairing code as a secret while it is active, regenerate it after use, and do not share screenshots with untrusted people. See <a className={a} href="https://goqr.me/api/doc/create-qr-code/" target="_blank" rel="noreferrer">QR Server API documentation</a>, <a className={a} href="https://goqr.me/legal/tos-api.html" target="_blank" rel="noreferrer">QR Server API Terms</a>, and <a className={a} href="https://goqr.me/privacy-safety-security/" target="_blank" rel="noreferrer">QR Server Privacy</a>.</li>
+          <li><strong>Local face-control downloads.</strong> Optional face control downloads the MediaPipe JavaScript runtime and face-landmarker model from jsDelivr and Google Cloud Storage. Camera frames are processed locally in the browser; these downloads disclose ordinary request metadata, not the camera frames. MediaPipe task code is open-source software with its applicable license notices. See <a className={a} href="https://ai.google.dev/edge/mediapipe" target="_blank" rel="noreferrer">Google AI Edge MediaPipe documentation</a>, <a className={a} href="https://developers.google.com/edge/api/mediapipe/java/com/google/mediapipe/tasks/vision/core/package-summary" target="_blank" rel="noreferrer">MediaPipe license notice</a>, and <a className={a} href="https://cloud.google.com/terms" target="_blank" rel="noreferrer">Google Cloud Terms</a>.</li>
+          <li><strong>OpenCode and user-installed developer tools.</strong> VibeCodeWorker can invoke a locally installed OpenCode CLI or server for coding tasks. OpenCode may transmit prompts, source files, and other workspace context to the model provider configured in that local tool; those requests use the user&apos;s own configuration and are not routed or controlled by 4weird. Review OpenCode&apos;s terms, privacy policy, and the selected model provider&apos;s terms first. OpenCode&apos;s terms prohibit use by children under 13 and require parent/guardian permission for minors. Because 4weird does not collect and verify that permission, the integrated OpenCode feature is Adult-band only; a parent cannot override this restriction. The same adult gate applies in the served VibeCodeWorker client copies. See <a className={a} href="https://opencode.ai/legal/terms-of-service" target="_blank" rel="noreferrer">OpenCode Terms</a> and <a className={a} href="https://opencode.ai/legal/privacy-policy" target="_blank" rel="noreferrer">OpenCode Privacy</a>.</li>
+          <li><strong>Off-site Xonotic remote-play destination.</strong> A RunPod remote-play option can open a browser game hosted at <code>dpgame.xonotic.workers.dev</code>, a third-party Cloudflare Workers domain that is not operated by 4weird. Opening it discloses ordinary network metadata to its operator and may establish direct peer-to-peer connections with other players; its content, age suitability, handling, and terms are controlled by that operator. Do not enter personal or case information there. See <a className={a} href="https://www.cloudflare.com/terms/" target="_blank" rel="noreferrer">Cloudflare Terms</a>.</li>
+          <li><strong>OpenRouter and model providers.</strong> OpenRouter requires users to be 18+. Its model routing can send prompts, images, and files to the selected underlying provider, whose own retention, safety, and output rules also apply. Live OpenRouter generation is limited to Adult-band accounts; child sessions are denied. The model is configurable, so we do not promise that every underlying model/provider is appropriate for every user or data type; never submit client, health, case, or other sensitive information. See <a className={a} href="https://openrouter.ai/terms" target="_blank" rel="noreferrer">OpenRouter Terms</a> and <a className={a} href="https://openrouter.ai/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.</li>
+          <li><strong>OpenAI.</strong> OpenAI&apos;s API agreement prohibits allowing minors to use the service without parent or guardian consent. User-facing server AI routes and official desktop cloud calls require an Adult-band account because the Service does not record provider-specific minor consent. Clan moderation sends only Adult-band signed-in authors&apos; text to OpenAI; minor, unknown-age, and bot-key posts use local heuristics plus human review. See <a className={a} href="https://openai.com/policies/services-agreement/" target="_blank" rel="noreferrer">Services Agreement</a> and <a className={a} href="https://openai.com/policies/usage-policies/" target="_blank" rel="noreferrer">Usage Policies</a>.</li>
+          <li><strong>fal.ai and ElevenLabs.</strong> fal.ai requires adult customers and end users; ElevenLabs requires users to be 18+ under its general Terms. Their server-backed and official desktop generation routes are Adult-band only. Do not use ElevenLabs for a government entity without its required prior written authorization. See <a className={a} href="https://fal.ai/legal/terms-of-service" target="_blank" rel="noreferrer">fal.ai Terms</a>, <a className={a} href="https://fal.ai/legal/acceptable-use-policy" target="_blank" rel="noreferrer">fal.ai Acceptable Use Policy</a>, <a className={a} href="https://elevenlabs.io/terms-of-use" target="_blank" rel="noreferrer">ElevenLabs Terms</a>, <a className={a} href="https://elevenlabs.io/elevenapi-terms" target="_blank" rel="noreferrer">ElevenAPI Terms</a>, and <a className={a} href="https://elevenlabs.io/use-policy" target="_blank" rel="noreferrer">ElevenLabs Prohibited Use Policy</a>.</li>
+          <li><strong>Google Gemini API.</strong> Google requires API users to be 18+ and prohibits use in a service directed to or likely accessed by under-18s. Direct Gemini use and Gemini model IDs through OpenRouter are blocked on this mixed-age service. See <a className={a} href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noreferrer">Gemini API Additional Terms</a>.</li>
+          <li><strong>Anthropic, Meta, and DeepSeek models.</strong> These models may be available through an operator-configured OpenRouter provider or direct desktop BYOK integrations. Desktop calls require an Adult-band eligibility check; provider-specific usage, privacy, and model rules still apply. Anthropic direct API integration is not enabled. DeepSeek terms require guardian involvement and consent for minor users; this app applies a stricter Adult-band gate. If you publish DeepSeek output, identify it as AI-generated and have a qualified human review it before using it in consequential decisions. Do not send sensitive child or VocRehab data. See <a className={a} href="https://www.anthropic.com/policy" target="_blank" rel="noreferrer">Anthropic Usage Policy</a>, <a className={a} href="https://ai.meta.com/llama/license/" target="_blank" rel="noreferrer">Meta Llama license</a>, <a className={a} href="https://ai.meta.com/llama/use-policy/" target="_blank" rel="noreferrer">Meta Llama Acceptable Use Policy</a>, <a className={a} href="https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html" target="_blank" rel="noreferrer">DeepSeek Open Platform Terms</a>, <a className={a} href="https://cdn.deepseek.com/policies/en-US/deepseek-terms-of-use.html" target="_blank" rel="noreferrer">DeepSeek Terms of Use</a>, and <a className={a} href="https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html" target="_blank" rel="noreferrer">DeepSeek Privacy Policy</a>.</li>
+          <li><strong>Google Analytics and Vercel Analytics.</strong> Google Analytics is opt-in only in the app shell and receives page paths without query strings; legacy static game pages/guides no longer load it. Vercel Analytics remains enabled in the app shell; our integration removes query strings and suppresses private routes. See <a className={a} href="https://vercel.com/docs/analytics/privacy-policy" target="_blank" rel="noreferrer">Vercel Analytics Privacy</a> and <a className={a} href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Google Privacy</a>.</li>
+          <li><strong>Desktop BYOK providers.</strong> The official VibeCodeWorker desktop app can call OpenAI, DeepSeek, Meta/OpenRouter, fal.ai, ElevenLabs, and RunPod directly using keys you provide. Before those cloud calls, it checks eligibility through your linked 4weird Adult-band account; provider keys remain on-device and prompts are sent directly to the selected provider. Gemini is disabled in the desktop app because its API terms prohibit embedding it in a service likely accessed by under-18s. RunPod cloud operations are also Adult-band gated. This check does not control provider keys used in other software or outside the official client. Do not send sensitive, child-identifying, health, disability, or VocRehab case data. See each provider&apos;s terms above; fal.ai terms are at <a className={a} href="https://fal.ai/legal/terms-of-service" target="_blank" rel="noreferrer">fal.ai</a>.</li>
+          <li><strong>Meshy.</strong> Meshy permits users from age 14 (or the local digital-consent age), and requires parent or guardian permission for users under 18. Our Meshy server route requires an Adult-band signed-in account; do not use another person&apos;s account or submit personal, health, or identifiable-minor content. See <a className={a} href="https://www.meshy.ai/terms-of-use" target="_blank" rel="noreferrer">Meshy Terms</a> and <a className={a} href="https://www.meshy.ai/acceptable-use-policy" target="_blank" rel="noreferrer">Acceptable Use Policy</a>.</li>
+          <li><strong>RunPod and DigitalOcean.</strong> DigitalOcean account status and usage sync are limited to Adult-band accounts; no live DigitalOcean booking or provisioning flow is enabled in this Service. RunPod compute provisioning, management, and booking must use an Adult-band account; child sessions cannot provision workloads. You are responsible for each workload, its data, security, backups, and provider acceptable-use rules. See <a className={a} href="https://www.runpod.io/legal/terms-of-service" target="_blank" rel="noreferrer">RunPod Terms</a>, <a className={a} href="https://www.digitalocean.com/legal/terms-of-service-agreement" target="_blank" rel="noreferrer">DigitalOcean Terms</a>, and <a className={a} href="https://www.digitalocean.com/legal/acceptable-use-policy" target="_blank" rel="noreferrer">DigitalOcean Acceptable Use Policy</a>.</li>
+          <li><strong>Google Maps Platform.</strong> Google Maps address lookup and routing are paused. VocRehab travel estimates use only coordinates you enter and a rough offline calculation; we do not send those values to Google or cache Google Maps content. We will enable Maps only after confirming that our child-accessible service and account satisfy Google&apos;s application restrictions. See <a className={a} href="https://cloud.google.com/maps-platform/terms" target="_blank" rel="noreferrer">Maps Platform Terms</a>, <a className={a} href="https://maps.google.com/help/terms_maps/" target="_blank" rel="noreferrer">Maps End User Additional Terms</a>, and <a className={a} href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">Google Privacy Policy</a>.</li>
+          <li><strong>Outscraper, Pexels, Bouncer, and EasyDNC.</strong> Use Outscraper results only lawfully and do not use them as the sole basis for consequential decisions; results may be incomplete or outdated. Pexels media remains subject to its license and API restrictions, including prominent Pexels linking and photographer credit when possible, and no standalone redistribution; its search and curated feeds require an Adult-band account here. Bouncer receives email addresses for deliverability checks. EasyDNC receives phone numbers for suppression checks; its 4weird routes require an Adult-band signed-in account, including for BYOK requests, and results do not guarantee legal compliance. You must have authority and a lawful basis to submit this data. See <a className={a} href="https://outscraper.com/terms-of-service/" target="_blank" rel="noreferrer">Outscraper Terms</a>, <a className={a} href="https://outscraper.com/privacy-policy/" target="_blank" rel="noreferrer">Outscraper Privacy</a>, <a className={a} href="https://www.pexels.com/terms-of-service/" target="_blank" rel="noreferrer">Pexels Terms</a>, <a className={a} href="https://www.pexels.com/license/" target="_blank" rel="noreferrer">Pexels License</a>, <a className={a} href="https://www.usebouncer.com/terms-and-conditions/" target="_blank" rel="noreferrer">Bouncer Terms</a>, <a className={a} href="https://www.usebouncer.com/privacy-policy/" target="_blank" rel="noreferrer">Bouncer Privacy</a>, <a className={a} href="https://www.usebouncer.com/dpa/" target="_blank" rel="noreferrer">Bouncer DPA</a>, and <a className={a} href="https://www.easydnc.org/terms.php" target="_blank" rel="noreferrer">EasyDNC Terms</a>.</li>
+          <li><strong>Hosting, accounts, analytics, and payments.</strong> Vercel, Cloudflare, Supabase, Google Analytics, Shopify and their subprocessors handle hosting, network security, authentication/database, analytics, checkout, and order reconciliation as described in the Privacy Policy. Google Analytics loads only after analytics consent and receives the path without query parameters; Vercel Analytics also collects privacy-filtered usage telemetry. The account&apos;s Shopify Payments merchant setup must be controlled by an adult representative; customers under 18 cannot buy Coins through this Service. Adult operators remain responsible for their end users and content. We do not store full payment-card numbers. See <a className={a} href="https://vercel.com/legal/terms" target="_blank" rel="noreferrer">Vercel Terms</a>, <a className={a} href="https://www.cloudflare.com/terms/" target="_blank" rel="noreferrer">Cloudflare Terms</a>, <a className={a} href="https://supabase.com/terms" target="_blank" rel="noreferrer">Supabase Terms</a>, <a className={a} href="https://policies.google.com/terms" target="_blank" rel="noreferrer">Google Terms</a>, <a className={a} href="https://www.shopify.com/legal/terms" target="_blank" rel="noreferrer">Shopify Terms</a>, <a className={a} href="https://www.shopify.com/legal/terms-shopify-payments" target="_blank" rel="noreferrer">Shopify Payments Terms</a>, and <a className={a} href="https://help.shopify.com/en/manual/payments/shopify-payments/onboarding/eligibility" target="_blank" rel="noreferrer">Shopify Payments eligibility</a>.</li>
+          <li><strong>Desktop and workload installers.</strong> The official VibeCodeWorker desktop app can query GitHub for Godot release metadata/downloads and may install Ollama from Ollama&apos;s official installer. The legacy browser workspace can fetch its public source manifest and code from raw.githubusercontent.com if the same-origin copy is unavailable. Godot&apos;s official site is linked for optional user-initiated downloads. OpenCode is an optional user-installed CLI, typically downloaded from opencode.ai or npm&apos;s registry; installing or updating it contacts those providers. RunPod worker images can install Ubuntu packages, Ollama, Google Chrome, and clone the 4weird repository from GitHub when a user starts a workload. Those providers receive ordinary network request metadata from the downloading machine or workload. Their software and service terms apply; local model licenses may differ by model, and you are responsible for reviewing licenses and securing any workload. See <a className={a} href="https://docs.github.com/en/site-policy/github-terms/github-terms-of-service" target="_blank" rel="noreferrer">GitHub Terms</a>, <a className={a} href="https://godotengine.org/license/" target="_blank" rel="noreferrer">Godot License</a>, <a className={a} href="https://ollama.com/terms" target="_blank" rel="noreferrer">Ollama Terms</a>, <a className={a} href="https://opencode.ai/legal/terms-of-service" target="_blank" rel="noreferrer">OpenCode Terms</a>, and <a className={a} href="https://policies.google.com/terms" target="_blank" rel="noreferrer">Google Terms</a>.</li>
+          <li><strong>CDNs, bot screening, and Discord.</strong> jsDelivr, cdnjs, Google Fonts, esm.sh, and Blender.org deliver libraries, fonts, and worker downloads; BotID/Kasada screen request metadata for abuse; Discord receives user/guild/channel and command metadata when you use our community bot. Do not use the Discord bot if you are below Discord&apos;s minimum age for your jurisdiction; Discord account rules apply separately and the bot is not linked to a 4weird child account. See <a className={a} href="https://github.com/jsdelivr/jsdelivr/blob/master/Terms%20of%20Use.md" target="_blank" rel="noreferrer">jsDelivr Terms</a>, <a className={a} href="https://www.jsdelivr.com/terms/privacy-policy" target="_blank" rel="noreferrer">jsDelivr Privacy</a>, <a className={a} href="https://www.kasada.io/privacy-policy" target="_blank" rel="noreferrer">Kasada Privacy</a>, <a className={a} href="https://discord.com/terms" target="_blank" rel="noreferrer">Discord Terms</a>, <a className={a} href="https://support-dev.discord.com/hc/articles/8562894815383-Discord-Developer-Terms-of-Service" target="_blank" rel="noreferrer">Discord Developer Terms</a>, <a className={a} href="https://support-dev.discord.com/hc/articles/8563934450327-Discord-Developer-Policy" target="_blank" rel="noreferrer">Discord Developer Policy</a>, and <a className={a} href="https://discord.com/privacy" target="_blank" rel="noreferrer">Discord Privacy Policy</a>.</li>
+        </ul>
         <p>
           We provide your information to private third parties as described in the Privacy Policy; including service
           providers that operate the Service, and buyers or successors in a merger, financing, sale, or

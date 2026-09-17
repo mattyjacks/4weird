@@ -1,3 +1,4 @@
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { dbFail, fail, ok, rpcFail } from "@/lib/api-respond";
@@ -46,6 +47,8 @@ export async function POST(req: Request) {
   // keys fall through to the BotID check and fail closed like any bot.
   const botBlock = await requireHuman(req, "POST /api/meshy/generate", { allowAuthenticated: true });
   if (botBlock) return botBlock;
+  const meshyAge = await checkAuthenticatedVendorEligibility(serviceClient(), userId, "meshy");
+  if (!meshyAge.allowed) return fail(meshyAge.reason, 403);
   const rl = rateLimit(`meshy:generate:${userId}`, 20, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 

@@ -17,10 +17,22 @@
 
 import { el, synth, isTauriRuntime, invokeTauriCommand } from './core_state.js';
 import { log } from './telemetry_logger.js';
+import { BOT_API_BASE, getBotToken } from './bot_token.js';
 
 export const FAL_QUEUE_BASE = 'https://queue.fal.run';
 export const FAL_CHEAP_MODEL = 'fal-ai/flux/schnell';
 const FAL_KEY_LS_KEY = 'vcw_fal_key';
+
+async function assertFalEligible() {
+  const botKey = await getBotToken();
+  if (!botKey) throw new Error('Connect an Adult 4weird account with a bot key before using fal.ai.');
+  const response = await fetch(`${BOT_API_BASE}/api/bot/vendor-eligibility?vendor=fal`, {
+    headers: { 'x-bot-key': botKey, accept: 'application/json' },
+    cache: 'no-store',
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body.allowed !== true) throw new Error(body.error || 'This 4weird account is not eligible to use fal.ai.');
+}
 const NIL_REQUEST_ID = '00000000-0000-0000-0000-000000000000';
 
 export function isFalKeyShape(value) {
@@ -129,6 +141,7 @@ async function verifyFalKey() {
   }
   setStatus('Checking the key against queue.fal.run (free probe, nothing runs)…', 'info');
   try {
+    await assertFalEligible();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
     const res = await fetch(`${FAL_QUEUE_BASE}/${FAL_CHEAP_MODEL}/requests/${NIL_REQUEST_ID}/status`, {
@@ -171,6 +184,7 @@ async function cheapTestFal() {
   setStatus('Queuing one 512px FLUX schnell image (cheapest tier)…', 'info');
   setPreview('');
   try {
+    await assertFalEligible();
     const submit = await fetch(`${FAL_QUEUE_BASE}/${FAL_CHEAP_MODEL}`, {
       method: 'POST',
       headers: { Authorization: `Key ${key}`, 'Content-Type': 'application/json' },

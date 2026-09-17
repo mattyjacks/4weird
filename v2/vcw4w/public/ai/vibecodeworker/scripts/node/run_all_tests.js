@@ -8,6 +8,7 @@ const { spawnSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..', '..');
 const tests = [
+  'tests/test_vendor_eligibility.js',
   'tests/test_vibecodeworker.js',
   'tests/test_console_triage.js',
   'tests/test_runpod_cloud.js',

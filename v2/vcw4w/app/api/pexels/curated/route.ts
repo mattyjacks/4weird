@@ -18,6 +18,7 @@ import {
   pexelsCuratedPath,
   pexelsKey,
 } from "@/lib/pexels";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 
 /**
@@ -31,6 +32,8 @@ export async function GET(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required. Sign in to browse free stock.", 401);
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "pexels");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
   // Layered buckets, same as search: memory first, shared Postgres second.
   const rl = rateLimit(`pexels:curated:${data.user.id}`, PEXELS_MINUTE_LIMIT, 60_000);
   if (!rl.allowed) return fail("Rate limited. Slow down a touch - stock isn't going anywhere.", 429, rateLimitHeaders(rl));

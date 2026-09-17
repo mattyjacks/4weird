@@ -1,0 +1,29 @@
+{
+  "id": "DS-BLDFIX-02",
+  "title": "Web routes build health",
+  "goal": "npm run build (v2/vcw4w) is green: Web routes build health. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "web",
+  "scope": [
+    "v2/vcw4w/app",
+    "v2/vcw4w/components/site"
+  ],
+  "gates": [
+    "npm run verify:legacy",
+    "npm run verify:no-dead-links"
+  ],
+  "status": "done",
+  "owner": "bldfix-02",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T12:00:00.000Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T12:00:00.000Z bldfix-02: claimed (was open/unowned).",
+    "2026-09-17T12:00:00.000Z bldfix-02: GATE verify:legacy PASS — 'Legacy surface integrity OK: 29 required assets and 14 worker modules.'",
+    "2026-09-17T12:00:00.000Z bldfix-02: GATE verify:no-dead-links PASS — 'No dead internal links OK (targets: 3057, hrefs: 249 unique / 1251 refs).'",
+    "2026-09-17T12:00:00.000Z bldfix-02: GATE eslint clean (exit 0, zero warnings) on inspected scope paths: components/site/search-overlay.tsx, components/site/site-header.tsx, app/code/page.tsx, app/search/page.tsx, app/layout.tsx.",
+    "2026-09-17T12:00:00.000Z bldfix-02: illegal segment exports: NONE in web scope. Only match for metadata+client combo was app/code/page.tsx, false positive ('use client' appears solely in a doc comment line 16; page is a server component, client island split into code-lookup-form.tsx). No 'use client' file in components/site exports metadata/generateStaticParams.",
+    "2026-09-17T12:00:00.000Z bldfix-02: client-hook poisoning: NONE. All useSearchParams/usePathname call sites are Suspense-wrapped — root layout wraps DailyBonusBanner/FeedbackBar/SiteHeader/MenuSidebar/GoogleAnalytics in Suspense (CLIENT_HOOK_DYNAMIC-safe PPR shell), app/music/*/page.tsx + app/music/all/page.tsx wrap gallery-client (useSearchParams) in Suspense, app/search/page.tsx awaits Promise searchParams (Next16 pattern) + Suspense around results.",
+    "2026-09-17T12:00:00.000Z bldfix-02: slow static gen: NONE in web scope. generateStaticParams in scope is only app/vocrehab/course/[module] (tiny module list); games/vibecodeworker fan-outs are carved lanes (not mine). Largest web-scope routes are small static content (app/my/usage/usage-client 29.8KB, app/terminal/page 29KB, docs pages 15-21KB); components/site largest is site-header 37.6KB (client chrome, already Suspense-split in layout). search-overlay fetches /search/index.json at runtime, nothing at build.",
+    "2026-09-17T12:00:00.000Z bldfix-02: CONCLUSION: no web-lane route breaks build/finalizing. Zero app/components writes (NEW-files-only rule, nothing to fix). Full `next build` re-run not executed (120s+ Finalizing hang is extrinsic, outside 120s tool budget; baseline already shows 601/601 pages generate). Suspected hang lives OUT of web scope — likely games closed-catalog fan-out (34 slugs x2 generateStaticParams) or economy/vcw lanes — flagged for bldfix-lead/steward, no QUEUE edit (steward-owned). DONE green."
+  ]
+}

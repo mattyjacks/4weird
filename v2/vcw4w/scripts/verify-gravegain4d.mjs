@@ -12,8 +12,8 @@
 //   5. Graphics (gg4d-02) reuses 3D models by reference
 //      (GraveGainGraphics3D / GraveGain3DModels) and defines no new
 //      enemy BoxGeometry (no fork).
-//   6. Bundle dir public/games/gravegain4d/{game.json,index.html,game.js}
-//      exists (gg4d-05).
+//   6. Bundle dir public/games/gravegain4d/{game.json,index.html} exists and
+//      its ordered multi-file runtime entry points exist (gg4d-05).
 //   7. Content modules content/gravegain4d-modes.ts + content/gravegain4d-lore.ts
 //      exist and carry canon names (Angel Good, Mirathiel, Groknak, Hades)
 //      (gg4d-06).
@@ -114,12 +114,21 @@ if (!existsSync(gfxAbs)) {
 // ---- gg4d-05 bundle dir ----
 console.log("GG4D bundle (gg4d-05, read-only):");
 const bundle = join(root, "public", "games", "gravegain4d");
-for (const f of ["game.json", "index.html", "game.js"]) {
+for (const f of ["game.json", "index.html"]) {
   const abs = join(bundle, f);
   check(
     `bundle public/games/gravegain4d/${f} exists`,
     existsSync(abs),
     "gg4d-05 bundle not landed yet"
+  );
+}
+const indexAbs = join(bundle, "index.html");
+const indexSrc = existsSync(indexAbs) ? readAbs(indexAbs) : "";
+for (const f of ["engine/main4d.js", "engine/flow4d.js", "engine/putt.js", "graphics/slicerenderer.js", "input/input4d.js"]) {
+  check(
+    `bundle runtime ${f} exists and is loaded`,
+    existsSync(join(bundle, f)) && indexSrc.includes(`src="${f}"`),
+    "expected the ordered multi-file runtime declared by the source index.html"
   );
 }
 

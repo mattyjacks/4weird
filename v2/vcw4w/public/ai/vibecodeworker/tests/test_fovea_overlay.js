@@ -7,6 +7,7 @@
 'use strict';
 
 const assert = require('assert');
+process.env.NODE_ENV = 'test';
 const fo = require('../lib/fovea_overlay');
 
 let passed = 0;
@@ -91,21 +92,15 @@ ok('foveaArg formats + sanitizes labels', () => {
     } finally { global.fetch = realFetch; }
   });
 
-  await okAsync('gemini payload carries overview + inline crops', async () => {
+  await okAsync('gemini payload is blocked before camera frames can leave the device', async () => {
     const { callLLM } = require('../lib/brain/llm_caller');
-    const seen = {};
     const realFetch = global.fetch;
-    global.fetch = async (url, opts) => {
-      seen.body = JSON.parse(opts.body);
-      return { ok: true, json: async () => ({ candidates: [{ content: { parts: [{ text: '{}' }] } }], usageMetadata: { promptTokenCount: 9, candidatesTokenCount: 2 } }) };
-    };
+    let requests = 0;
+    global.fetch = async () => { requests += 1; throw new Error('unexpected provider request'); };
     try {
       const brain = { config: { provider: 'gemini', apiKey: 'test-key', modelName: 'gemini-3.5-flash-lite' }, recordTokenUsage() {} };
-      await callLLM(brain, 'hi', 'OVERVIEW'.padEnd(200, 'A'), null, ['CROP1'.padEnd(200, 'B')]);
-      const parts = seen.body.contents[0].parts;
-      assert.strictEqual(parts.length, 3);
-      assert.strictEqual(parts[1].inlineData.mimeType, 'image/jpeg');
-      assert.strictEqual(parts[2].inlineData.data[0], 'C');
+      await assert.rejects(() => callLLM(brain, 'hi', 'OVERVIEW'.padEnd(200, 'A'), null, ['CROP1'.padEnd(200, 'B')]), /Google Gemini is disabled/);
+      assert.strictEqual(requests, 0);
     } finally { global.fetch = realFetch; }
   });
 

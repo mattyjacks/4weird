@@ -77,13 +77,13 @@ for (const token of ["document.", "canvas.getContext", "localStorage", "fetch(",
 check("game.js has no eval anywhere", !/\beval\s*\(/.test(game));
 
 // ---- 4. generated canonical bundle ----
-const gen = "public/games/gravegain1d/index.html";
-check(`${gen} generated`, existsSync(join(root, "public", "games", "gravegain1d", "index.html")));
+const gen = "public/games/gravegain1dA/index.html";
+check(`${gen} generated`, existsSync(join(root, "public", "games", "gravegain1dA", "index.html")));
 const genHtml = existsSync(join(root, gen)) ? read(gen) : "";
 // Strip the sync-injected embed CSS (it names chrome ids in selectors).
 const genBody = genHtml.replace(/<style id="fourweird-game-only">[\s\S]*?<\/style>/, "");
 check("generated bundle includes runtime-bridge.js", genHtml.includes("/games/html/runtime-bridge.js"));
-check('generated bundle tags data-slug="gravegain1d"', genHtml.includes('data-slug="gravegain1d"'));
+check('generated bundle tags data-slug="gravegain1dA"', genHtml.includes('data-slug="gravegain1dA"'));
 check("generated bundle includes fourweird-workers.js", genHtml.includes("/games/html/fourweird-workers.js"));
 check("generated bundle has no relative game-meta", !genHtml.includes('"../game-meta.js"') && !genHtml.includes("'../game-meta.js") && !genHtml.includes('"../../game-meta.js"'));
 for (const token of ["nav-placeholder", "footer-placeholder", "starfield", "game-header", "game-info-panel", "credits-section", "bio-section", "more-games"]) {
@@ -96,20 +96,20 @@ check("source index has no site chrome either", !/nav-placeholder|footer-placeho
 
 // ---- 5. game.json <-> games.ts consistency ----
 const meta = existsSync(join(root, dir, "game.json")) ? JSON.parse(read(`${dir}/game.json`)) : {};
-check("game.json slug gravegain1d", meta.slug === "gravegain1d");
+check("game.json slug gravegain1d", meta.slug === "gravegain1dA");
 check("game.json title non-empty", typeof meta.title === "string" && meta.title.trim().length > 0);
 check("game.json genre RPG", meta.genre === "RPG");
 const catalog = read("content/games.ts");
-check("games.ts genre matches game.json", catalog.includes("'gravegain1d','GraveGain1D'") && catalog.includes("'RPG'"));
+check("games.ts genre matches game.json", catalog.includes("gravegain1dA','GraveGain1DA: The Ley-Line March"));
 for (const tag of ["HTML5", "RPG", "1D", "Turn-Based"]) {
   check(`games.ts tags include ${tag}`, catalog.includes(`'${tag}'`));
 }
 check("games.ts runtimePath exact", catalog.includes("/games/gravegain1d/index.html") || catalog.includes("/games/${slug}/index.html"));
 
 // ---- 6. registration ----
-check("lib/age-gate.ts rates gravegain1d teens", read("lib/age-gate.ts").includes('gravegain1d: "teens"'));
+check("lib/age-gate.ts rates gravegain1d teens", read("lib/age-gate.ts").includes('gravegain1dA: "teens"'));
 const sync = read("scripts/sync-game-bundles.mjs");
-check('sync bundles include ["gravegain1d","gravegain1d"]', sync.includes('["gravegain1d", "gravegain1d"]') || sync.includes('["gravegain1d","gravegain1d"]'));
+check('sync bundles include ["gravegain1d","gravegain1d"]', sync.includes('["gravegain1dA", "gravegain1d"]') || sync.includes('["gravegain1d","gravegain1d"]'));
 check("CONTENT_MODE_SLUGS excludes gravegain1d (teen-clean by design)", (() => {
   const m = sync.match(/CONTENT_MODE_SLUGS\s*=\s*new Set\(\[([^\]]*)\]\)/);
   return !!m && !m[1].includes("gravegain1d");

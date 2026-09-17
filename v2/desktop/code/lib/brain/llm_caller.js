@@ -4,6 +4,7 @@
 
 const { getResolvedApiKey } = require('../storage');
 const { isMetaDirectUrl } = require('../meta_endpoint');
+const { assertProviderEligible } = require('../vendor_eligibility');
 
 function selectDeepSeekModel(requestedModel, hasImage, prompt) {
   // Vision input is accepted only by the documented vision model. Keep image
@@ -93,6 +94,8 @@ async function callLLM(brain, prompt, base64Image = null, audioInput = null, ext
       }
     }
   }
+
+  await assertProviderEligible(provider, { model: modelName });
 
   let url = '';
   let headers = { 'Content-Type': 'application/json' };

@@ -31,6 +31,8 @@
  */
 
 import { moderateText } from "@/lib/moderation";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
+import { serviceClient } from "@/lib/supabase/service";
 
 export const VALLEYNET_NAME = "Valley Net";
 export const VALLEYNET_BADGE = "👱🏻‍♀️ Protected by Valley Net";
@@ -64,12 +66,17 @@ export function valleynetShapes(text: string): string[] {
   return hits;
 }
 
-export async function valleynetCheck(text: string): Promise<ValleynetResult> {
+export async function valleynetCheck(text: string, options: { userId?: string } = {}): Promise<ValleynetResult> {
   const input = String(text ?? "");
   const reasons: string[] = [];
   let lunaBlocked = false;
   try {
-    const mod = await moderateText(input);
+    let allowExternalAi = false;
+    if (options.userId) {
+      const eligibility = await checkAuthenticatedVendorEligibility(serviceClient(), options.userId, "openai");
+      allowExternalAi = eligibility.allowed;
+    }
+    const mod = await moderateText(input, { allowExternalAi });
     if (!mod.allowed) {
       lunaBlocked = true;
       reasons.push("luna-block");

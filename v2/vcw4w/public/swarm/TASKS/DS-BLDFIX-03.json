@@ -1,0 +1,26 @@
+{
+  "id": "DS-BLDFIX-03",
+  "title": "Games bundles + catalog",
+  "goal": "npm run build (v2/vcw4w) is green: Games bundles + catalog. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "games",
+  "scope": [
+    "v2/vcw4w/public/games",
+    "v2/vcw4w/content"
+  ],
+  "gates": [
+    "npm run verify:games",
+    "npm run verify:catalog"
+  ],
+  "status": "blocked",
+  "owner": "bldfix-03",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T05:07:03.592Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T06:00:00Z bldfix-03: claimed (tag == envelope id).",
+    "2026-09-17T06:05:00Z bldfix-03 GATE EVIDENCE verify:games exit 1: divergedMissing=[gravegain2d/game.css, gravegain2d/game.js, gravegain2d/game.json, gravegain2d/index.html, gravegain2d/lore.js] (public/games/html/gravegain2d absent on disk, old-v1 reference has 5 files); mismatched=[soundpainter/game.js, soundpainter2/game.js, template-demo/game.js, venturemechanically/game.js]; extra=v2-native list (allowed, noted).",
+    "2026-09-17T06:06:00Z bldfix-03 GATE EVIDENCE verify:catalog exit 1 at closed-catalog check: app/games/[slug]/page.tsx + play/page.tsx carry 'dynamicParams removed for cacheComponents compat' (no dynamicParams=false literal), app/vibecodeworker/[section]/page.tsx has no dynamicParams literal; all three keep generateStaticParams + notFound(). Matches QUEUE Pagefix-02 R2/R3 ruling: script must accept cacheComponents pattern.",
+    "2026-09-17T06:07:00Z bldfix-03 ZERO-WRITES: no scope-local NEW-file fix exists. Parity-locked public/games/html never hand-edited per envelope goal (gravegain2d restore + 4x mismatch waivers need steward script change: divergedPrefixes += soundpainter/ soundpainter2/ venturemechanically/ template-demo/). Catalog pages app/games/** + app/vibecodeworker/** out of this envelope scope (scope ONLY public/games + content). content/games.ts + game-manifests.ts untouched (wiring via QUEUE only).",
+    "2026-09-17T06:08:00Z bldfix-03 QUEUE-ASK steward: (1) verify-game-bundles.mjs: add divergedPrefixes soundpainter/ soundpainter2/ venturemechanically/ template-demo/ (R2/R3) + rule on missing gravegain2d/ under public/games/html (restore from old-v1 vs retire prefix). (2) verify-catalog-runtime.mjs: accept cacheComponents closed-catalog pattern (generateStaticParams + notFound(), no dynamicParams literal) for the 3 pages. (3) content/games.ts + game-manifests.ts: no wiring change requested from this lane (catalog slugs verified consistent: runtimePath always /games/<slug>/index.html). Status -> blocked-honest."
+  ]
+}

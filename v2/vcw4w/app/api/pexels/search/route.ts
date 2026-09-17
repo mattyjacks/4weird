@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import { acctBucketKey, globalBucket, throttleHeaders } from "@/lib/abuse-limit";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 import {
   PEXELS_ABUSE_SCOPE,
   PEXELS_CREDIT_NOTE,
@@ -41,6 +42,8 @@ export async function GET(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required. Sign in to search free stock; the /stock browser UI is free to open without login.", 401);
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "pexels");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
   // Layer 1: fast per-instance memory bucket. Layer 2: shared Postgres bucket
   // (survives serverless scale-out). Deny if EITHER denies; a null shared
   // verdict means the store is unreachable, so fall back to layer 1.

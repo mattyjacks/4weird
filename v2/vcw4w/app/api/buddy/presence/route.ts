@@ -27,6 +27,11 @@ type Feature = (typeof FEATURES)[number];
 export async function POST(req: Request) {
   if (!hasServerSupabase()) return fail("Supabase is not configured.", 503);
   if (!sameOrigin(req)) return fail("Invalid request origin.", 403);
+  // meter_game_ai_usage debits auth.uid(); it cannot attribute this spend to
+  // a child or enforce that child's controls while a parent cookie is present.
+  if (req.headers.get("cookie")?.split(";").some((part) => part.trim().split("=", 1)[0] === "kid_session")) {
+    return fail("Buddy presence metering is unavailable during a child session.", 403);
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required.", 401);

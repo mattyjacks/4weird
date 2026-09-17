@@ -41,7 +41,7 @@
         },
         [Race.DWARF]: {
             name: 'Dwarf',
-            emoji: '⛏️',
+            emoji: '🧔🏻',
             color: 'rgb(255, 204, 76)',
             maxHp: 150.0,
             hpRegen: 2.0,
@@ -51,8 +51,8 @@
         },
         [Race.ORC]: {
             name: 'Orc',
-            emoji: '👹',
-            color: 'rgb(255, 76, 76)',
+            emoji: '🟢👹',
+            color: 'rgb(76, 210, 92)',
             maxHp: 200.0,
             hpRegen: 3.0,
             stamina: 100.0,
@@ -77,7 +77,7 @@
         { name: 'Medium Orc Zed', emoji: '👺', hp: 150, dmg: 20, speed: 70, type: 'elite', blood: 'red' },
         { name: 'Dwarven Zed', emoji: '🛡️', hp: 200, dmg: 15, speed: 60, type: 'elite', blood: 'red', armored: true },
         { name: 'Human Zed', emoji: '🤖', hp: 500, dmg: 25, speed: 80, type: 'boss', blood: 'red', ranged: true },
-        { name: 'Huge Orc Zed', emoji: '👹', hp: 800, dmg: 40, speed: 50, type: 'boss', blood: 'red' },
+        { name: 'Huge Orc Zed', emoji: '🟢👹', hp: 800, dmg: 40, speed: 50, type: 'boss', blood: 'red' },
         { name: 'Elven Necromancer', emoji: '🧙', hp: 400, dmg: 15, speed: 60, type: 'boss', blood: 'purple', summoner: true }
     ];
 

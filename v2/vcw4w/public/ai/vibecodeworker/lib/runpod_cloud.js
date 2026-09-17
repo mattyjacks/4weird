@@ -1,5 +1,7 @@
 'use strict';
 
+const { assertProviderEligible } = require('./vendor_eligibility');
+
 /**
  * Runpod cloud runner for VibeCodeWorker.
  *
@@ -284,6 +286,7 @@ function redactError(msg) {
 }
 
 async function runpodFetch(apiKey, pathName, opts = {}) {
+  await assertProviderEligible('runpod');
   if (!/^\/(pods|gpus)([/?].*)?$/.test(pathName)) throw new Error('blocked path');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), Number(opts.timeoutMs || 20000));
@@ -486,6 +489,7 @@ async function getCloudGpuCatalog(opts = {}) {
 }
 
 async function runpodFetchV2(apiKey, pathName, opts = {}) {
+  await assertProviderEligible('runpod');
   if (!/^\/pods([/?].*)?$/.test(pathName)) throw new Error('blocked path');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), Number(opts.timeoutMs || 25000));

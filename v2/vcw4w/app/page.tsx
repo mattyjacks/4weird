@@ -10,7 +10,7 @@ import { InfoTip } from "@/components/ui/info-tip";
 const FEATURED_SLUGS = [
   "overtake",
   "lastwordszombies",
-  "gravegain3d",
+  "gravegain3dA",
   "serversavershield",
   "assassinanimals",
   "battlesharks2",
@@ -49,12 +49,6 @@ const CLASSICS = [
     emoji: "🌐",
     title: "Web Apps",
     body: "Tiny useful tools built on this cloud; fast, weird, wonderful.",
-  },
-  {
-    href: "/xonotic",
-    emoji: "🔫",
-    title: "Xonotic",
-    body: "Arena FPS on gpu-boosted iron with desktop streaming. Go loud.",
   },
   {
     href: "/tech",
@@ -1226,10 +1220,10 @@ export default function Home() {
                 more="For games and startups."
               />
               <DirItem
-                href="/xonotic"
-                label="🔫 Xonotic"
-                head="Arena FPS."
-                more="On gpu-boosted cloud desktops."
+                href="/gravegain"
+                label="🪦 GraveGain Universe"
+                head="Shared universe."
+                more="Read lore and track missions."
               />
               <DirItem
                 href="/web-apps"

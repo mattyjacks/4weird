@@ -3,6 +3,7 @@ import { hasServerSupabase } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { rateLimit } from "@/lib/rate-limit";
 import { falApiBase, falConfigured, falKey, isFalOp, modelForOp, opByKey } from "@/lib/fal";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 
 /**
@@ -15,6 +16,8 @@ export async function GET(req: Request) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getUser();
   if (!data.user) return fail("Authentication required. Sign in to poll fal runs; the catalog + quotes on /fal are free without login.", 401);
+  const ageGate = await checkAuthenticatedVendorEligibility(supabase, data.user.id, "fal");
+  if (!ageGate.allowed) return fail(ageGate.reason, 403);
   const rl = rateLimit(`fal:status:${data.user.id}`, 30, 60_000);
   if (!rl.allowed) return fail("Rate limited.", 429);
 

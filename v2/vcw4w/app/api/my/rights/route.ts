@@ -185,18 +185,20 @@ export async function GET(req: Request) {
       .eq("parent_id", id)
       .limit(10);
     const kidIds = (Array.isArray(kids) ? kids : []).map((k) => String((k as { id: string }).id));
-    let controls: unknown = [], wallet: unknown = [], days: unknown = [];
+    let controls: unknown = [], legacyWallet: unknown = [], childCoinUsage: unknown = [], days: unknown = [];
     if (kidIds.length) {
-      const [c, w, d] = await Promise.all([
-        svc.from("kid_controls").select("kid_id,daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hard_stop,updated_at").in("kid_id", kidIds),
+      const [c, w, spend, d] = await Promise.all([
+        svc.from("kid_controls").select("kid_id,daily_minutes,allowed_start,allowed_end,timezone,monthly_cap_coins,hourly_cap_coins,hard_stop,allowed_games,allowed_features,updated_at").in("kid_id", kidIds),
         svc.from("kid_wallet_ledger").select("id,kid_id,delta,reason,created_at").in("kid_id", kidIds).limit(500),
+        svc.from("coin_ledger").select("id,kid_account_id,delta,reason,created_at").eq("user_id", id).in("kid_account_id", kidIds).limit(1000),
         svc.from("kid_play_days").select("kid_id,day,seconds").in("kid_id", kidIds).limit(365),
       ]);
       controls = c.data ?? [];
-      wallet = w.data ?? [];
+      legacyWallet = w.data ?? [];
+      childCoinUsage = spend.data ?? [];
       days = d.data ?? [];
     }
-    family = { kids: kids ?? [], controls, wallet, days };
+    family = { kids: kids ?? [], controls, legacyWallet, childCoinUsage, days };
   } catch {
     family = null;
   }

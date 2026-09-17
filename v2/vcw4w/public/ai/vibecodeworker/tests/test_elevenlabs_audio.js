@@ -5,6 +5,7 @@
  * /api/audio/* routes are all verified for real.
  */
 const assert = require('assert');
+process.env.NODE_ENV = 'test';
 const path = require('path');
 const projectRoot = path.resolve(__dirname, '..');
 

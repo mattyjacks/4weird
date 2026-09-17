@@ -15,6 +15,10 @@ export type VocrehabScheduleMonthProps = {
   selectedDayId: string | null;
   eventCounts: Record<string, VocrehabScheduleMonthDayCounts>;
   onSelect: (dayId: string) => void;
+  quickAddActivity?: { id: string; label: string } | null;
+  dayEvents?: Record<string, Array<{ id: string; title: string; startMin: number; endMin: number }>>;
+  onQuickAdd?: (dayId: string, activityId: string) => void;
+  onQuickRemove?: (dayId: string, eventId: string) => void;
   /**
    * Day id (`YYYY-MM-DD`) to highlight as today. Passed in as a prop so the
    * grid stays a pure function of props (skeleton-friendly first paint —
@@ -60,6 +64,10 @@ export default function VocrehabScheduleMonth({
   selectedDayId,
   eventCounts,
   onSelect,
+  quickAddActivity = null,
+  dayEvents = {},
+  onQuickAdd,
+  onQuickRemove,
   todayDayId = null,
 }: VocrehabScheduleMonthProps) {
   const monthName = VOCREHAB_MONTHS[monthIndex] ?? `Month ${monthIndex + 1}`;
@@ -145,8 +153,7 @@ export default function VocrehabScheduleMonth({
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <caption className="pb-2 text-left text-muted-foreground">
-            {monthName} {year}. Arrow keys move between days, Enter opens the highlighted day. Open days
-            are ready when you are.
+            {monthName} {year}. Tap a date to open its day plan. Use Add to place a one-hour block, or tap a scheduled item to remove it.
           </caption>
           <thead>
             <tr>
@@ -175,6 +182,7 @@ export default function VocrehabScheduleMonth({
                           `${counts.travelMin} min travel` +
                           `${isToday ? ", today" : ""}${isSelected ? ", selected" : ""}`;
                         return (
+                          <>
                           <button
                             ref={setDayRef(cell.dayId)}
                             type="button"
@@ -215,6 +223,34 @@ export default function VocrehabScheduleMonth({
                               </span>
                             )}
                           </button>
+                          {dayEvents[cell.dayId]?.length ? (
+                            <ul className="mt-1 space-y-1" aria-label={`Scheduled items on ${monthName} ${cell.day}`}>
+                              {dayEvents[cell.dayId].map((event) => (
+                                <li key={event.id}>
+                                  <button
+                                    type="button"
+                                    onClick={() => onQuickRemove?.(cell.dayId, event.id)}
+                                    aria-label={`Remove ${event.title}, ${Math.floor(event.startMin / 60)}:${String(event.startMin % 60).padStart(2, "0")} to ${Math.floor(event.endMin / 60)}:${String(event.endMin % 60).padStart(2, "0")}`}
+                                    className="vocrehab-schedule-event-chip block w-full truncate rounded border border-emerald-300 bg-emerald-50 px-1 py-0.5 text-left text-[10px] font-medium text-emerald-950 hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-primary"
+                                    title="Tap to remove this scheduled item"
+                                  >
+                                    {event.title} · {Math.floor(event.startMin / 60)}:{String(event.startMin % 60).padStart(2, "0")} ×
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : null}
+                          {quickAddActivity && onQuickAdd ? (
+                            <button
+                              type="button"
+                              onClick={() => onQuickAdd(cell.dayId, quickAddActivity.id)}
+                              aria-label={`Add one hour of ${quickAddActivity.label} on ${monthName} ${cell.day}`}
+                              className="mt-1 min-h-8 w-full rounded border border-dashed border-stone-400 bg-white px-1 py-0.5 text-left text-[10px] font-semibold text-stone-700 hover:border-emerald-600 hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-primary"
+                            >
+                              + Add 1 hr
+                            </button>
+                          ) : null}
+                          </>
                         );
                       })()}
                     </td>

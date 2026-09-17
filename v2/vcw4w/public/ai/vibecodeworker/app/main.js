@@ -397,6 +397,7 @@ ipcMain.handle('launch-steam-game', async (_event, options = {}) => {
 });
 
 ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
+  const { assertProviderEligible } = require('../lib/vendor_eligibility');
   const prompt = 'Hello, World! Respond in 1 word.';
   // Renderer sends its configured endpoint URL alongside the keys so a
   // Meta-direct key can be live-tested against the user's own endpoint when
@@ -413,6 +414,12 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
   ];
   const results = await Promise.all(providers.map(async (provider) => {
     if (!provider.key) return { provider: provider.name, status: 'skipped', detail: 'No key entered.' };
+    try {
+      const policyProvider = provider.name === 'meta' && !provider.key.startsWith('sk-or-v1-') ? 'meta' : provider.name;
+      await assertProviderEligible(policyProvider, { botKey: suppliedKeys.fourweird, model: provider.model });
+    } catch (error) {
+      return { provider: provider.name, status: 'blocked', detail: error.message };
+    }
     // ElevenLabs authenticates with xi-api-key on a GET /v1/user probe -
     // never POST test traffic that would burn voice credits.
     if (provider.runpod) {
@@ -508,6 +515,8 @@ ipcMain.handle('generate-commentary-speech', async (_event, options = {}) => {
   }
   const apiKey = getResolvedApiKey('openai', String(options.apiKey || ''));
   if (!apiKey) return { success: false, error: 'Add an OpenAI API key or choose System voice' };
+  try { await require('../lib/vendor_eligibility').assertProviderEligible('openai'); }
+  catch (error) { return { success: false, error: error.message }; }
   const permittedVoices = new Set(['alloy', 'nova', 'shimmer', 'onyx']);
   const voice = permittedVoices.has(options.voice) ? options.voice : 'nova';
   try {

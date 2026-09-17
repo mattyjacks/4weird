@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasServerSupabase } from "@/lib/supabase/service";
 import { ok, fail, dbFail } from "@/lib/api-respond";
 import { SAFE_HARBOR_DAYS, FTC_TSR_MAX_FINE_PER_CALL, TCPA_STATUTORY_FINE_MAX } from "@/lib/easydnc";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 // GET /api/easydnc/certificate?batch_id=<UUID>
 export async function GET(req: Request) {
@@ -17,10 +18,15 @@ export async function GET(req: Request) {
   }
 
   const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return fail("Authentication required.", 401);
+  const vendorAge = await checkAuthenticatedVendorEligibility(supabase, auth.user.id, "easydnc");
+  if (!vendorAge.allowed) return fail(vendorAge.reason, 403);
   const { data: batch, error } = await supabase
     .from("easydnc_scrub_batches")
     .select("id,user_id,batch_hash,total_checked,total_dnc,total_clean,is_byok,created_at")
     .eq("id", batchId)
+    .eq("user_id", auth.user.id)
     .maybeSingle();
 
   if (error) {

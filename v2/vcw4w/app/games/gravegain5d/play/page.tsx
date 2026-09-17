@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Play GraveGain5D | 4weird Games",
+  title: "Play GraveGain5DA | 4weird Games",
   description:
-    "Play GraveGain5D: transcend six parallel Arroyos in a 5D multiverse golf rogue-like — chain hops, vent paradox, beat the collapse timers.",
+    "Play GraveGain5DA: transcend six parallel Arroyos in a 5D multiverse golf rogue-like — chain hops, vent paradox, beat the collapse timers.",
   robots: { index: false, follow: false },
 };
 
@@ -21,11 +21,11 @@ export const viewport: Viewport = {
 
 // NOTE: this static route takes precedence over app/games/[slug]/play for
 // the gravegain5d slug (static beats dynamic in Next.js routing). It frames
-// the v2 bundle (/games/gravegain5d/index.html) directly — no new shared
+// the v2 bundle (/games/gravegain5dA/index.html) directly — no new shared
 // components — mirroring app/games/gravegain4d/play. Catalog/sitemap/nav
 // wiring for this route is requested via QUEUE (shared manifests are
 // steward-owned).
-export default function GraveGain5DPlayPage() {
+export default function GraveGain5DAPlayPage() {
   return (
     <div className="bg-black text-white" data-theme-lock="dark">
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-4 sm:px-5">
@@ -42,15 +42,15 @@ export default function GraveGain5DPlayPage() {
           <span aria-hidden="true" className="text-white/30">
             /
           </span>
-          <span className="font-semibold text-white">GraveGain5D</span>
+          <span className="font-semibold text-white">GraveGain5DA</span>
         </nav>
         <h1 className="mt-3 text-2xl font-black sm:text-3xl">
-          🌀 Play GraveGain5D
+          🌀 Play GraveGain5DA
         </h1>
         <div id="game-frame" className="perf-frame play-frame-height play-frame-ar mt-4 overflow-hidden rounded-2xl border border-white/15 bg-black">
           <iframe
-            src="/games/gravegain5d/index.html"
-            title="GraveGain5D — Multiverse Transcendence"
+            src="/games/gravegain5dA/index.html"
+            title="GraveGain5DA — Multiverse Transcendence"
             className="h-full w-full border-0 bg-black"
             allow="fullscreen; autoplay; gamepad"
             allowFullScreen

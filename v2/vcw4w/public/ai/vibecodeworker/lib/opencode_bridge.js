@@ -25,6 +25,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawn, spawnSync } = require('child_process');
+const { assertProviderEligible } = require('./vendor_eligibility');
 
 const DEFAULTS = {
   enabled: false,
@@ -252,7 +253,9 @@ function buildRunArgs({ prompt, promptFile, model, agent, autoApprove, attach, f
  * Run one OpenCode fix job via the CLI (direct-code-editing: OpenCode edits
  * files under `dir` itself). Resolves with transcript + resulting git diff.
  */
-function runOpenCodeFix({ prompt, promptFile, dir, model, agent, autoApprove, timeoutMs, config: fileConfig } = {}) {
+async function runOpenCodeFix({ prompt, promptFile, dir, model, agent, autoApprove, timeoutMs, config: fileConfig } = {}) {
+  try { await assertProviderEligible('opencode'); }
+  catch (e) { return { success: false, error: e instanceof Error ? e.message : 'OpenCode is not eligible for this account.' }; }
   const config = getOpenCodeConfig(fileConfig);
   return new Promise((resolve) => {
     const detection = detectOpenCode(config.binary);
@@ -405,6 +408,8 @@ async function serverRevert(config, sessionId, messageId) {
  * OpenCode edits files directly; we return its session diff for review.
  */
 async function runServerFix({ prompt, sessionId, title, config: fileConfig } = {}) {
+  try { await assertProviderEligible('opencode'); }
+  catch (e) { return { success: false, error: e instanceof Error ? e.message : 'OpenCode is not eligible for this account.' }; }
   const config = getOpenCodeConfig(fileConfig);
   try {
     let session = null;

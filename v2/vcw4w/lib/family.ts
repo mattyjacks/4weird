@@ -33,9 +33,42 @@ export type KidControls = {
   allowed_end: string;
   timezone: string;
   monthly_cap_coins: number;
+  /** Maximum child spend in any rolling 60-minute window; zero disables. */
+  hourly_cap_coins?: number;
   hard_stop: boolean;
+  /** Empty means all games; non-empty is the parent's explicit allowlist. */
+  allowed_games?: string[];
+  /** Optional IDs such as game:slug, app:slug, ai:vendor, or service:slug. */
+  allowed_features?: string[];
   updated_at: string;
 };
+
+export function isGameAllowlist(value: unknown): string[] | null {
+  if (!Array.isArray(value) || value.length > 500) return null;
+  const slugs = value.map((item) => String(item).trim().toLowerCase());
+  if (slugs.some((slug) => !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(slug))) return null;
+  return [...new Set(slugs)];
+}
+
+export function isFeatureAllowlist(value: unknown): string[] | null {
+  if (!Array.isArray(value) || value.length > 500) return null;
+  const features = value.map((item) => String(item).trim().toLowerCase());
+  if (features.some((feature) => !/^(game|app|ai|service):[a-z0-9][a-z0-9_-]{0,63}$/.test(feature))) return null;
+  return [...new Set(features)];
+}
+
+/** Only entries in a feature's category constrain that category; games also have their legacy game allowlist. */
+export function canKidUseFeature(
+  controls: Pick<KidControls, "allowed_features"> | null | undefined,
+  feature: string,
+): boolean {
+  const allowed = controls?.allowed_features;
+  if (!Array.isArray(allowed) || allowed.length === 0) return true;
+  const normalized = feature.trim().toLowerCase();
+  const category = normalized.split(":", 1)[0];
+  const categoryRules = allowed.filter((item) => item.startsWith(`${category}:`));
+  return categoryRules.length === 0 || categoryRules.includes(normalized);
+}
 
 export function kidHandle(username: string, discriminator: string): string {
   return `${username}#${discriminator}`;

@@ -80,6 +80,11 @@ const SKIP_ROUTES = new Set([
   "/vocrehab/pro/measures",
   "/vocrehab/pro/outreach",
   "/vocrehab/pro/sessions",
+  "/vocrehab/pro/reports", // gated console under the banned /vocrehab/pro prefix: must stay OUT, never listed
+  "/vocrehab/library", // authenticated client session console (per-user kids/enrollments/saves): not indexable content
+  "/xonotic", // retired route: page calls notFound() unconditionally ("intentionally not viewable"); listing a hard-404 burns crawl budget
+  "/games/gravegain2dB", // catalog-covered static game slug: URL is emitted via the game.slug template (sitemap §4); the static dir shadows [slug]
+  "/games/gravegain2dB/play", // noindex play shell (metadata robots false)
 ]);
 function walk(dir, base) {
   for (const e of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {

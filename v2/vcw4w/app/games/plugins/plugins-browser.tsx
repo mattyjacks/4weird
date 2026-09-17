@@ -49,14 +49,14 @@ function storageKey(gameSlug: string): string {
 }
 
 export function PluginsBrowser() {
-  const [gameSlug, setGameSlug] = useState("gravegain3d");
+  const [gameSlug, setGameSlug] = useState("gravegain3dA");
   const [verifiedOnly, setVerifiedOnly] = useState(true);
   const [draft, setDraft] = useState("");
   const [registry, setRegistry] = useState<ModRegistry>({});
   const [lastLoad, setLastLoad] = useState<LoadedMod | null>(null);
   const [restoredNote, setRestoredNote] = useState<string | null>(null);
 
-  const activeSlug = gameSlug.trim() || "gravegain3d";
+  const activeSlug = gameSlug.trim() || "gravegain3dA";
 
   // Restore this game's registry from localStorage (re-validated fail-open).
   useEffect(() => {
@@ -132,7 +132,7 @@ export function PluginsBrowser() {
           <input
             value={gameSlug}
             onChange={(e) => setGameSlug(e.target.value)}
-            placeholder="gravegain3d"
+            placeholder="gravegain3dA"
             className="rounded-md border border-white/15 bg-black/40 px-3 py-2 text-white"
           />
         </label>

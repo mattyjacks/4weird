@@ -1,0 +1,28 @@
+<!-- vcwcode-loading-state.html — dashboard loading skeleton snippet (framework-free, no app imports).
+  Paste inside the dashboard container that is populated after /api/status resolves.
+  Integrator: toggle hidden on [data-vcwcode-loading] when data arrives; see VCWCODE-NOTES.md. -->
+<div data-vcwcode-loading aria-busy="true" aria-label="Loading dashboard">
+  <style>
+    [data-vcwcode-loading] .vcwcode-skel {
+      border-radius: 8px;
+      background: linear-gradient(90deg, #2a2f3a 25%, #3a4150 50%, #2a2f3a 75%);
+      background-size: 200% 100%;
+      animation: vcwcode-shimmer 1.2s linear infinite;
+      min-height: 14px;
+    }
+    [data-vcwcode-loading] .vcwcode-skel-row {
+      display: grid; gap: 8px; margin: 8px 0;
+    }
+    @keyframes vcwcode-shimmer { to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      [data-vcwcode-loading] .vcwcode-skel { animation: none; }
+    }
+  </style>
+  <div class="vcwcode-skel-row" aria-hidden="true">
+    <div class="vcwcode-skel" style="height:22px;width:45%"></div>
+    <div class="vcwcode-skel" style="height:14px;width:90%"></div>
+    <div class="vcwcode-skel" style="height:14px;width:70%"></div>
+    <div class="vcwcode-skel" style="height:64px;width:100%"></div>
+  </div>
+  <p style="font-size:12px;opacity:.7">Loading dashboard…</p>
+</div>

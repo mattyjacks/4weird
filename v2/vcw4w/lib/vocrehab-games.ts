@@ -15,7 +15,13 @@ export type VocrehabGameId =
   | "inbox-sprint"
   | "focus-shift"
   | "barrier-run"
-  | "schedule-juggle";
+  | "schedule-juggle"
+  | "phone-greeting"
+  | "time-punch"
+  | "tool-match"
+  | "paycheck-plan"
+  | "energy-budget"
+  | "resume-rescue";
 
 export type VocrehabGameEventKind =
   | "start"
@@ -95,6 +101,12 @@ export const vocrehabGameRegistry: readonly VocrehabGameRegistryEntry[] = [
       "Place 3 shifts and 1 training block on a 7-day grid around transport, medication, childcare, rest, and class constraints. Conflicts highlight with plain-language fixes — never red errors. No timer.",
     timeLimitSec: null,
   },
+  { id: "phone-greeting", title: "Front-Desk Hello", instructions: "Practice a warm greeting, note one useful detail, and confirm a next step across six calls.", timeLimitSec: null },
+  { id: "time-punch", title: "Shift Punch", instructions: "Complete six shift tasks inside their time windows. A late-bus surprise has a grace option.", timeLimitSec: 180 },
+  { id: "tool-match", title: "Tool Crib", instructions: "Match everyday tasks with tools and identify when safety gear helps.", timeLimitSec: null },
+  { id: "paycheck-plan", title: "Paycheck Planner", instructions: "Explore a paycheck, everyday costs, and an unexpected expense at your own pace.", timeLimitSec: null },
+  { id: "energy-budget", title: "Energy Budget", instructions: "Plan a week with work, appointments, and protected rest using a limited energy budget.", timeLimitSec: null },
+  { id: "resume-rescue", title: "Resume Rescue", instructions: "Spot resume issues and practice clear, professional rewrites.", timeLimitSec: 180 },
 ];
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -221,14 +233,21 @@ export function vocrehabScoreScheduleJuggle(events: VocrehabGameEvent[]): Vocreh
 export function vocrehabSummarizeRun(gameId: VocrehabGameId, events: VocrehabGameEvent[]): string {
   const entry = vocrehabGameRegistry.find((g) => g.id === gameId);
   const label = entry ? entry.title : gameId;
-  const scorer: Record<VocrehabGameId, (e: VocrehabGameEvent[]) => VocrehabGameScore> = {
+  const scorer: Partial<Record<VocrehabGameId, (e: VocrehabGameEvent[]) => VocrehabGameScore>> = {
     "file-sort": vocrehabScoreFileSort,
     "inbox-sprint": vocrehabScoreInboxSprint,
     "focus-shift": vocrehabScoreFocusShift,
     "barrier-run": vocrehabScoreBarrierRun,
     "schedule-juggle": vocrehabScoreScheduleJuggle,
   };
-  const score = scorer[gameId](events);
+  const score = scorer[gameId]?.(events) ?? buildScore(
+    events.filter((e) => e.kind === "action").length,
+    events.filter((e) => e.kind === "error").length,
+    events.filter((e) => e.kind === "help").length,
+    events.filter((e) => e.kind === "action" && (e.detail.corrected === true || e.detail.retry === true)).length,
+    Math.max(0, ((events.at(-1)?.t_ms ?? 0) - (events[0]?.t_ms ?? 0)) / 60000),
+    label,
+  );
   const strengthBits: string[] = [];
   if (score.accuracy === "strong") strengthBits.push("sorted choices with care");
   else if (score.accuracy === "steady") strengthBits.push("kept choices mostly on track");

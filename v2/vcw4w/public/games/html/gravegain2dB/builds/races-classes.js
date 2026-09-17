@@ -15,12 +15,12 @@
       active: { id: 'nature-burst', name: 'Nature Burst', desc: 'AoE thorn nova around caster. Damage-only; never destroys protected cells.' }
     },
     dwarf: {
-      id: 'dwarf', name: 'Dwarf', emoji: '⛏️',
+      id: 'dwarf', name: 'Dwarf', emoji: '🧔🏻',
       passive: { id: 'heavy-frame', name: 'Heavy Frame', desc: 'Double-jump with extra weight (no ledge-slip); blast-resist reduces explosive self-damage.' },
       active: { id: 'stone-form', name: 'Stone Form', desc: 'Brief damage immunity, rooted in place. Cannot phase through protected cells.' }
     },
     orc: {
-      id: 'orc', name: 'Orc', emoji: '👹',
+      id: 'orc', name: 'Orc', emoji: '🟢👹',
       passive: { id: 'ground-control', name: 'Ground Control', desc: 'Faster move + knockback resist while grounded; rage builds on hits taken.' },
       active: { id: 'rage-burst-stomp', name: 'Rage Burst Stomp', desc: 'Shockwave stomp spending rage. Knocks enemies, never breaks protected cells.' }
     }

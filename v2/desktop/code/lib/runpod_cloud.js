@@ -24,6 +24,7 @@
 // creation, so keep the base explicit and overridable for test doubles.
 const RUNPOD_API_BASE = String(process.env.RUNPOD_API_BASE || 'https://rest.runpod.io/v1').replace(/\/+$/, '');
 const { getOpenSourceGame } = require('./open_source_games');
+const { assertProviderEligible } = require('./vendor_eligibility');
 
 // Hard cap: 55 minutes. Pods auto terminate at this age.
 const MAX_RUN_MINUTES = 55;
@@ -222,6 +223,7 @@ function redactError(msg) {
 }
 
 async function runpodFetch(apiKey, pathName, opts = {}) {
+  await assertProviderEligible('runpod');
   if (!/^\/(pods|gpus)([/?].*)?$/.test(pathName)) throw new Error('blocked path');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), Number(opts.timeoutMs || 20000));

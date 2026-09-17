@@ -65,7 +65,9 @@ const PRIMARY: Entry[] = [
   { path: "/submit", changeFrequency: "weekly", priority: 0.8 },
   { path: "/newgameplus", changeFrequency: "weekly", priority: 0.8 },
   { path: "/blender", changeFrequency: "weekly", priority: 0.8 },
-  { path: "/xonotic", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/gravegain", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/gravegain/lore", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/gravegain/missions", changeFrequency: "weekly", priority: 0.8 },
   { path: "/search", changeFrequency: "weekly", priority: 0.7 },
 ];
 
@@ -440,6 +442,7 @@ const DOCS: Entry[] = [
     priority: 0.6,
   },
   { path: "/docs/vocrehab/ssi-math", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/docs/vocrehab/schedule-juggle", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/vocrehab/seeds", changeFrequency: "monthly", priority: 0.6 },
   { path: "/docs/explore-more", changeFrequency: "monthly", priority: 0.5 },
   { path: "/docs/privacy-safety", changeFrequency: "monthly", priority: 0.6 },

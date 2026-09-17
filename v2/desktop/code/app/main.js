@@ -423,6 +423,14 @@ ipcMain.handle('test-api-keys', async (_event, suppliedKeys = {}) => {
   ];
   const results = await Promise.all(providers.map(async (provider) => {
     if (!provider.key) return { provider: provider.name, status: 'skipped', detail: 'No key entered.' };
+    if (!provider.fourweird && !provider.runpod) {
+      try {
+        const policyVendor = provider.name === 'meta' ? 'meta-api' : provider.name;
+        await require('../lib/vendor_eligibility').assertProviderEligible(policyVendor, { botKey: suppliedKeys.fourweird });
+      } catch (error) {
+        return { provider: provider.name, status: 'blocked', detail: error.message };
+      }
+    }
     // 4weird bot key: live read-only VERIFY against GET /api/bot/me with the
     // x-bot-key header. Never touches the user profile; 401/403 = bad key.
     if (provider.fourweird) {
@@ -546,6 +554,7 @@ ipcMain.handle('generate-commentary-speech', async (_event, options = {}) => {
   // ElevenLabs path (BYOK voice layer): richer voices + personalities.
   if (options.provider === 'elevenlabs' || options.elevenlabs) {
     try {
+      await require('../lib/vendor_eligibility').assertProviderEligible('elevenlabs');
       const eleven = require('../lib/elevenlabs');
       const { PERSONALITIES } = require('../lib/audio/voice_director');
       const personality = PERSONALITIES[options.personality] || PERSONALITIES[options.personality === 'streamer' ? 'streamer' : 'qa'] || PERSONALITIES.streamer;
@@ -561,6 +570,11 @@ ipcMain.handle('generate-commentary-speech', async (_event, options = {}) => {
   }
   const apiKey = getResolvedApiKey('openai', String(options.apiKey || ''));
   if (!apiKey) return { success: false, error: 'Add an OpenAI API key or choose System voice' };
+  try {
+    await require('../lib/vendor_eligibility').assertProviderEligible('openai');
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
   const permittedVoices = new Set(['alloy', 'nova', 'shimmer', 'onyx']);
   const voice = permittedVoices.has(options.voice) ? options.voice : 'nova';
   try {
@@ -594,6 +608,7 @@ ipcMain.handle('capture-native-screenshot', async (event, windowTitle) => {
 // ElevenLabs voice layer: generic TTS + offline PCM QA for the dashboard.
 ipcMain.handle('elevenlabs-tts', async (_event, options = {}) => {
   try {
+    await require('../lib/vendor_eligibility').assertProviderEligible('elevenlabs');
     const eleven = require('../lib/elevenlabs');
     return await eleven.textToSpeech(options.text, {
       apiKey: String(options.apiKey || ''),

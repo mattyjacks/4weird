@@ -2,6 +2,9 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { ok, fail } from "@/lib/api-respond";
 import { rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+import { createClient } from "@/lib/supabase/server";
+import { hasServerSupabase } from "@/lib/supabase/service";
+import { checkAuthenticatedVendorEligibility } from "@/lib/vendor-eligibility";
 
 // GET /api/search?q= — instant keyword results from the static index.
 // POST /api/search?q= — same keyword results, plus Luna AI rerank (fail-OPEN).
@@ -296,14 +299,23 @@ export async function POST(req: Request) {
   // to keyword order — search works with zero AI (fail-OPEN).
   let ai = false;
   let ordered = top20;
-  const reranked = await lunaRerankIds(
+  let canUseLuna = false;
+  if (hasServerSupabase()) {
+    const supabase = await createClient();
+    const { data: auth } = await supabase.auth.getUser();
+    if (auth.user) {
+      const eligibility = await checkAuthenticatedVendorEligibility(supabase, auth.user.id, "openai");
+      canUseLuna = eligibility.allowed;
+    }
+  }
+  const reranked = canUseLuna ? await lunaRerankIds(
     q,
     top20.map(({ entry }) => ({
       id: entry.id,
       title: entry.title,
       quick: String(entry.quick ?? ""),
     })),
-  );
+  ) : null;
   if (reranked) {
     const byId = new Map(top20.map((s) => [s.entry.id, s]));
     const seen = new Set<string>();

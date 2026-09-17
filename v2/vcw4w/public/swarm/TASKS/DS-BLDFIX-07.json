@@ -1,0 +1,24 @@
+{
+  "id": "DS-BLDFIX-07",
+  "title": "Desktop + PWA",
+  "goal": "npm run build (v2/vcw4w) is green: Desktop + PWA. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "desktop",
+  "scope": [
+    "v2/desktop",
+    "v2/vcw4w/app/desktop",
+    "v2/vcw4w/public/manifest.json"
+  ],
+  "gates": [
+    "npm run verify:desktop",
+    "npm run verify:pwa"
+  ],
+  "status": "done",
+  "owner": "bldfix-07",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T05:07:03.592Z",
+  "log": [
+    "2026-09-17T05:07:03.592Z lead: envelope created for 10-agent build-fix wave, awaiting claim.",
+    "2026-09-17T06:00:00.000Z bldfix-07: claimed (tag=bldfix-07 == envelope id DS-BLDFIX-07). Auditing desktop+PWA scope; Tauri read-only.",
+    "2026-09-17T06:30:00.000Z bldfix-07: DONE. Gates: verify:desktop EXIT 0 (Virtual Desktop integrity OK), verify:pwa EXIT 0 (PWA manifest integrity OK), eslint app/desktop+lib/desktop.ts clean, tsc --noEmit clean. NEW file: v2/desktop/ai/bldfix-07-desktop-pwa-audit.md (owned scope, outside Next tree, zero build impact). No scope-only build blockers: desktop pages static-by-construction (use-cache boards + Suspense client widgets), api/desktop routes are runtime handlers, Tauri (v2/desktop/code) not in Next build; baseline Finalizing stall not attributable to this scope. QUEUE asks for steward: public/manifest.json legacy-vs-canonical ruling; app/manifest.ts missing /icon.svg second icon; sitemap gaps (if any) via QUEUE. Zero writes outside owned scopes; STATUS.json/QUEUE untouched."
+  ]
+}

@@ -54,8 +54,15 @@ function heuristicCheck(text: string): boolean {
   return HEURISTIC_PATTERNS.some((re) => re.test(t));
 }
 
-export async function moderateText(text: string): Promise<ModerationResult> {
+export async function moderateText(text: string, options: { allowExternalAi?: boolean } = {}): Promise<ModerationResult> {
   const input = String(text ?? "");
+  // Public content can be submitted by teen and parent-managed child
+  // accounts. Unless a caller has verified Adult-band eligibility, do not
+  // transmit that content to the external OpenAI moderation model. The
+  // caller's existing fail-closed path quarantines it for human review.
+  if (options.allowExternalAi !== true) {
+    return { allowed: false, reason: "external-ai-not-authorized", heuristicHit: heuristicCheck(input) };
+  }
   const key = process.env.OPENAI_API_KEY ?? "";
   const model = process.env.LUNA_MODEL ?? "gpt-5.6-luna";
 

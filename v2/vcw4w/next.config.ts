@@ -66,14 +66,19 @@ const nextConfig: NextConfig = {
     // versioned by filename; bump the file when the protocol changes.
     { source: "/workers/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }, { key: "Content-Type", value: "application/javascript; charset=utf-8" }] },
     // Versioned immutable statics (DS-SPEED-08, additive): content-hashed or
-    // filename-versioned, safe to cache for a year. /_next/static/* is
-    // content-hashed by the Next build; /og/* + /images/* are
+    // filename-versioned, safe to cache for a year. /og/* + /images/* are
     // filename-versioned (ship a new file on change, never mutate in place).
     // Year-long immutable keeps repeat loads edge-cached without
     // revalidation. NOTE: /sw.js is intentionally NOT here (service workers
     // must revalidate or updates stick); /games + /vcw + swarm bus keep
     // their short/SWR policies above.
-    { source: "/_next/static/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
+    // NOTE (DS-BLDFIX-01): NO custom entry for /_next/static/* here. Next sets
+    // `Cache-Control: public, max-age=31536000, immutable` natively for those
+    // content-hashed assets and custom Cache-Control for them cannot be
+    // overridden (see node_modules/next/dist/docs/.../05-config/01-next-config-js/headers.md
+    // "Cache-Control" + .../02-guides/cdn-caching.md "Static assets"); a custom
+    // entry only emits the "Custom Cache-Control headers for /_next/static/:path*"
+    // build warning. /og + /images below are public/ files (allowed).
     { source: "/og/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     { source: "/images/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] },
     // DS-SPEED-08 follow-up (additive): filename-versioned font + icon statics.

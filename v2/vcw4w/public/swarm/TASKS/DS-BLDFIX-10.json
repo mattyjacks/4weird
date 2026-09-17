@@ -1,0 +1,23 @@
+{
+  "id": "DS-BLDFIX-10",
+  "title": "Build integrator",
+  "goal": "npm run build (v2/vcw4w) is green: Build integrator. Baseline 2026-09-17: compile OK 40s, tsc OK 33s, 601/601 static pages generated, hung at Finalizing page optimization (120s timeout). Fix scope-only causes, NEW files only, shared manifests via QUEUE.",
+  "lane": "infra",
+  "scope": [
+    "v2/vcw4w/package.json"
+  ],
+  "gates": [
+    "npm run build"
+  ],
+  "status": "done",
+  "owner": "bldfix-10",
+  "created": "2026-09-17T05:07:03.592Z",
+  "updated": "2026-09-17T05:07:03.592Z",
+  "log": [
+    "2026-09-17T13:00:00.000Z bldfix-10: claimed (tag bldfix-10 == DS-BLDFIX-10, status=in_progress). Lane rollup polled from disk: 01 done, 02 done, 03 blocked, 04 done, 05 done, 06 open, 07 open, 08 in-progress, 09 open. Proceeding to build gate.",
+    "2026-09-17T13:05:00.000Z bldfix-10: pre-build check — no concurrent next build workers (only next dev :3011 PID 8636 + next start-server PID 16784, no build lock contention). Ran npm run build, EXIT:0 in 59s. Evidence: Compiled successfully in 8.9s; TypeScript finished in 6.8s; 601/601 static pages in 12.3s (11 workers); Finalizing page optimization COMPLETED + full route table printed (Static/Partial-Prerender/Dynamic legend). No Custom Cache-Control /_next/static warning in build log (Fix bldfix-01 holds). Baseline hang was extrinsic (120s timeout + lock contention), confirmed third time (bldfix-01 + bldfix-05 x2 + this run).",
+    "2026-09-17T13:08:00.000Z bldfix-10: verify:games EXIT:1 — reproduces bldfix-03 exactly, extrinsic script issue (no fix applied, steward-owned scripts): divergedMissing=[gravegain2d/game.css, gravegain2d/game.js, gravegain2d/game.json, gravegain2d/index.html, gravegain2d/lore.js]; mismatched=[soundpainter/game.js, soundpainter2/game.js, template-demo/game.js, venturemechanically/game.js]; extra=v2-native (allowed).",
+    "2026-09-17T13:09:00.000Z bldfix-10: verify:catalog EXIT:1 — reproduces bldfix-03 exactly, extrinsic script issue (no fix applied): 'app/games/[slug]/page.tsx must be a closed static catalog (generateStaticParams + dynamicParams=false + notFound)' while pages use the cacheComponents closed-catalog pattern (generateStaticParams + notFound(), dynamicParams literal removed for cacheComponents compat).",
+    "2026-09-17T13:10:00.000Z bldfix-10: DONE. Build gate green (exit 0) on final tree; zero writes outside this envelope (package.json read-only, no shared-manifest edits). Lane rollup final: 01 done / 02 done / 03 blocked-honest / 04 done / 05 done / 06 open / 07 open / 08 in-progress / 09 open / 10 done(this). STEWARD HANDOFFS: (1) verify-game-bundles.mjs — add divergedPrefixes soundpainter/ soundpainter2/ venturemechanically/ template-demo/ + rule on missing gravegain2d/ (restore from old-v1 vs retire prefix); (2) verify-catalog-runtime.mjs — accept cacheComponents closed-catalog pattern for app/games/[slug]/page.tsx, app/games/[slug]/play/page.tsx, app/vibecodeworker/[section]/page.tsx; (3) STATUS.json recount requested after 06/07/08/09 close (counts currently stale: updated 2026-09-15, pre-wave)."
+  ]
+}
