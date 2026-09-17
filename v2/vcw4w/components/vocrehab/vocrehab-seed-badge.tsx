@@ -8,7 +8,7 @@ import { parseSeed } from "@/lib/vocrehab-seed";
  *
  * Shows the run seed (`VRHB-XXXXXX`), copies a replay link (`?seed=...`),
  * and offers "New shuffle" where the caller supports it. Counselors paste
- * the seed into the arcade replay box (or open the link) to auto-load the
+ * the seed into the practice-games replay box (or open the link) to auto-load the
  * exact same questions, order, and criteria the learner saw.
  *
  * Frozen contract: seed shape comes from lib/vocrehab-seed.ts (parseSeed).

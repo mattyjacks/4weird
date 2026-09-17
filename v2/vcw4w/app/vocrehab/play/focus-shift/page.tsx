@@ -18,7 +18,7 @@ export default function Page() {
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Practice arcade</Link> → Focus Shift
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Focus Shift
       </nav>
       <p className="text-sm text-muted-foreground">
         Start with the untimed practice rep. Interruptions happen at work — this shows what helps

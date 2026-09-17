@@ -606,7 +606,7 @@ export default function VocrehabGameResumeRescue({ onEvent, onDone, vocrehabSeed
           <div className="text-sm">
             <p className="font-medium">What to try next</p>
             <p className="text-muted-foreground">
-              Retry the game to try other lines, or keep exploring the arcade. Retries always count
+              Retry the game to try other lines, or keep exploring the practice games. Retries always count
               the same.
             </p>
           </div>

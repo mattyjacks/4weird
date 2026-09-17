@@ -22,7 +22,7 @@ export default function Page() {
   return (
     <main className="mx-auto max-w-6xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Practice arcade</Link> → Schedule Juggle
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Schedule Juggle
       </nav>
       <p className="text-sm text-muted-foreground">
         Your calendar is ready first. Tap a date to plan its hours, or add and remove items right on the month view. Practice, not a test — nothing here grades you.

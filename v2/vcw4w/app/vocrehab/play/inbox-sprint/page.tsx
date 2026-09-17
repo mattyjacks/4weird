@@ -18,7 +18,7 @@ export default function Page() {
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Practice arcade</Link> → Inbox Sprint
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Inbox Sprint
       </nav>
       <p className="text-sm text-muted-foreground">
         Start with the untimed practice rep. Flagging the phishing-ish message is praised; opening

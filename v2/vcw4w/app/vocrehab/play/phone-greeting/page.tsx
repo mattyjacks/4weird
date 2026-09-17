@@ -4,7 +4,7 @@ import { VocrehabGamePhoneGreeting } from "@/components/vocrehab/vocrehab-game-p
 import { parseSeed } from "@/lib/vocrehab-seed";
 
 export const metadata: Metadata = {
-  title: "Front-Desk Hello — VocRehab Arcade",
+  title: "Front-Desk Hello — VocRehab Work & Life Practice Games",
   description: "VocRehab listening game: greet 6 callers warmly and remember one detail from each call.",
   alternates: { canonical: "/vocrehab/play/phone-greeting" },
 };
@@ -15,7 +15,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Arcade</Link> → Front-Desk Hello
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Front-Desk Hello
       </nav>
       <h1 className="text-xl font-bold">Front-Desk Hello</h1>
       <VocrehabGamePhoneGreeting vocrehabSeed={seed} />

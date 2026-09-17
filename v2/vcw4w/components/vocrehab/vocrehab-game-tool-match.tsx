@@ -142,7 +142,7 @@ export function VocrehabGameToolMatch(props: VocrehabGameToolMatchProps = {}): R
               Open the crib
             </button>
             <Link href="/vocrehab/play" className="rounded border px-4 py-2 font-medium">
-              Back to arcade
+              Back to Work & Life Practice Games
             </Link>
           </div>
         </div>
@@ -244,7 +244,7 @@ export function VocrehabGameToolMatch(props: VocrehabGameToolMatchProps = {}): R
               {vocrehabSave === "saving" ? "Sending…" : "Send to profile"}
             </button>
             <Link href="/vocrehab/play" className="rounded border px-4 py-2 font-medium">
-              Back to arcade
+              Back to Work & Life Practice Games
             </Link>
           </div>
         </div>

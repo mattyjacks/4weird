@@ -536,7 +536,7 @@ export default function VocrehabGamePaycheckPlan(vocrehabProps: VocrehabPaycheck
 
   return (
     <section className="vocrehab-paycheck-plan" style={vocrehabPaycheckPanel} aria-label="Paycheck Planner game">
-      <p style={{ margin: "0 0 8px", fontSize: "14px" }}>VocRehab Arcade: first-paycheck budgeting</p>
+      <p style={{ margin: "0 0 8px", fontSize: "14px" }}>VocRehab Work & Life Practice Games: first-paycheck budgeting</p>
       <h2 style={{ margin: "0 0 12px", fontSize: "24px" }}>Paycheck Planner</h2>
 
       {vocrehabPhase !== "intro" && vocrehabPhase !== "results" && (

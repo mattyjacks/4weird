@@ -18,7 +18,7 @@ export default function Page() {
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Practice arcade</Link> → Barrier Run
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Barrier Run
       </nav>
       <p className="text-sm text-muted-foreground">
         No timer — progress saves per scene, and replaying shows alternate paths. Every choice is

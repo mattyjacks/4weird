@@ -179,7 +179,7 @@ export function VocrehabGamePhoneGreeting(props: VocrehabGamePhoneGreetingProps 
               Answer the first call
             </button>
             <Link href="/vocrehab/play" className="rounded border px-4 py-2 font-medium">
-              Back to arcade
+              Back to Work & Life Practice Games
             </Link>
           </div>
         </div>
@@ -267,7 +267,7 @@ export function VocrehabGamePhoneGreeting(props: VocrehabGamePhoneGreetingProps 
               {vocrehabSave === "saving" ? "Sending…" : "Send to profile"}
             </button>
             <Link href="/vocrehab/play" className="rounded border px-4 py-2 font-medium">
-              Back to arcade
+              Back to Work & Life Practice Games
             </Link>
           </div>
         </div>

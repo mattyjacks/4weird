@@ -601,7 +601,7 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
           <div className="vocrehab-energy-try text-sm">
             <p className="vocrehab-energy-try-title font-medium">What to try next</p>
             <p className="vocrehab-energy-try-body text-muted-foreground">
-              Retry the game to try another rhythm, or keep exploring the arcade.
+              Retry the game to try another rhythm, or keep exploring the practice games.
             </p>
           </div>
           <div className="vocrehab-energy-results-actions flex flex-wrap gap-2">
@@ -616,7 +616,7 @@ export default function VocrehabGameEnergyBudget(vocrehabProps: { vocrehabSeed?:
               {vocrehabSaveState === "saving" ? "Saving…" : "Save this run"}
             </button>
             <Link href="/vocrehab/play" className="vocrehab-energy-btn rounded border px-4 py-2 font-medium">
-              Back to arcade
+              Back to Work & Life Practice Games
             </Link>
           </div>
         </div>

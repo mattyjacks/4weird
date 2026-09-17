@@ -71,7 +71,7 @@ export default function Page() {
   return (
     <main className="mx-auto max-w-3xl space-y-4 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground print:hidden">
-        <Link href="/vocrehab/play">Arcade</Link> → Vocational assessment
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Vocational assessment
       </nav>
       <h1 className="text-xl font-bold">Vocational assessment (IPE builder)</h1>
       <p>

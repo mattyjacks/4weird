@@ -27,7 +27,7 @@ import {
 } from "@/lib/vocrehab-games3";
 
 export const metadata: Metadata = {
-  title: "Resume Rescue — VocRehab Practice Arcade",
+  title: "Resume Rescue — VocRehab Work & Life Practice Games",
   description:
     "Practice proofreading resume lines — spot the typo, vague verb, or missing number, then pick the professional rewrite. Practice, not a test — nothing here grades you.",
   alternates: { canonical: "/vocrehab/play/resume-rescue" },
@@ -137,7 +137,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Practice arcade</Link> → Resume Rescue
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Resume Rescue
       </nav>
       <p className="text-sm text-muted-foreground">
         Start with the untimed practice rep. The scored run gives you 3 minutes to spot

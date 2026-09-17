@@ -183,7 +183,7 @@ export default function VocrehabPlayAccessGuard({ children }: { children: ReactN
     <main className="mx-auto max-w-3xl space-y-3 p-6" role="status">
       <h1 className="text-xl font-bold">{gate === "denied" ? "Game unavailable" : "Access check unavailable"}</h1>
       <p>{reason}</p>
-      <Link href="/vocrehab/play" className="inline-block rounded border px-4 py-2">Back to practice arcade</Link>
+      <Link href="/vocrehab/play" className="inline-block rounded border px-4 py-2">Back to Work & Life Practice Games</Link>
     </main>
   );
 }

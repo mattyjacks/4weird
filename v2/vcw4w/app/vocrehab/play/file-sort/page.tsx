@@ -5,7 +5,7 @@
  * component because it composes the shared `VocrehabGameFrame` with its game
  * via a render-prop function, which cannot cross the server/client boundary.
  * Practice-first copy and the no-test promise render above the frame.
- * Follow-up for lead: route metadata + canonical live in the arcade index
+ * Follow-up for lead: route metadata + canonical live in the practice-games index
  * until a server layout covers this route (client components cannot export
  * metadata).
  */
@@ -20,7 +20,7 @@ export default function Page() {
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Practice arcade</Link> → File Sort
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → File Sort
       </nav>
       <p className="text-sm text-muted-foreground">
         Start with the untimed practice rep. The scored run gives you 3 minutes, and you can

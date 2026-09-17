@@ -30,7 +30,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ s
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Arcade</Link> → Paycheck Planner
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Paycheck Planner
       </nav>
       <h1 className="text-xl font-bold">Paycheck Planner</h1>
       <VocrehabGamePaycheckPlan vocrehabGameId="paycheck-plan" vocrehabSeed={seed} vocrehabSavedStateId={savedStateId} vocrehabKidId={kidId} vocrehabOnComplete={vocrehabSavePaycheckRun} />

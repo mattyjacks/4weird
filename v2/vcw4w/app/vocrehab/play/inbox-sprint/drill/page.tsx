@@ -14,7 +14,7 @@ import Link from "next/link";
 import DrillClient from "./drill-client";
 
 export const metadata: Metadata = {
-  title: "Inbox Phishing Drill — VocRehab Practice Arcade",
+  title: "Inbox Phishing Drill — VocRehab Work & Life Practice Games",
   description:
     "Practice 12 mock inbox messages: spot phishing vs legit, then pick the safe action. Flagging is praised, clicking is coached — practice, not a test.",
   alternates: { canonical: "/vocrehab/play/inbox-sprint/drill" },
@@ -24,7 +24,7 @@ export default function Page() {
   return (
     <main className="mx-auto max-w-3xl space-y-3 p-4">
       <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
-        <Link href="/vocrehab/play">Practice arcade</Link> →{" "}
+        <Link href="/vocrehab/play">Work & Life Practice Games</Link> →{" "}
         <Link href="/vocrehab/play/inbox-sprint">Inbox Sprint</Link> → Phishing drill
       </nav>
       <p className="text-sm text-muted-foreground">

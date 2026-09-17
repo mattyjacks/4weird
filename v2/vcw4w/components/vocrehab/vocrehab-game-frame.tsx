@@ -456,7 +456,7 @@ export default function VocrehabGameFrame({
           <div className="text-sm">
             <p className="font-medium">What to try next</p>
             <p className="text-muted-foreground">
-              Replay this same round, try a new round, send this run to your profile, or keep exploring the arcade.
+              Replay this same round, try a new round, send this run to your profile, or keep exploring the practice games.
             </p>
           </div>
           {vocrehabSaveState === "saved" && (
@@ -490,7 +490,7 @@ export default function VocrehabGameFrame({
               {vocrehabSaveState === "saving" ? "Sending…" : "Send to profile"}
             </button>
             <Link href={vocrehabExitHref} className="rounded border px-4 py-2 font-medium">
-              Back to arcade
+              Back to Work & Life Practice Games
             </Link>
           </div>
         </div>

@@ -12,8 +12,22 @@ export const metadata: Metadata = {
 const VOCREHAB_SUITES = [
   { href: "/vocrehab/interview", title: "Interview", blurb: "Rehearse out loud with a practice partner, then keep your script." },
   { href: "/vocrehab/pro", title: "For counselors", blurb: "Paste notes once, review four drafts. Nothing files itself." },
-  { href: "/vocrehab/play", title: "Arcade", blurb: "Nine work and life practice games. Play free, save when you choose." },
+  { href: "/vocrehab/play", title: "Work & Life Practice Games", blurb: "Eleven work and life practice games. Play free, save when you choose." },
   { href: "/docs/vocrehab", title: "Guides", blurb: "Getting started, counselor notes, privacy, and the SSI math explainer." },
+] as const;
+
+const QUICK_PLAY_GAMES = [
+  { href: "/vocrehab/play/file-sort", title: "File Sort", glyph: "🗂️" },
+  { href: "/vocrehab/play/inbox-sprint", title: "Inbox Sprint", glyph: "📥" },
+  { href: "/vocrehab/play/focus-shift", title: "Focus Shift", glyph: "🎯" },
+  { href: "/vocrehab/play/barrier-run", title: "Barrier Run", glyph: "🧭" },
+  { href: "/vocrehab/play/schedule-juggle", title: "Schedule Juggle", glyph: "🗓️" },
+  { href: "/vocrehab/play/phone-greeting", title: "Front-Desk Hello", glyph: "☎️" },
+  { href: "/vocrehab/play/time-punch", title: "Shift Punch", glyph: "⏱️" },
+  { href: "/vocrehab/play/tool-match", title: "Tool Crib", glyph: "🧰" },
+  { href: "/vocrehab/play/paycheck-plan", title: "Paycheck Planner", glyph: "💵" },
+  { href: "/vocrehab/play/energy-budget", title: "Energy Budget", glyph: "🔋" },
+  { href: "/vocrehab/play/resume-rescue", title: "Resume Rescue", glyph: "📝" },
 ] as const;
 
 export default function VocrehabHubPage() {
@@ -59,6 +73,29 @@ export default function VocrehabHubPage() {
             </Link>
           ))}
         </div>
+        <section aria-label="Quick Play" className="mt-3 rounded-xl border border-stone-200 bg-white p-3 shadow-sm">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h2 className="text-[15px] font-semibold text-stone-900">Quick Play</h2>
+            <p className="text-[13px] text-stone-600">Jump straight into a Work &amp; Life Practice Game.</p>
+            <Link href="/vocrehab/play" className="ml-auto text-[13px] font-semibold text-cyan-700 underline">
+              All games →
+            </Link>
+          </div>
+          <ul className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {QUICK_PLAY_GAMES.map((g) => (
+              <li key={g.href}>
+                <Link
+                  href={g.href}
+                  className="flex items-center gap-2 rounded-lg border border-stone-200 px-2.5 py-2 hover:bg-stone-50 hover:shadow"
+                >
+                  <span aria-hidden="true" className="text-lg leading-none">{g.glyph}</span>
+                  <span className="text-[13px] font-semibold text-stone-900">{g.title}</span>
+                  <span aria-hidden="true" className="ml-auto text-stone-400">→</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       </section>
     </main>
   );
