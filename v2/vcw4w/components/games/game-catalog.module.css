@@ -19,7 +19,7 @@
 .secHead h2{margin:4px 0 0;font-size:1.25rem;line-height:1.1;letter-spacing:-.02em}
 .secHead>span{color:#8d98b8;font-size:.78rem;white-space:nowrap}
 .grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
-.card{overflow:hidden;border:1px solid rgba(147,161,190,.22);border-radius:12px;background:linear-gradient(160deg,rgba(24,26,45,.88),rgba(8,9,19,.93));transition:transform .15s,border-color .15s;min-height:188px;display:flex;flex-direction:column}
+.card{overflow:hidden;border:1px solid rgba(147,161,190,.22);border-radius:12px;background:linear-gradient(160deg,rgba(24,26,45,.88),rgba(8,9,19,.93));transition:transform .15s,border-color .15s;min-height:188px;display:flex;flex-direction:column;position:relative}
 .card:hover{transform:translateY(-3px);border-color:#00f2fe}
 .card:hover .playMark,.card:focus-within .playMark{opacity:1}
 .recommendedCard{border-color:rgba(157,78,221,.52)}
@@ -41,6 +41,11 @@
 .body{padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px;flex:1}
 .titleRow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .titleRow h3{margin:0;font-size:.86rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.titleLink{color:inherit;text-decoration:none}
+.titleLink:hover{text-decoration:underline}
+.titleLink::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:0}
+.titleLink:focus-visible{outline:2px solid #00f2fe;outline-offset:2px;border-radius:4px}
+.play,.infoBtn{position:relative;z-index:1}
 .titleRow small{color:#9ca9cc;font-size:.62rem;flex:none}
 .metaRow{display:flex;justify-content:space-between;align-items:center;gap:6px}
 .infoBtn{border:1px solid rgba(173,190,223,.3);border-radius:999px;background:transparent;padding:3px 9px;color:#c9d4ed;font-size:.68rem;cursor:pointer;white-space:nowrap}

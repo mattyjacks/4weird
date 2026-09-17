@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
 const GAMES = [
-  { slug: "gravegain1d", label: "Ley-Line Race" },
-  { slug: "gravegain2d", label: "Dungeon Duel" },
-  { slug: "gravegain3d", label: "Spire Siege" },
+  { slug: "gravegain1dA", label: "Ley-Line Race" },
+  { slug: "gravegain2dA", label: "Dungeon Duel" },
+  { slug: "gravegain2dB", label: "Dungeon Breach" },
+  { slug: "gravegain3dA", label: "Spire Siege" },
 ] as const;
 
 type OpenLobby = {
@@ -185,7 +186,7 @@ export function GraveGainLobbies() {
         alert(String(body.error ?? "Unable to join."));
         return;
       }
-      const slug = /^[a-z0-9-]{1,64}$/.test(String(body.game_slug ?? "")) ? String(body.game_slug) : "gravegain2d";
+      const slug = /^[A-Za-z0-9-]{1,64}$/.test(String(body.game_slug ?? "")) ? String(body.game_slug) : "gravegain2dA";
       const match = String(body.match_id ?? "");
       window.location.href = match ? `/games/${slug}/play?match=${encodeURIComponent(match)}` : `/games/${slug}/play`;
     } finally {
@@ -244,7 +245,7 @@ export function GraveGainLobbies() {
             </select>
           </label>
         </div>
-        <p className="mt-2 text-xs text-slate-400">gravegain1d Ley-Line Race · gravegain2d Dungeon Duel · gravegain3d Spire Siege</p>
+        <p className="mt-2 text-xs text-slate-400">gravegain1dA Ley-Line Race · gravegain2dA Dungeon Duel · gravegain2dB Dungeon Breach · gravegain3dA Spire Siege</p>
       </div>
 
       {hosted && (

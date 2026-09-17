@@ -91,6 +91,20 @@ body{display:block!important}
 [kouzi-cta],[class*="kouzi-cta"],[class*="madi-cta"]{display:none!important}
 [class*="game-page"],[class*="game-main"]{margin:0!important;padding:0!important;max-width:none!important;min-height:100%!important}
 [class*="game-frame"],.game-wrapper,.game-container{width:100%!important;max-width:none!important;margin:0!important;border-radius:0!important}
+/* Full-window stage: stripped bundles (e.g. lastwordszombies) keep their
+   v1 grid (1fr + 340px sidebar) and fixed aspect-ratio (4/3) in game.css.
+   With the sidebar stripped that leaves a narrow centered column with an
+   empty track beside it, pillarboxed inside the shell's 16:9 frame.
+   Collapse to a single full-bleed column and let the frame fill the iframe
+   height instead of letterboxing. Dark scrollbars so overlay scrolling never
+   flashes a light native scrollbar inside the dark game window. */
+[class*="game-main"]{display:grid!important;grid-template-columns:1fr!important;gap:0!important;width:100%!important}
+[class*="game-frame"]{aspect-ratio:auto!important;height:100%!important;min-height:100%!important}
+html{scrollbar-color:rgba(255,255,255,.25) #000}
+[class*="game-overlay"]{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+[class*="game-overlay"]::-webkit-scrollbar{width:8px}
+[class*="game-overlay"]::-webkit-scrollbar-track{background:transparent}
+[class*="game-overlay"]::-webkit-scrollbar-thumb{background:rgba(255,255,255,.22);border-radius:4px}
 </style></head>
 <body class="TEMPLATE-4weird-game-page">
     <div class="game-wrapper">

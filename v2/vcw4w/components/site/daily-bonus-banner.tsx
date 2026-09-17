@@ -85,6 +85,17 @@ export function DailyBonusBanner() {
 
   const check = useCallback(async () => {
     if (inflightRef.current) return;
+    // Guests have no coins: skip the fetch (avoids a 401 in Network on every page).
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const { data } = await createClient().auth.getSession();
+      if (!data.session) {
+        setVisible(false);
+        return;
+      }
+    } catch {
+      /* session probe failed; fall through to the status fetch */
+    }
     inflightRef.current = true;
     try {
       const response = await fetch("/api/coins/daily/status", { credentials: "include" });

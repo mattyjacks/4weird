@@ -192,10 +192,36 @@ for (const rel of ["public/search/index.json", "app/docs/search/page.tsx"]) {
   const headerS = read("components/site/site-header.tsx");
   if (headerS === null) {
     violation("components/site/site-header.tsx: MISSING.");
-  } else if (!headerS.includes("useRotatingPlaceholder") || !headerS.includes("pillExample")) {
-    violation("site-header: search pills must preview useRotatingPlaceholder via pillExample (rotating example).");
+  } else if (!headerS.includes("Search: Anything")) {
+    // Static pill label on purpose: the old rotating "try: …" preview
+    // resized the pill on every rotation and shifted the header row.
+    violation("site-header: search pills must use the static “Search: Anything” label (no rotating width).");
   } else {
-    ok("site-header: search pills preview the rotating placeholder.");
+    ok("site-header: search pills use the static “Search: Anything” label.");
+  }
+}
+
+// 9. Overlay normalizes the real builder shape: public/search/index.json
+// entries carry {quick, tags, kind}, not {description, keywords, section}.
+// Without the mapping, game searches score title + href only ("typing",
+// "rpg", "dungeon" never match). Menu 2 carries a plain substring games
+// filter (distinct from this ranked search) over the game catalog.
+{
+  const overlay = read("components/site/search-overlay.tsx");
+  if (overlay === null) {
+    advisory("index-shape mapping: SKIP (overlay sibling not yet landed).");
+  } else if (!overlay.includes("rec.quick") || !overlay.includes("rec.tags") || !overlay.includes("rec.kind")) {
+    violation("search-overlay.tsx: normalizeIndex must map the builder shape (quick/tags/kind) so games search properly.");
+  } else {
+    ok("search-overlay.tsx: normalizeIndex maps the builder quick/tags/kind shape.");
+  }
+  const sidebar = read("components/site/menu-sidebar.tsx");
+  if (sidebar === null) {
+    violation("components/site/menu-sidebar.tsx: MISSING.");
+  } else if (!sidebar.includes("gameFilterResults") || !sidebar.includes("@/content/games")) {
+    violation("menu-sidebar.tsx: menu 2 must carry a games substring filter (filter-type, distinct from ranked search).");
+  } else {
+    ok("menu-sidebar.tsx: menu 2 filters games by substring (filter-type).");
   }
 }
 

@@ -135,11 +135,22 @@ function GraveGainPartyInner({ slug }: { slug: string }) {
   const lastStatus = useRef("");
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Presence: best-effort, signed-in only (401 just marks guest UI).
+  // Presence: best-effort, signed-in only. Guests skip the PUT (avoids a
+  // 401 in Network on every play-page mount); 401 still marks guest UI.
   useEffect(() => {
     if (!isGraveSlug(slug)) return;
     let live = true;
     (async () => {
+      try {
+        const { createClient } = await import("@/lib/supabase/client");
+        const { data } = await createClient().auth.getSession();
+        if (!data.session) {
+          if (live) setGuest(true);
+          return;
+        }
+      } catch {
+        /* probe failed; fall through to the PUT */
+      }
       try {
         await fetch("/api/presence", {
           method: "PUT",

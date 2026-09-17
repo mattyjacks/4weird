@@ -3,7 +3,7 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
 import { rateLimit } from "@/lib/rate-limit";
-import { isSlug } from "@/lib/validate";
+import { isGameSlug } from "@/lib/validate";
 import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
 
 
@@ -15,7 +15,7 @@ export async function GET(req: Request) {
   if (!u) return fail("Login required.", 401);
   const q = new URL(req.url).searchParams;
   const raw = q.get("game");
-  const game = raw ? isSlug(raw) : "";
+  const game = raw ? isGameSlug(raw) : "";
   if (raw && !game) return fail("Invalid game.", 400);
   const { data: rows, error } =
     q.get("all") === "1"
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     return fail("Invalid JSON body.", 400);
   }
   const input = (body ?? {}) as Record<string, unknown>;
-  const game = isSlug(input.game_slug);
+  const game = isGameSlug(input.game_slug);
   const platform = String(input.platform ?? "");
   const visibility = String(input.visibility ?? "");
   const title = String(input.title ?? "").trim();

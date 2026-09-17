@@ -3,7 +3,7 @@ import { hasServerSupabase, serviceClient } from "@/lib/supabase/service";
 import { rateLimit } from "@/lib/rate-limit";
 import { dbFail, fail, ok } from "@/lib/api-respond";
 import { sameOrigin } from "@/lib/csrf";
-import { clientIp, isSlug } from "@/lib/validate";
+import { clientIp, isGameSlug } from "@/lib/validate";
 import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
 
 
@@ -35,12 +35,9 @@ export async function POST(req: Request) {
   }
   const input = (body ?? {}) as Record<string, unknown>;
   const requestedGame = typeof input.game_slug === "string" ? input.game_slug : "";
-  // GraveGain2DA/2dB retain their capitalized dimension suffix in the public URL.
-  // Keep generic slug validation strict for every other game.
-  const game =
-    requestedGame === "gravegain2dA" || requestedGame === "gravegain2dB"
-      ? requestedGame
-      : isSlug(requestedGame);
+  // Canonical GraveGain slugs carry a capitalized dimension suffix
+  // (gravegain1dA/2dA/2dB/3dA) — validate with the game-slug check.
+  const game = isGameSlug(requestedGame);
   const platform = String(input.platform ?? "");
   if (!game || !["phone", "desktop"].includes(platform)) return fail("Invalid match request.", 400);
   const GRAVEGAIN = new Set(["gravegain1dA", "gravegain2dA", "gravegain2dB", "gravegain3dA"]);

@@ -1,7 +1,7 @@
-import { games, type Game } from "./games";
+import { games, resolveGameSlug, type Game } from "./games";
 export type GameManifest = { slug: string; legacyPath: string; sourcePath: string; runtimePath: string; schemaVersion: number; storage: string[]; workers: string[]; audio: boolean; cleanup: string[]; tests: string[] };
 export const gameManifests: Record<string, GameManifest> = Object.fromEntries(games.map((game: Game) => [game.slug, { slug: game.slug, legacyPath: game.legacyPath, sourcePath: `/games/html/${game.legacyPath}/`, runtimePath: game.runtimePath, schemaVersion: 1, storage: ["localStorage (game-owned)"], workers: ["Preserved worker files when present"], audio: true, cleanup: ["iframe teardown", "event listener cleanup", "worker termination where applicable"], tests: ["raw static HTML smoke test", "Next.js iframe shell smoke test", "bundle parity verification"] }]));
-export const getGameManifest = (slug: string) => gameManifests[slug];
+export const getGameManifest = (slug: string) => gameManifests[resolveGameSlug(slug) ?? slug];
 
 // Closed-catalog invariant (fails fast at import, mirroring content/games.ts):
 // nested games (kouzi/*, madi/*) and DiscoverAmerica keep a legacyPath that
@@ -24,10 +24,12 @@ const GAMES_WITH_GUIDES: ReadonlySet<string> = new Set([
   "discoveramerica",
   "fridgesimulator",
   "serversavershield",
-  "gravegain4d",
+  "gravegain4dA",
 ]);
 
-export const hasGameGuide = (slug: string): boolean => GAMES_WITH_GUIDES.has(slug);
+export const hasGameGuide = (slug: string): boolean => GAMES_WITH_GUIDES.has(resolveGameSlug(slug) ?? slug);
 
-export const gameGuidePath = (slug: string): string | null =>
-  hasGameGuide(slug) ? `/games/${slug}/guide.html` : null;
+export const gameGuidePath = (slug: string): string | null => {
+  const canonical = resolveGameSlug(slug) ?? slug;
+  return hasGameGuide(canonical) ? `/games/${canonical}/guide.html` : null;
+};

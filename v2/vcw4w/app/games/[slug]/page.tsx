@@ -8,6 +8,7 @@ import { getCachedGameDetail } from "@/lib/games-catalog";
 import { hasContentModes, CONTENT_MODE_DESCRIPTIONS } from "@/lib/content-modes";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { RatingBadge } from "@/components/games/rating-badge";
+import { RatingMatrix } from "@/components/games/rating-matrix";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
 import { TipGame } from "@/components/support/tip-game";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
@@ -93,6 +94,7 @@ async function CachedGameDetail({ slug }: { slug: string }) {
         <p className="mt-4 text-lg text-slate-300 sm:mt-5 sm:text-xl">{g.description}</p>
         <div className="mt-4">
           <RatingBadge rating={rating} />
+          <RatingMatrix rating={rating} />
           {rating !== "kids" && (
             <p className="mt-1.5 text-sm text-slate-400">
               {rating === "adults"
@@ -106,7 +108,7 @@ async function CachedGameDetail({ slug }: { slug: string }) {
           )}
         </div>
         {hasContentModes(g.slug) && (
-          <section aria-label="Content modes" className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
+          <section aria-label="Content modes" id="content-modes" className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
             <h2 className="text-lg font-bold sm:text-xl">Content modes</h2>
             <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-slate-300">
               <li><b className="text-white">Kid:</b> {CONTENT_MODE_DESCRIPTIONS.kid}</li>
@@ -118,7 +120,7 @@ async function CachedGameDetail({ slug }: { slug: string }) {
             </p>
           </section>
         )}
-        {["gravegain1dA", "gravegain2dA", "gravegain3dA"].includes(g.slug) && (
+        {["gravegain1dA", "gravegain2dA", "gravegain2dB", "gravegain3dA"].includes(g.slug) && (
           <section aria-label="Multiplayer" className="mt-4 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
             <h2 className="text-lg font-bold sm:text-xl">Multiplayer</h2>
             <p className="mt-2 text-sm text-slate-300">
@@ -127,7 +129,9 @@ async function CachedGameDetail({ slug }: { slug: string }) {
                 ? "Ley-Line Race"
                 : g.slug === "gravegain2dA"
                   ? "Dungeon Duel"
-                  : "Spire Siege"}{" "}
+                  : g.slug === "gravegain2dB"
+                    ? "Dungeon Breach"
+                    : "Spire Siege"}{" "}
               — party {g.slug === "gravegain2dA" ? "duels" : "races"} with a live feed. Sign in, then
               quick-match or share a party lobby code.
             </p>

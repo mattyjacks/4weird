@@ -15,7 +15,7 @@
  */
 
 import { cacheLife, cacheTag } from "next/cache";
-import { games, getGame, type Game } from "@/content/games";
+import { games, getGame, resolveGameSlug, type Game } from "@/content/games";
 import {
   gameGuidePath,
   getGameManifest,
@@ -30,12 +30,14 @@ export async function getCachedGames(): Promise<Game[]> {
   return games;
 }
 
-/** Single game by slug, or null for unknown slugs. Tags: `games`, `game-<slug>`. */
+/** Single game by slug (case-insensitive), or null for unknown slugs. Tags: `games`, `game-<slug>`. */
 export async function getCachedGame(slug: string): Promise<Game | null> {
   "use cache";
   cacheLife("hours");
   cacheTag("games");
   cacheTag(`game-${slug}`);
+  const canonical = resolveGameSlug(slug);
+  if (canonical) cacheTag(`game-${canonical}`);
   return getGame(slug) ?? null;
 }
 
@@ -47,7 +49,9 @@ export async function getCachedGameManifest(
   cacheLife("hours");
   cacheTag("games");
   cacheTag(`game-${slug}`);
-  return getGameManifest(slug);
+  const canonical = resolveGameSlug(slug);
+  if (canonical) cacheTag(`game-${canonical}`);
+  return getGameManifest(canonical ?? slug);
 }
 
 /** Static guide path (`/games/<slug>/guide.html`) or null. Tags: `games`, `game-<slug>`. */
@@ -58,7 +62,9 @@ export async function getCachedGameGuidePath(
   cacheLife("hours");
   cacheTag("games");
   cacheTag(`game-${slug}`);
-  return gameGuidePath(slug);
+  const canonical = resolveGameSlug(slug);
+  if (canonical) cacheTag(`game-${canonical}`);
+  return gameGuidePath(canonical ?? slug);
 }
 
 export type CachedGameDetail = {
@@ -79,11 +85,13 @@ export async function getCachedGameDetail(
   cacheLife("hours");
   cacheTag("games");
   cacheTag(`game-${slug}`);
+  const canonical = resolveGameSlug(slug);
+  if (canonical) cacheTag(`game-${canonical}`);
   const game = getGame(slug);
   if (!game) return null;
   return {
     game,
-    manifest: getGameManifest(slug),
-    guide: gameGuidePath(slug),
+    manifest: getGameManifest(game.slug),
+    guide: gameGuidePath(game.slug),
   };
 }

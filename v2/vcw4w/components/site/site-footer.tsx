@@ -130,14 +130,14 @@ export function SiteFooter() {
               </span>
               4weird<span className="bg-gradient-to-r from-cyan-600 to-fuchsia-600 bg-clip-text text-transparent dark:from-cyan-300 dark:to-fuchsia-300">Games</span>
             </p>
-            <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
+            <div className="mt-2 text-[13px] leading-snug text-muted-foreground">
               <strong className="font-semibold text-foreground">Future Forward Fun, Funded by Founders.</strong>{" "}
               <ClampText
                 short="Cost-effective cloud center + arcade: 35 games, clans, buddy, rentable power."
                 full="4weird.com is a cost-effective cloud computing center with an arcade on top - 35 browser games, cozy clans, a voice buddy that watches your screen and helps you win, plus rentable AI agents, cloud desktops, and 3D render power. Founder cloud spend funds the fun (bootstrapped today by Matt, MattyJacks LLC). Your saves, coins, and high scores follow you everywhere."
                 label="About 4weird, in full"
               />
-            </p>
+            </div>
             <CompactDetails summary="New here? Start here" className="mt-2">
               Grab <strong className="font-semibold text-foreground">100 free Vibe Coins</strong>, pick a
               game, and play in seconds. No install. No manual. Just fun.
@@ -208,13 +208,13 @@ export function SiteFooter() {
             <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
               <Coins className="h-4 w-4" aria-hidden="true" /> Vibe Coins, simply
             </p>
-            <p className="mt-2 text-[13px] leading-snug text-muted-foreground">
+            <div className="mt-2 text-[13px] leading-snug text-muted-foreground">
               <ClampText
                 short="100 Vibe Coins = exactly $1.00. 25% cut included, never on top."
                 full={<span>The whole economy fits in one sentence: <strong className="font-bold text-foreground">100 Vibe Coins (🪙) = exactly $1.00</strong>, always. The 25% platform cut is already inside every price - never added on top.</span>}
                 label="Vibe Coins, in full"
               />
-            </p>
+            </div>
             <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px] leading-snug text-muted-foreground">
               <li>Spend coins on games, <Link href="/agents" className="font-semibold text-foreground hover:underline underline-offset-4">agents</Link>, <Link href="/desktop" className="font-semibold text-foreground hover:underline underline-offset-4">desktops</Link>, and <Link href="/fal" className="font-semibold text-foreground hover:underline underline-offset-4">art tools</Link>.</li>
               <li>Tip makers on <Link href="/support" className="font-semibold text-foreground hover:underline underline-offset-4">Support</Link> - they keep 75% as on-site credits.</li>

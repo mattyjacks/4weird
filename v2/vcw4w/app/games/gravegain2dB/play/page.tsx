@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PlayGate } from "@/components/games/play-gate";
+import { RatingMatrix } from "@/components/games/rating-matrix";
 
 export const metadata: Metadata = {
   title: "Play GraveGain2dB | 4weird Games",
@@ -47,6 +48,9 @@ export default function GraveGain2dBPlayPage() {
         <h1 className="mt-3 text-2xl font-black sm:text-3xl">
           🌙 Play GraveGain2dB
         </h1>
+        <div className="mt-3">
+          <RatingMatrix rating="adults" compact />
+        </div>
         <div className="mt-4" id="game-frame">
           <Suspense fallback={<p className="py-10 text-center text-sm text-white/60">Loading game player…</p>}>
             <PlayGate slug="gravegain2dB" title="GraveGain2dB: Breach MoonRock" src="/games/gravegain2dB/index.html" version="1" emoji="🌙" />

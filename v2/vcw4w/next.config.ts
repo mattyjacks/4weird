@@ -194,6 +194,15 @@ const nextConfig: NextConfig = {
       // Auth short link: old bookmarks + pasted URLs use /login; the
       // canonical route is /auth/login (see app/auth/login/page.tsx).
       { source: "/login", destination: "/auth/login", permanent: true },
+      // GraveGain naming-schema compliance: bare gravegain4d/gravegain5d
+      // redirect to canonical gravegain4dA/gravegain5dA (detail + play).
+      { source: "/games/gravegain4d", destination: "/games/gravegain4dA", permanent: true },
+      { source: "/games/gravegain4d/play", destination: "/games/gravegain4dA/play", permanent: true },
+      { source: "/games/gravegain5d", destination: "/games/gravegain5dA", permanent: true },
+      { source: "/games/gravegain5d/play", destination: "/games/gravegain5dA/play", permanent: true },
+      // Repo dir is v2/vcw4w, not a URL prefix: /v2/ never existed as a route.
+      { source: "/v2", destination: "/games", permanent: true },
+      { source: "/v2/:path*", destination: "/games", permanent: true },
     ];
   },
   async rewrites() {

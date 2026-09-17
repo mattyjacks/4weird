@@ -56,6 +56,17 @@ export function isSlug(value: unknown): string {
 }
 
 /**
+ * Game-slug check: catalog slugs include mixed-case GraveGain dimension
+ * suffixes (gravegain1dA, gravegain2dA, gravegain2dB, gravegain3dA,
+ * gravegain4dA, gravegain5dA). Generic isSlug() rejects those, so game
+ * routes validate with this instead.
+ */
+export function isGameSlug(value: unknown): string {
+  const v = String(value ?? "");
+  return /^[A-Za-z0-9-]{1,64}$/.test(v) ? v : "";
+}
+
+/**
  * Save-slot check: slots are 0, 1, 2, or 3. Slot 0 is the cheat-proof
  * safety slot (it can never carry cheat_mode; see /api/cheats + /api/saves)
  * and sorts first everywhere. Returns null when invalid (slot 0 is valid,

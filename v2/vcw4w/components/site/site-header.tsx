@@ -8,7 +8,7 @@ import { useSiteTheme } from "@/components/site/site-theme-provider";
 import { useMountedTheme } from "@/components/site/themes/use-mounted-theme";
 // DS-SEARCH-05: search entry points mount the sibling overlay (DS-SEARCH-04
 // owns components/site/search-overlay.tsx; import by contract).
-import { SearchOverlay, useRotatingPlaceholder, useSearchShortcut } from "@/components/site/search-overlay";
+import { SearchOverlay, useSearchShortcut } from "@/components/site/search-overlay";
 
 // Heavy chunks stay off the first-paint bundle and hydrate after it:
 // wallet badges pull balance polling + auth wiring, the USA flag pulls
@@ -514,7 +514,6 @@ export function SiteHeader() {
   }, []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
   useSearchShortcut(openSearch);
-  const pillExample = useRotatingPlaceholder();
   const reducedMotion = usePrefersReducedMotion();
 
   // Track auth state so the header can show Login / Sign Up vs Dashboard.
@@ -712,19 +711,18 @@ export function SiteHeader() {
 
           {/* Desktop actions (lg+): identical set as the sheet via HeaderCtas */}
           <div className="hidden items-center gap-2 lg:flex">
-            {/* DS-SEARCH-05: desktop search entry point (short pill). */}
+            {/* DS-SEARCH-05: desktop search entry point. Static label on
+                purpose: the old rotating "try: …" example resized the pill
+                on every rotation and shifted the whole header row. */}
             <button
               type="button"
               onClick={openSearch}
               aria-label="Open site search"
               title="Search (Ctrl/⌘K or /)"
-              className="inline-flex h-9 max-w-56 items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border border-border px-3 py-1.5 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+              className="inline-flex h-9 w-44 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-border px-3 py-1.5 text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
             >
               <span aria-hidden="true" className="shrink-0">🔍</span>
-              <span className="shrink-0">Search</span>
-              <span aria-hidden="true" className="truncate text-xs font-normal opacity-70">
-                {pillExample ? `— try: ${pillExample}` : ""}
-              </span>
+              <span className="shrink-0">Search: Anything</span>
             </button>
             <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />
             <HeaderCtas signedIn={signedIn} onNavigate={closeMenu} />
@@ -789,13 +787,10 @@ export function SiteHeader() {
               type="button"
               onClick={openSearch}
               aria-label="Open site search"
-              className="mb-2 flex min-h-[44px] w-full items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border border-border px-3 py-2 text-center text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+              className="mb-2 flex min-h-[44px] w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-border px-3 py-2 text-center text-sm font-bold text-foreground transition hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
             >
               <span aria-hidden="true" className="shrink-0">🔍</span>
-              <span className="shrink-0">Search</span>
-              <span aria-hidden="true" className="truncate text-xs font-normal opacity-70">
-                {pillExample ? `— try: ${pillExample}` : ""}
-              </span>
+              <span className="shrink-0">Search: Anything</span>
             </button>
               <div className="flex min-h-[1.75rem] items-center justify-center">
                 <WalletBadges signedIn={signedIn} onUnauthorized={handleUnauthorized} />

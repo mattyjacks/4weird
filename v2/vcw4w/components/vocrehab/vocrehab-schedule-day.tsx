@@ -27,6 +27,7 @@ export type VocrehabScheduleDayEvent = {
   startMin: number;
   endMin: number;
   locked?: boolean;
+  activityId?: string;
 };
 
 export type VocrehabScheduleDayActivity = {

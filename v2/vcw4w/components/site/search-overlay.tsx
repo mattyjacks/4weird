@@ -201,7 +201,16 @@ function isSafeHref(href: string): boolean {
   return /^https?:\/\/[^/\s]+\.[^/\s]+/i.test(h);
 }
 
-/** Defensively coerce unknown JSON into index entries (fail-open: []). */
+/**
+ * Defensively coerce unknown JSON into index entries (fail-open: []).
+ *
+ * Accepts BOTH shapes: the overlay's own {description, keywords, section}
+ * and the static builder's DS-SEARCH-01 shape {quick, tags, kind} from
+ * public/search/index.json (which is what actually ships — games carry
+ * their genre + title words in `tags` and their blurb in `quick`).
+ * Without this mapping, game searches only scored title + href, so queries
+ * like "typing", "rpg", or "dungeon" never matched the right games.
+ */
 function normalizeIndex(raw: unknown): SearchIndexEntry[] {
   let arr: unknown = raw;
   if (raw !== null && typeof raw === "object" && !Array.isArray(raw)) {
@@ -218,10 +227,17 @@ function normalizeIndex(raw: unknown): SearchIndexEntry[] {
     if (typeof rec.href !== "string" || typeof rec.title !== "string") continue;
     if (!isSafeHref(rec.href)) continue;
     const entry: SearchIndexEntry = { href: rec.href, title: rec.title };
+    // Overlay shape first, builder shape as fallback.
     if (typeof rec.description === "string") entry.description = rec.description;
+    else if (typeof rec.quick === "string") entry.description = rec.quick;
     if (typeof rec.section === "string") entry.section = rec.section;
+    else if (typeof rec.kind === "string") entry.section = rec.kind;
     if (Array.isArray(rec.keywords)) {
       entry.keywords = rec.keywords.filter(
+        (k): k is string => typeof k === "string",
+      );
+    } else if (Array.isArray(rec.tags)) {
+      entry.keywords = rec.tags.filter(
         (k): k is string => typeof k === "string",
       );
     }

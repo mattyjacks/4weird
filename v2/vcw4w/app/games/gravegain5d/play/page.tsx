@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { RatingMatrix } from "@/components/games/rating-matrix";
 
 export const metadata: Metadata = {
   title: "Play GraveGain5DA | 4weird Games",
-  description:
-    "Play GraveGain5DA: transcend six parallel Arroyos in a 5D multiverse golf rogue-like — chain hops, vent paradox, beat the collapse timers.",
+    description:
+      "Play GraveGain5DA: turn-based multiverse dungeon combat across six parallel Arroyos — strike haunts, chain hops, vent paradox, beat the collapse timers.",
   robots: { index: false, follow: false },
 };
 
@@ -47,6 +48,9 @@ export default function GraveGain5DAPlayPage() {
         <h1 className="mt-3 text-2xl font-black sm:text-3xl">
           🌀 Play GraveGain5DA
         </h1>
+        <div className="mt-3">
+          <RatingMatrix rating="teens" compact />
+        </div>
         <div id="game-frame" className="perf-frame play-frame-height play-frame-ar mt-4 overflow-hidden rounded-2xl border border-white/15 bg-black">
           <iframe
             src="/games/gravegain5dA/index.html"
@@ -57,7 +61,7 @@ export default function GraveGain5DAPlayPage() {
           />
         </div>
         <p className="mt-3 text-sm text-white/60">
-          4D golf across 6 universes — hop with U, putt with Space, vent
+          Turn-based combat across 6 universes — hop with U, strike with Space, vent
           paradox before hot universes collapse.
         </p>
       </div>

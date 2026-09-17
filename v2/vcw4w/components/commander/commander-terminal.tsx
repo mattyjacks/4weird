@@ -31,7 +31,7 @@ const ROUTES: { route: string; blurb: string }[] = [
   { route: "/games", blurb: "all games" },
   { route: "/games/compute", blurb: "Compute (game)" },
   { route: "/games/fridgesimulator", blurb: "FridgeSimulator (game)" },
-  { route: "/games/gravegain4d/play", blurb: "GraveGain4D (play)" },
+  { route: "/games/gravegain4dA/play", blurb: "GraveGain4DA (play)" },
   { route: "/pricing", blurb: "pricing & coins" },
   { route: "/agents", blurb: "agent / GPU rentals" },
   { route: "/tools", blurb: "free tools index" },
@@ -51,8 +51,9 @@ const OPEN_ALIASES: Record<string, string> = {
   compute: "/games/compute",
   fridge: "/games/fridgesimulator",
   fridgesimulator: "/games/fridgesimulator",
-  gravegain: "/games/gravegain4d/play",
-  gravegain4d: "/games/gravegain4d/play",
+  gravegain: "/games/gravegain4dA/play",
+  gravegain4d: "/games/gravegain4dA/play",
+  gravegain4da: "/games/gravegain4dA/play",
   tools: "/tools",
   counter: "/tools/counter",
   docs: "/docs",
@@ -270,10 +271,10 @@ export function CommanderTerminal() {
                   {" — /games/fridgesimulator"}
                   <br />
                   {"  • "}
-                  <Link href="/games/gravegain4d/play" className="underline">
-                    GraveGain4D
+                  <Link href="/games/gravegain4dA/play" className="underline">
+                    GraveGain4DA
                   </Link>
-                  {" — /games/gravegain4d/play"}
+                  {" — /games/gravegain4dA/play"}
                   <br />
                   {"  All games: "}
                   <Link href="/games" className="underline">

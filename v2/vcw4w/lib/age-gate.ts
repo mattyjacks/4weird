@@ -64,7 +64,14 @@ export function getGameRating(slug: string): AgeRating {
   // paths (session start, guest-pass start) must fail closed on unlisted
   // slugs via the content/games.ts catalog BEFORE calling this, so an
   // unknown slug can never be metered or gated as kids.
-  return GAME_RATINGS[slug] ?? "kids";
+  if (GAME_RATINGS[slug]) return GAME_RATINGS[slug];
+  // Case-variant slugs (e.g. /games/gravegain1DA) carry the same rating as
+  // their canonical catalog slug — never fall through to "kids" on case.
+  const lowered = slug.toLowerCase();
+  for (const [key, rating] of Object.entries(GAME_RATINGS)) {
+    if (key.toLowerCase() === lowered) return rating;
+  }
+  return "kids";
 }
 
 export function requiredAgeFor(rating: AgeRating): number {

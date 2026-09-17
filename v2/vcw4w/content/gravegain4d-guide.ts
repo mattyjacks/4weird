@@ -24,8 +24,8 @@ export type GG4DGuideSection = {
 };
 
 export const GG4D_GUIDE: { slug: string; title: string; sections: GG4DGuideSection[] } = {
-  slug: "gravegain4d",
-  title: "GraveGain4D Player Guide",
+  slug: "gravegain4dA",
+  title: "GraveGain4DA Player Guide",
   sections: [
     {
       id: "primer",

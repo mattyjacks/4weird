@@ -36,7 +36,7 @@ export function ClampText({
   const detailsId = useId();
   const body = full ?? short;
   return (
-    <span className={cn("ui-clamp", className)}>
+    <div className={cn("ui-clamp", className)}>
       <span className={cn("ui-clamp-short", lines === 1 && "ui-clamp-1", lines === 3 && "ui-clamp-3")}>{short}</span>
       <InfoTip text={body} label={label} />
       <details className="ui-clamp-more">
@@ -50,6 +50,6 @@ export function ClampText({
           {body}
         </span>
       </details>
-    </span>
+    </div>
   );
 }

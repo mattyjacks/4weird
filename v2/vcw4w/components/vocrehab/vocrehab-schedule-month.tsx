@@ -16,7 +16,7 @@ export type VocrehabScheduleMonthProps = {
   eventCounts: Record<string, VocrehabScheduleMonthDayCounts>;
   onSelect: (dayId: string) => void;
   quickAddActivity?: { id: string; label: string } | null;
-  dayEvents?: Record<string, Array<{ id: string; title: string; startMin: number; endMin: number }>>;
+  dayEvents?: Record<string, Array<{ id: string; title: string; startMin: number; endMin: number; activityId?: string }>>;
   onQuickAdd?: (dayId: string, activityId: string) => void;
   onQuickRemove?: (dayId: string, eventId: string) => void;
   /**

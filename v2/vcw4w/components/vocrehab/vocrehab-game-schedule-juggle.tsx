@@ -39,7 +39,14 @@ import {
 } from "@/lib/vocrehab-schedule-calendar";
 import {
   ACTIVITY_KINDS,
+  activityEmoji,
 } from "@/lib/vocrehab-schedule-activities";
+import {
+  REPEAT_CHOICES,
+  expandRepeat,
+  repeatSummary,
+} from "@/lib/vocrehab-schedule-repeat";
+import type { RepeatChoice } from "@/lib/vocrehab-schedule-repeat";
 import {
   BURDENS,
   burdensForDifficulty,
@@ -269,6 +276,26 @@ function sjUiModeToTravelMode(mode: VocrehabTravelMode): TravelMode {
   return mode === "drive" ? "car" : mode;
 }
 
+/** 30-min start options for the quick time picker (48 entries, tiny DOM). */
+const SJ_START_OPTIONS: number[] = Array.from({ length: 48 }, (_, i) => i * 30);
+
+/** Duration presets offered at creation (minutes). */
+const SJ_DURATION_OPTIONS: number[] = [15, 30, 45, 60, 90, 120, 180, 240, 480];
+
+function sjValidRepeat(value: unknown): RepeatChoice {
+  return (REPEAT_CHOICES as readonly { id: RepeatChoice }[]).some((c) => c.id === value)
+    ? (value as RepeatChoice)
+    : "none";
+}
+
+function sjEmojiFor(activityId: string): string {
+  try {
+    return activityEmoji(activityId);
+  } catch {
+    return "";
+  }
+}
+
 function ScheduleJuggleRoot({
   vocrehabEmit,
   vocrehabFinish,
@@ -344,6 +371,9 @@ function ScheduleJuggleRoot({
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
   const [tab, setTab] = useState<SjTab>("month");
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>("personal");
+  const [customStartMin, setCustomStartMin] = useState<number>(9 * 60);
+  const [customDurationMin, setCustomDurationMin] = useState<number>(60);
+  const [repeatChoice, setRepeatChoice] = useState<RepeatChoice>("none");
   const [travelResult, setTravelResult] = useState<VocrehabTravelResult | null>(null);
   const [travelTrip, setTravelTrip] = useState<SjTravelTrip | null>(null);
   const [travelLoading, setTravelLoading] = useState(false);
@@ -430,10 +460,11 @@ function ScheduleJuggleRoot({
   );
   const selectedDayEvents: VocrehabScheduleDayEvent[] = selectedBlocks.map((block) => ({
     id: block.id,
-    title: block.title,
+    title: `${sjEmojiFor(block.activityId)} ${block.title}`.trim(),
     startMin: block.startMin,
     endMin: block.endMin,
     locked: block.locked,
+    activityId: block.activityId,
   }));
   const selectedActivity = ACTIVITY_KINDS.find((kind) => kind.id === selectedActivityId) ?? null;
   const selectedConflicts = useMemo(
@@ -522,7 +553,33 @@ function ScheduleJuggleRoot({
     vocrehabEmit("action", { difficulty: value });
   };
 
-  const createBlock = (startMin: number, requestedActivityId?: string, requestedDayId?: string) => {
+  const placeOneBlock = (
+    targetDayId: string,
+    activity: (typeof ACTIVITY_KINDS)[number],
+    startMin: number,
+    durationMin: number,
+  ): boolean => {
+    const safeDuration = Math.min(SJ_MAX_BLOCK_MIN, Math.max(5, Math.round(durationMin / 5) * 5));
+    const start = Math.round(Math.max(SJ_DAY_MIN, Math.min(SJ_DAY_MAX - safeDuration, startMin)) / 5) * 5;
+    const end = Math.min(SJ_DAY_MAX, start + safeDuration);
+    if (!(end > start)) return false;
+    const block: SjDayBlock = {
+      id: nextBlockId("block"),
+      title: activity.label,
+      activityId: activity.id,
+      startMin: start,
+      endMin: end,
+    };
+    mutateDay(targetDayId, (current) => [...current, block]);
+    return true;
+  };
+
+  const createBlock = (
+    startMin: number,
+    requestedActivityId?: string,
+    requestedDayId?: string,
+    requestedDurationMin?: number,
+  ) => {
     const targetDayId = requestedDayId ?? selectedDayId;
     if (!targetDayId) return;
     const activity = ACTIVITY_KINDS.find((kind) => kind.id === (requestedActivityId ?? selectedActivityId));
@@ -532,37 +589,62 @@ function ScheduleJuggleRoot({
       say(hint);
       return;
     }
-    const start = Math.round(Math.max(SJ_DAY_MIN, Math.min(SJ_DAY_MAX - 60, startMin)) / 5) * 5;
-    // Single stretches cap at half a day — long days become two blocks so
-    // each part of the day keeps its own plan.
-    const duration = Math.min(60, SJ_MAX_BLOCK_MIN);
-    const end = Math.min(SJ_DAY_MAX, start + duration);
-    if (!(end > start)) return;
-    const block: SjDayBlock = {
-      id: nextBlockId("block"),
-      title: activity.label,
-      activityId: activity.id,
-      startMin: start,
-      endMin: end,
-    };
-    mutateDay(targetDayId, (current) => [...current, block]);
-    const message = `${activity.label} added ${minutesToLabel(start)} to ${minutesToLabel(end)} — nice steady planning.`;
+    const duration = Math.min(
+      SJ_MAX_BLOCK_MIN,
+      Math.max(5, requestedDurationMin ?? customDurationMin),
+    );
+    const ok = placeOneBlock(targetDayId, activity, startMin, duration);
+    if (!ok) {
+      const hint = "That time overlaps something already planned — open day details to nudge times in 5-minute steps.";
+      setNote(hint);
+      say(hint);
+      return;
+    }
+    const start = Math.round(Math.max(SJ_DAY_MIN, Math.min(SJ_DAY_MAX - duration, startMin)) / 5) * 5;
+    const message = `${activity.emoji} ${activity.label} added ${minutesToLabel(start)} to ${minutesToLabel(start + duration)} — nice steady planning. Times stay editable in day details.`;
     setNote(null);
     say(message);
-    vocrehabEmit("action", { day: targetDayId, activity: activity.id, startMin: start });
+    vocrehabEmit("action", { day: targetDayId, activity: activity.id, startMin: start, durationMin: duration });
   };
 
   const createBlockForDay = (dayId: string, activityId: string) => {
-    const existing = blocksByDay[dayId] ?? [];
-    const starts = [...Array.from({ length: 16 }, (_, index) => (8 + index) * 60), ...Array.from({ length: 8 }, (_, index) => index * 60)];
-    const start = starts.find((candidate) =>
-      candidate + 60 <= SJ_DAY_MAX && existing.every((block) => candidate + 60 <= block.startMin || candidate >= block.endMin),
-    );
-    if (start === undefined) {
-      setNote("There is no open one-hour space left in this day. Open the day details to adjust its schedule.");
+    const activity = ACTIVITY_KINDS.find((kind) => kind.id === activityId);
+    if (!activity) return;
+    // Expand repeats inside the 3-months-out window; cap keeps saves tiny.
+    const dates = expandRepeat(dayId, repeatChoice, seedAnchor.year, seedAnchor.monthIndex);
+    let placed = 0;
+    let skipped = 0;
+    for (const target of dates) {
+      // Repeats only plan forward inside the visible window.
+      if (!isInRange(Number(target.slice(0, 4)), Number(target.slice(5, 7)) - 1, seedAnchor.year, seedAnchor.monthIndex)) {
+        skipped += 1;
+        continue;
+      }
+      const existing = blocksByDay[target] ?? [];
+      const start = Math.round(Math.max(SJ_DAY_MIN, Math.min(SJ_DAY_MAX - customDurationMin, customStartMin)) / 5) * 5;
+      const end = Math.min(SJ_DAY_MAX, start + Math.max(5, customDurationMin));
+      const overlaps = existing.some((block) => start < block.endMin && end > block.startMin);
+      if (overlaps) {
+        skipped += 1;
+        continue;
+      }
+      const ok = placeOneBlock(target, activity, customStartMin, customDurationMin);
+      if (ok) placed += 1;
+      else skipped += 1;
+    }
+    if (placed === 0) {
+      setNote("There is no open space left there at that time. Try another start time or open day details to adjust.");
       return;
     }
-    createBlock(start, activityId, dayId);
+    setSelectedDayId(dayId);
+    const summary = repeatSummary(repeatChoice, dates.length);
+    const message =
+      repeatChoice === "none"
+        ? `${activity.emoji} ${activity.label} added ${minutesToLabel(customStartMin)} (${customDurationMin} min) — times stay editable in day details.`
+        : `${activity.emoji} ${activity.label} · ${summary} — placed ${placed}${skipped > 0 ? `, skipped ${skipped} full day${skipped === 1 ? "" : "s"}` : ""}. Times stay editable per day.`;
+    setNote(null);
+    say(message);
+    vocrehabEmit("action", { day: dayId, activity: activity.id, repeat: repeatChoice, placed });
   };
 
   const moveBlock = (id: string, startMin: number) => {
@@ -940,17 +1022,67 @@ function ScheduleJuggleRoot({
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm font-bold text-stone-900">Choose what to schedule</h3>
-                <p className="text-xs text-stone-600">Choose an activity, then use + Add on any date. Each block starts at 1 hour; adjust its length in 5-minute steps.</p>
+                <p className="text-xs text-stone-600">Pick an activity, set its time + repeat, then use + Add on any date. Times stay editable later in 5-minute steps.</p>
               </div>
               <button type="button" onClick={() => setTab("save")} className="min-h-10 rounded-lg border border-stone-300 px-3 text-sm font-semibold text-stone-800">Save calendar</button>
             </div>
             <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {ACTIVITY_KINDS.map((activity) => (
-                <button key={activity.id} type="button" aria-pressed={selectedActivityId === activity.id} onClick={() => { setSelectedActivityId(activity.id); say(`${activity.label} selected. Tap Add on a calendar day.`); }} className={`min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-semibold ${selectedActivityId === activity.id ? "border-emerald-600 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-600/30" : "border-stone-300 bg-white text-stone-800 hover:bg-stone-50"}`}>
-                  {activity.label}{selectedActivityId === activity.id ? " ✓" : ""}
+                <button key={activity.id} type="button" aria-pressed={selectedActivityId === activity.id} aria-label={`Select activity ${activity.label}`} onClick={() => { setSelectedActivityId(activity.id); setCustomDurationMin(Math.min(SJ_MAX_BLOCK_MIN, activity.defaultDurMin)); say(`${activity.emoji} ${activity.label} selected. Tap Add on a calendar day.`); }} className={`min-h-11 rounded-xl border px-3 py-2 text-left text-sm font-semibold ${selectedActivityId === activity.id ? "border-emerald-600 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-600/30" : "border-stone-300 bg-white text-stone-800 hover:bg-stone-50"}`}>
+                  {activity.emoji} {activity.label}{selectedActivityId === activity.id ? " ✓" : ""}
                 </button>
               ))}
             </div>
+            <div className="mt-3 grid grid-cols-1 gap-2 rounded-xl bg-stone-50 p-2 sm:grid-cols-3">
+              <label className="text-xs font-semibold text-stone-700">
+                ⏰ Start time{" "}
+                <select
+                  value={customStartMin}
+                  onChange={(e) => setCustomStartMin(Number(e.target.value))}
+                  aria-label="Start time for new blocks"
+                  className="mt-1 min-h-10 w-full rounded-lg border border-stone-300 bg-white px-2 text-sm"
+                >
+                  {SJ_START_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {minutesToLabel(opt)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs font-semibold text-stone-700">
+                ⌛ Length{" "}
+                <select
+                  value={customDurationMin}
+                  onChange={(e) => setCustomDurationMin(Number(e.target.value))}
+                  aria-label="Length for new blocks"
+                  className="mt-1 min-h-10 w-full rounded-lg border border-stone-300 bg-white px-2 text-sm"
+                >
+                  {SJ_DURATION_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>
+                      {opt >= 60 ? `${Math.floor(opt / 60)}h${opt % 60 ? ` ${opt % 60}m` : ""}` : `${opt} min`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="text-xs font-semibold text-stone-700">
+                🔁 Repeat{" "}
+                <select
+                  value={repeatChoice}
+                  onChange={(e) => setRepeatChoice(sjValidRepeat(e.target.value))}
+                  aria-label="Repeat for new blocks"
+                  className="mt-1 min-h-10 w-full rounded-lg border border-stone-300 bg-white px-2 text-sm"
+                >
+                  {REPEAT_CHOICES.map((choice) => (
+                    <option key={choice.id} value={choice.id} title={choice.blurb}>
+                      {choice.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <p className="mt-1 text-xs text-stone-600" role="status">
+              {selectedActivity ? `${selectedActivity.emoji} ${selectedActivity.label}` : "Pick an activity"} · {minutesToLabel(customStartMin)} · {customDurationMin} min · {repeatSummary(repeatChoice, expandRepeat(selectedDayId ?? todayId, repeatChoice, seedAnchor.year, seedAnchor.monthIndex).length)} · repeats stay inside 3 months out.
+            </p>
           </section>
           <VocrehabScheduleMonth
             year={anchor.year}
@@ -958,8 +1090,8 @@ function ScheduleJuggleRoot({
             selectedDayId={selectedDayId}
             eventCounts={eventCounts}
             onSelect={openDay}
-            quickAddActivity={selectedActivity ? { id: selectedActivity.id, label: selectedActivity.label } : null}
-            dayEvents={Object.fromEntries(Object.entries(blocksByDay).map(([dayId, blocks]) => [dayId, blocks.map((block) => ({ id: block.id, title: block.title, startMin: block.startMin, endMin: block.endMin }))]))}
+            quickAddActivity={selectedActivity ? { id: selectedActivity.id, label: `${selectedActivity.emoji} ${selectedActivity.label}` } : null}
+            dayEvents={Object.fromEntries(Object.entries(blocksByDay).map(([dayId, blocks]) => [dayId, blocks.map((block) => ({ id: block.id, title: `${sjEmojiFor(block.activityId)} ${block.title}`.trim(), startMin: block.startMin, endMin: block.endMin, activityId: block.activityId }))]))}
             onQuickAdd={(dayId, activityId) => { setSelectedDayId(dayId); createBlockForDay(dayId, activityId); }}
             onQuickRemove={(dayId, eventId) => { mutateDay(dayId, (current) => current.filter((block) => block.id !== eventId)); say("Scheduled item removed. That time is open again."); }}
             todayDayId={todayId}
@@ -974,8 +1106,8 @@ function ScheduleJuggleRoot({
               <VocrehabScheduleDay
                 dayId={selectedDayId}
                 events={selectedDayEvents}
-                selectedActivity={selectedActivity ? { id: selectedActivity.id, label: selectedActivity.label, defaultDurMin: 60 } : null}
-                onCreate={createBlock}
+                selectedActivity={selectedActivity ? { id: selectedActivity.id, label: `${selectedActivity.emoji} ${selectedActivity.label}`, defaultDurMin: customDurationMin } : null}
+                onCreate={(startMin) => createBlock(startMin, undefined, undefined, customDurationMin)}
                 onMove={moveBlock}
                 onResize={resizeBlock}
                 onRemove={removeBlock}
@@ -1030,8 +1162,8 @@ function ScheduleJuggleRoot({
                   selectedActivity
                     ? {
                         id: selectedActivity.id,
-                        label: selectedActivity.label,
-                        defaultDurMin: selectedActivity.defaultDurMin,
+                        label: `${selectedActivity.emoji} ${selectedActivity.label}`,
+                        defaultDurMin: customDurationMin,
                       }
                     : null
                 }
@@ -1054,16 +1186,17 @@ function ScheduleJuggleRoot({
           <VocrehabSchedulePalette
             activities={ACTIVITY_KINDS.map((kind) => ({
               id: kind.id,
-              label: kind.label,
+              label: `${kind.emoji} ${kind.label}`,
               blurb: kind.blurb,
             }))}
             selectedId={selectedActivityId}
             onSelect={(id) => {
               setSelectedActivityId(id);
               const kind = ACTIVITY_KINDS.find((entry) => entry.id === id);
+              if (kind) setCustomDurationMin(Math.min(SJ_MAX_BLOCK_MIN, kind.defaultDurMin));
               say(
                 kind
-                  ? `${kind.label} picked — ${kind.blurb}`
+                  ? `${kind.emoji} ${kind.label} picked — ${kind.blurb}`
                   : "Activity picked — return to the calendar and choose a date.",
               );
             }}

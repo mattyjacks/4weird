@@ -30,6 +30,8 @@ export interface ActivityKind {
   id: ActivityKindId;
   /** Short human label. */
   label: string;
+  /** Friendly glanceable emoji shown before the label everywhere. */
+  emoji: string;
   /** Default block length in minutes when the player adds this kind. */
   defaultDurMin: number;
   /** Design color token for chips / blocks of this kind. */
@@ -48,6 +50,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "sleep",
     label: "Sleep",
+    emoji: "😴",
     defaultDurMin: 480,
     color: "sj-sleep",
     requiredEasy: true,
@@ -58,6 +61,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "work",
     label: "Work",
+    emoji: "💼",
     defaultDurMin: 240,
     color: "sj-work",
     requiredEasy: true,
@@ -68,6 +72,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "training",
     label: "Training",
+    emoji: "📚",
     defaultDurMin: 90,
     color: "sj-training",
     requiredEasy: false,
@@ -78,6 +83,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "medical",
     label: "Medical",
+    emoji: "🏥",
     defaultDurMin: 60,
     color: "sj-medical",
     requiredEasy: true,
@@ -88,6 +94,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "family",
     label: "Family",
+    emoji: "👪",
     defaultDurMin: 60,
     color: "sj-family",
     requiredEasy: false,
@@ -98,6 +105,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "meal",
     label: "Meal",
+    emoji: "🍽️",
     defaultDurMin: 45,
     color: "sj-meal",
     requiredEasy: true,
@@ -108,6 +116,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "rest",
     label: "Rest",
+    emoji: "☕",
     defaultDurMin: 30,
     color: "sj-rest",
     requiredEasy: true,
@@ -118,6 +127,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "travel",
     label: "Travel",
+    emoji: "🚌",
     defaultDurMin: 30,
     color: "sj-travel",
     requiredEasy: false,
@@ -128,6 +138,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "childcare",
     label: "Childcare",
+    emoji: "🧒",
     defaultDurMin: 60,
     color: "sj-childcare",
     requiredEasy: false,
@@ -138,6 +149,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "community",
     label: "Community",
+    emoji: "🤝",
     defaultDurMin: 60,
     color: "sj-community",
     requiredEasy: false,
@@ -148,6 +160,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "personal",
     label: "Personal",
+    emoji: "⭐",
     defaultDurMin: 30,
     color: "sj-personal",
     requiredEasy: false,
@@ -158,6 +171,7 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
   {
     id: "buffer",
     label: "Buffer",
+    emoji: "⏳",
     defaultDurMin: 15,
     color: "sj-buffer",
     requiredEasy: false,
@@ -169,6 +183,18 @@ export const ACTIVITY_KINDS: readonly ActivityKind[] = [
 
 /** Fallback minutes used when an unknown id is requested. */
 export const ACTIVITY_FALLBACK_DUR_MIN = 30;
+
+/** Emoji for an activity kind id — "" when unknown, never an error. */
+export function activityEmoji(id: string): string {
+  const found = ACTIVITY_KINDS.find((kind) => kind.id === id);
+  return found ? found.emoji : "";
+}
+
+/** Label with its glanceable emoji, e.g. "💼 Work". */
+export function activityLabel(id: string): string {
+  const found = ACTIVITY_KINDS.find((kind) => kind.id === id);
+  return found ? `${found.emoji} ${found.label}` : id;
+}
 
 /**
  * Default block length in minutes for an activity kind id.

@@ -38,5 +38,26 @@ for (const game of games) {
   seen.add(game.slug);
 }
 export const gameSlugs = games.map(g => g.slug);
-export const getGame = (slug: string) => games.find(g => g.slug === slug);
+// Case-insensitive slug resolution: routes are typed by hand (e.g.
+// /games/gravegain1DA vs the canonical gravegain1dA), and Next.js params
+// preserve case. Exact match wins; otherwise fall back to a lowercase
+// comparison so case variants serve the canonical game instead of 404ing.
+// Legacy bare slugs (pre-schema) alias to their canonical A-suffixed game.
+export const SLUG_ALIASES: Record<string, string> = {
+  gravegain4d: "gravegain4dA",
+  gravegain5d: "gravegain5dA",
+};
+export const resolveGameSlug = (slug: string): string | null => {
+  if (typeof slug !== "string" || slug.length === 0) return null;
+  const exact = games.find(g => g.slug === slug);
+  if (exact) return exact.slug;
+  const aliased = SLUG_ALIASES[slug] ?? SLUG_ALIASES[slug.toLowerCase()];
+  if (aliased) return aliased;
+  const lowered = slug.toLowerCase();
+  return games.find(g => g.slug.toLowerCase() === lowered)?.slug ?? null;
+};
+export const getGame = (slug: string) => {
+  const canonical = resolveGameSlug(slug);
+  return canonical ? games.find(g => g.slug === canonical) : undefined;
+};
 export const featuredGames = () => games.filter(g => g.featured);

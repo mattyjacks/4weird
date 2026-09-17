@@ -1,6 +1,7 @@
 /**
- * Shared content-mode infrastructure for the three gore/horror titles that
- * ship kid-safe variants: gravegain2d, gravegain3d, lastwordszombies.
+ * Shared content-mode infrastructure for the gore/horror titles that
+ * ship kid-safe variants: gravegain2dA, gravegain2dB, gravegain3dA,
+ * lastwordszombies.
  *
  * Three modes:
  * - kid: super-sanitized, no blood/gore, child-friendly words (min age 0).
@@ -25,7 +26,7 @@ import { getGameRating, requiredAgeFor } from "@/lib/age-gate";
 
 export type ContentMode = "kid" | "teen" | "all";
 
-export const CONTENT_MODE_GAMES = ["gravegain2dA", "gravegain2dB", "gravegain3d", "lastwordszombies"] as const;
+export const CONTENT_MODE_GAMES = ["gravegain2dA", "gravegain2dB", "gravegain3dA", "lastwordszombies"] as const;
 export type ContentModeGameSlug = (typeof CONTENT_MODE_GAMES)[number];
 
 export const CONTENT_MODE_QUERY_PARAM = "content" as const;

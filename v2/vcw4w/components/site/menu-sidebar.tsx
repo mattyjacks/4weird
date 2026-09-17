@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { SITE_NAV_GROUPS } from "@/lib/site-nav";
+import { games } from "@/content/games";
 import { favMetaFor, useFavorites } from "@/lib/favorites";
 import { FavoriteToggle } from "@/components/site/favorite-toggle";
 import { cn } from "@/lib/utils";
@@ -346,6 +347,24 @@ export function MenuSidebar() {
     );
   }, [favorites, query]);
 
+  // Games FILTER (not search): a plain substring filter over the game
+  // catalog in catalog order — deliberately different from Menu 1's ranked
+  // site search (scored title/tags/quick + AI rerank). Empty query shows
+  // recommended picks; typing narrows by title/slug/genre/tag.
+  const GAME_FILTER_LIMIT = 8;
+  const gameFilterResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return games.filter((g) => g.recommended);
+    return games.filter(
+      (g) =>
+        g.title.toLowerCase().includes(q) ||
+        g.slug.toLowerCase().includes(q) ||
+        g.genre.toLowerCase().includes(q) ||
+        g.tags.some((t) => t.toLowerCase().includes(q)),
+    );
+  }, [query]);
+  const visibleGames = gameFilterResults.slice(0, GAME_FILTER_LIMIT);
+
   return (
     <>
       {/* Reveal pill removed (was lines ~384-401): FeedbackBar top-bar Menu 2
@@ -422,15 +441,16 @@ export function MenuSidebar() {
           </ul>
         </nav>
 
-        {/* Search - UX trick: filter 30+ links live */}
+        {/* Filter - UX trick: narrows links + games live (substring filter,
+            not the ranked site search — that lives in Menu 1). */}
         <div className="border-b border-border px-3 py-2 dark:border-white/10">
-          <label htmlFor={`${panelId}-search`} className="sr-only">Filter menu links</label>
+          <label htmlFor={`${panelId}-search`} className="sr-only">Filter menu links and games</label>
           <input
             ref={searchRef}
             id={`${panelId}-search`}
             value={query}
             onChange={handleQueryChange}
-            placeholder="Filter… try “gpu”, “coins”, “bot”"
+            placeholder="Filter… try “zombie”, “rpg”, “coins”"
             className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-sm outline-none transition placeholder:text-muted-foreground/70 focus:border-cyan-500 focus:bg-background focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1 max-lg:min-h-[44px]"
           />
         </div>
@@ -479,6 +499,63 @@ export function MenuSidebar() {
                   ? `Added ${notice.label} to favorites. ${notice.count} favorite${notice.count === 1 ? "" : "s"}.`
                   : `Removed ${notice.label} from favorites. ${notice.count} favorite${notice.count === 1 ? "" : "s"}.`}
             </span>
+          )}
+        </div>
+
+        {/* Games filter: same query, but a plain substring filter over the
+            catalog (catalog order, capped) — not the ranked site search.
+            Empty query shows recommended picks. */}
+        <div className="border-b border-border px-3 py-2 dark:border-white/10">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-600 outline-none dark:text-cyan-300">
+              <span aria-hidden="true">🎮</span> Games · {gameFilterResults.length}
+            </p>
+            <Link
+              href="/games"
+              title="Open the full arcade"
+              className="inline-flex items-center rounded-lg text-xs font-bold text-cyan-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:text-cyan-300 max-lg:min-h-[44px] max-lg:px-2"
+            >
+              Arcade →
+            </Link>
+          </div>
+          {visibleGames.length === 0 ? (
+            <p className="mt-1.5 rounded-xl bg-muted/50 px-3 py-2 text-xs leading-snug text-muted-foreground">
+              {query.trim() ? `No games match “${query.trim()}”.` : "No recommended games right now."}
+            </p>
+          ) : (
+            <>
+              <ul className="mt-1.5 space-y-0.5">
+                {visibleGames.map((game) => {
+                  const href = `/games/${game.slug}`;
+                  const active = isActive(pathname, href);
+                  return (
+                    <li
+                      key={game.slug}
+                      className={cn("flex items-center gap-1 rounded-lg px-2 py-1 transition hover:bg-accent", active && "bg-cyan-600/10")}
+                    >
+                      <Link
+                        href={href}
+                        aria-current={active ? "page" : undefined}
+                        title={`${game.title} — ${game.genre}`}
+                        className="min-w-0 flex-1 truncate text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 max-lg:flex max-lg:min-h-[44px] max-lg:items-center"
+                      >
+                        <span aria-hidden="true" className="mr-1">{game.emoji}</span>
+                        {game.title}
+                        {active && <span aria-hidden="true"> ●</span>}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+              {gameFilterResults.length > GAME_FILTER_LIMIT && (
+                <Link
+                  href="/games"
+                  className="mt-1 inline-flex min-h-[44px] items-center rounded-lg px-2 text-xs font-bold text-cyan-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 dark:text-cyan-300"
+                >
+                  Show all {gameFilterResults.length} matches in the arcade →
+                </Link>
+              )}
+            </>
           )}
         </div>
 

@@ -12,7 +12,7 @@ import { debounce, filterGamesAsync } from "@/lib/perf-client";
 import styles from "./game-catalog.module.css";
 
 const PAGE_SIZE = 24;
-const picks = ["overtake", "lastwordszombies", "gravegain2dA", "gravegain3d", "battlesharks2", "serversavershield", "assassinanimals"];
+const picks = ["overtake", "lastwordszombies", "gravegain2dA", "gravegain3dA", "battlesharks2", "serversavershield", "assassinanimals"];
 
 function a11yBadgesFor(slug: string) {
   const a11y = getGameA11y(slug);
@@ -38,9 +38,10 @@ const Card = memo(function Card({
   return (
     <article className={`${styles.card}${recommended ? ` ${styles.recommendedCard}` : ""} perf-card`}>
       <Link
-        href={`/games/${game.slug}/play`}
+        href={`/games/${game.slug}`}
         className={`${styles.art} ${styles[`art${game.slug}`] ?? ""}`}
-        aria-label={`Play ${game.title} now`}
+        aria-label={`View ${game.title} details`}
+        tabIndex={-1}
       >
         <span aria-hidden="true">{game.emoji}</span>
         <i aria-hidden="true" />
@@ -54,7 +55,11 @@ const Card = memo(function Card({
       </Link>
       <div className={styles.body}>
         <div className={styles.titleRow}>
-          <h3>{game.title}</h3>
+          <h3>
+            <Link href={`/games/${game.slug}`} className={styles.titleLink}>
+              {game.title}
+            </Link>
+          </h3>
           <small>{game.genre}</small>
         </div>
         <div className={styles.metaRow}>
@@ -62,7 +67,7 @@ const Card = memo(function Card({
           <button
             type="button"
             className={styles.infoBtn}
-            onClick={() => onInfo(game.slug)}
+            onClick={(e) => { e.stopPropagation(); onInfo(game.slug); }}
             aria-label={`About ${game.title}`}
           >
             ⓘ Info
@@ -270,6 +275,7 @@ export function GameCatalog({ games }: { games: Game[] }) {
     .filter((g): g is Game => Boolean(g))
     .filter((g) => requiredAgeFor(g.rating ?? "kids") <= kidMaxAge && (!kids || (g.rating ?? "kids") !== "adults"));
   const drawerGame = drawerSlug ? ((Array.isArray(games) ? games : []).find((g) => g.slug === drawerSlug) ?? null) : null;
+  const isSearching = String(debouncedQuery ?? "").trim().length > 0 || genre !== "All";
   return (
     <div className={styles.wrap}>
       {/* Sticky 48px filter bar: title + search + category pills + kids + surprise */}
@@ -322,20 +328,25 @@ export function GameCatalog({ games }: { games: Game[] }) {
         <header className={styles.secHead}>
           <div>
             <p>START HERE</p>
-            <h2>7 staff picks to start with</h2>
+            <h2>{recommended.length} staff picks to start with</h2>
           </div>
           <span>racers, RPGs + money sims</span>
         </header>
+        {!isSearching && (
         <div className={`${styles.grid} perf-list`}>
           {(recommended ?? []).map((g, index) => (
             <Card key={g?.slug ?? index} game={g} recommended onInfo={openInfo} />
           ))}
         </div>
+        )}
+        {isSearching && (
+          <p className={styles.empty}>Staff picks hidden while filtering — see the full library below.</p>
+        )}
       </section>
       <section className={styles.section} aria-label="Full game library">
         <header className={styles.secHead}>
           <div>
-            <p>FULL LIBRARY · ALL 34</p>
+            <p>FULL LIBRARY · ALL {games.length}</p>
             <h2>Choose your portal</h2>
           </div>
           <span role="status">

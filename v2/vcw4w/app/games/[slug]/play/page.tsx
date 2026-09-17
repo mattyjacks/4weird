@@ -8,6 +8,7 @@ import { getCachedGameDetail } from "@/lib/games-catalog";
 import { PlayGate } from "@/components/games/play-gate";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
 import { RatingBadge } from "@/components/games/rating-badge";
+import { RatingMatrix } from "@/components/games/rating-matrix";
 import { GameAiBadge } from "@/components/games/game-ai-badge";
 import { GameA11yPanel } from "@/components/games/game-a11y-panel";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
@@ -74,7 +75,7 @@ export default async function PlayPage({ params }: { params: Promise<{ slug: str
             <PlayGate slug={game.slug} title={game.title} src={src} version={String(manifest.schemaVersion)} emoji={game.emoji} />
           </Suspense>
         </div>
-        {["gravegain1dA", "gravegain2dA", "gravegain3dA"].includes(game.slug) && (
+        {["gravegain1dA", "gravegain2dA", "gravegain2dB", "gravegain3dA"].includes(game.slug) && (
           <Suspense fallback={<p className="mt-4 text-sm text-white/60">Loading party…</p>}>
             <GraveGainParty slug={game.slug} />
           </Suspense>
@@ -148,6 +149,7 @@ async function CachedPlayHeader({ slug }: { slug: string }) {
       <div className="mt-2 flex flex-col gap-2">
         <div>
           <RatingBadge rating={game.rating ?? "kids"} />
+          <RatingMatrix rating={game.rating ?? "kids"} />
         </div>
         <PlayRateBadge slug={game.slug} />
         <GameAiBadge slug={game.slug} />

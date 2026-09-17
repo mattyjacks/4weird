@@ -86,6 +86,23 @@ async function fetchWithTimeout(path: string, init: RequestInit, ms = 12000): Pr
   }
 }
 
+/** Same timeout for JSON bodies: headers-received-but-body-stalled must not hang resolution. */
+async function readJsonWithTimeout<T>(res: Response, ms = 8000): Promise<T> {
+  const body = await Promise.race([
+    res.json().catch(() => ({})),
+    new Promise<Record<string, never>>((resolve) => setTimeout(() => resolve({}), ms)),
+  ]);
+  return body as T;
+}
+
+function hasKidSessionCookie(): boolean {
+  try {
+    return /(?:^|;\s*)kid_session=/.test(document.cookie);
+  } catch {
+    return true;
+  }
+}
+
 const MATCH_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
@@ -390,12 +407,15 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     let live = true;
     const resolve = async () => {
       try {
-        const res = await fetchWithTimeout("/api/family/kid-login", { credentials: "include" });
-        const body = await res.json().catch(() => ({}));
-        const kid = (body as { kid?: {
-          handle: string; age_band: string; seconds_today: number;
-          daily_minutes: number | null; in_window: boolean;
-        } }).kid ?? null;
+        // Skip the kid-session probe when no kid cookie exists (guests and
+        // full accounts): halves guest latency and avoids a doomed round-trip.
+        if (hasKidSessionCookie()) {
+          const res = await fetchWithTimeout("/api/family/kid-login", { credentials: "include" }, 6000);
+          const body = await readJsonWithTimeout<{ kid?: {
+            handle: string; age_band: string; seconds_today: number;
+            daily_minutes: number | null; in_window: boolean;
+          } }>(res);
+          const kid = body.kid ?? null;
         if (!live) return;
         if (kid) {
           setKidHandle(kid.handle);
@@ -422,6 +442,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
           setAge("passed");
           return;
         }
+        }
       } catch {
         /* kid lookup failed; fall through to the standard gates */
       }
@@ -446,12 +467,12 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       let band: "unknown" | "kid" | "teen" | "adult" = "unknown";
       let signedIn = false;
       try {
-        const sess = await fetchWithTimeout("/api/auth/session", { credentials: "include" });
+        const sess = await fetchWithTimeout("/api/auth/session", { credentials: "include" }, 6000);
         if (sess.ok) {
           signedIn = true;
-          const pres = await fetchWithTimeout("/api/me/profile", { credentials: "include" });
+          const pres = await fetchWithTimeout("/api/me/profile", { credentials: "include" }, 6000);
           if (pres.ok) {
-            const pbody = await pres.json().catch(() => ({}));
+            const pbody = await readJsonWithTimeout<{ profile?: { age_band?: unknown } }>(pres);
             const raw = String((pbody as { profile?: { age_band?: unknown } }).profile?.age_band ?? "unknown");
             if (raw === "adult" || raw === "teen" || raw === "kid" || raw === "unknown") band = raw;
           }
@@ -592,11 +613,18 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
       return;
     }
     const fallback = bestVisibleContentMode(viewerBand, kidBand);
-    if (contentMode !== fallback) setContentMode(fallback);
+    // Only bump the nonce when the stored value actually changed: a failed
+    // localStorage write must not re-trigger age resolution in a loop.
+    const before = readStoredContentMode(slug);
     writeStoredContentMode(slug, fallback);
-    // Re-resolve the age gate on the effective mode (a teen-band viewer with
-    // Teen stored takes the teens branch instead of the adults hard block).
-    setContentNonce((n) => n + 1);
+    if (readStoredContentMode(slug) !== before) {
+      if (contentMode !== fallback) setContentMode(fallback);
+      // Re-resolve the age gate on the effective mode (a teen-band viewer with
+      // Teen stored takes the teens branch instead of the adults hard block).
+      setContentNonce((n) => n + 1);
+    } else if (contentMode !== fallback) {
+      setContentMode(fallback);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contentSupported, slug, ageBand, kidBand, kidHandle, hasSession, age]);
 

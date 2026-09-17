@@ -1,7 +1,8 @@
-/* GraveGain5D — Multiverse Transcendence (scaffold, v0.1.0).
+/* GraveGain5DA — Multiverse Transcendence (combat-only, v0.2.0).
  *
- * 5D = 4D hypercube golf + 3D models, but able to transcend universes.
- * Crazier than 4D: every hop rewrites gravity, W-drift, and par; chain hops
+ * 5D = turn-based multiverse dungeon combat across 6 Arroyos.
+ * No golf: no putts, pars, strokes, fairways, or ball physics.
+ * Every hop re-haunts the floor and rewrites W-drift; chain hops
  * build combo multipliers; the paradox meter punishes hop spam — overcharge
  * collapses the universe you stand in. Collapsing universes run a doom clock.
  *
@@ -16,7 +17,7 @@
     if (typeof window === 'undefined') return;
     if (window.GraveGain5D && window.GraveGain5D.VERSION) return;
 
-    var VERSION = '0.1.0-scaffold';
+    var VERSION = '0.2.0-combat';
     var SAVE_KEY = 'gravegain5d_save_v1';
     var SAVE_VERSION = 1;
 
@@ -28,20 +29,20 @@
     var M3D = opt('GraveGain3DModels');
 
     /* ---------------- Universes ---------------- */
-    // gravity: putt-distance multiplier. drift: W-slice pull per tick.
-    // parDelta: added to the 4D hole par. collapseTicks: doom clock once
+    // Combat-only: gravity/parDelta are legacy compat fields (unused).
+    // drift: W-slice pull per tick. collapseTicks: doom clock once
     // paradox overcharges while standing here (0 = stable).
     var UNIVERSES = [
         { id: 'prime', name: 'Prime Array', emoji: '🌌', gravity: 1.0, drift: 0.0, parDelta: 0, collapseTicks: 0, blurb: 'Home water. No mods, no mercy.' },
-        { id: 'echo', name: 'Echo Expanse', emoji: '🪞', gravity: 0.9, drift: 0.1, parDelta: 0, collapseTicks: 0, blurb: 'Ghost replays linger. Putts echo twice.' },
-        { id: 'dream', name: 'Dream Shallows', emoji: '💭', gravity: 1.1, drift: -0.1, parDelta: 1, collapseTicks: 0, blurb: 'Soft physics, generous par, sleepy hazards.' },
-        { id: 'void', name: 'Void Maw', emoji: '🕳️', gravity: 1.4, drift: 0.3, parDelta: -1, collapseTicks: 12, blurb: 'Heavy ball, hungry W-drift. Collapses FAST when paradox is hot.' },
-        { id: 'bloom', name: 'Bloom Lattice', emoji: '🌸', gravity: 0.7, drift: -0.2, parDelta: 1, collapseTicks: 0, blurb: 'Floaty, forgiving, chain-hop combos bloom here.' },
-        { id: 'static', name: 'Static Storm', emoji: '📺', gravity: 1.2, drift: 0.0, parDelta: 0, collapseTicks: 8, blurb: 'Noise scrambles aim. Hop out before it collapses.' }
+        { id: 'echo', name: 'Echo Expanse', emoji: '🪞', gravity: 0.9, drift: 0.1, parDelta: 0, collapseTicks: 0, blurb: 'Ghost replays linger. Strikes echo twice.' },
+        { id: 'dream', name: 'Dream Shallows', emoji: '💭', gravity: 1.1, drift: -0.1, parDelta: 1, collapseTicks: 0, blurb: 'Soft veil, sleepy haunts. Forgiving delves.' },
+        { id: 'void', name: 'Void Maw', emoji: '🕳️', gravity: 1.4, drift: 0.3, parDelta: -1, collapseTicks: 12, blurb: 'Hungry W-drift, brutal haunts. Collapses FAST when paradox is hot.' },
+        { id: 'bloom', name: 'Bloom Lattice', emoji: '🌸', gravity: 0.7, drift: -0.2, parDelta: 1, collapseTicks: 0, blurb: 'Kind lattice, chain-hop combos bloom here.' },
+        { id: 'static', name: 'Static Storm', emoji: '📺', gravity: 1.2, drift: 0.0, parDelta: 0, collapseTicks: 8, blurb: 'Noise scrambles strikes. Hop out before it collapses.' }
     ];
 
     var CLASSES = {
-        putter: { name: 'Putter of the Graves', hp: 24, atk: 6, def: 1, spd: 3, range: 4, ability: { name: 'Chain Leap', cd: 5, desc: 'Strike all foes in range and build combo' } },
+        putter: { name: 'Blade of the Graves', hp: 24, atk: 6, def: 1, spd: 3, range: 4, ability: { name: 'Chain Leap', cd: 5, desc: 'Strike all foes in range and build combo' } },
         warden: { name: 'Paradox Warden', hp: 32, atk: 4, def: 3, spd: 1, range: 3, ability: { name: 'Anchor Reality', cd: 6, desc: 'Vent 25 paradox, clear doom, ward 2 ticks and mend 4' } },
         drifter: { name: 'Universe Drifter', hp: 20, atk: 7, def: 0, spd: 4, range: 3, ability: { name: 'Free Hop', cd: 4, desc: 'Hop free of paradox and strike the nearest foe' } }
     };
@@ -277,8 +278,9 @@
     }
 
     // One discrete action. Returns an event list (view layer animates them).
-    // putt stays as the dungeon strike (golf reframed); attack / ability /
-    // potion are first-class RPG actions; contact damage taxes every round.
+    // Combat-only: strike / attack / ability / potion are first-class RPG
+    // actions; contact damage taxes every round. `putt` is kept as a legacy
+    // alias of `strike` (no golf semantics: no power, gravity, par, strokes).
     function tick(s, action) {
         var ev = [];
         if (!s || s.over) return ev;
@@ -292,7 +294,7 @@
             var target = typeof action.hop === 'string' ? action.hop : nextUniverse(s.universe);
             return hop(s, target);
         }
-        if (action.attack) {
+        if (action.attack && !action.strike && !action.putt) {
             playerAttack(s, ev, false);
             if (!s.over) enemyContact(s, ev);
             stepDoom(s, ev, u);
@@ -311,17 +313,16 @@
             stepDoom(s, ev, u);
             return ev;
         }
-        if (action.putt) {
-            var power = clamp(Number(action.power) || 1, 0.25, 3);
-            s.strokes += 1;
+        if (action.strike || action.putt) {
+            // Combat strike: hit the nearest haunt; clearing every foe on
+            // the floor delves one deeper. No strokes, par, power, or gravity.
             s.w = clamp(s.w + u.drift, -3, 3);
             s.paradox = clamp(s.paradox - 4, 0, 100);
             s.chain = 0;
-            var need = holePar(s.hole, s.universe);
-            var sunk = s.strokes >= need; // dungeon strike: par strikes clear the haunt
-            ev.push({ t: 'putt', power: power, gravity: u.gravity, strokes: s.strokes, par: need, strike: true });
+            ev.push({ t: 'strike', strike: true });
             playerAttack(s, ev, false);
-            if (sunk && !s.over) {
+            var cleared = !s.over && s.foes && s.foes.every(function (f) { return !f || f.hp <= 0; });
+            if (cleared) {
                 var bonus = Math.round(10 * s.combo);
                 s.gold += bonus;
                 ev.push({ t: 'hole', hole: s.hole, bonus: bonus, combo: s.combo });
@@ -495,24 +496,31 @@
             ctx.globalAlpha = 0.25;
             ctx.fillRect(0, 0, W, H * 0.6);
             ctx.globalAlpha = 1;
-            // Fairway + hole.
+            // Combat line: living haunts stand against the delver. No fairway, hole, or ball.
+            var alive = s.foes ? s.foes.filter(function (f) { return f && f.hp > 0; }) : [];
             ctx.strokeStyle = 'rgba(34,211,238,0.7)';
             ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(60, H * 0.7); ctx.lineTo(W - 60, H * 0.7); ctx.stroke();
             ctx.font = '40px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('🕳️', W - 120, H * 0.7 - 12);
-            // Ball position from strokes (scaffold: marches right per stroke).
-            var bx = 100 + (s.strokes / Math.max(1, holePar(s.hole, s.universe))) * (W - 260);
-            ctx.font = '36px sans-serif';
-            ctx.fillText('⚪', bx, H * 0.7 - 12);
+            ctx.fillText(u.emoji, W - 120, H * 0.7 - 12);
+            ctx.font = '30px sans-serif';
+            for (var fi = 0; fi < alive.length; fi++) {
+                var fx = W * (0.35 + fi * 0.18);
+                ctx.fillText('💀', fx, H * 0.7 - 12);
+                ctx.font = 'bold 13px Outfit, sans-serif';
+                ctx.fillStyle = '#fecaca';
+                var fmax = Math.max(1, alive[fi].maxHp || alive[fi].hp);
+                ctx.fillText(Math.max(0, alive[fi].hp) + '/' + fmax, fx, H * 0.7 - 52);
+                ctx.font = '30px sans-serif';
+            }
             ctx.font = '28px sans-serif';
-            ctx.fillText(u.emoji, bx, H * 0.7 - 54);
+            ctx.fillText('⚔️', 110, H * 0.7 - 30);
             // HUD line.
             ctx.textAlign = 'left';
             ctx.font = 'bold 16px Outfit, sans-serif';
             ctx.fillStyle = '#fbbf24';
-            ctx.fillText('HOLE ' + (s.hole + 1) + '/10  ' + u.emoji + ' ' + u.name.toUpperCase(), 24, 30);
+            ctx.fillText('FLOOR ' + (s.hole + 1) + '/10  ' + u.emoji + ' ' + u.name.toUpperCase(), 24, 30);
             ctx.fillStyle = s.paradox >= 80 ? '#ef4444' : '#22d3ee';
             ctx.fillText('PARADOX ' + s.paradox + '  CHAIN x' + s.combo + (s.doom > 0 ? '  💥 ' + s.doom : ''), 24, 54);
             updateHud();
@@ -524,8 +532,8 @@
             if (!G || !G.run) return;
             var s = G.run;
             var u = universeById(s.universe);
-            setText('gg5dHole', 'Hole ' + (s.hole + 1) + '/10');
-            setText('gg5dStrokes', s.strokes + '/' + holePar(s.hole, s.universe));
+            setText('gg5dHole', 'Floor ' + (s.hole + 1) + '/10');
+            setText('gg5dStrokes', s.foes ? s.foes.filter(function (f) { return f.hp > 0; }).length + ' foes' : '');
             setText('gg5dGold', s.gold);
             setText('gg5dUniverse', u.emoji + ' ' + u.name);
             setText('gg5dParadox', s.paradox + (s.doom > 0 ? ' 💥' + s.doom : ''));
@@ -577,7 +585,7 @@
         } catch (_) {}
         sizeCanvas();
         var u = universeById(G.run.universe);
-        showBanner('TRANSCEND — ' + u.name.toUpperCase(), u.blurb + '\nU = hop · Space = putt · T = rewind (4D echo)');
+        showBanner('TRANSCEND — ' + u.name.toUpperCase(), u.blurb + '\nU = hop · Space = strike · F = attack · R = ability');
         render();
     }
 
@@ -588,7 +596,7 @@
             var ev;
             if (kind === 'hop') ev = tick(G.run, { hop: true });
             else if (kind === 'attack') ev = tick(G.run, { attack: true });
-            else if (kind === 'putt' || kind === 'step') ev = tick(G.run, { putt: true, power: 1 });
+            else if (kind === 'strike' || kind === 'putt' || kind === 'step') ev = tick(G.run, { strike: true });
             else if (kind === 'ability') ev = tick(G.run, { ability: true });
             else if (kind === 'potion') ev = tick(G.run, { potion: true });
             else ev = tick(G.run, { wait: true });
@@ -653,7 +661,7 @@
                     if (!G || !G.run) return;
                     var k = ev.key;
                     if (k === 'u' || k === 'U' || k === 'v' || k === 'V') { ev.preventDefault(); doAction('hop'); }
-                    else if (k === ' ' || k === 'Enter') { ev.preventDefault(); doAction('putt'); }
+                    else if (k === ' ' || k === 'Enter') { ev.preventDefault(); doAction('strike'); }
                     else if (k === 'f' || k === 'F') { ev.preventDefault(); doAction('attack'); }
                     else if (k === 'r' || k === 'R') { ev.preventDefault(); doAction('ability'); }
                     else if (k === 'h' || k === 'H') { ev.preventDefault(); doAction('potion'); }

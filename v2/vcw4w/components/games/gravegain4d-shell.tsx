@@ -11,13 +11,13 @@ export function GraveGain4DShell() {
   return (
     <div>
       <p className="mb-3 rounded-2xl border border-fuchsia-300/30 bg-fuchsia-950/40 px-4 py-2 text-xs text-fuchsia-200">
-        🌀 GraveGain4D drifts through four dimensions — drag to rotate the
+        🌀 GraveGain4DA drifts through four dimensions — drag to rotate the
         hypercube, and use Focus + Fullscreen for the full trippy descent.
       </p>
       <GameRuntimeFrame
-        slug="gravegain4d"
-        title="GraveGain4D"
-        src="/games/gravegain4d/"
+        slug="gravegain4dA"
+        title="GraveGain4DA"
+        src="/games/gravegain4dA/index.html"
       />
     </div>
   );
