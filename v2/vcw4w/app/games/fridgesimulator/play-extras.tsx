@@ -6,7 +6,7 @@ const SLUG = "fridgesimulator";
 const TITLE = "Fridge Simulator";
 // Original HTML runtime bundle (read-only, owned by the bundle sync — this
 // shell never reimplements game logic, it only frames the runtime).
-const SRC = "/games/html/fridgesimulator/index.html";
+const SRC = "/games/fridgesimulator/index.html";
 
 /**
  * Play-extras shell for Fridge Simulator: the untouched runtime iframe plus
@@ -15,10 +15,8 @@ const SRC = "/games/html/fridgesimulator/index.html";
 export function PlayExtras() {
   return (
     <div>
-      {/* Frame shell mirrors PlayGate: stable viewport height (70/75svh via
-          play-frame-height) plus a 420px floor so fullscreen toggles never
-          collapse the layout. */}
-      <div id="game-frame" className="play-frame-height min-h-[420px] w-full">
+      {/* Keep the game inside the shared viewport budget on short screens. */}
+      <div id="game-frame" className="play-frame-height min-h-0 w-full">
         <GameRuntimeFrame slug={SLUG} title={TITLE} src={SRC} />
       </div>
 

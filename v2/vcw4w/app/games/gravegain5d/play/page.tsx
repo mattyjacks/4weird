@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Play GraveGain5D | 4weird Games",
@@ -32,12 +33,12 @@ export default function GraveGain5DPlayPage() {
           aria-label="Game breadcrumb"
           className="flex flex-wrap items-center gap-2 text-sm"
         >
-          <a
+          <Link
             href="/games"
             className="font-semibold text-cyan-300 hover:underline"
           >
             ← All games
-          </a>
+          </Link>
           <span aria-hidden="true" className="text-white/30">
             /
           </span>
@@ -46,11 +47,11 @@ export default function GraveGain5DPlayPage() {
         <h1 className="mt-3 text-2xl font-black sm:text-3xl">
           🌀 Play GraveGain5D
         </h1>
-        <div className="mt-4" id="game-frame">
+        <div id="game-frame" className="perf-frame play-frame-height play-frame-ar mt-4 overflow-hidden rounded-2xl border border-white/15 bg-black">
           <iframe
             src="/games/gravegain5d/index.html"
             title="GraveGain5D — Multiverse Transcendence"
-            className="aspect-[5/3] w-full rounded-xl border border-white/10 bg-black"
+            className="h-full w-full border-0 bg-black"
             allow="fullscreen; autoplay; gamepad"
             allowFullScreen
           />

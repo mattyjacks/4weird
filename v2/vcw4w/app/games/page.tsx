@@ -5,9 +5,9 @@ import { canonical, itemListJsonLd, jsonLdScript } from "@/lib/seo";
 import { getCachedGames } from "@/lib/games-catalog";
 
 export const metadata: Metadata = {
-  title: "Find Your Next Weird World - All 34 Games, Free to Try",
+  title: "Find Your Next Weird World - All 36 Games, Free to Try",
   description:
-    "Find your next weird world: all 34 4weird browser games. Gamers get arcade racers, typing survival, and dungeon crawlers; business minds get cap-table, finance, and pipeline sims; coders can ship their own via NewGamePlus. Free to try with guides, cloud saves, and coin-metered play that pays creators.",
+    "Find your next weird world: all 36 4weird browser games. Gamers get arcade racers, typing survival, and dungeon crawlers; business minds get cap-table, finance, and pipeline sims; coders can ship their own via NewGamePlus. Free to try with guides, cloud saves, and coin-metered play that pays creators.",
   keywords: [
     "free browser games",
     "online arcade games",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/games" },
   openGraph: {
-    title: "Find Your Next Weird World - 35 Free Browser Games | 4weird",
+    title: "Find Your Next Weird World - 36 Free Browser Games | 4weird",
     description:
       "Racers, RPGs, typing survival, plus business sims that teach real money skills. Free to try, playing takes seconds; play pays creators.",
     images: [
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Find Your Next Weird World - 35 Free Browser Games | 4weird",
+      title: "Find Your Next Weird World - 36 Free Browser Games | 4weird",
     description:
       "Racers, RPGs, typing survival, plus business sims that teach real money skills. Free to try, playing takes seconds; play pays creators.",
     images: ["/og/og-games.png"],
@@ -59,7 +59,7 @@ export default async function GamesPage() {
         dangerouslySetInnerHTML={{
           __html: jsonLdScript(
             itemListJsonLd(
-              "Find your next weird world: all 34 4weird browser games",
+              `Find your next weird world: all ${games.length} 4weird browser games`,
               "Every playable 4weird browser game — racers, RPGs, typing survival, and business sims: free to try with guides, cloud saves, and coin-metered play that pays creators.",
               games.map((g) => ({
                 name: `${g.title} (${g.genre})`,

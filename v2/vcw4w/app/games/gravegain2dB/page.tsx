@@ -50,15 +50,6 @@ export default function GraveGain2dBPage() {
           cave-ins, loot lunar relics, and escape before the breach seals.
           Free to try in your browser.
         </p>
-        <div className="mt-4" id="game-frame">
-          <iframe
-            src="/games/gravegain2dB/index.html"
-            title="GraveGain2dB: Breach MoonRock"
-            className="aspect-[5/3] w-full rounded-xl border border-white/10 bg-black"
-            allow="fullscreen; autoplay; gamepad"
-            allowFullScreen
-          />
-        </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/games/gravegain2dB/play"
@@ -66,12 +57,6 @@ export default function GraveGain2dBPage() {
           >
             Play game
           </Link>
-          <a
-            href="/games/gravegain2dB/index.html"
-            className="inline-flex items-center justify-center rounded-full border border-cyan-300/50 px-7 py-3 font-bold text-cyan-200 transition hover:bg-cyan-300/10 sm:mt-8"
-          >
-            Open fullscreen
-          </a>
         </div>
         <p className="mt-10 text-slate-400 sm:mt-12">
           A hand-crafted HTML5 experience. The original game runtime is

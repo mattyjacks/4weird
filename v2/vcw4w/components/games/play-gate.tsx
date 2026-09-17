@@ -1011,7 +1011,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
     return (
       <div>
       <div className="overflow-hidden rounded-2xl border border-cyan-300/30 bg-gradient-to-b from-slate-950 via-black to-slate-950">
-        <div className="play-frame-height grid min-h-[420px] place-items-center p-8 text-center">
+        <div className="play-frame-height play-frame-start grid min-h-0 place-items-center p-4 text-center sm:p-8">
           <div className="max-w-md">
             <p aria-hidden="true" className="text-6xl">{emoji ?? "🎮"}</p>
             <p className="mt-3 text-xs font-bold tracking-widest text-cyan-300">4WEIRD ARCADE</p>
@@ -1041,7 +1041,7 @@ function PlayGateInner({ slug, title, src, version, emoji }: { slug: string; tit
   if (gate.kind === "checking") {
     return (
       <div className="overflow-hidden rounded-2xl border border-white/15 bg-black">
-        <div className="play-frame-height grid min-h-[420px] place-items-center p-8 text-center">
+        <div className="play-frame-height play-frame-start grid min-h-0 place-items-center p-4 text-center sm:p-8">
           <div>
             <p className="text-lg font-bold text-white">Loading {title}…</p>
             <p className="mt-2 text-sm text-white/60">Checking your pass…</p>

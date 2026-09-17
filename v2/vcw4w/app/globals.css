@@ -391,6 +391,9 @@ html.a11y-reduced-motion .mobile-acc-list > li {
    fallback for browsers without svh. */
 .play-frame-height { height: 70vh; height: 70svh; }
 @media (min-width: 640px) { .play-frame-height { height: 75vh; height: 75svh; } }
+/* The start and pass-check screens should use the same viewport budget as
+   gameplay; content may wrap, but must not force the player taller. */
+.play-frame-start { min-height: 0; }
 /* Ratio stage: applied alongside .play-frame-height on the live game frame
    only (start/checking screens keep the vh heights above). Width-driven so
    the ratio holds at any window size; max-height caps it to the viewport. */

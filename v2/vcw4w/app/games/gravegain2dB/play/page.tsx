@@ -1,4 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+import { PlayGate } from "@/components/games/play-gate";
 
 export const metadata: Metadata = {
   title: "Play GraveGain2dB | 4weird Games",
@@ -19,11 +22,9 @@ export const viewport: Viewport = {
 };
 
 // NOTE: this static route takes precedence over app/games/[slug]/play for
-// the gravegain2dB slug (static beats dynamic in Next.js routing). It frames
-// the v2 bundle (/games/gravegain2dB/index.html) directly — no new shared
-// components — mirroring app/games/gravegain5d/play. Catalog/sitemap/nav
-// wiring for this route is requested via QUEUE (shared manifests are
-// steward-owned).
+// the gravegain2dB slug (static beats dynamic in Next.js routing). Keep this
+// static route aligned with the shared paid/guest play gate and responsive
+// runtime controls used by the dynamic arcade routes.
 export default function GraveGain2dBPlayPage() {
   return (
     <div className="bg-black text-white" data-theme-lock="dark">
@@ -32,12 +33,12 @@ export default function GraveGain2dBPlayPage() {
           aria-label="Game breadcrumb"
           className="flex flex-wrap items-center gap-2 text-sm"
         >
-          <a
+          <Link
             href="/games"
             className="font-semibold text-cyan-300 hover:underline"
           >
             ← All games
-          </a>
+          </Link>
           <span aria-hidden="true" className="text-white/30">
             /
           </span>
@@ -47,18 +48,17 @@ export default function GraveGain2dBPlayPage() {
           🌙 Play GraveGain2dB
         </h1>
         <div className="mt-4" id="game-frame">
-          <iframe
-            src="/games/gravegain2dB/index.html"
-            title="GraveGain2dB — Breach MoonRock"
-            className="aspect-[5/3] w-full rounded-xl border border-white/10 bg-black"
-            allow="fullscreen; autoplay; gamepad"
-            allowFullScreen
-          />
+          <Suspense fallback={<p className="py-10 text-center text-sm text-white/60">Loading game player…</p>}>
+            <PlayGate slug="gravegain2dB" title="GraveGain2dB: Breach MoonRock" src="/games/gravegain2dB/index.html" version="1" emoji="🌙" />
+          </Suspense>
         </div>
         <p className="mt-3 text-sm text-white/60">
-          Breach the MoonRock crypts — dodge cave-ins, loot lunar relics, and
-          escape before the breach seals.
+          Breach the MoonRock crypts — dodge cave-ins, loot lunar relics, and escape before the breach seals.
         </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/games/gravegain2dB" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">Game details</Link>
+          <Link href="/games" className="rounded-full border border-white/20 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">Browse all games</Link>
+        </div>
       </div>
     </div>
   );
