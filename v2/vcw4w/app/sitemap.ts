@@ -159,6 +159,7 @@ const GAMES_EXTRA: Entry[] = [
   { path: "/games/mods", changeFrequency: "weekly", priority: 0.6 },
   { path: "/games/plugins", changeFrequency: "weekly", priority: 0.6 },
   { path: "/games/fridgesimulator", changeFrequency: "weekly", priority: 0.6 },
+  { path: "/games/whenwillidie", changeFrequency: "weekly", priority: 0.6 },
 ];
 
 // Media studio suite: hub + audio + paint + recorder + image + video timeline + editor.
