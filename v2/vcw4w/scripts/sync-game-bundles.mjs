@@ -159,8 +159,16 @@ const KEEP_INFO_PANEL_SLUGS = new Set(["venturemechanically"]);
 // own scripts reference them but the stripped index.html no longer has them
 // (score/level/lives HUD nodes lived in the v1 info panel; game.js writes
 // them unguarded at top level, so one missing node kills the whole game).
+// game-title/maker-name cover the inline metadata blocks (aiwhackamole,
+// orbitaldrift, neoninvaders, friendslop, soundpainter, …): they populate
+// the stripped v1 header via unguarded `.textContent`, which throws an
+// unhandledrejection the bridge surfaces as a shell "Runtime error" over a
+// working game. The shim gives populate() a harmless hidden target while
+// document.title still updates and the rest of the block (e.g. in-game
+// fullscreen wiring) keeps running. maker-bio/maker-link/credits-grid need
+// no shim (game-meta.js helpers null-guard).
 // Interactive elements (input/button/select/textarea/a) are NEVER shimmed.
-const DISPLAY_SHIM_RE = /^(?:[A-Za-z0-9_-]+-)?(score|high-score|final-score|level|final-level|lives|daily-seed|high-score-final|combo|best|seed)$/i;
+const DISPLAY_SHIM_RE = /^(?:[A-Za-z0-9_-]+-)?(score|high-score|final-score|level|final-level|lives|daily-seed|high-score-final|combo|best|seed|game-title|maker-name)$/i;
 
 function hudDisplayShims(html, destDir) {
   const have = new Set(
