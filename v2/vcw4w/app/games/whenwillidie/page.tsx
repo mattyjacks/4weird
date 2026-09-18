@@ -76,15 +76,12 @@ export default function WhenWillIDiePage() {
           >
             Browse all games
           </Link>
-          <a
-            href="/api/games/whenwillidie/predict"
-            className="rounded-full border border-white/20 px-5 py-2.5 text-center text-sm font-semibold hover:bg-white/10"
-            aria-disabled="true"
-            onClick={(e) => e.preventDefault()}
+          <span
+            className="rounded-full border border-white/20 px-5 py-2.5 text-center text-sm font-semibold text-slate-400"
             title="POST-only JSON API"
           >
             API: POST /api/games/whenwillidie/predict
-          </a>
+          </span>
         </div>
       </main>
     </div>
