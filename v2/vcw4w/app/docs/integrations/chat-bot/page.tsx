@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
 
@@ -98,6 +99,33 @@ export CHAT_BOT_TOKEN="<paste-once-in-host-dashboard>"
       <Callout tone="rose" title="Tokens never travel">
         CHAT_BOT_TOKEN lives in host environment configuration only. Never paste it into chat, MCP configs, docs, logs, screenshots, or committed files. If a token leaks, rotate it in the chat app portal immediately.
       </Callout>
+
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Saturday raid night, start to finish"
+        body="A concrete run through both commands so your first raid night needs no improvising. Replace the squad slug with your own."
+      />
+      <Steps
+        items={[
+          ["Friday: confirm the board", <>Type /leaderboard game:gravegain3d in your events channel. Pin the reply so late joiners see the baseline scores before raid night.</>],
+          ["Saturday: open the sprint", <>Type /squad-status squad:starfall-raiders during warmup. Read out the blocked card first, then assign owners to each active card.</>],
+          ["After the raid: close the loop", <>Re-run /leaderboard game:gravegain3d and post the delta (who climbed, who defended). Archive the sprint note in your clan thread.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="Commands missing, stale replies, token scares"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🔍 <strong className="text-foreground">Slash commands do not autocomplete:</strong> wait ten minutes after inviting, then check the bot has the Guilds intent and the integration is enabled for your server. Retyping / in a different channel forces a refresh of the command cache.</li>
+        <li className="rounded-xl border border-border bg-card p-3">📊 <strong className="text-foreground">Leaderboard shows the wrong game:</strong> the game option is a slug, not a display name. Use gravegain3d style slugs from the game page URL, and confirm the game tracks arcade scores on <Link className="underline" href="/docs/playing-games">Playing games</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">👻 <strong className="text-foreground">Squad status looks stale:</strong> the reply reflects the current sprint snapshot at call time. If cards moved seconds ago, re-run the command. Persistent staleness means the squad slug is wrong, so copy it from the squad page instead of typing from memory.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🔑 <strong className="text-foreground">Token may have leaked:</strong> rotate it in the chat app portal, update the host dashboard secret, restart the bot process, and verify login with the new value. Treat any pasted token as burned, even in a private channel.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🤖 <strong className="text-foreground">Want bot behavior rules too?</strong> Command hosting here covers the community bot only. Posting rules, keys, and clan bot policy live in <Link className="underline" href="/docs/bots">Bots</Link>, and general setup help lives in <Link className="underline" href="/docs/faq">FAQ and support</Link>.</li>
+      </ul>
 
       <Pager current="/docs/integrations/chat-bot" />
     </article>

@@ -81,6 +81,39 @@ export default function PluginChecklistPage() {
         The <code>is_verified</code> flag mirrors a review column, not your manifest&apos;s opinion of itself — self-setting it changes nothing. Ship clean, get reviewed, earn the badge. Include an <code>author</code> handle so reviewers know who to credit.
       </Callout>
 
+      <SectionHead
+        index="3"
+        kicker="Worked example"
+        title="Fix a failing manifest in three passes"
+        body="A typical first submission fails on two or three small shape errors. The browser lists each one, so fix exactly what it names, resubmit, and watch the row validate clean."
+      />
+      <Steps
+        items={[
+          ["Pass 1: read the error list", <>Open the mods browser and find your row. A result like <code>{`{ ok: false, errors: ["slug", "version"] }`}</code> names the guilty fields. Copy the slug error first since identity problems cascade.</>],
+          ["Pass 2: repair slug and version", <>Lowercase the slug to match <code>^[a-z0-9-]+$</code> (for example <code>Ember Pack!</code> becomes <code>ember-pack</code>) and confirm uniqueness in the catalog. Rewrite the version as <code>1.2.0</code> or a suffixed prerelease like <code>2.0.0-beta.1</code>. Retest locally before resubmitting.</>],
+          ["Pass 3: trim permissions and theme keys", <>Keep only allow listed permissions such as <code>storage:local</code> and <code>audio:play</code>, and confirm every theme key starts with <code>--</code>. Serve the bundle over https, reload the browser, and confirm the valid badge appears.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="4"
+        kicker="FAQ"
+        title="Review, verify, publish"
+        body="What happens after validation passes, and what never happens automatically."
+      />
+      <Steps
+        items={[
+          ["Does validation publish my plugin?", <>No. Validation only admits the row to the browser. Discovery, featuring, and the verified badge follow human review. A clean validation with an author handle gets reviewed fastest.</>],
+          ["Can I claim verified in my manifest?", <>Setting <code>is_verified</code> yourself changes nothing. The flag mirrors a review column. Ship clean, get reviewed, earn the badge honestly.</>],
+          ["Do declared permissions grant access?", <>Not today. Permissions are declaration only and the mount grants none automatically, inside an allow scripts only sandboxed iframe. Request the minimum set so reviewers trust the bundle.</>],
+          ["Which target scope should I pick?", <>Match the game your mod actually touches: <code>gravegain3d</code>, <code>gravegain2d</code>, <code>gravegain1d</code>, or <code>battlesharks2</code>. Choose <code>global</code> only for genuinely cross game themes. New game slugs are accepted without validator changes.</>],
+          ["The catalog endpoint looks dead. Is my mod lost?", <>No. The browser validates every row locally and falls back to the bundled catalog when the future live endpoint is not wired. If your row validates locally, reviewers see exactly what you see.</>],
+        ]}
+      />
+      <Callout tone="emerald" title="Preview where players browse">
+        The mods browser is both your test bench and your storefront. Validate there, screenshot the valid row for your launch post, and link players to the same browser path so they install the exact bundle you tested.
+      </Callout>
+
       <Pager current="/docs/studio/plugin-checklist" />
     </article>
   );

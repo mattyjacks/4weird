@@ -21,7 +21,7 @@ export const metadata: Metadata = {
       "Run, observe, debug, and improve web experiences: playtest hubs, cloud GPU runs, autoplay, and a full manual.",
     images: [
       {
-        url: "/og/og-vibecodeworker.png",
+        url: "/og/og-vibecodeworker.jpg",
         width: 1200,
         height: 630,
         alt: "VibeCodeWorker - Evidence-Driven Game QA",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     title: "VibeCodeWorker - Evidence-Driven Game QA | 4weird",
     description:
       "Run, observe, debug, and improve web experiences: playtest hubs, cloud GPU runs, autoplay, and a full manual.",
-    images: ["/og/og-vibecodeworker.png"],
+    images: ["/og/og-vibecodeworker.jpg"],
   },
 };
 

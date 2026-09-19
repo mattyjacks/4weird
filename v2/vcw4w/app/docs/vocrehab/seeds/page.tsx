@@ -123,6 +123,85 @@ export default function VocRehabSeedsPage() {
         retry penalty — the point is steady progress, not a perfect first run. Nothing in
         practice affects benefits or eligibility, ever.
       </Callout>
+
+      <SectionHead
+        index="5"
+        kicker="When it misbehaves"
+        title="Troubleshooting seeds"
+        body="Seeds are plain address text, so most problems are address problems. Check the address bar first."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mt-1 font-black">The set still shuffles</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The address has no ?seed= value, or it has a typo such as ?sead=. Copy the full
+            seeded address again, including the VRHB- prefix, and reload. Bookmarks made
+            before the seed was added keep shuffling until you replace them.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mt-1 font-black">Two people see different sets</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            They opened different addresses. Compare the strings after ?seed= character by
+            character: one wrong letter is a different set. Paste the seed into a message
+            rather than reading it aloud when accuracy matters.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mt-1 font-black">A make-up needs the same items</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Find the original run in the admin seed log, copy its seed, and open the practice
+            page with that seed attached. The learner gets the exact order from the missed
+            session, and the retry counts the same as every attempt.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mt-1 font-black">A check-in needs fresh items</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Open the practice page with no seed at all. Each load shuffles again, so the
+            check-in measures steady skill rather than memory of one order. Browse the full
+            set in the games catalog first if you want a tour.
+          </p>
+        </div>
+      </div>
+
+      <SectionHead
+        index="6"
+        kicker="Quick answers"
+        title="Seed questions, answered"
+        body="The short version of everything counselors and learners ask about replayable sets."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mt-1 font-black">Do seeds change scoring</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Never. Seeded and shuffled attempts use the same strengths-first summaries, the
+            same bands, and the same retry policy. The seed fixes item order only.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mt-1 font-black">Do I need an account to use a seed</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            No. Anyone with the seeded address sees the same order. Signing in adds saved
+            runs and progress history, which is how a counselor reviews work later.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mt-1 font-black">What does a counselor say</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Try this script: open this address, work through it once, and tell me which three
+            felt easiest. The seed log confirms the set, and the conversation stays on
+            supports instead of scores.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="mt-1 font-black">Where do seeds fit the bigger picture</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            They are one practice habit among several. Pair them with the getting-started
+            guide for a weekly rhythm and the counselor guide for review sessions.
+          </p>
+        </div>
+      </div>
       <p className="mt-4 text-sm text-muted-foreground">
         New to VocRehab? Start with the{" "}
         <Link className="underline" href="/docs/vocrehab/getting-started">getting-started guide</Link>{" "}

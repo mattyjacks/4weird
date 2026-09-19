@@ -129,6 +129,19 @@ export default function MmorpgAgeBandsPage() {
         risks the shard and the account. Rent the right band instead.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Questions"
+        title="Gate FAQ: birthdays, guests, wrong results"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🎂 <strong className="text-foreground">Do I enter my birthday every visit?</strong> No. The gate mints a signed band pass on a passed check, so return visits reuse the pass instead of retyping the date. A failed gate keeps nothing and simply reports your wait.</li>
+        <li className="rounded-xl border border-border bg-card p-3">👪 <strong className="text-foreground">Can a parent approve a higher shard?</strong> No. Bands are absolute: kids enter kids shards, teens enter kids plus teens, adults enter all. Approval flows do not exist, by design, so pick a shard the whole party can enter.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧾 <strong className="text-foreground">Gate says the wrong band:</strong> retype the date carefully, watching month versus day order, and confirm the device clock is correct. The check derives age fresh from each input, so a single transposed digit changes the verdict.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🎮 <strong className="text-foreground">Guests and shared devices:</strong> each player gates individually on the device they play from. Signing in as someone else to borrow their band breaks trust tooling and risks the account, so gate every player separately.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🏠 <strong className="text-foreground">Hosting for mixed ages?</strong> Rent the lowest band your youngest player holds, then match content to that promise. Rental steps live in <Link className="underline" href="/docs/mmo/hosting">Hosting a server</Link>, and the world overview in <Link className="underline" href="/docs/mmo">MMORPG mode</Link>. Safety contacts live in <Link className="underline" href="/docs/privacy-safety">Privacy and safety</Link>.</li>
+      </ul>
+
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Link
           href="/docs/mmo"

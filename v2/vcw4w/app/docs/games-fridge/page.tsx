@@ -120,6 +120,128 @@ export default function FridgeDocsPage() {
         </Link>
       </div>
 
+      <SectionHead
+        index="4"
+        kicker="Five shops, five deals"
+        title="Shops compared"
+        body="Two shops stock everything; three offer a random dozen at a discount or free. Buy the plan from the reliable two, treat the random three as a bonus."
+      />
+      <div className="mt-5 overflow-hidden rounded-2xl border border-border">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-card">
+              <th className="px-4 py-3 font-mono text-xs font-black uppercase tracking-widest text-muted-foreground">Shop</th>
+              <th className="px-4 py-3 font-mono text-xs font-black uppercase tracking-widest text-muted-foreground">Assortment</th>
+              <th className="px-4 py-3 font-mono text-xs font-black uppercase tracking-widest text-muted-foreground">Price note</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border bg-card">
+            {[
+              ["Grocery", "Full catalog, every food", "Standard prices, always available."],
+              ["Wholesale", "Full catalog, every food", "Reliable volume discount on everything."],
+              ["Pantry", "Random dozen", "Discounted, rotates. Check before you plan."],
+              ["Charity", "Random dozen", "Free but random and unreliable."],
+              ["Dumpster", "Random dozen", "Free, but food can spoil. Never the plan."],
+            ].map(([k, v, r]) => (
+              <tr key={k}>
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-bold">{k}</td>
+                <td className="px-4 py-3 text-muted-foreground">{v}</td>
+                <td className="px-4 py-3 text-muted-foreground">{r}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <SectionHead
+        index="5"
+        kicker="Days 1 to 3, USA"
+        title="Worked example: open a run without starving"
+        body="The USA opens on day 1 with a family of 4 and a budget of 300. Here is a calm opening built from real foods table values."
+      />
+      <Steps
+        items={[
+          [
+            "Day 1: spend a tenth of the budget",
+            <>Buy 4 Chicken (12 coins) plus 4 Pasta (8 coins) plus 4 Bananas (3.2 coins), for 23.2 coins total. That covers protein (Chicken, 50 each), carbs (Pasta, 60 each), and vitamins (Banana, 40 each), and preferred-first eating sorts out who eats what.</>,
+          ],
+          [
+            "Day 2: watch the triple, not the hunger bar",
+            <>Every channel decays 15 a day, so a full belly with vitamins at zero still starves. Find the lowest channel and patch it cheaply: Garlic (0.5) for vitamins, Potato (1) for carbs, Egg (2) for protein. Exact values live in the <Link className="font-bold underline" href="/docs/games-fridge/foods">foods table</Link>.</>,
+          ],
+          [
+            "Day 3: bank one spare day, then save",
+            <>Keep one full spare day of food stocked before you hit Next Day, because an empty fridge means a hungry family. Save to a cloud slot before experimenting with new countries: the <Link className="font-bold underline" href="/docs/games-fridge/saves">resume guide</Link> shows the phone to desktop handoff.</>,
+          ],
+        ]}
+      />
+
+      <SectionHead
+        index="6"
+        kicker="Full fridge, hungry family"
+        title="Troubleshooting"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">📉 <strong className="text-foreground">Stocked but starving.</strong> Check the triple: a protein-only fridge leaves vitamins at zero while every channel still decays 15 a day. Pair every meat run with fruit or veg.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🗑️ <strong className="text-foreground">Dumpster haul went bad.</strong> Dumpster food can spoil, and Charity and Dumpster stock are random, so neither can carry a plan. Rebuy the missing channel from Grocery or Wholesale.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🍽️ <strong className="text-foreground">A pile nobody touches.</strong> Families eat preferred foods first and fall back to whatever is stocked. An untouched pile is probably nobody&apos;s favorite: it still feeds, it just feeds last.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🌍 <strong className="text-foreground">New country, empty fridge.</strong> Each country&apos;s fridge is stocked separately, so an unlock-day arrival needs its own shop run before its first Next Day.</li>
+        <li className="rounded-xl border border-border bg-card p-3">💾 <strong className="text-foreground">Run is gone.</strong> Guests get no saves: three free loads a day and nothing persists. Sign in and play in cloud save slots 0 to 3 instead.</li>
+      </ul>
+      <Callout tone="amber" title="Dumpster food is a bonus, not a plan.">
+        Free, random, and perishable is three reasons to smile and zero reasons to budget. Plan from Grocery
+        and Wholesale, spend Charity and Dumpster finds the same day, and never let a random dozen cover a
+        channel your family needs tomorrow.
+      </Callout>
+
+      <SectionHead
+        index="7"
+        kicker="New arrivals"
+        title="Unlock days: meet the new family prepared"
+        body="The USA opens on day 1 with a family of 4 and a budget of 300; Italy arrives on day 9 with the fattest budget of all. Every unlock in between rewards the same preparation."
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🔍 <strong className="text-foreground">Scout tastes before the unlock.</strong> Read the incoming family&apos;s five preferred foods first. A shop run aimed at their favorites feeds from day one; a generic pile feeds last.</li>
+        <li className="rounded-xl border border-border bg-card p-3">💰 <strong className="text-foreground">Arrive with spare budget.</strong> Do not spend the old country down to zero the day before an unlock. A cushion buys the new fridge its opening stock without starving the old one.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧊 <strong className="text-foreground">Stock before the first Next Day.</strong> A newly unlocked fridge starts empty, and advancing the day with an empty fridge means a hungry family on arrival. Shop first, advance second.</li>
+        <li className="rounded-xl border border-border bg-card p-3">💾 <strong className="text-foreground">Save before the unlock.</strong> Unlock days change everything at once: new tastes, new budget, new mouths. Bank the run to a cloud slot first, so a bad opening is a lesson instead of a disaster. See the <Link className="underline" href="/docs/games-fridge/saves">resume guide</Link>.</li>
+      </ul>
+      <Callout tone="cyan" title="Italy is a budget boss.">
+        Day 9 brings a family of 3 with a budget of 320, the fattest purse in the game. Celebrate with
+        protein heavyweights (Steak, Chicken) and bank the surplus: late arrivals eat more, and a stocked
+        Italian fridge covers rough days elsewhere.
+      </Callout>
+
+      <SectionHead
+        index="8"
+        kicker="Pace the purse"
+        title="The 10 percent opening rule"
+        body="Opening baskets should be small, balanced, and repeatable. Spend roughly a tenth of the budget on day 1, keep the rest as a buffer for bad shop rotations and unlock surprises."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">🧺 Open small</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The worked example above feeds a family of 4 for 23.2 coins from a 300 budget: under 8 percent,
+            covering all three channels. Small openings leave room to correct mistakes.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">📦 Buffer the random</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Random shops rotate and Dumpster finds perish, so reserves beat variety. A buffer of unspent
+            budget buys whatever channel the next rotation fails to offer.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">🌍 Fund the unlock</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            New fridges arrive empty and hungry. Hold back enough budget before each unlock day to stock
+            the newcomer fully on arrival, then resume normal spending.
+          </p>
+        </div>
+      </div>
+
       <Callout tone="emerald" title="Play it.">
         Find Fridge Simulator in the catalog at <Link className="underline" href="/games/fridgesimulator">/games/fridgesimulator</Link> and
         press play at <Link className="underline" href="/games/fridgesimulator/play">/games/fridgesimulator/play</Link>.

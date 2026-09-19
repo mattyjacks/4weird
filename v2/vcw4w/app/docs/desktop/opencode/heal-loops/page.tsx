@@ -112,6 +112,86 @@ export default function DesktopOpencodeHealLoopsPage() {
         ]}
       />
 
+      <SectionHead
+        index="5"
+        kicker="Worked example"
+        title="A three round heal with real numbers"
+        body="Follow one stubbed suite through the loop: it fails twice on the same assertion, then passes. Every round logs tokens so the stop reason is auditable."
+      />
+      <Steps
+        items={[
+          ["Round 1: bugtest fails, fix lands", <>The suite reports 2 failures in 40 tests. OpenCode edits the collision handler and the ledger logs 18,400 input tokens plus 3,100 output tokens for the round.</>],
+          ["Round 2: retest fails, fix narrows", <>One failure remains. The second fix touches a single branch and logs 12,050 input tokens plus 1,800 output tokens. Running total: about 35,350 tokens.</>],
+          ["Round 3: retest clean, verdict done", <>All 40 tests pass. The loop stops on clean with a verdict summarizing rounds, totals, and the diff. No budget tripped, so nothing was cut short.</>],
+          ["Contrast: always-fail stops on budget", <>Swap in a suite that can never pass and set maxSpendUSD tiny. The loop now stops on spend after a few rounds with a budget verdict, never spinning forever.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="6"
+        kicker="Stop reasons"
+        title="Every loop ends one of four ways"
+        body="The verdict names exactly one stop reason. Learn the four so a Heal result never surprises you."
+      />
+      <div className="mt-5 overflow-x-auto rounded-2xl border border-border">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-2 font-black">Stop reason</th>
+              <th className="px-4 py-2 font-black">What it means</th>
+              <th className="px-4 py-2 font-black">What to do next</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Clean</td>
+              <td className="px-4 py-2 text-muted-foreground">Suite passed fully on a retest round.</td>
+              <td className="px-4 py-2 text-muted-foreground">Review the diff, keep the fix, ship the game.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Max rounds</td>
+              <td className="px-4 py-2 text-muted-foreground">Iteration cap hit while failures remain.</td>
+              <td className="px-4 py-2 text-muted-foreground">Shrink the repro, raise the cap deliberately, re-heal.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Max tokens</td>
+              <td className="px-4 py-2 text-muted-foreground">Cumulative input plus output tokens hit maxTokens.</td>
+              <td className="px-4 py-2 text-muted-foreground">Trim context in the report or raise maxTokens, then resume.</td>
+            </tr>
+            <tr className="border-b-0">
+              <td className="px-4 py-2 font-bold">Max spend</td>
+              <td className="px-4 py-2 text-muted-foreground">Priced spend hit maxSpendUSD first.</td>
+              <td className="px-4 py-2 text-muted-foreground">Check the per-iteration ledger, price the next attempt with a coin quote, re-run funded.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <SectionHead
+        index="7"
+        kicker="FAQ"
+        title="Heal loop questions, answered"
+        body="Pricing, quoting, and payment futures in one place. Start on the setup page if the binary itself is missing."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">How do I price a loop before starting it?</p>
+          <p className="mt-1 text-sm text-muted-foreground">Take the last similar verdict, sum its ledger tokens, price them at your provider rate, then convert dollars to coins at 100 to 1. That quote is read-only: it predicts, it never debits.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Why did my loop stop on round 2 with failures left?</p>
+          <p className="mt-1 text-sm text-muted-foreground">A token or spend budget tripped before the round cap. Open the verdict ledger: the stop reason names the exact cap and the round totals that crossed it.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Can Heal pay the provider in coins today?</p>
+          <p className="mt-1 text-sm text-muted-foreground">No. MCP-mediated coin payment is queued future with stubs only. Quotes today are estimates; any future settlement needs its own guarded lane with auth and audit.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Where does Export fit in?</p>
+          <p className="mt-1 text-sm text-muted-foreground">Export writes the BUGFIX report that round 1 consumes. Revisit <Link className="underline" href="/docs/desktop/opencode">Desktop OpenCode setup</Link> for the report format and the cli versus server choice.</p>
+        </div>
+      </div>
+
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <Link
           href="/docs/desktop/opencode/terminal"

@@ -89,6 +89,53 @@ export default function DesktopOpencodePage() {
 
       <SectionHead
         index="3"
+        kicker="Worked example"
+        title="Your first Fix, end to end"
+        body="A concrete pass through Export and Fix in cli mode: from a failing playtest to a reviewed diff, with every click and command named."
+      />
+      <Steps
+        items={[
+          ["Reproduce the bug in the game", <>Play until the failure shows, then note the game slug, the screen, and the input sequence. The Export report is only as good as these three facts.</>],
+          ["Export the BUGFIX report", <>In the desktop panel, press Export. You get <code>BUGFIX-&lt;game&gt;-&lt;stamp&gt;.md</code> plus a JSON twin: repro steps, logs, and workspace paths the agent may touch.</>],
+          ["Run the fix headlessly", <>In a shell rooted at the workspace, run <code>opencode run -f BUGFIX-&lt;game&gt;-&lt;stamp&gt;.md</code>. The agent edits code inside the workspace root and prints the files it changed.</>],
+          ["Review the diff before keeping it", <>Read every hunk in git diff. Keep the hunks that match the repro, revert the rest, then re-run the same playtest. Clean on the second pass means the fix held.</>],
+          ["Escalate to Heal when it recurs", <>If the failure returns on retest, press Heal instead of re-running by hand. The loop in <Link className="underline" href="/docs/desktop/opencode/heal-loops">Heal loops</Link> repeats test, fix, retest until clean or the budget trips.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="4"
+        kicker="Troubleshooting"
+        title="When the panel stays red"
+        body="Four common failure shapes, each with the fastest check first. All of them are local PATH or process issues, never account issues."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Binary not found after install</p>
+          <p className="mt-1 text-sm text-muted-foreground">Close and re-open the desktop app so it re-reads PATH, then run <code>opencode --version</code> in a fresh shell. Package-manager shims often land on PATH only for new processes.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Server mode refuses to connect</p>
+          <p className="mt-1 text-sm text-muted-foreground">Confirm <code>opencode serve --port 4096</code> is still running and <code>OPENCODE_SERVER_URL=http://127.0.0.1:4096</code> matches the port. A second serve on another port splits the brain: kill extras, keep one.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Fix edits files outside the game</p>
+          <p className="mt-1 text-sm text-muted-foreground">Re-check the working-dir picker: runs must root at the game workspace. Re-export after picking the right folder, since the report snapshots the paths it may touch.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Run hangs with no output</p>
+          <p className="mt-1 text-sm text-muted-foreground">Press stop, shorten the per-run timeout, and re-run with a smaller report. Streaming stdout and stderr should resume line by line; silence past the timeout means the process wedged, not that it is thinking.</p>
+        </div>
+      </div>
+      <Callout tone="cyan" title="Still stuck? Compare surfaces first.">
+        Open <Link className="underline" href="/docs/desktop/opencode/terminal">Web terminal + desktop panel</Link> and
+        confirm you are driving the desktop panel, not the web <code>/terminal</code> page. The web page cannot reach
+        your binary, so every OpenCode symptom there is expected behavior. General site questions belong on{" "}
+        <Link className="underline" href="/docs/faq">FAQ and support</Link>.
+      </Callout>
+
+      <SectionHead
+        index="5"
         kicker="Next steps"
         title="Where to go from here"
       />

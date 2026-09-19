@@ -72,6 +72,77 @@ export default function KanbanSprintsDocsPage() {
         <li><strong>Is there a board I can open today?</strong> Not yet — /squads/[id]/kanban is planned. Squad project lists live at /squads.</li>
         <li><strong>Do estimates move coins?</strong> No. Estimates are planning numbers; only the guarded checkout moves coins.</li>
         <li><strong>Who can move cards?</strong> Squad members on that board (planned permission rule).</li>
+        <li><strong>How is sprint progress computed?</strong> From finished cards against the cycle total: done estimates divided by planned estimates, shown as 0 to 100 percent.</li>
+        <li><strong>What happens to unfinished cards?</strong> They roll into the next cycle with fresh positions; the closed cycle keeps its history.</li>
+        <li><strong>Where do logged hours appear?</strong> Time entries linked by card id show beside the estimate; see the <Link className="underline" href="/docs/remastery/time-tracking">time tracking guide</Link>.</li>
+      </ul>
+
+      <h2 className="mt-8 text-xl font-black">Running your first sprint in five steps</h2>
+      <ol className="mt-2 list-decimal space-y-2 pl-6 text-sm text-muted-foreground">
+        <li><strong>Name the sprint and fix the dates.</strong> One active cycle per board: a title plus a start and end date, for example &quot;Sprint 4, March 3 to March 16&quot;.</li>
+        <li><strong>Write cards small.</strong> One card per shippable slice with a verb first: &quot;Wire raid lobby presence&quot;, not &quot;Lobby stuff&quot;. Small cards finish; vague cards linger.</li>
+        <li><strong>Estimate in hours, then assign.</strong> Every card gets an hour number and exactly one owner. Unowned cards rot in todo; owned cards move.</li>
+        <li><strong>Drag daily, review weekly.</strong> Move cards as work lands so the board mirrors reality. At review, demo done cards, roll leftovers forward, and retire blockers in the open.</li>
+        <li><strong>Close honestly.</strong> Mark the cycle complete, keep its history readable, and open the next cycle from the rolled-over remainder. Velocity is what you finished, not what you planned.</li>
+      </ol>
+
+      <h2 className="mt-8 text-xl font-black">Worked example: Sprint 4</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        The GraveGain raid squad plans 14 hours across six cards. Midweek the board looks like this:
+      </p>
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-2 font-black">Card</th>
+              <th className="px-4 py-2 font-black">Estimate</th>
+              <th className="px-4 py-2 font-black">Stage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Instanced mesh pass (urgent)</td>
+              <td className="px-4 py-2 text-muted-foreground">4h</td>
+              <td className="px-4 py-2 text-muted-foreground">Done</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Timer Web Worker (high)</td>
+              <td className="px-4 py-2 text-muted-foreground">2.5h</td>
+              <td className="px-4 py-2 text-muted-foreground">Done</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Remastery routes test (medium)</td>
+              <td className="px-4 py-2 text-muted-foreground">1h</td>
+              <td className="px-4 py-2 text-muted-foreground">Done</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Raid lobby presence (high)</td>
+              <td className="px-4 py-2 text-muted-foreground">3h</td>
+              <td className="px-4 py-2 text-muted-foreground">In progress</td>
+            </tr>
+            <tr className="border-b-0">
+              <td className="px-4 py-2 font-bold">Boss theme hookup (low) + victory poster (medium)</td>
+              <td className="px-4 py-2 text-muted-foreground">3.5h</td>
+              <td className="px-4 py-2 text-muted-foreground">To do</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Done estimates total 7.5 of 14 planned hours, so progress reads 54 percent. The squad demo
+        covers the three done cards, the owner of the lobby card names a landing date, and the two
+        todo cards roll into Sprint 5. Logged time is reconciled per card in the{" "}
+        <Link className="underline" href="/docs/remastery/time-tracking">time tracker</Link>; the
+        full board reference lives in the{" "}
+        <Link className="underline" href="/docs/remastery/kanban">squad kanban reference</Link>.
+      </p>
+
+      <h2 className="mt-8 text-xl font-black">Troubleshooting</h2>
+      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+        <li><strong>Progress bar frozen at zero?</strong> Done cards may be attached to a closed cycle. Reattach them to the active cycle and the bar will recalculate.</li>
+        <li><strong>Card will not drag?</strong> Confirm you are a member of the board&apos;s squad, then retry. Rejected moves mean the permission check failed, not that the card is cursed.</li>
+        <li><strong>Estimates always wrong?</strong> After two cycles, compare logged seconds per card against the guesses and re-estimate from actuals. Cards that miss twofold are usually three cards wearing a trench coat: split them.</li>
+        <li><strong>Too many cards in progress?</strong> Cap doing at two per person. Park the excess back in todo with owners and dates instead of starting everything at once.</li>
       </ul>
 
       <p className="mt-8 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

@@ -187,6 +187,70 @@ export default function Page() {
         </Link>
         .
       </p>
+      <section className="space-y-2">
+        <h2 className="text-lg font-bold">Worked month: a steady Easy start</h2>
+        <p className="text-sm">
+          Play your first month on Easy with one rule: protect rest before placing shifts.
+          Block sleep and one rest window each day, then place three evening shifts around
+          them. Add the training block to a morning with a bus buffer on both sides. When a
+          surprise lands, such as a moved appointment, drag the flexible errand first and
+          leave fixed shifts alone. Run the month and read the summary for strengths: on-time
+          arrivals, protected rest, a backup plan used well. Keep the one suggested tweak,
+          for example a longer margin after late shifts, and replay the month with only that
+          change. That loop, one tweak per month, is the whole skill.
+        </p>
+      </section>
+      <section className="space-y-2">
+        <h2 className="text-lg font-bold">Troubleshooting</h2>
+        <ul className="list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Everything overlaps.</strong> Clear the flexible items first, protect
+            sleep and rest, then re-place one block at a time. The conflict notes name a
+            plain-language fix for each overlap.
+          </li>
+          <li>
+            <strong>Days run out of hours.</strong> Check the day meter: travel plus work
+            plus meals may already fill the budget. Swap a drive for a bus ride, move an
+            errand to a light day, or drop one optional item.
+          </li>
+          <li>
+            <strong>Travel eats the week.</strong> Group nearby stops on the same day and pick
+            the steadier mode with a timetable buffer. For Alaska routes, keep the weather
+            buffer and a backup plan rather than trimming them.
+          </li>
+          <li>
+            <strong>A save vanished.</strong> Saves live per device for this game. Clearing a
+            save affects only Schedule Juggle. Reload the saved month from{" "}
+            <Link href="/vocrehab/play/schedule-juggle" className="underline">
+              the game page
+            </Link>{" "}
+            to confirm before replaying.
+          </li>
+        </ul>
+      </section>
+      <section className="space-y-2">
+        <h2 className="text-lg font-bold">Common questions</h2>
+        <ul className="list-disc space-y-2 pl-6 text-sm">
+          <li>
+            <strong>Can I fail a month.</strong> No. Every finished month names strengths and
+            one tweak. Overpacked days cost energy in the game, never grades or penalties.
+          </li>
+          <li>
+            <strong>Which level should I pick.</strong> Easy for routines, Medium for
+            trade-offs, Hard for packed weeks with support nearby. Switch between months
+            freely.
+          </li>
+          <li>
+            <strong>How do I review with a counselor.</strong> Sign in so months save, load a
+            saved month together, and talk through the summary strengths. Privacy rules live
+            in{" "}
+            <Link href="/docs/vocrehab/privacy-safety" className="underline">
+              privacy and safety
+            </Link>
+            .
+          </li>
+        </ul>
+      </section>
     </main>
   );
 }

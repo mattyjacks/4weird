@@ -104,6 +104,55 @@ export default function SearchDocsPage() {
         The client overlay must never reference <code>OPENAI_API_KEY</code> or embed an <code>sk-</code> secret — <code>scripts/verify-search.mjs</code> scans the overlay, the static index, and this page for secret-shaped literals on every run.
       </Callout>
 
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="No results? Fix it in this order"
+        body="Search misses come from four places: the query, the tags, the built index, or the Luna pass. Walk the list top to bottom and stop at the first step that explains the miss."
+      />
+      <Steps
+        items={[
+          ["Shorten the query first", <>The ranker loves short player words: one or two tokens beat a full sentence. Try the game slug or genre alone, then add one tag. Prefix matching covers typos, but fewer tokens give it less to trip over.</>],
+          ["Check the tags, not the page", <>Search only finds what entries declare. Open the entry source and confirm the tags array names the words players type: genre plus player synonyms for games, section plus keywords for docs, mood plus instruments for music. A beautiful page with empty tags is invisible by design.</>],
+          ["Rebuild, then verify the index", <>After the builder lands, run <code>node scripts/build-search-index.mjs</code> and then <code>node scripts/verify-search.mjs</code>. The gate fails when any catalog slug is missing from the index and warns while sibling routes are still in flight, so read its output literally.</>],
+          ["Read the Luna fallback correctly", <>When Luna is unconfigured or down, the endpoint fails open to keyword results: same page, no rerank badge, never an error. Missing sparkle means the keyword pass carried the query alone, so judge the miss on keywords before blaming the AI.</>],
+        ]}
+      />
+      <div className="mt-5 overflow-hidden rounded-2xl border border-border">
+        <table className="w-full text-left text-sm">
+          <caption className="bg-muted/50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Example queries and where they should land
+          </caption>
+          <thead>
+            <tr className="border-y border-border bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
+              <th scope="col" className="px-4 py-2.5">Query</th>
+              <th scope="col" className="px-4 py-2.5">Expect</th>
+              <th scope="col" className="px-4 py-2.5">If it misses</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">neon racer</th>
+              <td className="px-4 py-2.5 text-muted-foreground">The racing game, title weighted times five</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Confirm Racing and Arcade sit in its tags array</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">luna rerank</th>
+              <td className="px-4 py-2.5 text-muted-foreground">This page, via docs keywords</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Check the docs section and keyword frontmatter</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">bot api</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Bot guides and the search endpoint contract</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Try one token, then browse the bot docs directly</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <Callout tone="cyan" title="Makers: tag for the player, not the catalog.">
+        Players type moods and nicknames, catalogs store genres and slugs. Bridge the gap with synonyms in the override registry, keep tags short and lowercase friendly, and re-run the builder plus verifier after every tag edit. Player side help starts at <code>/search</code> with Ctrl/⌘+K.
+      </Callout>
+
       <Pager current="/docs/search" />
     </article>
   );

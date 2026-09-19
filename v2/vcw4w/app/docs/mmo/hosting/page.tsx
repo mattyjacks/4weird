@@ -136,6 +136,35 @@ export default function MmorpgHostingPage() {
         migration lands, this page will say so — and past quotes will not be back-billed.
       </Callout>
 
+      <SectionHead
+        index="5"
+        kicker="Worked example"
+        title="Price a Friday raid night before you rent"
+        body="A concrete quote walkthrough for a teens raid shard with hostFree off, so every player knows their share before the horn sounds."
+      />
+      <MockWindow title="rent worksheet: emberfall raid, 3 hours, 20 players" badge="planning">
+        <div className="space-y-2 font-mono text-xs sm:text-sm">
+          <div className="flex justify-between gap-4"><span className="text-slate-400">SERVER · 180 min × quoted rate</span><span className="font-bold text-slate-200">quoted total</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">LOAD · 20 players × bytes moved</span><span className="font-bold text-slate-200">split per player</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">RENTAL · 3 hr fee, host only</span><span className="font-bold text-slate-200">host pays</span></div>
+          <div className="flex justify-between gap-4 border-t border-white/10 pt-2"><span className="font-bold text-slate-200">Post the three lines in the event thread</span><span className="font-bold text-amber-300">no surprises</span></div>
+          <p className="pt-1 text-[11px] text-slate-500">announce hostFree setting + per player estimate up front</p>
+        </div>
+      </MockWindow>
+
+      <SectionHead
+        index="6"
+        kicker="Troubleshooting"
+        title="Empty shards, wrong band, quote confusion"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🏜️ <strong className="text-foreground">Shard stays empty:</strong> the band may be narrower than your crowd, or the event time unclear. Confirm the band admits your players in <Link className="underline" href="/docs/mmo/age-bands">Age bands</Link>, then post game, band, hostFree setting, and start time in one message.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🛡️ <strong className="text-foreground">Picked the wrong band:</strong> bands lock at rent for the shard lifetime, so there is no upgrade path. Rent a new server with the right band and sunset the old shard rather than fighting entry denials.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧾 <strong className="text-foreground">Players dispute the split:</strong> the shard page shows the live hostFree setting, and the rent preview quotes server plus load plus rental separately. Screenshot the preview into the event thread before launch week.</li>
+        <li className="rounded-xl border border-border bg-card p-3">⏸️ <strong className="text-foreground">Shard idle but meter worries:</strong> server billing pauses when the shard stops, while the hourly rental holds the slot. Stop the shard between sessions and end it when the season closes.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🪙 <strong className="text-foreground">Where do coins come from?</strong> Hosts fund rental and server costs in Vibe Coins at 100 coins to $1.00, with the 25% cut already inside every figure. Wallet and parity rules live in <Link className="underline" href="/docs/vibe-coins">Vibe Coins</Link>.</li>
+      </ul>
+
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Link
           href="/docs/mmo"

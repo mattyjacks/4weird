@@ -128,6 +128,108 @@ export default function RemasteryPage() {
         ]}
       />
 
+      <SectionHead
+        index="5"
+        kicker="Coin math"
+        title="One invoice, fully priced"
+        body="The 75/25 rule is easiest to see on a single invoice. Gross on the paper, split on the receipt, coins everywhere."
+      />
+      <div className="mt-5 overflow-x-auto rounded-2xl border border-border">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-2 font-black">Line</th>
+              <th className="px-4 py-2 font-black">Dollars</th>
+              <th className="px-4 py-2 font-black">Coins</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 text-muted-foreground">Sprint work: 2 hours at $50 per hour</td>
+              <td className="px-4 py-2 font-bold">$100.00</td>
+              <td className="px-4 py-2 font-bold">10,000</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 text-muted-foreground">Provider keeps 75 percent as on-site credits</td>
+              <td className="px-4 py-2 font-bold">$75.00</td>
+              <td className="px-4 py-2 font-bold">7,500</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 text-muted-foreground">Platform keeps 25 percent for infrastructure</td>
+              <td className="px-4 py-2 font-bold">$25.00</td>
+              <td className="px-4 py-2 font-bold">2,500</td>
+            </tr>
+            <tr className="border-b-0">
+              <td className="px-4 py-2 text-muted-foreground">Client sees gross only</td>
+              <td className="px-4 py-2 font-bold">$100.00</td>
+              <td className="px-4 py-2 font-bold">10,000</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <Callout tone="cyan" title="The axiom sheet is the source of truth.">
+        Parity, split, fail-open, idempotency, and workspace privacy are defined on the{" "}
+        <Link className="underline" href="/docs/remastery/axioms">axiom sheet</Link>. When this overview and that
+        sheet disagree, the sheet wins.
+      </Callout>
+
+      <SectionHead
+        index="6"
+        kicker="FAQ"
+        title="Wave 1 questions, answered"
+        body="Scope, safety, and starting points for squads adopting Wave 1 this week."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Where do squads live?</p>
+          <p className="mt-1 text-sm text-muted-foreground">Invite-only workspaces under <Link className="underline" href="/docs/remastery/squads">squad workspaces</Link>: projects, roles, and pooled coin balances per team. No public directory, no stranger discovery.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">How do hours become invoices?</p>
+          <p className="mt-1 text-sm text-muted-foreground">Track with the <Link className="underline" href="/docs/remastery/time-tracking">time tracker</Link>, convert unbilled entries in one click, and issue from the <Link className="underline" href="/docs/remastery/invoicing">invoicing suite</Link> with vector PDF export.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">What keeps everyone in sync?</p>
+          <p className="mt-1 text-sm text-muted-foreground">Plan on <Link className="underline" href="/docs/remastery/kanban">kanban boards</Link> and hear about it in <Link className="underline" href="/docs/remastery/notifications-chat">notifications plus chat</Link>: realtime pings with polling fallback, plus private squad threads.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">What does infrastructure run first?</p>
+          <p className="mt-1 text-sm text-muted-foreground">          The <Link className="underline" href="/docs/remastery/migration">SQL migration runbook</Link>: tables, row policies, indexes, then verify queries. App teams can read axioms while that runs.</p>
+        </div>
+      </div>
+
+      <SectionHead
+        index="7"
+        kicker="Role paths"
+        title="Pick your path through Wave 1"
+        body="Three starting points depending on your job in the squad. Each path ends at shipped value, not at reading more docs."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-2xl" aria-hidden="true">🏕️</p>
+          <p className="mt-1 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">Squad lead</p>
+          <p className="font-black">Found the squad</p>
+          <p className="mt-1 text-sm text-muted-foreground">Create the <Link className="underline" href="/docs/remastery/squads">workspace</Link>, invite collaborators with roles, open the <Link className="underline" href="/docs/remastery/kanban">kanban board</Link>, and run the first sprint cycle with hour estimates on every card.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-2xl" aria-hidden="true">💻</p>
+          <p className="mt-1 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">Contributor</p>
+          <p className="font-black">Clock and deliver</p>
+          <p className="mt-1 text-sm text-muted-foreground">Pull cards from the board, track honest hours in the <Link className="underline" href="/docs/remastery/time-tracking">time tracker</Link>, and follow <Link className="underline" href="/docs/remastery/notifications-chat">notifications plus chat</Link> so reviews never wait on you.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-2xl" aria-hidden="true">🧾</p>
+          <p className="mt-1 text-[11px] font-black uppercase tracking-[0.2em] text-cyan-600 dark:text-cyan-300">Finance</p>
+          <p className="font-black">Bill and reconcile</p>
+          <p className="mt-1 text-sm text-muted-foreground">Convert tracked hours into the <Link className="underline" href="/docs/remastery/invoicing">invoicing suite</Link>, export vector PDFs, and reconcile against the <Link className="underline" href="/docs/remastery/axioms">75/25 axiom</Link> receipts each month.</p>
+        </div>
+      </div>
+      <Callout tone="violet" title="Operators start at the migration, everyone else at the axioms.">
+        If you own the database, the <Link className="underline" href="/docs/remastery/migration">migration runbook</Link> is
+        step zero. If you own the work, five minutes on the <Link className="underline" href="/docs/remastery/axioms">axiom sheet</Link> pays
+        back every week you run Wave 1.
+      </Callout>
+
       <Pager current="/docs/remastery" />
     </article>
   );

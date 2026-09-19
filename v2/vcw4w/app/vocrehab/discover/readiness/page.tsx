@@ -1,145 +1,101 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { vocrehabBandInfo, type VocrehabReadinessBand } from "@/lib/vocrehab-assessments";
 
-const VOCREHAB_DIMENSIONS: readonly { id: string; label: string; support: string }[] = [
-  { id: "throughput", label: "Getting through tasks", support: "extra time and a clear starting order" },
-  { id: "comprehension", label: "Understanding instructions", support: "written steps alongside any video" },
-  { id: "recovery", label: "Bouncing back from mistakes", support: "mistake-friendly practice with undo" },
-  { id: "interruption", label: "Handling interruptions", support: "a pause signal and a refocus routine" },
-  { id: "communication", label: "Writing short messages", support: "sentence starters and examples" },
-  { id: "schedule", label: "Keeping a steady schedule", support: "a visible weekly plan with reminders" },
-  { id: "accommodations", label: "Knowing which tools help", support: "one assistive-technology trial at a time" },
-];
+export const metadata: Metadata = {
+  title: "Work readiness profile | VocRehab",
+  description:
+    "Map seven work dimensions into steady strengths and support needs, with plain language bands and next practice steps.",
+  alternates: { canonical: "/vocrehab/discover/readiness" },
+};
 
-export default function Page() {
-  const [vocrehabSteady, setVocrehabSteady] = useState<string[]>(["throughput"]);
-  const [vocrehabGames, setVocrehabGames] = useState<string[]>([]);
-  const [vocrehabSaveState, setVocrehabSaveState] = useState<"idle" | "saving" | "saved" | "guest" | "error">("idle");
+const DIMENSIONS = [
+  { title: "Getting through tasks", body: "Sustained throughput at a realistic pace. Support example: extra time plus a clear starting order." },
+  { title: "Understanding instructions", body: "Following multi step directions. Support example: written steps alongside any video or verbal briefing." },
+  { title: "Bouncing back from mistakes", body: "Recovery without freezing. Support example: mistake friendly practice with undo and calm retry routines." },
+  { title: "Handling interruptions", body: "Pausing and refocusing. Support example: an agreed pause signal plus a short refocus checklist." },
+  { title: "Writing short messages", body: "Clear brief workplace writing. Support example: sentence starters, templates, and one proofreading pass." },
+  { title: "Keeping a steady schedule", body: "Attendance across weeks. Support example: a visible weekly plan with reminders and backup contacts." },
+  { title: "Knowing which tools help", body: "Assistive technology awareness. Support example: one tool trial at a time with setup notes." },
+] as const;
 
-  const vocrehabToggle = (list: string[], id: string, set: (v: string[]) => void) => {
-    set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
-  };
-
-  const band: VocrehabReadinessBand = useMemo(() => {
-    const score = vocrehabSteady.length + vocrehabGames.length;
-    if (score >= 7) return "ready";
-    if (score >= 4) return "supported";
-    return "exploring";
-  }, [vocrehabSteady, vocrehabGames]);
-
-  const info = vocrehabBandInfo(band);
-  const strengths = VOCREHAB_DIMENSIONS.filter((d) => vocrehabSteady.includes(d.id)).map((d) => d.label);
-  const supports = VOCREHAB_DIMENSIONS.filter((d) => !vocrehabSteady.includes(d.id)).map(
-    (d) => `${d.label}: ${d.support}`,
-  );
-
-  const vocrehabSave = async () => {
-    setVocrehabSaveState("saving");
-    try {
-      const res = await fetch("/api/vocrehab/assessments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind: "readiness",
-          payload: { steady: vocrehabSteady, games: vocrehabGames },
-          profile: { band, strengths, supports },
-        }),
-      });
-      if (res.status === 401) {
-        setVocrehabSaveState("guest");
-        return;
-      }
-      setVocrehabSaveState(res.ok ? "saved" : "error");
-    } catch {
-      setVocrehabSaveState("error");
-    }
-  };
-
+export default function VocrehabDiscoverReadinessPage() {
   return (
-    <main className="mx-auto max-w-3xl space-y-4 p-4">
-      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground print:hidden">
-        <Link href="/vocrehab/play">Work & Life Practice Games</Link> → Work readiness
+    <main className="mx-auto max-w-3xl space-y-5 p-4">
+      <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
+        <Link href="/vocrehab/discover">Discover</Link> → Work readiness
       </nav>
       <h1 className="text-xl font-bold">Work readiness profile</h1>
-      <p>
-        Mark the areas that feel steady — the rest become supports, not failures. Numbers stay behind an
-        explainer; the headline is always human language. Accommodation flags are conversation starters, never
-        automated prescriptions.
+      <p className="text-sm text-muted-foreground">
+        Mark the areas that feel steady. The rest become supports, not failures. Numbers stay behind an explainer,
+        and the headline is always human language. Accommodation flags are conversation starters, never automated
+        prescriptions.
       </p>
 
-      <fieldset>
-        <legend className="font-medium">Which areas feel steady for you?</legend>
-        <div className="mt-2 grid gap-2 sm:grid-cols-2">
-          {VOCREHAB_DIMENSIONS.map((d) => (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => vocrehabToggle(vocrehabSteady, d.id, setVocrehabSteady)}
-              aria-pressed={vocrehabSteady.includes(d.id)}
-              className="rounded border p-3 text-left aria-pressed:border-primary"
-            >
-              <span className="font-medium">{vocrehabSteady.includes(d.id) ? "✓ " : "○ "}{d.label}</span>
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend className="font-medium">Games completed (adds to the picture)</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {["file-sort", "inbox-sprint", "focus-shift", "schedule-juggle"].map((g) => (
-            <button
-              key={g}
-              type="button"
-              onClick={() => vocrehabToggle(vocrehabGames, g, setVocrehabGames)}
-              aria-pressed={vocrehabGames.includes(g)}
-              className="rounded border px-3 py-1.5 text-sm font-medium aria-pressed:bg-primary aria-pressed:text-primary-foreground"
-            >
-              {vocrehabGames.includes(g) ? "✓ " : "○ "}{g}
-            </button>
-          ))}
-        </div>
-      </fieldset>
-
-      <section aria-label="Profile" aria-live="polite" className="space-y-2 rounded-lg border p-3">
-        <h2 className="font-semibold">✓ {info.headline}</h2>
-        <p className="text-sm">{info.whatItMeans}</p>
-        <p className="text-sm"><strong>Strengths:</strong> {strengths.length > 0 ? strengths.join("; ") : "still surfacing — try a practice round"}</p>
-        {supports.length > 0 && (
-          <p className="text-sm"><strong>Supports that help:</strong> {supports.join("; ")}</p>
-        )}
-        <ul className="list-disc pl-5 text-sm">
-          {info.tryNext.map((t) => (
-            <li key={t}>{t}</li>
-          ))}
-        </ul>
+      <section aria-label="The seven dimensions" className="space-y-3">
+        <h2 className="font-semibold">The seven dimensions, explained</h2>
+        {DIMENSIONS.map((d) => (
+          <article key={d.title} className="rounded-lg border p-3">
+            <h3 className="font-medium">{d.title}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">{d.body}</p>
+          </article>
+        ))}
+        <p className="text-sm text-muted-foreground">
+          Read the profile in bands. Exploring means several supports are still being mapped, and short practice reps
+          matter most. Supported means a solid base plus named accommodations, ready for trials with check-ins.
+          Ready means steady across most dimensions, ready for applications with routine supports. Every band leads to
+          practice, never to a verdict.
+        </p>
       </section>
 
-      {vocrehabSaveState === "guest" && (
-        <p role="status" className="text-sm font-medium">Sign in to save this profile. It stays on this page until then.</p>
-      )}
-      {vocrehabSaveState === "error" && (
-        <p role="status" className="text-sm font-medium">Could not save right now — your profile above is safe. Try again.</p>
-      )}
-      {vocrehabSaveState === "saved" && (
-        <p role="status" className="text-sm font-medium">✓ Profile saved.</p>
-      )}
-      <div className="flex flex-wrap gap-2 print:hidden">
-        <button
-          type="button"
-          onClick={vocrehabSave}
-          disabled={vocrehabSaveState === "saving" || vocrehabSaveState === "saved"}
-          className="rounded bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-50"
-        >
-          {vocrehabSaveState === "saving" ? "Saving…" : "Save profile"}
-        </button>
-        <button type="button" onClick={() => window.print()} className="rounded border px-4 py-2 font-medium">
-          Print
-        </button>
-      </div>
+      <section aria-label="Build your profile" className="space-y-2">
+        <h2 className="font-semibold">Build your profile in five steps</h2>
+        <ol className="list-decimal space-y-1 pl-5 text-sm">
+          <li>Mark each dimension steady or still building. Trust recent weeks over old memories.</li>
+          <li>Add completed games as evidence: <Link className="underline" href="/vocrehab/play/file-sort">File Sort</Link> for throughput, <Link className="underline" href="/vocrehab/play/inbox-sprint">Inbox Sprint</Link> for writing, <Link className="underline" href="/vocrehab/play/focus-shift">Focus Shift</Link> for recovery, <Link className="underline" href="/vocrehab/play/schedule-juggle">Schedule Juggle</Link> for planning.</li>
+          <li>Turn every non steady area into one support sentence with a who, what, and when.</li>
+          <li>Pick two practice next steps, such as one untimed game replay plus one real life trial.</li>
+          <li>Share the profile with a counselor alongside your <Link className="underline" href="/vocrehab/discover/goals">goal check</Link> and <Link className="underline" href="/vocrehab/discover/barriers">barrier shortlist</Link> for a complete picture.</li>
+        </ol>
+      </section>
+
+      <section aria-label="Common mistakes" className="space-y-2">
+        <h2 className="font-semibold">Common mistakes to avoid</h2>
+        <p className="text-sm text-muted-foreground">
+          Marking everything steady to look good hides the supports that would actually help, while marking everything
+          low hides real strengths employers value. Aim for honesty over impression. A second mistake is reading the
+          band as a grade. Bands describe support density, not worth or potential, and they shift with practice. A
+          third mistake is stopping at labels. Throughput plus extra time is actionable. Throughput alone is not.
+          Always finish each dimension with a concrete tactic, a trial date, and a person who knows about it.
+        </p>
+      </section>
+
+      <section aria-label="Frequently asked questions" className="space-y-2">
+        <h2 className="font-semibold">Frequently asked questions</h2>
+        <details className="rounded-lg border p-3">
+          <summary className="cursor-pointer text-sm font-semibold">How do games change my band?</summary>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Each completed game adds observed evidence to matching dimensions, which can move the summary from
+            exploring toward supported or ready. Replays count too, especially calm recoveries after mistakes. Bring
+            the run summaries to your session so the counselor sees behavior, not only self ratings.
+          </p>
+        </details>
+        <details className="rounded-lg border p-3">
+          <summary className="cursor-pointer text-sm font-semibold">Can I share this with an employer?</summary>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Share selectively. Strengths lines travel well to resumes and <Link className="underline" href="/vocrehab/interview/prep">interview answers</Link>,
+            while support details usually stay between you and your counselor until you draft an accommodation request.
+            Review the disclosure timing guidance before attaching anything to an application.
+          </p>
+        </details>
+        <details className="rounded-lg border p-3">
+          <summary className="cursor-pointer text-sm font-semibold">How often should I redo the profile?</summary>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Revisit after every few game sessions or whenever routines change. New schedules, new tools, or completed
+            trials all justify an update. Dated snapshots show growth over months, which helps IPE reviews and
+            encourages steady practice through the <Link className="underline" href="/vocrehab/course">course</Link>.
+          </p>
+        </details>
+      </section>
     </main>
   );
 }

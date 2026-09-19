@@ -118,6 +118,67 @@ export default function MmoSafetyPage() {
         Hidden at once, preserved as evidence, human-reviewed, and referred to the proper authorities by a human. Full flow in <Link className="underline" href="/docs/privacy-safety">Privacy &amp; safety</Link>.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Setup in five minutes"
+        title="Safety setup for players, hosts, and parents"
+        body="Three short checklists, one per role. Do yours before the first session and the gate, the chat cap, and the report button cover the rest."
+      />
+      <Steps
+        items={[
+          [
+            "Players: verify your band once",
+            <>Run the age check on your own device and confirm the band pass matches the rooms you plan to join. If a room you want sits above your band, switch rooms instead of asking the host for an exception: exceptions do not exist.</>,
+          ],
+          [
+            "Hosts: match content to the band",
+            <>Kids rooms stay gentle: friendly builds, kind chat, zero horror. Teens rooms allow rivalry and mild spookiness without graphic detail. Adults rooms may run horror and intense plots, and that is exactly why the adults floor never lowers. Renting steps are in the <Link className="underline" href="/docs/mmo/host">Host guide</Link>.</>,
+          ],
+          [
+            "Parents: sit in on the first join",
+            <>Watch the shard row with your child: point out the band badge and the headcount, send one chat message together to feel the 140 character cap, and show them the report control before anything goes wrong. Two minutes of rehearsal beats any lecture.</>,
+          ],
+          [
+            "Everyone: know the report path cold",
+            <>A report needs three things: where it happened, the category, and what was said or done. Anonymous reports count. Never repost the offending message to prove it happened: reposting spreads the harm the report is trying to stop.</>,
+          ],
+        ]}
+      />
+      <div className="mt-5 overflow-hidden rounded-2xl border border-border">
+        <table className="w-full text-left text-sm">
+          <caption className="bg-muted/50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Content guidance by band
+          </caption>
+          <thead>
+            <tr className="border-y border-border bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
+              <th scope="col" className="px-4 py-2.5">Room band</th>
+              <th scope="col" className="px-4 py-2.5">Keep it</th>
+              <th scope="col" className="px-4 py-2.5">Leave out</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">🧒 Kids</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Cozy builds, teamwork, encouragement</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Horror, graphic plots, trash talk</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">🧑 Teens</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Rivalry, mild spookiness, strategy debate</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Explicit detail, sustained harassment</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">🧙 Adults</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Full range, with reports still enforced</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Anything involving minors, always reported</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <Callout tone="emerald" title="The boring setup is the safe setup.">
+        Verified band, matched content, rehearsed report path: unglamorous and unbeatable. Rights, exports, and deletes beyond shards live in <Link className="underline" href="/docs/privacy-safety">Privacy and safety</Link>.
+      </Callout>
+
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Link
           href="/docs/mmo/player"

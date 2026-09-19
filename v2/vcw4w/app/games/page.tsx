@@ -28,7 +28,7 @@ export const metadata: Metadata = {
       "Racers, RPGs, typing survival, plus business sims that teach real money skills. Free to try, playing takes seconds; play pays creators.",
     images: [
       {
-        url: "/og/og-games.png",
+        url: "/og/og-games.jpg",
         width: 1200,
         height: 630,
         alt: "4weird Games Arcade - 35 Free Browser Games",
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
       title: "Find Your Next Weird World - 36 Free Browser Games | 4weird",
     description:
       "Racers, RPGs, typing survival, plus business sims that teach real money skills. Free to try, playing takes seconds; play pays creators.",
-    images: ["/og/og-games.png"],
+    images: ["/og/og-games.jpg"],
   },
 };
 

@@ -193,6 +193,19 @@ export default function MmorpgPage() {
         <Link className="underline" href="/docs/vibe-coins">Vibe Coins</Link> ·{" "}
         <Link className="underline" href="/docs/privacy-safety">Privacy &amp; safety</Link>
       </p>
+
+      <SectionHead
+        index="5"
+        kicker="Questions"
+        title="Shard FAQ: joining, leaving, loot, cost"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🚪 <strong className="text-foreground">Do I lose progress when I log off?</strong> No. The shard persists without you, and your character, loot, and party slot resume where you left them. Boss timers keep ticking, so check the shard page before a planned boss night.</li>
+        <li className="rounded-xl border border-border bg-card p-3">👥 <strong className="text-foreground">Can I solo a 32 player shard?</strong> Yes. Solo play is allowed, and pickup groups form constantly at 32 slots. Parties simply clear world bosses faster, and loot still splits among everyone present for the kill.</li>
+        <li className="rounded-xl border border-border bg-card p-3">💰 <strong className="text-foreground">Who pays for my play time?</strong> That depends on the hostFree toggle on your shard. On hostFree worlds the host covers everything, while on split worlds you cover your own server plus load share per minute. Hosting math lives in <Link className="underline" href="/docs/mmo/hosting">Hosting a server</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🛡️ <strong className="text-foreground">Why was my entry denied?</strong> Entry follows your age band, never your level. Kids enter kids shards, teens enter kids plus teens, adults enter all, with details in <Link className="underline" href="/docs/mmo/age-bands">Age bands</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🎮 <strong className="text-foreground">Which dimension should I start in?</strong> Horde for drop in action, siege for tactics with friends, raid for coordinated boss parties. General controls and scoring carry over from <Link className="underline" href="/docs/playing-games">Playing games</Link>, so learn there first.</li>
+      </ul>
     </article>
   );
 }

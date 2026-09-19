@@ -19,7 +19,7 @@ export const metadata: Metadata = {
       "Transparent cloud economy: 100 Vibe Coins = exactly $1.00. 25% cut included, never on top. Pay per second for GPUs, desktops, and agents.",
     images: [
       {
-        url: "/og/og-pricing.png",
+        url: "/og/og-pricing.jpg",
         width: 1200,
         height: 630,
         alt: "4weird Pricing - 100 Vibe Coins = $1.00",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "Pricing & Vibe Coins - 100 Coins = $1.00 | 4weird",
     description:
       "Transparent cloud economy: 100 Vibe Coins = exactly $1.00. 25% cut included, never on top. Pay per second for GPUs, desktops, and agents.",
-    images: ["/og/og-pricing.png"],
+    images: ["/og/og-pricing.jpg"],
   },
 };
 

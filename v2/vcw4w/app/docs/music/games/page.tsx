@@ -82,6 +82,40 @@ export default function MusicGamesDocsPage() {
         The seed library under <code>public/music/seeds/</code> transcribes the live synth voices of current games into the seed format. Until a seed you want exists, compose it in the maker or fetch it from the bot API — and treat missing seeds as planned, not broken. Never hand-edit a game bundle to add music; the runtime is additive by design.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Title loop plus coin SFX in one file"
+        body="Wire a menu loop that starts on first input and a coin blip that fires on pickup. Both calls are fail open, so a missing file never breaks the game."
+      />
+      <MockWindow title="game.html — loop plus pickup" badge="copy pattern">
+        <div className="space-y-2 font-mono text-xs">
+          <div className="rounded-lg bg-white/5 px-3 py-2 text-slate-300">startButton.onclick = () =&gt; M.playSong(titleLoop);</div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 text-slate-300">onPickup = () =&gt; M.playSfx(coin);</div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 text-slate-300">optionsToggle.onchange = (e) =&gt; M.setMuted(e.target.checked);</div>
+          <div className="rounded-lg border border-lime-300/30 bg-lime-300/10 px-3 py-2 text-lime-200">bad payload returns false, game keeps running</div>
+        </div>
+      </MockWindow>
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="Silent game, autoplay block, bad payload"
+        body="Music bugs in games are almost always wiring, policy, or payload shape. Check in this order and most sessions recover in a minute."
+      />
+      <Steps
+        items={[
+          ["Nothing plays at all", <>Confirm the script tag uses the absolute path <code>/games/html/fourweird-music.js</code> and that <code>window.FourWeirdMusic</code> exists before your first call. A relative copy or a doubled bundle path is the most common silence.</>],
+          ["Music starts only after a click", <>That is autoplay policy working as intended. Bind the first <code>playSong</code> to a start button or any tap, and create the AudioContext lazily inside that handler. Resume it if the browser reports suspended.</>],
+          ["SFX fires but the song will not loop", <>Check the song object shape and the 8KB song budget (8 tracks and 512 notes max). Fetch seed URLs fail open, so a 404 seed reads as silence. Inline the canonical JSON to isolate fetch versus shape.</>],
+          ["A bad note crashes the scene", <>It should not. Invalid payloads fail silently to false by design. If your game throws, the throw is in your caller, so guard the call site and keep the frame loop independent of audio.</>],
+          ["Volumes fight each other", <>Balance with <code>setVolumes</code> using separate music and sfx levels, then honor the options screen mute flag on every scene change. Persist the mute choice so returning players keep their setting.</>],
+        ]}
+      />
+      <Callout tone="emerald" title="Compose the soundtrack first">
+        Build loops in the maker step sequencer or generate them through the bot API, then paste the canonical JSON into your game as seeds. One validated file serves the web player, the chat share link, and the in game loop with no conversion.
+      </Callout>
+
       <Pager current="/docs/music/games" />
     </article>
   );

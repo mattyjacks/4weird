@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
 
@@ -93,6 +94,35 @@ export default function DpsJobRequesterPage() {
           ["Collect results", <>Download verified outputs; escrow releases per chunk and the 75/25 split settles automatically.</>],
         ]}
       />
+
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Price a sprite batch before you post"
+        body="A concrete quote walkthrough so the escrow number never surprises you. All figures use the flat 100 coins to $1.00 parity."
+      />
+      <MockWindow title="quote worksheet — sprite atlas batch" badge="requester math">
+        <div className="space-y-2 font-mono text-xs">
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>240 sprites ÷ 12 per chunk</span><span className="font-black text-cyan-300">20 chunks</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>20 chunks × 15 coins lane rate</span><span className="font-black text-cyan-300">300 coins = $3.00</span></div>
+          <div className="flex justify-between gap-3 rounded-lg border border-cyan-300/30 bg-cyan-300/10 px-3 py-2"><span className="font-bold text-cyan-200">Escrow locks</span><span className="font-black text-cyan-200">300 coins gross, split inside</span></div>
+        </div>
+      </MockWindow>
+      <Callout tone="cyan" title="Read the split correctly.">
+        The 300 coin escrow above already contains the 75/25 provider and platform split. Donors share 225 coins of credits, the platform keeps 75, and you pay nothing beyond the quoted gross. Spending rules for those credits live in <Link className="underline" href="/docs/vibe-coins">Vibe Coins</Link>.
+      </Callout>
+
+      <SectionHead
+        index="5"
+        kicker="When things wobble"
+        title="Slow matches, failed chunks, wrong lane"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🐌 <strong className="text-foreground">Chunks match slowly:</strong> narrow capability needs (WebGPU shaders at peak hours) queue longer. Split the job into more chunks, widen the acceptable window, or post outside peak donor hours.</li>
+        <li className="rounded-xl border border-border bg-card p-3">❌ <strong className="text-foreground">Chunks keep failing verification:</strong> nondeterministic inputs are the usual cause. Pin seeds, freeze formats, and remove timestamps from outputs, then repost. Failed chunks re-run on another donor without extra charge.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🚫 <strong className="text-foreground">Job rejected as not chunkable:</strong> interactive sessions, long lived servers, and secret bearing tasks do not belong on the mesh. Rent hosted desktops or agents in <Link className="underline" href="/docs/agents-compute">Agents and cloud</Link> instead.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧾 <strong className="text-foreground">Quote higher than expected:</strong> chunk count times lane rate is the whole formula, so shrink scope first. A 30 second QA sample before a full suite callibrates cost without commitment.</li>
+      </ul>
 
       <Pager current="/docs/dps/job-requester" />
     </article>

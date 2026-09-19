@@ -64,11 +64,67 @@ export default function SquadWorkspacesDocsPage() {
         Access is squad-scoped: you only see projects for squads you belong to (planned RLS).
       </p>
 
+      <h2 className="mt-8 text-xl font-black">Roles at a glance</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Every project member holds exactly one role. Pick the narrowest role that fits the person:
+      </p>
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-2 font-black">Role</th>
+              <th className="px-4 py-2 font-black">Can do</th>
+              <th className="px-4 py-2 font-black">Cannot do</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-mono text-xs font-bold">lead</td>
+              <td className="px-4 py-2 text-muted-foreground">Manage roster and projects, approve invoices and pooled spend.</td>
+              <td className="px-4 py-2 text-muted-foreground">Browse other squads; leadership stops at the roster edge.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-mono text-xs font-bold">contributor</td>
+              <td className="px-4 py-2 text-muted-foreground">Move kanban cards, clock time, attach evidence to work.</td>
+              <td className="px-4 py-2 text-muted-foreground">Approve spend or edit the roster.</td>
+            </tr>
+            <tr className="border-b-0">
+              <td className="px-4 py-2 font-mono text-xs font-bold">reviewer</td>
+              <td className="px-4 py-2 text-muted-foreground">Read everything, approve diffs, sign off sprints.</td>
+              <td className="px-4 py-2 text-muted-foreground">Spend coins or change membership.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">
+        The technical reference, including pooled balances and the 75/25 receipt split, lives in{" "}
+        <Link className="underline" href="/docs/remastery/squads">Remastery Squad Workspaces</Link>.
+      </p>
+
+      <h2 className="mt-8 text-xl font-black">Worked example: raid squad week</h2>
+      <ol className="mt-2 list-decimal space-y-2 pl-6 text-sm text-muted-foreground">
+        <li><strong>Monday, the lead invites three collaborators</strong> at <Link className="font-bold underline" href="/squads">/squads</Link>: two contributors and one reviewer. The roster is the whole permission system.</li>
+        <li><strong>Tuesday, the lead creates the GraveGain project</strong> with a description, repository URL, and target game slug so code, boards, and budgets share one home.</li>
+        <li><strong>Wednesday, contributors fill the sprint</strong> on the <Link className="underline" href="/docs/remastery/kanban-sprints">kanban board</Link>: six cards, hour estimates, one owner each.</li>
+        <li><strong>Friday, the reviewer signs off the demo</strong> while contributors clock 14.5 hours; unbilled time becomes a draft invoice and the pooled wallet shows the gross balance beside its USD equivalent.</li>
+      </ol>
+
+      <h2 className="mt-8 text-xl font-black">Troubleshooting</h2>
+      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+        <li><strong>Invited but see nothing?</strong> The invite may target a different login. Confirm the exact account with the lead; squads hide completely from non-members.</li>
+        <li><strong>Project board missing?</strong> Squad membership shows the workspace, but each project has its own member list. Ask the lead to add you to the project, not just the squad.</li>
+        <li><strong>Wallet math confusing?</strong> The card shows gross coins with USD beside it (coins divided by 100). Any 75/25 division happens on settlement receipts, never as a fee on the card.</li>
+        <li><strong>Outgrew one project?</strong> Leads create a second project under the same roster. Boards, clocks, and budgets stay separate per project, so the raid team and the art team stop stepping on each other.</li>
+      </ul>
+
       <h2 className="mt-8 text-xl font-black">FAQ</h2>
       <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
         <li><strong>Can anyone browse squads?</strong> No — squads are invite-only. There is no public directory.</li>
         <li><strong>Where does billing live?</strong> In the org, not the squad. Squads coordinate; orgs pay and audit.</li>
         <li><strong>Coins vs USD?</strong> 100 Vibe Coins = exactly $1.00, shown side by side on the wallet card.</li>
+        <li><strong>How do I join a squad?</strong> A lead invites you directly. There is no join button, application form, or waitlist.</li>
+        <li><strong>Can I belong to several squads?</strong> Yes. Each workspace is separate: its own roster, projects, boards, and wallet.</li>
+        <li><strong>Who approves spending?</strong> Leads only. Contributors ship work and reviewers approve quality; neither touches pooled funds.</li>
       </ul>
 
       <p className="mt-8 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

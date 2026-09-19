@@ -76,11 +76,71 @@ export default function InvoicingTrashDocsPage() {
         Invoices and clients are yours only (planned per-user RLS); line items follow their invoice.
       </p>
 
+      <h2 className="mt-8 text-xl font-black">Worked example: memorandum to paid</h2>
+      <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+        <li><strong>Draft the memorandum.</strong> Open <Link className="font-bold underline" href="/business/invoices">/business/invoices</Link>, create an invoice for the org, and add line items with label, quantity, and coin unit price. Totals show coins with the dollar equivalent at 100 to 1.</li>
+        <li><strong>Tie it to the CRM.</strong> Use the company and contact pickers so the memorandum points at real CRM records. An invoice without a company link is harder to reconcile at month end.</li>
+        <li><strong>Send it and watch the rollup.</strong> Move draft to sent. Sent-but-unpaid totals roll up per org, and overdue dates flag automatically once the due date passes.</li>
+        <li><strong>Settle through guarded checkout, then mark paid.</strong> Marking paid records the outcome; it moves no coins by itself. Ghost balances never settle anything, since Ghost carries no monetary value.</li>
+        <li><strong>Void instead of deleting.</strong> A mistaken memorandum is voided in place today, preserving the audit trail. The planned trash tab will later offer soft-delete with 1-click restore inside 30 days. The technical suite documents that lifecycle in the <Link className="underline" href="/docs/remastery/invoicing">invoicing suite</Link>.</li>
+      </ol>
+
+      <h2 className="mt-8 text-xl font-black">Void today versus trash planned</h2>
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-2 font-black">Action</th>
+              <th className="px-4 py-2 font-black">Status</th>
+              <th className="px-4 py-2 font-black">What happens</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Void</td>
+              <td className="px-4 py-2 text-muted-foreground">Live today</td>
+              <td className="px-4 py-2 text-muted-foreground">Cancels the memorandum in place; the row stays for audit.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">CSV download</td>
+              <td className="px-4 py-2 text-muted-foreground">Live today</td>
+              <td className="px-4 py-2 text-muted-foreground">Exports rows for the books alongside the printable view.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Client directory</td>
+              <td className="px-4 py-2 text-muted-foreground">Planned</td>
+              <td className="px-4 py-2 text-muted-foreground">Managed companies with billing addresses and VAT IDs.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-bold">Vector PDF</td>
+              <td className="px-4 py-2 text-muted-foreground">Planned</td>
+              <td className="px-4 py-2 text-muted-foreground">One-click client-ready PDF rendered from the database row.</td>
+            </tr>
+            <tr className="border-b-0">
+              <td className="px-4 py-2 font-bold">30-day trash</td>
+              <td className="px-4 py-2 text-muted-foreground">Planned</td>
+              <td className="px-4 py-2 text-muted-foreground">Soft-delete stamp, Trash tab countdown, restore, auto-purge.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 className="mt-8 text-xl font-black">Troubleshooting</h2>
+      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+        <li><strong>Totals look wrong:</strong> check each line item quantity against its coin unit price, then confirm the dollar equivalent divides by 100. A misplaced decimal in quantity is the usual cause.</li>
+        <li><strong>Invoice missing from the list:</strong> confirm the org switcher points at the owning org. Memoranda never cross orgs, so the wrong org shows an empty list by design.</li>
+        <li><strong>Cannot restore a deleted invoice:</strong> hard removal has no restore path today. Void preserves the row; treat delete as permanent until the planned trash tab ships with its 30-day window.</li>
+        <li><strong>Client asks for a PDF now:</strong> send the printable view or CSV export. One-click vector PDF is planned, and the <Link className="underline" href="/docs/business">business suite guide</Link> covers what exports exist today.</li>
+      </ul>
+
       <h2 className="mt-8 text-xl font-black">FAQ</h2>
       <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
         <li><strong>Is void the same as delete?</strong> Today void cancels an invoice in place. Trash (soft-delete + restore + auto-purge) is the planned replacement for hard removal.</li>
         <li><strong>Can I send a PDF to a client today?</strong> Use the printable view or CSV for now — one-click PDF is planned.</li>
         <li><strong>Full terms?</strong> <Link className="underline" href="/terms">/terms</Link>. Business overview: <Link className="underline" href="/docs/business">/docs/business</Link>.</li>
+        <li><strong>Do invoices move coins?</strong> No. Memoranda record intent; only the guarded checkout settles value. Marking paid without settlement misstates the books.</li>
+        <li><strong>How does the 75/25 split apply?</strong> Coin-denominated totals split 75 percent provider credits to 25 percent platform on the receipt. The gross on the memorandum never changes; see the <Link className="underline" href="/docs/remastery/axioms">axiom sheet</Link> for the rule.</li>
+        <li><strong>Where do tracked hours fit?</strong> Time entries convert into draft line items in one click. The <Link className="underline" href="/docs/remastery/time-tracking">time tracking guide</Link> shows the clock that feeds this page.</li>
       </ul>
 
       <p className="mt-8 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground">

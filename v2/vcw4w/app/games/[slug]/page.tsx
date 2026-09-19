@@ -12,7 +12,13 @@ import { RatingMatrix } from "@/components/games/rating-matrix";
 import { GamePlaybookPanel } from "@/components/games/game-playbook-panel";
 import { TipGame } from "@/components/support/tip-game";
 import { PlayRateBadge } from "@/components/games/play-rate-badge";
-import { breadcrumbJsonLd, jsonLdScript, videoGameJsonLd } from "@/lib/seo";
+import { getGameSpotlight } from "@/lib/game-spotlights";
+import {
+  breadcrumbJsonLd,
+  faqJsonLd,
+  jsonLdScript,
+  videoGameJsonLd,
+} from "@/lib/seo";
 
 export function generateStaticParams() {
   return games.map((g) => ({ slug: g.slug }));
@@ -70,18 +76,29 @@ async function CachedGameDetail({ slug }: { slug: string }) {
   const m = detail.manifest;
   const guide = detail.guide;
   const rating = g.rating ?? "kids";
+  // Static spotlight prose (SEO differentiation layer). Renders nothing when
+  // the slug has no spotlight; never fall back to generic copy here.
+  const spotlight = getGameSpotlight(slug);
+  const jsonLd = [
+    videoGameJsonLd(g),
+    breadcrumbJsonLd([
+      ["Games", "/games"],
+      [g.title, `/games/${g.slug}`],
+    ]),
+    ...(spotlight && spotlight.faq.length > 0
+      ? [
+          faqJsonLd(
+            spotlight.faq.map((entry) => [entry.q, entry.a] as [string, string]),
+          ),
+        ]
+      : []),
+  ];
   return (
     <div className="bg-slate-950 text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLdScript([
-            videoGameJsonLd(g),
-            breadcrumbJsonLd([
-              ["Games", "/games"],
-              [g.title, `/games/${g.slug}`],
-            ]),
-          ]),
+          __html: jsonLdScript(jsonLd),
         }}
       />
       <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-16">
@@ -170,6 +187,29 @@ async function CachedGameDetail({ slug }: { slug: string }) {
         <Suspense fallback={<p className="mt-4 text-sm text-slate-400">Loading tipping…</p>}>
           <TipGame slug={g.slug} title={g.title} />
         </Suspense>
+        {spotlight && (
+          <section aria-label={`About ${g.title}`} className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:mt-10 sm:p-6">
+            <h2 className="text-lg font-bold sm:text-xl">About {g.title}</h2>
+            {spotlight.about.map((paragraph, index) => (
+              <p key={index} className="mt-3 text-sm leading-relaxed text-slate-300">
+                {paragraph}
+              </p>
+            ))}
+          </section>
+        )}
+        {spotlight && spotlight.faq.length > 0 && (
+          <section aria-label={`${g.title} questions`} className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:mt-10 sm:p-6">
+            <h2 className="text-lg font-bold sm:text-xl">{g.title}: questions, answered</h2>
+            <div className="mt-4 space-y-3">
+              {spotlight.faq.map((entry) => (
+                <details key={entry.q} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <summary className="cursor-pointer font-bold text-white">{entry.q}</summary>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{entry.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
         <section className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:mt-10 sm:p-6">
           <h2 className="text-lg font-bold sm:text-xl">Runtime manifest</h2>
           <p className="mt-3 break-words text-sm text-slate-400">

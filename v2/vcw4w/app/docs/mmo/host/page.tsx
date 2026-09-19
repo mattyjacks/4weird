@@ -115,6 +115,36 @@ export default function MmoHostPage() {
         Today the rent and billing flows return price quotes without moving coins — the charge path settles nothing until the guarded ledger settlement lands. Past quotes will not be back-billed. Same standing as <Link className="underline" href="/docs/mmo/hosting">Hosting a realm</Link>.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Price a two hour siege for twelve players"
+        body="Say you host a teens siege for 12 players across 120 minutes with hostFree off. The quote multiplies the per player per minute figure by headcount and minutes, then adds your prorated rental: hourly rate times 120 divided by 60. Players split the first leg twelve ways, and you alone carry the second."
+      />
+      <Steps
+        items={[
+          [
+            "Run the pre flight checklist",
+            <>Confirm the game name, lock the teens band, set headcount expectations against the 32 default cap, and decide hostFree before anyone joins. Band and game lock at rent, so a wrong pick means a new server, not an edit.</>,
+          ],
+          [
+            "Quote at three headcounts",
+            <>Preview the quote at low, expected, and full tables, for example 6, 12, and 32 seats. Per player cost falls as the table fills, which tells you the minimum headcount where the night feels fair to everyone.</>,
+          ],
+          [
+            "Announce the split in plain words",
+            <>Post the per player per minute figure, the expected session length, and whether hostFree is on inside the room description. Players who see the math before joining never dispute the meter after.</>,
+          ],
+          [
+            "Close the loop after",
+            <>End the shard when the siege ends so the meter stops with it, and point players at <Link className="underline" href="/my/usage/">/my/usage/</Link> for receipts. Leftover questions about 400 retries and 402 top ups are answered in <Link className="underline" href="/docs/mmo/faq">the FAQ</Link>.</>,
+          ],
+        ]}
+      />
+      <Callout tone="emerald" title="Size the room to the crowd you can actually gather.">
+        A 12 player siege in a 32 seat room still quotes honestly, but half empty rooms split the load leg across fewer wallets. Rent near the headcount you can fill, grow the cap when the waitlist says so.
+      </Callout>
+
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Link
           href="/docs/mmo/player"

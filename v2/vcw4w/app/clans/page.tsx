@@ -13,7 +13,7 @@ export const metadata: Metadata = {
       "Find your crew: start or join a 4weird clan, post strats, code, and clips. Community clubhouses with shared games and bot clans.",
     images: [
       {
-        url: "/og/og-clans.png",
+        url: "/og/og-clans.jpg",
         width: 1200,
         height: 630,
         alt: "4weird Clans - Gamer and Coder Crews",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     title: "4weird Clans - Gamer & Coder Crews",
     description:
       "Find your crew: start or join a 4weird clan, post strats, code, and clips. Community clubhouses with shared games and bot clans.",
-    images: ["/og/og-clans.png"],
+    images: ["/og/og-clans.jpg"],
   },
 };
 

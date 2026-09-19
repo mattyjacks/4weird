@@ -92,6 +92,35 @@ export default function DpsOverviewPage() {
       />
       <SplitBar leftLabel="75% donor credits" rightLabel="25% platform" />
 
+      <SectionHead
+        index="4"
+        kicker="Pricing example"
+        title="What a small job costs, line by line"
+        body="Every quote multiplies chunk count by the lane rate, then locks the gross in escrow. No fees are added on top, and failed chunks are re-run elsewhere at no extra charge."
+      />
+      <div className="mt-4 overflow-hidden rounded-xl border border-black/10 bg-slate-950 text-slate-200 shadow-2xl dark:border-white/15">
+        <div className="p-3">
+          <div className="space-y-2 font-mono text-xs">
+            <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>QA sample · 10 chunks × 20 coins</span><span className="font-black text-emerald-300">200 coins = $2.00</span></div>
+            <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>Donor share · 75% as credits</span><span className="font-black text-emerald-300">150 coins to donors</span></div>
+            <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>Platform share · 25%</span><span className="font-black text-emerald-300">50 coins platform</span></div>
+          </div>
+        </div>
+      </div>
+
+      <SectionHead
+        index="5"
+        kicker="Is DPS for you"
+        title="Three questions everyone asks first"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">⛏️ <strong className="text-foreground">Is this crypto mining?</strong> No. DPS runs named, verifiable chunks (QA runs, terrain tiles, sprite packing) with hash checkpoints and redundant verification. There is no token speculation, and pricing stays at the flat parity of 100 coins to $1.00.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🐢 <strong className="text-foreground">Will donating slow my PC?</strong> Share sliders cap CPU, RAM, and GPU usage, and battery plus thermal guards pause work automatically. Most donors start at the defaults (CPU 80%, RAM 50%, GPU 90%) and lower them if fans spin up. Full controls are in the <Link href="/docs/dps/donor-guide" className="underline">donor guide</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">💵 <strong className="text-foreground">Can I cash DPS earnings out?</strong> No. Earnings credit as on-site Vibe Coins for games, cloud compute, and AI services. Job pricing and donor payouts use the same parity, explained in <Link href="/docs/vibe-coins" className="underline">Vibe Coins</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">📦 <strong className="text-foreground">What should I request first?</strong> Start with one small chunkable job, like a 30 second QA pass or a single terrain tile batch, and compare the quoted coins against renting hosted cloud in <Link href="/docs/agents-compute" className="underline">Agents and cloud</Link>. The <Link href="/docs/dps/job-requester" className="underline">requester guide</Link> walks through quotes and verification.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🔒 <strong className="text-foreground">Is my data exposed to donors?</strong> Jobs must be chunkable background tasks with no secrets or private data. Interactive sessions, servers, and anything needing credentials belong on rented compute, never on the donor mesh.</li>
+      </ul>
+
       <Pager current="/docs/dps" />
     </article>
   );

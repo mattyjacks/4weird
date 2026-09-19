@@ -86,6 +86,41 @@ export default function DictatePicPage() {
         <code>ai_inpaint</code>, <code>ai_remove_bg</code>, and <code>slice</code> render as clearly-marked stubs: clicking one explains that no backend is wired rather than pretending to work. Marquee, lasso, and clone_stamp are listed as planned. Only brush, pencil, eraser, bucket, and eyedropper paint today.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Paint a coin pickup sprite in six passes"
+        body="Follow this pass order for a clean 512px pickup sprite: sketch, flats, shade, highlight, edge cleanup, export. Each pass lives on its own layer so mistakes stay local."
+      />
+      <Steps
+        items={[
+          ["Pass 1: rough the silhouette", <>Create a layer named sketch, set opacity near 0.4, lock it, and block in a 200px coin ellipse with the pencil. Keep the shape centered with at least 100px of margin so the export never clips.</>],
+          ["Pass 2: block the flats", <>Add a flats layer at full opacity with source over blending. Fill the coin with the bucket, then switch to the brush for the inner star. Sample the gold with the eyedropper whenever you drift off palette.</>],
+          ["Pass 3: shade with multiply", <>Add a shade layer set to multiply at 0.7 opacity. Paint a crescent along the lower right edge for curvature. Because multiply darkens through, one stroke reads as a full gradient.</>],
+          ["Pass 4: pop the highlight", <>Add a highlights layer set to screen at 0.6 opacity. Dot a small white glint near the upper left rim. Toggle layer visibility to compare with and without the glint before committing.</>],
+          ["Pass 5: clean the rim", <>Zoom close, erase stray pixels outside the ellipse, and re sample edge colors with the eyedropper. Undo steps back through the last 30 snapshots per layer, so scrub aggressively.</>],
+          ["Pass 6: export and reuse", <>Export dictate pic 512 PNG with transparency intact. Drop the file into GraveGain textures or NewGamePlus assets, or submit it with a game mod through the mods browser.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="Muddy blends, lost strokes, export surprises"
+        body="Most DictatePic confusion comes from three places: painting on the wrong layer, a blend mode doing exactly what it says, or expecting a stub tool to paint."
+      />
+      <Steps
+        items={[
+          ["Strokes land on the sketch", <>Unlock check: the sketch layer should stay locked after pass 1. If paint keeps hitting it, select the flats layer explicitly, confirm the lock flag, and retry. Locked layers never accept strokes.</>],
+          ["Colors turn muddy or blown out", <>Read the blend mode. Multiply deepens fast and color dodge blows highlights fast. Drop shade opacity to 0.5 or switch highlights from color dodge to screen for a gentler lift.</>],
+          ["A tool button does nothing", <>Check its badge. Brush, pencil, eraser, bucket, and eyedropper paint today. AI inpaint, AI remove background, slice, marquee, lasso, and clone stamp are marked stub or planned and say so on click.</>],
+          ["Export has a checkerboard baked in", <>It should not. The 16px checkerboard is a viewer aid only. Re export the PNG and open it over a dark background to confirm transparency. If the grid persists, you painted gray squares by hand, so erase them on the flats layer.</>],
+        ]}
+      />
+      <Callout tone="cyan" title="Send finished sprites to your game mod">
+        Exported PNGs plug straight into community mods. Shape the manifest (slug, semver version, target game scope, allow listed permissions, https bundle URL) using the plugin submission checklist, then preview the bundle in the mods browser before submitting.
+      </Callout>
+
       <Pager current="/docs/studio/dictate-pic" />
     </article>
   );

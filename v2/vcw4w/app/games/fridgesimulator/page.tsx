@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { breadcrumbJsonLd, canonical, jsonLdScript } from "@/lib/seo";
+import { breadcrumbJsonLd, canonical, faqJsonLd, jsonLdScript } from "@/lib/seo";
+import { GROUP_08_SPOTLIGHTS } from "@/content/game-spotlights/group-08";
 import { PlayExtras } from "./play-extras";
 
 export const metadata: Metadata = {
@@ -41,17 +42,25 @@ export const viewport: Viewport = {
 // (/games/html/fridgesimulator/) is untouched; nav/sitemap wiring for this
 // route is requested via QUEUE (shared manifests are steward-owned).
 export default function FridgeSimulatorPage() {
+  const spotlight = GROUP_08_SPOTLIGHTS.find((entry) => entry.slug === "fridgesimulator");
   return (
     <div className="bg-slate-950 text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLdScript(
+          __html: jsonLdScript([
             breadcrumbJsonLd([
               ["Games", "/games"],
               ["Fridge Simulator", "/games/fridgesimulator"],
             ]),
-          ),
+            ...(spotlight && spotlight.faq.length > 0
+              ? [
+                  faqJsonLd(
+                    spotlight.faq.map((entry) => [entry.q, entry.a] as [string, string]),
+                  ),
+                ]
+              : []),
+          ]),
         }}
       />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
@@ -89,6 +98,29 @@ export default function FridgeSimulatorPage() {
             Read the Fridge Simulator guide
           </a>
         </div>
+        {spotlight && (
+          <section aria-label="About Fridge Simulator" className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
+            <h2 className="text-lg font-bold sm:text-xl">About Fridge Simulator</h2>
+            {spotlight.about.map((paragraph, index) => (
+              <p key={index} className="mt-3 text-sm leading-relaxed text-slate-300">
+                {paragraph}
+              </p>
+            ))}
+          </section>
+        )}
+        {spotlight && spotlight.faq.length > 0 && (
+          <section aria-label="Fridge Simulator questions" className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
+            <h2 className="text-lg font-bold sm:text-xl">Fridge Simulator: questions, answered</h2>
+            <div className="mt-4 space-y-3">
+              {spotlight.faq.map((entry) => (
+                <details key={entry.q} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <summary className="cursor-pointer font-bold text-white">{entry.q}</summary>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{entry.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

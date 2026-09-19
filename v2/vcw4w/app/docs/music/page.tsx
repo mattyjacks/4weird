@@ -84,6 +84,41 @@ export default function MusicDocsPage() {
         The bot API validates statelessly today — no database writes. A <code>music_submissions</code> persistence table is a queued future request, so never present submissions as saved server-side yet. Anything marked stub-only elsewhere in these guides stays stub-only.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="A tiny loop that fits anywhere"
+        body="This canonical song uses two tracks and sixteen steps per track, stays far under the 64KB song cap, and survives a round trip through validation unchanged."
+      />
+      <MockWindow title="$music:1 — two track loop" badge="copies cleanly">
+        <div className="space-y-2 font-mono text-xs">
+          <div className="rounded-lg bg-white/5 px-3 py-2 text-slate-300">{`{ "title": "Lantern Loop", "bpm": 112, "tracks": [`}</div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 text-slate-300">{`  { "inst": "lead", "wave": "square", "notes": [{ "t": 0, "n": 72, "d": 1 }, { "t": 4, "n": 76, "d": 1 }] },`}</div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 text-slate-300">{`  { "inst": "bass", "wave": "triangle", "notes": [{ "t": 0, "n": 48, "d": 2 }, { "t": 8, "n": 43, "d": 2 }] }`}</div>
+          <div className="rounded-lg bg-white/5 px-3 py-2 text-slate-300">{`]}`}</div>
+          <div className="rounded-lg border border-lime-300/30 bg-lime-300/10 px-3 py-2 text-lime-200">validator: ok, bytes under 1KB, kind song</div>
+        </div>
+      </MockWindow>
+
+      <SectionHead
+        index="5"
+        kicker="FAQ"
+        title="Budgets, validation, sharing"
+        body="The five questions that decide whether a payload ships or gets rejected, answered against the authoritative contract."
+      />
+      <Steps
+        items={[
+          ["How is size measured?", <>By the UTF-8 byte length of the JSON.stringify form. Songs cap at 65,536 bytes and effects at 2,048. A song that looks small but embeds long instrument names can surprise you, so check the reported bytes, not the line count.</>],
+          ["What does per error validation mean?", <>One response lists every broken field at once (bad wave name, MIDI note 200, negative duration) instead of stopping at the first failure. Fix all listed fields in one pass and resubmit.</>],
+          ["Which waves exist?", <>Square, triangle, sawtooth, sine, and noise, shared by songs and effects. Anything else fails validation. Pick square for leads, triangle for bass, and noise for hats and explosions.</>],
+          ["What BPM range is legal?", <>40 through 240 inclusive. Below 40 drags and above 240 blurs, so the contract rejects both. Tap tempo in the maker lands you inside the range automatically.</>],
+          ["Where does a finished song go?", <>Three doors: play it in the maker step sequencer, POST it to the bot API for a canonical form plus share URL, or embed it in a game through the runtime. The seed library holds curated examples for each door.</>],
+        ]}
+      />
+      <Callout tone="emerald" title="Pick your door next">
+        Build by hand in the maker walkthrough, compose over HTTP with the bots guide, or ship inside a game with the games embedding guide. All three speak the same canonical JSON, so a song that validates once plays everywhere.
+      </Callout>
+
       <Pager current="/docs/music" />
     </article>
   );

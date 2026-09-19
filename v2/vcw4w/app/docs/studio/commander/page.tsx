@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { DocsHero } from "@/components/docs/docs-hero";
-import { SectionHead, Callout, MockWindow, Pager } from "@/components/docs/docs-bits";
+import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs/studio/commander" },
@@ -86,6 +86,42 @@ export default function CommanderPage() {
       </Callout>
       <Callout tone="violet" title="Every command emits an interop event">
         Each run publishes <code>tools:used</code> with <code>{`{ tool: "commander-terminal", action: <command> }`}</code> on the shared <code>4weird_interop_bus</code> — best-effort, never blocking. Other studio tools can react to terminal usage without any coupling.
+      </Callout>
+
+      <SectionHead
+        index="3"
+        kicker="Worked session"
+        title="Quote coins, preview luck, check status"
+        body="A typical first session takes under a minute: open the terminal, list commands, quote a coin amount, preview a luck seed, then confirm the sandbox status. Everything below runs locally with zero network calls."
+      />
+      <MockWindow title="commander — first session" badge="try this order">
+        <div className="space-y-2 font-mono text-xs">
+          <div className="rounded-lg bg-white/5 px-3 py-2"><span className="text-emerald-300">$</span> help <span className="text-slate-500">{"// lists all seven commands"}</span></div>
+          <div className="rounded-lg bg-white/5 px-3 py-2"><span className="text-emerald-300">$</span> coins 250 <span className="text-slate-500">{"// quote only: $2.50, 75/25 split shown"}</span></div>
+          <div className="rounded-lg bg-white/5 px-3 py-2"><span className="text-emerald-300">$</span> luck ship the demo <span className="text-slate-500">{"// hex seed preview, no draw recorded"}</span></div>
+          <div className="rounded-lg bg-white/5 px-3 py-2"><span className="text-emerald-300">$</span> status <span className="text-slate-500">{"// sandbox mode, online or offline, timestamp"}</span></div>
+          <div className="rounded-lg bg-white/5 px-3 py-2"><span className="text-emerald-300">$</span> echo hello studio <span className="text-slate-500">{"// prints back exactly what you typed"}</span></div>
+          <div className="rounded-lg border border-emerald-300/30 bg-emerald-300/10 px-3 py-2 text-emerald-200">commander-terminal event published on every run (best effort, never blocking)</div>
+        </div>
+      </MockWindow>
+
+      <SectionHead
+        index="4"
+        kicker="Troubleshooting"
+        title="When input does not do what you expected"
+        body="Commander rejects anything outside the allow list by design. Most surprises below are the sandbox doing its job: no execution, no fetching, no persistence."
+      />
+      <Steps
+        items={[
+          ["command not found keeps appearing", <>You typed something outside the seven commands. Run <code>help</code> and copy the first word exactly. Extra words after <code>echo</code> are fine (they print back), but extra words never turn an unknown command into a known one.</>],
+          ["coins rejects your number", <>The amount must be a non negative integer with no decimals, commas, or currency symbols. Try <code>coins 250</code> instead of <code>coins 2.50</code> or <code>coins $250</code>. The result is a quote in USD at 100 coins to $1, plus the 75/25 creator and platform split. Nothing is written to any ledger.</>],
+          ["luck output looks cryptic", <>That hex string is the FNV-1a seed preview for your intention text, not a result. Change one word and the hex changes completely. Nothing is recorded, so retype the same intention anytime to see the identical preview again.</>],
+          ["status says offline but commands still work", <>That is the fail open design. Commander never needs a connection, so offline only changes the status label, never the behavior. History still caps at 500 lines and input still caps at 500 characters.</>],
+          ["clear wiped your scrollback", <>Expected. Clear resets the visible buffer and starts history fresh. There is no undo because nothing was ever saved anywhere, so treat scrollback as scratch paper.</>],
+        ]}
+      />
+      <Callout tone="cyan" title="Pair Commander with the Luck Factory guide">
+        The <code>luck</code> preview here shows one seed hash. The full draw math (D100 mapping, counter, meditation streak bonus capped at +10, clamped to 1..100) lives in the Luck Factory odds guide. Use Commander for quick previews and the Luck Factory page for the published probabilities.
       </Callout>
 
       <Pager current="/docs/studio/commander" />

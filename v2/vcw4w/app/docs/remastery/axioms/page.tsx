@@ -139,6 +139,92 @@ export default function RemasteryAxiomsPage() {
         title="Universal event and clipboard interop"
         body="Every tool publishes standard events to the interop bus and reads/writes the cross-clipboard, so assets flow across tools: a kanban estimate feeds the timer, timer entries feed invoices, invoice events feed notifications."
       />
+      <SectionHead
+        index="7"
+        kicker="Worked examples"
+        title="Parity math you can check"
+        body="One cent per coin, no exceptions. Three conversions that cover every Wave 1 surface: compute, invoices, and custom amounts."
+      />
+      <div className="mt-5 overflow-x-auto rounded-2xl border border-border">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-2 font-black">Surface</th>
+              <th className="px-4 py-2 font-black">Input</th>
+              <th className="px-4 py-2 font-black">Coins</th>
+              <th className="px-4 py-2 font-black">Split</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 text-muted-foreground">Cloud compute escrow</td>
+              <td className="px-4 py-2 text-muted-foreground">$4.00 job</td>
+              <td className="px-4 py-2 font-bold">400</td>
+              <td className="px-4 py-2 text-muted-foreground">300 provider, 100 platform</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 text-muted-foreground">Invoice line</td>
+              <td className="px-4 py-2 text-muted-foreground">2 hours at $50 per hour</td>
+              <td className="px-4 py-2 font-bold">10,000</td>
+              <td className="px-4 py-2 text-muted-foreground">7,500 provider, 2,500 platform</td>
+            </tr>
+            <tr className="border-b-0">
+              <td className="px-4 py-2 text-muted-foreground">Custom tip jar</td>
+              <td className="px-4 py-2 text-muted-foreground">$7.50 thank you</td>
+              <td className="px-4 py-2 font-bold">750</td>
+              <td className="px-4 py-2 text-muted-foreground">563 provider, 187 platform, rounded to whole coins</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <Callout tone="gold" title="Rounding stays in whole coins.">
+        Coins are integers: one coin is the smallest unit. Split math rounds to whole coins with the remainder
+        documented on the receipt, so ledgers never carry fractional coins. See the{" "}
+        <Link className="underline" href="/docs/remastery/invoicing">invoicing suite</Link> for how receipts render
+        the rounded split.
+      </Callout>
+
+      <SectionHead
+        index="8"
+        kicker="Design checklist"
+        title="Apply the axioms to a new feature"
+        body="Run every proposal through these five gates before writing schema. A miss at any gate sends the design back, not the axiom."
+      />
+      <Steps
+        items={[
+          ["Price it in coins first", <>Convert every dollar figure at 100 to 1 and confirm the UI shows coins with the dollar equivalent beside it. If a second rate appears anywhere, remove it.</>],
+          ["Split the gross on paper", <>Show provider 75 and platform 25 on the receipt mock before building. The gross stays the price; the split is never added on top or hidden in a fee line.</>],
+          ["Kill the network, then click around", <>Block AI and realtime endpoints and verify boards render, timers tick locally, and drafts save. Any blank page or lost keystroke fails the fail-open gate.</>],
+          ["Double-click every money button", <>Click each coin control twice fast in the prototype. One-shot guards must converge on a single charge; a second ledger row fails the idempotency gate.</>],
+          ["Prove strangers cannot reach it", <>Confirm the feature needs a squad invite or an explicit share. Anything browsable by the public fails the zero marketplace gate no matter how useful it looks.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="9"
+        kicker="FAQ"
+        title="Axiom edge cases"
+        body="The questions reviewers ask most, with the ruling for each."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Can a squad set its own coin rate?</p>
+          <p className="mt-1 text-sm text-muted-foreground">No. Parity is global: 100 coins equal one dollar in every squad, invoice, and compute job. Local discounts happen in dollars before conversion, never as a competing rate.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Are provider credits withdrawable?</p>
+          <p className="mt-1 text-sm text-muted-foreground">No. The 75 percent lands as on-site credits for games, cloud compute, and AI services. Cash-out paths would trigger licensing the platform deliberately avoids.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">What breaks when the timer disagrees with the server?</p>
+          <p className="mt-1 text-sm text-muted-foreground">The local clock keeps ticking and reconciles on reconnect. Fail-open means the worker is never blocked by a stalled sync; the <Link className="underline" href="/docs/remastery/time-tracking">time tracker</Link> documents the drift-proof design.</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">Where do I start implementing?</p>
+          <p className="mt-1 text-sm text-muted-foreground">          Run the <Link className="underline" href="/docs/remastery/migration">SQL migration runbook</Link> first, then open the <Link className="underline" href="/docs/remastery">Wave 1 overview</Link> rollout order for the squad to invoice path.</p>
+        </div>
+      </div>
+
       <p className="mt-4 text-sm text-muted-foreground">
         Next: run the <Link className="underline" href="/docs/remastery/migration">SQL migration runbook</Link> or
         return to the <Link className="underline" href="/docs/remastery">Wave 1 overview</Link>.

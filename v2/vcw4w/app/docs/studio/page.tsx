@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, Pager } from "@/components/docs/docs-bits";
 
@@ -84,6 +85,40 @@ export default function StudioDocsPage() {
       <Callout tone="violet" title="New files only, nav via the steward">
         These pages live under <code>app/docs/studio/</code> and touch no existing guide. Site-nav wiring (DOCS_DATA, sitemap, llms.txt) is requested through QUEUE.md — the pages are directly reachable at their /docs/studio/* URLs today.
       </Callout>
+
+      <SectionHead
+        index="3"
+        kicker="Worked example"
+        title="Trailer in an evening"
+        body="One maker ships a 30 second GraveGain trailer with three studio tools and zero installs: cut the footage, paint the thumbnail, package both as a plugin."
+      />
+      <Steps
+        items={[
+          ["Cut the footage", <>Drop gameplay clips on the Media Mogul timeline: playhead, razor split, snap, zoom, voiceover. Follow the <Link className="underline" href="/docs/studio/media-mogul">Media Mogul walkthrough</Link> until the preview plays clean end to end.</>],
+          ["Paint the thumbnail", <>Open DictatePic, sketch the boss silhouette on one layer and the title text on another, tune opacity and blend modes, export a transparent PNG. The <Link className="underline" href="/docs/studio/dictate-pic">DictatePic walkthrough</Link> covers all five working tools.</>],
+          ["Ship it as a plugin", <>Wrap the trailer page and thumbnail as a mod: manifest fields, slug and version rules, permission allowlist, sandbox limits. The <Link className="underline" href="/docs/studio/plugin-checklist">plugin checklist</Link> gets validation passing on the first try.</>],
+        ]}
+      />
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+        Power users drive the evening from the terminal with the allow-listed commands in the{" "}
+        <Link className="underline" href="/docs/studio/commander">Commander reference</Link>, and the{" "}
+        <Link className="underline" href="/docs/studio/luck-factory">Luck Factory odds page</Link> explains
+        the deterministic dice math behind any thumbnail roll effects. Render export stays stub-only, so the
+        timeline preview plus the PNG are the shippable artifacts tonight.
+      </p>
+
+      <SectionHead
+        index="4"
+        kicker="Troubleshooting"
+        title="Stuck in the studio"
+      />
+      <Steps
+        items={[
+          ["Timeline preview stutters", <>Shorten the preview range and close heavy tabs. Preview is the deliverable until render export graduates from stub-only, so optimize for smooth preview rather than final output.</>],
+          ["PNG export looks wrong", <>Recheck per-layer opacity and blend modes, then confirm the background layer is transparent before export. Flattened surprises are almost always a hidden layer or an opaque backdrop.</>],
+          ["Plugin validation fails", <>Read the exact failing field: slugs must match the naming rules, versions must parse, and every permission must sit on the allowlist. Fix fields, revalidate, and only then mount.</>],
+        ]}
+      />
 
       <Pager current="/docs/studio" />
     </article>

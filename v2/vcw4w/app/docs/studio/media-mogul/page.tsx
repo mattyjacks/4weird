@@ -86,6 +86,41 @@ export default function MediaMogulPage() {
         There is no render backend in Wave 3: <code>POST /api/compute/render-video</code> does not exist yet, so the studio reports a fail-open stub status after packaging. When the RunPod FFmpeg worker lands, it will accept this exact envelope and return a 1080p60 MP4 job. Never present export as rendering today.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Cut a 45 second boss fight recap"
+        body="A tight recap uses four tracks and five moves: lay the fight, title it, bed the music, ride the voiceover, then package. Total timeline shown below finishes at 48 seconds."
+      />
+      <Steps
+        items={[
+          ["Lay the fight on V1", <>Place <code>boss fight.mp4</code> from 0:00 to 0:42 on video track 1. Razor split at 0:18 to drop the wiped attempt, then re trim the surviving half open by 2 seconds to restore the winning parry.</>],
+          ["Title it on V2", <>Overlay the Blender title card from 0:42 to 0:48 on video track 2 at full opacity. Keep it clear of the fight so the knockout frame breathes before the card lands.</>],
+          ["Bed synth under A1", <>Lay the synth bed across the full 48 seconds on audio track 1 at volume 0.7. Add a fade effect over the last 3 seconds so the card does not end cold.</>],
+          ["Ride the voiceover on A2", <>Trim voiceover take 3 to the 2s..31s window on audio track 2. Zoom the timeline to land the callout (now!) within a quarter second of the parry frame.</>],
+          ["Package the envelope", <>Export the versioned JSON envelope with profile 1080p60 and target endpoint /api/compute/render video. Expect the fail open stub status today, and keep the envelope file for the day the FFmpeg worker accepts it.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="Preview drift, silent audio, export rejects"
+        body="The editor is deterministic data plus a live preview. When the preview disagrees with the timeline, the timeline is right and the preview clock or the clip params need attention."
+      />
+      <Steps
+        items={[
+          ["Audio and video drift apart", <>Replay from the top. The preview runs on the audio clock, so scrubbing mid clip then playing can start a frame off. Return the playhead to zero, press play, and confirm sync before re trimming.</>],
+          ["A clip is silent or invisible", <>Check track assignment first. Video kinds (gameplay, Blender, fal.ai) belong on video tracks and music plus voiceover belong on audio tracks. Then check trim windows, volume, opacity, and playback rate, since a zeroed param mutes a clip without any error.</>],
+          ["Snap keeps stealing my trim", <>Snap to grid is a rough cut aid. Leave it on while arranging, then toggle it off for the final voiceover pass so sub second trims land where you drop them instead of where the grid pulls them.</>],
+          ["Export says stub instead of rendering", <>Correct behavior in Wave 3. The studio packages the envelope and reports that no render backend exists yet. Save the JSON, do not re export repeatedly, and never promise a viewer an MP4 today.</>],
+          ["Effects look baked but are not", <>Effects are params on the clip (type plus settings), so color grade, blur, chroma key, speed, and fade all travel with the envelope. Nothing renders until the worker exists, which means reordering effects never costs quality.</>],
+        ]}
+      />
+      <Callout tone="violet" title="Need generative b roll or voiceover?">
+        Pair the timeline with the art vending machine for filler: generated clips and voice takes drop onto the same video and audio tracks. Keep gameplay on V1, generations on V2, and music separate from voice so the mix stays legible.
+      </Callout>
+
       <Pager current="/docs/studio/media-mogul" />
     </article>
   );

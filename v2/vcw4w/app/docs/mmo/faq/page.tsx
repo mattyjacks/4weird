@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
-import { SectionHead, Callout, MockWindow } from "@/components/docs/docs-bits";
+import { SectionHead, Callout, Steps, MockWindow } from "@/components/docs/docs-bits";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/docs/mmo/faq" },
@@ -26,6 +26,10 @@ const FAQS: [string, string, string][] = [
   ["🪫", "What happens when the host runs dry?", "Fail-closed, same as players: the short side answers 402 and nothing bills — nobody is half-charged and no phantom session is written. Until the guarded ledger settlement lands, both rent and billing return quotes only (charged: false), so past quotes are never back-billed."],
   ["🆓", "When is play actually free?", "Kids rooms (0 coins per player per minute) and any room whose host flips hostFree — the host pays server + load + rental, players pay 0. Your receipt is /my/usage/; your balance is always SUM(delta) over your ledger rows."],
   ["🔞", "Do you store my birthday for the gate?", "Never stored. Game-play gates check it in memory on your device only. MMO shard entry sends it once to same-origin POST /api/age-verify, used in memory to mint a signed band pass and then dropped — never written, logged, forwarded, or echoed back. The shard gate itself compares bands only."],
+  ["🔒", "Can I change bands in the middle of a shard?", "No. The band locks when the server is rented and stays locked for the whole shard life. A teens night that outgrows its room needs a new adults server, not an edit. Hosts: announce the band up front so nobody plans around a door that cannot move."],
+  ["⏹️", "Do stopped shards keep billing?", "No. Server plus load meters per minute while the shard is live, and the rental prorates per minute of life. End the shard and the meter stops with it. Past quotes are never back-billed once the guarded ledger settlement lands."],
+  ["🧾", "Where is my receipt?", "Every session lands on /my/usage/ with the shard, the minutes, and the exact share that was quoted. Your balance is always the live SUM over your coin_ledger rows: no parallel balance column, no hidden math. Screenshot the receipt row before writing support."],
+  ["👀", "I only previewed a quote. Was I charged?", "Never. Quote previews are auth-optional reads that write nothing: no session, no ledger row, no hold. Only a confirm with the exact total can move coins, and short funds answer 402 with zero billed."],
 ];
 
 export default function MmoFaqPage() {
@@ -90,6 +94,32 @@ export default function MmoFaqPage() {
       </MockWindow>
       <Callout tone="gold" title="The two MMO answers, shortest version.">
         Short funds → top up; the 402 billed nothing. Wrong room → the 403 names both bands; the wallet is untouched. Still stuck? Write <Link className="underline" href="/docs/faq">support like a pro</Link> with the shard URL, both bands, and a <Link className="underline" href="/my/usage/">/my/usage/</Link> screenshot.
+      </Callout>
+
+      <SectionHead
+        index="🛟"
+        kicker="Recovery playbook"
+        title="Unstick yourself in three moves"
+        body="Nearly every stuck session below resolves without support. Work the moves in order and stop at the first one that clears it."
+      />
+      <Steps
+        items={[
+          [
+            "Move one: re-read the live state",
+            <>Open the shard row again and the fresh quote beside it. Bands, headcount, and totals drift while you read, and most 400 confirm failures are just a stale figure. Confirm the new total exactly.</>,
+          ],
+          [
+            "Move two: check the wallet, not the worry",
+            <>Compare the quoted share against your live ledger balance on <Link className="underline" href="/my/usage/">/my/usage/</Link>. A 402 always means the coins were not there, and it always billed nothing. Top up and retry the same confirm.</>,
+          ],
+          [
+            "Move three: change the room, not the rules",
+            <>A 403 never yields to retrying: your band may not enter that band room, full stop. Join a room at or below your band, or ask the host to rent the band the party can actually enter. Hosts start at the <Link className="underline" href="/docs/mmo/host">Host guide</Link>, players at the <Link className="underline" href="/docs/mmo/player">Player guide</Link>.</>,
+          ],
+        ]}
+      />
+      <Callout tone="cyan" title="When it really is a bug.">
+        Three moves done and still blocked? Send support the shard URL, your band and the room band, the exact status number, and the receipt screenshot. That packet resolves in one reply instead of four.
       </Callout>
 
       <div className="mt-8 grid gap-3 sm:grid-cols-3">

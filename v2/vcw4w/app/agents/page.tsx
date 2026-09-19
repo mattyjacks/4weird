@@ -18,7 +18,7 @@ export const metadata: Metadata = {
       "Rent AI agents, cloud GPUs, and game servers by the second. Escrow locks max budget, unused coins return automatically.",
     images: [
       {
-        url: "/og/og-agents.png",
+        url: "/og/og-agents.jpg",
         width: 1200,
         height: 630,
         alt: "4weird AI Agents & Cloud Compute",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "Rent AI Agents & Cloud GPUs | 4weird",
     description:
       "Rent AI agents, cloud GPUs, and game servers by the second. Escrow locks max budget, unused coins return automatically.",
-    images: ["/og/og-agents.png"],
+    images: ["/og/og-agents.jpg"],
   },
 };
 

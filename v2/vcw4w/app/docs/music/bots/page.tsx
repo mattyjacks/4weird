@@ -86,6 +86,39 @@ export default function MusicBotsDocsPage() {
         Never tell players their submission is saved server-side: there is no <code>music_submissions</code> table yet. Keep the canonical JSON and share URL your bot received — that is the durable artifact until persistence lands.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Full POST round trip for a coin blip"
+        body="Submit a one line SFX, read the canonical form back, and hand off the share URL. The whole loop fits in two curl calls and never touches auth."
+      />
+      <Steps
+        items={[
+          ["Step 1: fetch the contract", <>Run <code>curl https://4weird.com/api/music</code> and note the caps, waves, and ranges. Cache this response in your bot so every compose stays inside limits without a preflight each time.</>],
+          ["Step 2: POST the SFX", <>Send <code>{`{ "sfx": { "name": "Coin", "freqStart": 880, "freqEnd": 1320, "dur": 0.15 } }`}</code>. The bare shape works too. Expect a canonical recipe, byte size, share URL, and an empty diagnostics list on success.</>],
+          ["Step 3: store the durable artifacts", <>Keep the canonical JSON and the share URL your bot received. Persistence is queued, not landed, so these two values are the save file until the future table exists.</>],
+          ["Step 4: hand off to players", <>Link the share URL from chat, a quest reward, or a game seed list. Anyone opening it lands in the music surface with your sound loaded and playable.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="5"
+        kicker="Error handling"
+        title="400s, 429s, and the retry rules"
+        body="The API never 500s on bad input, so every failure carries a machine readable meaning. Teach your bot these three responses and the compose loop stays tight."
+      />
+      <Steps
+        items={[
+          ["400: fix and resubmit", <>Validation failed and diagnostics name each bad field. Log the diagnostics, patch the payload (wrong wave, MIDI out of range, BPM outside 40..240, oversize bytes), and resubmit once. Do not retry the identical body.</>],
+          ["429: back off, then retry", <>Rate limited. Honor any Retry After hint, wait, then retry the same payload unchanged. Shedding load with smaller batches beats hammering the endpoint.</>],
+          ["Oversize payload", <>Songs over 64KB and effects over 2KB are rejected with diagnostics. Shorten note lists, trim instrument names, and drop optional velocity fields before resubmitting.</>],
+          ["Alias endpoint", <>POST /api/music/submit mirrors the main compose behavior. Use it when your HTTP client pins paths per action, and keep response parsing identical across both.</>],
+        ]}
+      />
+      <Callout tone="cyan" title="From bot sound to game sound">
+        Accepted SFX drop straight into games through the runtime playSfx call. Compose with the bot API tonight, embed the same canonical JSON in a game tomorrow, with zero format conversion between the two.
+      </Callout>
+
       <Pager current="/docs/music/bots" />
     </article>
   );

@@ -102,6 +102,61 @@ export default function FridgeSavesPage() {
         <li><strong className="text-foreground">Corrupt-manual recovery:</strong> if a manual copy fails to load, Load-autosave restores the same slot&apos;s auto companion — same day counter, same fridges, one minute older at most.</li>
       </ul>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Weekend trip: tablet, laptop, phone"
+        body="A concrete run shows how the slot, the manual copy, and the autosave companion travel together across three devices."
+      />
+      <Steps
+        items={[
+          [
+            "Friday night: start the run on a tablet",
+            <>Sign in, open Fridge Simulator, and save the opening stock into slot 1. Say the run reads day 4, two fridges in Osaka, a budget of 620 coins, and a backpack of rice, eggs, and spinach. Press Save, then confirm the slot timestamp updated.</>,
+          ],
+          [
+            "Saturday: continue on a laptop",
+            <>Sign in with the same account on the laptop, open the same game, and load slot 1 manual. The day counter, both fridges, the pantry inventory, and the budget match the tablet exactly. Play through day 5, restock milk and tofu, then press Save again before closing the lid.</>,
+          ],
+          [
+            "Sunday: recover a mistake on a phone",
+            <>On the phone, load slot 1 manual and accidentally sell the wrong fridge. Do not panic. Use Load-autosave to restore the same slot&apos;s auto companion from about a minute earlier, then replay the sale correctly and press Save.</>,
+          ],
+          [
+            "Monday: verify the chain",
+            <>Load slot 1 on any device and check four things: day counter advanced, budgets consistent, inventory quantities plausible, and no cheat mark on a slot you never cheated in. If one value looks stale, you loaded the wrong slot number or the wrong game slug.</>,
+          ],
+        ]}
+      />
+      <MockWindow title="4weird.com - slot 1 verification" badge="checklist">
+        <div className="space-y-2 font-mono text-xs sm:text-sm">
+          <div className="flex justify-between gap-4"><span className="text-slate-400">GAME SLUG</span><span className="font-bold text-emerald-300">fridgesimulator</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">SLOT + KIND</span><span className="font-bold text-emerald-300">slot 1 manual, auto companion present</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">DAY + BUDGET</span><span className="font-bold text-slate-200">day 6, 588 coins after groceries</span></div>
+          <div className="flex justify-between gap-4"><span className="text-slate-400">CHEAT MARK</span><span className="font-bold text-emerald-300">absent, clean run</span></div>
+          <p className="pt-1 text-[11px] text-slate-500">same account on every device, same slot number every time</p>
+        </div>
+      </MockWindow>
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="Slot confusion, stale loads, and payload limits"
+        body="Almost every save complaint is one of four mixups: guest play, mismatched slot, mismatched game slug, or an oversized payload."
+      />
+      <ul className="mt-5 list-disc space-y-2 pl-6 text-sm leading-relaxed text-muted-foreground">
+        <li><strong className="text-foreground">Guest progress vanishes:</strong> signed out play never writes to the cloud. If the slot list looks empty on a second device, confirm both devices show the same username in the account menu.</li>
+        <li><strong className="text-foreground">Wrong slot number:</strong> slot 0, 1, 2, and 3 are independent runs. A day 2 kitchen in slot 0 and a day 9 market in slot 2 can coexist. Compare timestamps before assuming data loss.</li>
+        <li><strong className="text-foreground">Manual versus auto:</strong> Load reads the manual copy, Load-autosave reads the companion. After a crash, try the companion first, then resume manual saves so the two copies stay close together.</li>
+        <li><strong className="text-foreground">Payload ceiling:</strong> saves larger than 1 MiB are rejected. Trim stored screenshots, prune ancient pantry logs, and consolidate half empty fridges, then save again.</li>
+        <li><strong className="text-foreground">Cheat mark surprise:</strong> a branded slot 1, 2, or 3 keeps its flag through overwrites and cannot be cleared by delete and recreate. Move serious runs to slot 0 and reserve one slot for modded experiments.</li>
+      </ul>
+      <Callout tone="emerald" title="Slot picker rule of thumb.">
+        Slot 0 holds the honest campaign, slot 1 holds the current challenge, slot 2 holds a shared family run, and
+        slot 3 absorbs every risky idea. Decide the layout once, label it in a clan note or notebook, and every device
+        follows the same map. Full slot rules also appear in <Link className="underline" href="/docs/playing-games">Playing games</Link>.
+      </Callout>
+
       <Callout tone="cyan" title="Reviewer path: prove the resume in two minutes.">
         Sign in on a phone-sized window, play Fridge Simulator into slot 2, then sign in with the same account in a desktop
         window and load game <code>fridgesimulator</code>, slot 2. Same day counter, same fridges, same budgets — that is the whole feature.

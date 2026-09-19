@@ -83,6 +83,40 @@ export default function MusicMakerDocsPage() {
         The lab UI and preset recipes ship with the maker surface: wave picker, freq/duration/volume/noise sliders, live preview, preset buttons, and download-JSON. Anything in the lab you cannot click yet is planned — treat unshipped knobs as forthcoming, not broken.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="An 8 bar loop at 128 BPM"
+        body="Build a danceable loop in four tracks and under five minutes: drums, bass, chords, lead. The budget meter stays green the whole way because note data is tiny."
+      />
+      <Steps
+        items={[
+          ["Track 1: noise hats", <>Set wave to noise, volume 0.5, BPM 128. Toggle every off beat cell across 16 steps for the tick. Copy the bar once to cover 8 bars without extra work.</>],
+          ["Track 2: triangle bass", <>Set wave to triangle, volume 0.7. Place root notes on steps 0, 4, 8, 12 using MIDI 36..48. Drag one note longer to slide into the next bar for movement.</>],
+          ["Track 3: square stabs", <>Set wave to square, volume 0.6. Add short chord stabs on steps 2 and 10. Keep durations at 1 step so the bass breathes between hits.</>],
+          ["Track 4: sine sparkle", <>Set wave to sine, volume 0.5. Tap record a one bar fill an octave up, then keep the best take and clear the rest. Human timing over the grid is what makes it feel played.</>],
+          ["Share it", <>Preview on device speakers, confirm the byte budget sits inside share size, then copy the ?song= link. Paste the link in a fresh tab to confirm it loads before sending it to anyone.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="Share link too big, no sound, lost draft"
+        body="Maker problems cluster into three buckets: budget overflow, browser audio policy, and localStorage surprises. Each has a fast fix."
+      />
+      <Steps
+        items={[
+          ["Share link overflows the budget", <>Cut track count first (mute test: drop to 4 tracks and recheck the meter), then shorten long notes, then lower BPM precision. Eight tracks of 16 steps should fit easily, so overflow usually means one runaway track.</>],
+          ["Pressing play makes no sound", <>Browsers gate audio behind a gesture. Click inside the page once, confirm volume sliders are up on both the track and the master, and retry. If a Bluetooth device stole output, switch sinks and press play again.</>],
+          ["Draft vanished after a wipe", <>Drafts live in localStorage on that device and browser only. Clearing site data removes them, private windows never kept them, and a different browser never had them. Export canonical JSON for anything you care about.</>],
+          ["Imported JSON fails", <>Paste it through the validator and read the per error list. Common culprits: wave misspellings, MIDI notes outside 0..127, BPM outside 40..240, or more than 8 tracks. Fix the listed fields and reimport.</>],
+        ]}
+      />
+      <Callout tone="emerald" title="Stuck on an instrument choice?">
+        The maker instrument help pages describe each voice and its sweet range. Pair them with the SFX lab presets (coin, jump, raygun, explosion) when a game needs UI sounds alongside the loop.
+      </Callout>
+
       <Pager current="/docs/music/maker" />
     </article>
   );

@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     description: DEFAULT_DESCRIPTION,
     images: [
       {
-        url: "/og/og-home.png",
+        url: "/og/og-home.jpg",
         width: 1200,
         height: 630,
         alt: "4weird Games - Future Forward Fun, Funded by Founders",
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
-    images: ["/og/og-home.png"],
+    images: ["/og/og-home.jpg"],
   },
   robots: {
     index: true,

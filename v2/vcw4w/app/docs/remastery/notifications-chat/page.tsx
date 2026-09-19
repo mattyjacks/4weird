@@ -95,6 +95,43 @@ export default function RemasteryNotificationsChatPage() {
         ]}
       />
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Raid night, bell to thread"
+        body="Tuesday evening on the GraveGain squad: one raid call fans out from a single notification into a war-room thread, a render ping, and a sprint update. Four pings, zero meetings."
+      />
+      <MockWindow title="raid night timeline" badge="4 pings">
+        <div className="space-y-2 font-mono text-xs">
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>8:00p · squad · raid call in 10 min</span><span className="font-black text-fuchsia-300">tapped</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>8:12p · chat · war-room thread opened</span><span className="font-black text-fuchsia-300">joined</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>9:03p · compute · render finished</span><span className="font-black text-fuchsia-300">cheered</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>9:40p · squad · card moved to done</span><span className="font-black text-slate-400">read</span></div>
+        </div>
+      </MockWindow>
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+        The lead&apos;s raid call carries an action URL straight into the squad thread, so members
+        tap once and land in the war room. The render ping arrives mid raid without breaking focus,
+        and the moved card closes the loop on the{" "}
+        <Link className="underline" href="/docs/remastery/kanban">squad kanban board</Link>. When ten
+        events fire in a minute, the 5 second rate limiter folds them into calm badges instead of a
+        chime avalanche. Squad setup lives in{" "}
+        <Link className="underline" href="/docs/remastery/squads">squad workspaces</Link>.
+      </p>
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="Bell silent or thread stuck"
+      />
+      <Steps
+        items={[
+          ["Bell rings for nothing, or nothing rings", <>Confirm the Realtime channel is subscribed, then check the storm window: bursts inside 5 seconds collapse into one badge by design. If the bell is empty after reconnect, pull to refresh once, the fail-open poller backfills what the socket missed.</>],
+          ["Messages refuse to send", <>Verify thread membership: inserts require the sender to be a participant, and archived squad threads lock to read only. Ask a lead to re-add you, then resend.</>],
+          ["Badge count looks wrong", <>Mark-read touches your row alone, so a stale badge means the write raced the poller. Open the notification center once to settle it; a count that survives that is a bug worth reporting with the category and timestamp.</>],
+        ]}
+      />
+
       <Pager current="/docs/remastery/notifications-chat" />
     </article>
   );

@@ -31,7 +31,7 @@ function vocrehabReadDoneSlugs(): string[] {
 }
 
 /**
- * VocrehabCourseCard — one chapter/module card with XP + Done state.
+ * VocrehabCourseCard - one chapter/module card with XP + Done state.
  * Done state is read from `vocrehab-course-progress-v1` in an effect
  * (guest-local, zero DB writes) so this card stays SSR-safe.
  */
@@ -75,26 +75,27 @@ export function VocrehabCourseCard({
 }
 
 /**
- * VocrehabLessonPlayer — lesson player for /vocrehab/course/[module].
- * Renders the explainer, the try-it link, two reflect questions, and a
- * Done button that writes `vocrehab-course-progress-v1` and emits
- * `vocrehab:course:module-done` on the interop bus.
+ * VocrehabDoneButton - client island for /vocrehab/course/[module].
+ * Writes `vocrehab-course-progress-v1` and emits
+ * `vocrehab:course:module-done` on the interop bus. Rendered inside the
+ * server-rendered VocrehabLessonArticle so the lesson H1/explainer/try-it/
+ * reflect markup stays in initial server HTML.
  */
-export function VocrehabLessonPlayer({
-  vocrehabModule,
+export function VocrehabDoneButton({
+  vocrehabSlug,
 }: {
-  vocrehabModule: VocrehabCourseModule;
+  vocrehabSlug: string;
 }) {
   const [vocrehabDone, setVocrehabDone] = useState(
     () =>
       typeof window !== "undefined" &&
-      vocrehabReadDoneSlugs().includes(vocrehabModule.vocrehabSlug),
+      vocrehabReadDoneSlugs().includes(vocrehabSlug),
   );
 
   function vocrehabMarkDone() {
     const vocrehabDoneSlugs = vocrehabReadDoneSlugs();
-    if (!vocrehabDoneSlugs.includes(vocrehabModule.vocrehabSlug)) {
-      vocrehabDoneSlugs.push(vocrehabModule.vocrehabSlug);
+    if (!vocrehabDoneSlugs.includes(vocrehabSlug)) {
+      vocrehabDoneSlugs.push(vocrehabSlug);
     }
     try {
       window.localStorage.setItem(
@@ -110,46 +111,13 @@ export function VocrehabLessonPlayer({
     setVocrehabDone(true);
     window.dispatchEvent(
       new CustomEvent("vocrehab:course:module-done", {
-        detail: { vocrehabSlug: vocrehabModule.vocrehabSlug },
+        detail: { vocrehabSlug },
       }),
     );
   }
 
   return (
-    <div className="vocrehab-lesson">
-      <p className="vocrehab-lesson-kicker text-sm text-stone-500">
-        Chapter {vocrehabModule.vocrehabChapter} ·{" "}
-        {vocrehabModule.vocrehabChapterTitle} · {vocrehabModule.vocrehabXp} XP ·
-        Badge: {vocrehabModule.vocrehabBadge}
-      </p>
-      <h1 className="vocrehab-lesson-title mt-1 text-2xl font-bold text-cyan-700">{vocrehabModule.vocrehabTitle}</h1>
-      <p className="vocrehab-lesson-explainer mt-2 text-stone-600">
-        {vocrehabModule.vocrehabExplainer}
-      </p>
-
-      <section aria-label="Try it" className="vocrehab-lesson-tryit mt-6">
-        <h2 className="vocrehab-lesson-heading text-lg font-semibold text-stone-900">Try it</h2>
-        <Link
-          href={vocrehabModule.vocrehabTryIt.vocrehabHref}
-          className="vocrehab-lesson-tryit-link mt-1 inline-block font-medium text-emerald-700 underline underline-offset-4 hover:text-emerald-800"
-        >
-          {vocrehabModule.vocrehabTryIt.vocrehabLabel} &rarr;
-        </Link>
-      </section>
-
-      <section aria-label="Reflect" className="vocrehab-lesson-reflect mt-6">
-        <h2 className="vocrehab-lesson-heading text-lg font-semibold text-stone-900">Reflect</h2>
-        <ol className="vocrehab-lesson-questions mt-2 list-decimal space-y-1 pl-5 text-stone-600">
-          {vocrehabModule.vocrehabReflect.map((vocrehabQuestion) => (
-            <li key={vocrehabQuestion}>{vocrehabQuestion}</li>
-          ))}
-        </ol>
-        <p className="vocrehab-lesson-note mt-3 text-sm text-stone-600">
-          There are no wrong answers. Jot your thoughts anywhere you like —
-          nothing here is saved or sent unless you choose to share it.
-        </p>
-      </section>
-
+    <>
       <button
         type="button"
         onClick={vocrehabMarkDone}
@@ -157,13 +125,13 @@ export function VocrehabLessonPlayer({
         aria-pressed={vocrehabDone}
         className="vocrehab-lesson-done mt-6 rounded-md bg-emerald-700 px-4 py-2 font-medium text-white hover:bg-emerald-800 disabled:opacity-60"
       >
-        {vocrehabDone ? "Done ✓ — nice work" : "Mark lesson done"}
+        {vocrehabDone ? "Done ✓ - nice work" : "Mark lesson done"}
       </button>
       {vocrehabDone ? (
         <p className="vocrehab-lesson-saved mt-2 text-sm text-stone-600" role="status">
           Saved on this device. Sign in to sync it to your account.
         </p>
       ) : null}
-    </div>
+    </>
   );
 }

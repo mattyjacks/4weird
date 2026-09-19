@@ -165,6 +165,63 @@ export default function MmorpgDimensions4d5dPage() {
         Food shop prices follow the same coin rule as everything else — 100 🪙 is exactly $1.00, cut included.
       </Callout>
 
+      <SectionHead
+        index="5"
+        kicker="First run"
+        title="Plan a dream-raid night and a hop night"
+        body="Bring one concrete plan to each far dimension. Both examples below assume a four player party, a stocked food bag, and a two hour window."
+      />
+      <Steps
+        items={[
+          [
+            "Dream-raid night in 4D (teens-floor)",
+            <>Open the shard browser, filter to the Dream Golf 4D realm, and confirm the teens-floor badge before joining. Clear holes in order and keep one feast food in reserve for the final fold, because the dream resets the hole on a wipe and a hungry party re-clears slowly.</>,
+          ],
+          [
+            "Hop night in 5D (adults-only)",
+            <>Enter the Multiverse 5D realm with adults players only, pick universe prime as the home base, and agree the hop order before boss night. Vent paradox pressure early: a planned vent costs less than a forced one when echoes stack up.</>,
+          ],
+          [
+            "Stock the bag before either night",
+            <>Buy from the food shop or the open market while prices are calm, since mmorpg cells are tradable and hop night demand spikes fast. Split feast foods across two carriers so one rough hole never eats the whole supply.</>,
+          ],
+        ]}
+      />
+      <div className="mt-5 overflow-hidden rounded-2xl border border-border">
+        <table className="w-full text-left text-sm">
+          <caption className="bg-muted/50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Which night fits your party
+          </caption>
+          <thead>
+            <tr className="border-y border-border bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
+              <th scope="col" className="px-4 py-2.5">Your party</th>
+              <th scope="col" className="px-4 py-2.5">Book this night</th>
+              <th scope="col" className="px-4 py-2.5">Why</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">Includes teens players</th>
+              <td className="px-4 py-2.5 text-muted-foreground">⛳ 4D dream-raid</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Teens-floor admits teens and adults, so nobody sits out.</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">All adults, wants chaos</th>
+              <td className="px-4 py-2.5 text-muted-foreground">🌌 5D hop night</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Parallel universes plus paradox pressure reward planning.</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">Still learning gates</th>
+              <td className="px-4 py-2.5 text-muted-foreground">1D to 3D first</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Horde, siege, and raid teach bands and coin math cheaply.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <Callout tone="emerald" title="New to shards? Start closer in.">
+        Far dimensions assume you already know gates, bands, and coin math. Read <Link className="underline" href="/docs/mmo">MMORPG mode</Link> first, then <Link className="underline" href="/docs/mmo/hosting">Hosting a realm</Link> when you want to rent the server yourself.
+      </Callout>
+
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Link
           href="/docs/mmo"

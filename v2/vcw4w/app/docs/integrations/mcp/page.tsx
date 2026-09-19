@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, MockWindow, Pager } from "@/components/docs/docs-bits";
 
@@ -111,6 +112,31 @@ export default function McpGuidePage() {
       <Callout tone="rose" title="Fail-open by design">
         If the 4weird API is unreachable, tool calls return a graceful error payload — your editor keeps working. Retry later; nothing bricks.
       </Callout>
+
+      <SectionHead
+        index="4"
+        kicker="Prompt recipes"
+        title="Copy these prompts to get value fast"
+        body="Each recipe maps to exactly one tool call. Paste them as written, swapping in your own game slug or squad UUID."
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🎮 <strong className="text-foreground">Nightly regression:</strong> quote “Using the 4weird MCP server, run a 60 second full_state QA pass on gravegain3d and list new bugs with repro steps.” Expect a bug list with chunk references you can file straight into <Link className="underline" href="/docs/vibecodeworker">VibeCodeWorker</Link>.</li>
+        <li className="rounded-xl border border-border bg-card p-3">📊 <strong className="text-foreground">Launch readiness:</strong> quote “Fetch the live state for xonotic, then summarize leaderboard movement and save health in five bullets.” Use it before events to confirm scoring works.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🗂️ <strong className="text-foreground">Sprint standup:</strong> quote “Query squad tasks for squad UUID 123e4567-e89b-12d3-a456-426614174000 and group cards by status with owners.” Paste the result into your clan thread.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🔁 <strong className="text-foreground">Compare builds:</strong> quote “Fetch game state for gravegain3d twice, once per build, and tabulate what changed.” Catches leaderboard or metadata regressions between deploys.</li>
+      </ul>
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="Server missing, stale schemas, slow calls"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🧩 <strong className="text-foreground">Client does not list the server:</strong> restart the client after editing the JSON config, then check the command resolves (npx must reach the network on first run). A JSON trailing comma is the most common cause, so validate the file before anything else.</li>
+        <li className="rounded-xl border border-border bg-card p-3">📐 <strong className="text-foreground">Tool rejects your arguments:</strong> gameSlug is required for game tools and squadId must be a UUID for squad queries. Copy the slug from the game page URL and the UUID from the squad page, never from chat memory.</li>
+        <li className="rounded-xl border border-border bg-card p-3">⏳ <strong className="text-foreground">QA runs feel slow:</strong> durationSeconds controls capture length, and screenshot mode is heavier than state_data. Start with 30 second screenshot passes, then escalate to full_state only when you need deep repro data.</li>
+        <li className="rounded-xl border border-border bg-card p-3">☁️ <strong className="text-foreground">Need hosted compute instead?</strong> MCP exposes QA and state, not provisioning. Renting agents, desktops, and squad cloud lives in <Link className="underline" href="/docs/agents-compute">Agents and cloud</Link>, and setup questions belong in <Link className="underline" href="/docs/faq">FAQ and support</Link>.</li>
+      </ul>
 
       <Pager current="/docs/integrations/mcp" />
     </article>

@@ -75,7 +75,84 @@ export default function ChatDocsPage() {
         own notifications.
       </p>
 
+      <h2 className="mt-8 text-xl font-black">Worked example: first squad thread</h2>
+      <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+        <li><strong>Create the squad first.</strong> Chat threads never float free: every thread belongs to a squad workspace at <Link className="font-bold underline" href="/squads">/squads</Link>. Invite the two or three collaborators who need the thread before typing anything.</li>
+        <li><strong>Open team messaging beside the work.</strong> Post the question next to the code project it concerns, for example sprint scope or a failing build, so context stays attached to the thread instead of scattered across tools.</li>
+        <li><strong>Watch the notification path.</strong> Each post raises a chat-category notification for the other participants with an unread badge. The bell clears only when each person opens the thread, which doubles as a read receipt.</li>
+        <li><strong>Attach data, never executables.</strong> Screenshots, repro steps, and structured payloads ride along as inert attachments. Review the <Link className="underline" href="/docs/privacy-safety">privacy and safety</Link> rules before pasting logs that might contain secrets.</li>
+      </ol>
+
+      <h2 className="mt-8 text-xl font-black">Notification categories</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Chat is one of five notification categories. Knowing all five helps you triage the bell instead of
+        treating every ping as urgent.
+      </p>
+      <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-muted/50">
+              <th className="px-4 py-2 font-black">Category</th>
+              <th className="px-4 py-2 font-black">Fires when</th>
+              <th className="px-4 py-2 font-black">Lands where</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-mono text-xs font-bold">squad</td>
+              <td className="px-4 py-2 text-muted-foreground">Invites, role changes, pooled balance moves.</td>
+              <td className="px-4 py-2 text-muted-foreground">Bell plus squad workspace feed.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-mono text-xs font-bold">game</td>
+              <td className="px-4 py-2 text-muted-foreground">Build verdicts, playtest results, heal completions.</td>
+              <td className="px-4 py-2 text-muted-foreground">Bell plus the game page.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-mono text-xs font-bold">chat</td>
+              <td className="px-4 py-2 text-muted-foreground">New direct or thread message from a collaborator.</td>
+              <td className="px-4 py-2 text-muted-foreground">Bell plus the thread itself.</td>
+            </tr>
+            <tr className="border-b border-border/50">
+              <td className="px-4 py-2 font-mono text-xs font-bold">compute</td>
+              <td className="px-4 py-2 text-muted-foreground">Pod state changes, quota warnings, escrow events.</td>
+              <td className="px-4 py-2 text-muted-foreground">Bell plus the compute dashboard.</td>
+            </tr>
+            <tr className="border-b-0">
+              <td className="px-4 py-2 font-mono text-xs font-bold">system</td>
+              <td className="px-4 py-2 text-muted-foreground">Migrations, policy updates, scheduled maintenance.</td>
+              <td className="px-4 py-2 text-muted-foreground">Bell only, newest first.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Full bell behavior, including polling fallback when realtime drops, is documented in{" "}
+        <Link className="underline" href="/docs/remastery/notifications-chat">notifications plus chat</Link>.
+      </p>
+
+      <h2 className="mt-8 text-xl font-black">Troubleshooting</h2>
+      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+        <li><strong>No badge after a teammate posts:</strong> confirm you are a participant on that thread, then refresh. Privacy rules mean non-participants never see the thread or its badge, by design.</li>
+        <li><strong>Messages arrive late:</strong> the client falls back to periodic refresh when the realtime channel drops. Nothing typed is lost; the next poll delivers the backlog and the badge catches up.</li>
+        <li><strong>Cannot find the /chat inbox:</strong> expected, since direct 1-on-1 chat is planned and the route does not exist yet. Coordinate inside squad workspaces at <Link className="font-bold underline" href="/squads">/squads</Link> until the inbox ships.</li>
+        <li><strong>Attachment rejected:</strong> strip executables and re-send as plain text or images. Attachments are structured data only, never runnable content.</li>
+      </ul>
+
       <h2 className="mt-8 text-xl font-black">Safety notes</h2>
+      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+        <li>Chat is for people you already work with: squads and clans are invite-only.</li>
+        <li>Never share passwords, API keys, or payment details in chat. Docs pages never show secrets either.</li>
+        <li>See <Link className="underline" href="/docs/privacy-safety">privacy and safety</Link> for reporting and blocking.</li>
+      </ul>
+
+      <h2 className="mt-8 text-xl font-black">FAQ</h2>
+      <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+        <li><strong>Is there a public lobby?</strong> No. Every thread is limited to its participants, and squads are invite-only. Stranger discovery does not exist in Wave 1.</li>
+        <li><strong>Who can read my thread?</strong> Only its participants, enforced by planned row policies on threads, participants, and messages. Notifications follow the same rule: you see only your own.</li>
+        <li><strong>Can I bill chat time?</strong> Yes, indirectly: track the session in the <Link className="underline" href="/docs/remastery/time-tracking">time tracker</Link> and convert it into the <Link className="underline" href="/docs/remastery/invoicing">invoicing suite</Link>. Chat itself carries no coin charges.</li>
+        <li><strong>What stays out of chat?</strong> Passwords, API keys, and payment details. Docs pages never show secrets either, and pasting one into chat puts it in front of every participant permanently.</li>
+      </ul>
       <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
         <li>Chat is for people you already work with — squads and clans are invite-only.</li>
         <li>Never share passwords, API keys, or payment details in chat. Docs pages never show secrets either.</li>

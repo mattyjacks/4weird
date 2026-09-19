@@ -10,9 +10,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Work & Life Practice Games — VocRehab",
+  title: "Work and Life Practice Games for Job Skills | VocRehab",
   description:
-    "Eleven low-stakes VocRehab practice games for focus, planning, workplace communication, and everyday work skills. Practice, not a test — nothing here grades you.",
+    "Browse eleven short VocRehab practice games that rehearse sorting, scheduling, messaging, focus, and daily work routines at your own pace. Untimed practice reps, replayable runs, zero grading.",
   alternates: { canonical: "/vocrehab/play" },
 };
 
@@ -149,6 +149,101 @@ export default function Page() {
           </li>
         ))}
       </ul>
+      <section aria-label="How to use these games" className="mx-auto max-w-3xl space-y-2 pt-4">
+        <h2 className="text-sm font-bold">How to use these games</h2>
+        <ol className="list-decimal space-y-1 pl-5 text-xs leading-relaxed text-muted-foreground">
+          <li>
+            Pick one situation that feels familiar, such as sorting files, juggling a
+            schedule, or answering the phone. Each game opens with an untimed practice
+            rep, so you can learn the controls without pressure.
+          </li>
+          <li>
+            Play the scored run when you feel ready. Timers are generous, and several
+            games let you grant yourself extra seconds with zero penalty. Recovery
+            after mistakes counts as part of the practice.
+          </li>
+          <li>
+            Replay with a different seed or choice path. Many games reshuffle their
+            items, messages, or callers, so a second run rehearses adaptability rather
+            than memorization.
+          </li>
+          <li>
+            Bring what you noticed to your counselor or to the{" "}
+            <Link href="/vocrehab/course" className="underline">course lessons</Link>.
+            Your runs stay on this device as a guest; signing in saves them to your
+            profile for progress measures.
+          </li>
+        </ol>
+      </section>
+      <section aria-label="Which game practices which skill" className="mx-auto max-w-3xl space-y-2 pt-2">
+        <h2 className="text-sm font-bold">Which game practices which skill</h2>
+        <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-muted-foreground">
+          <li>
+            <Link href="/vocrehab/play/file-sort" className="underline">File Sort</Link>{" "}
+            rehearses steady office sorting: placing twelve files into three folders while
+            a manager message interrupts midway.
+          </li>
+          <li>
+            <Link href="/vocrehab/play/barrier-run" className="underline">Barrier Run</Link>{" "}
+            walks through four classic work barriers, commute trouble, shift swaps,
+            disclosure timing, and tool failure, mapping each to concrete strategies.
+          </li>
+          <li>
+            <Link href="/vocrehab/play/focus-shift" className="underline">Focus Shift</Link>{" "}
+            trains refocusing: match ten symbol pairs, handle a scripted interruption,
+            then return to the cards calmly.
+          </li>
+          <li>
+            <Link href="/vocrehab/play/energy-budget" className="underline">Energy Budget</Link>{" "}
+            practices weekly planning inside a fixed energy allowance, balancing shifts,
+            appointments, and protected rest. Start in{" "}
+            <Link href="/vocrehab/discover" className="underline">Discover</Link> if you want
+            strengths and goals context first.
+          </li>
+        </ul>
+      </section>
+      <section aria-label="Practice games questions" className="mx-auto max-w-3xl space-y-2 pt-2">
+        <h2 className="text-sm font-bold">Common questions</h2>
+        <div className="space-y-2 text-xs leading-relaxed text-muted-foreground">
+          <div>
+            <h3 className="font-semibold text-foreground">Do these games affect my plan or benefits?</h3>
+            <p>
+              No. Games are rehearsal only. Nothing here grades you, submits anything to
+              an agency, or changes benefits. Scored runs produce local feedback so you
+              can see speed, accuracy, and recovery trends for yourself.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground">What if a timer makes me anxious?</h3>
+            <p>
+              Stay on the untimed practice rep as long as you like. When you try the
+              scored run, remember that several games offer bonus seconds on request and
+              that replaying is always free. The timer measures pacing practice, never
+              your worth as a worker.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground">Can I play without an account?</h3>
+            <p>
+              Yes. Guests can play every game with zero database writes. Progress stays
+              in this browser until sign-in. If you later create an account, new runs can
+              attach to your profile and feed into counseling conversations.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section aria-label="Seeds replays and saving" className="mx-auto max-w-3xl space-y-2 pt-2">
+        <h2 className="text-sm font-bold">Seeds, replays, and saving</h2>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Most games accept a seed value that reshuffles files, messages, callers, or
+          calendar constraints, so sharing a seed lets you and a counselor rehearse the
+          identical scenario. Replaying the same seed measures consistency, while a fresh
+          seed measures adaptability. Guests keep history on this device only; signing in
+          lets completed runs accumulate toward badges, XP totals, and progress measures
+          your counselor can review alongside{" "}
+          <Link href="/vocrehab/discover/goals" className="underline">your goals</Link>.
+        </p>
+      </section>
     </main>
   );
 }

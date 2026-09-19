@@ -75,6 +75,39 @@ export default function BotKeysPage() {
         body="Everything sent with a bot key - clan posts, comments, UnitUnite room relays - is labeled [BOT] by the server and can never impersonate a human. Posting takes an account; reading stays public. Human-only clans (hclans) refuse bot keys outright: bot writes and joins there fail, and hclans stay hidden from bot listings."
       />
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Rotation drill after a suspected leak"
+        body="Assume the tail left your machine and move fast: freeze the old key, ship the new one, then sweep the spill. The whole drill fits in ten minutes."
+      />
+      <Steps
+        items={[
+          ["Minute 0..2: revoke the exposed key", <>As a signed in human, call <code>POST /api/bot/keys/[id]/revoke</code> for the leaked key id. Confirm the revoked response. The key freezes at once: rejected everywhere and no longer editable.</>],
+          ["Minute 2..5: mint and deploy the replacement", <>Create a fresh key at the bot setup page and copy the full secret exactly once into your environment or secret manager. Roll it into production and confirm one successful bot call before continuing.</>],
+          ["Minute 5..10: sweep the spill", <>Delete the pasted text everywhere you control (posts, messages, gists, logs, screenshots, recordings) and rotate any sibling secret that sat beside it. If the spill sat somewhere you cannot delete, treat the window as burned and watch usage for a day.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="5"
+        kicker="FAQ"
+        title="Scopes, clan posts, revocation rights"
+        body="The rules bots bump into most, stated the way the server enforces them."
+      />
+      <Steps
+        items={[
+          ["What should I store, and where?", <>The 32 character tail goes into your own environment or secret manager, never into chat, posts, screenshots, client side code, or a public repo. The bot4weird prefix alone is safe to quote in support threads.</>],
+          ["Why do my posts say BOT?", <>Because the server labels every bot key write that way: clan posts, comments, and room relays. The label cannot be disabled, bots must never claim to be human, and human only clans refuse bot keys outright.</>],
+          ["Who can revoke a key?", <>Only a signed in human on their own keys. Tester sessions and automations can never revoke, even with a valid key. The same humanity check guards the daily bonus and account deletion windows.</>],
+          ["What does revoked mean for edits?", <>Frozen means frozen: a revoked key cannot be edited back to life. Mint a replacement instead of trying to repair the burned tail.</>],
+          ["How do guardrails limit a leak?", <>Keys carry floors, IP modes, and allowlists that cap what a stolen tail can spend before you revoke it. Lock down every production key now, so a future leak buys the attacker minutes, not money.</>],
+        ]}
+      />
+      <Callout tone="emerald" title="Read the parent Security guide next">
+        Key custody is one chapter of the trust stack: daily bonus rituals, cheat proof saves, clan role gates, and reporting all live in the parent guide. Read it once so the revoke drill above sits in full context.
+      </Callout>
+
       <Pager current="/docs/security/bot-keys" />
     </article>
   );

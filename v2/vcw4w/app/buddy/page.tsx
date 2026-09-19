@@ -17,7 +17,7 @@ export const metadata: Metadata = {
       "Your universal screen-aware Gaming Buddy: talks while you play in 9 OpenAI voices, reads the screen with your permission, reacts to the action.",
     images: [
       {
-        url: "/og/og-buddy.png",
+        url: "/og/og-buddy.jpg",
         width: 1200,
         height: 630,
         alt: "4weird Gaming Buddy - AI Voice Companion",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     title: "Gaming Buddy - Screen-Aware AI Voice Companion | 4weird",
     description:
       "Your universal screen-aware Gaming Buddy: talks while you play in 9 OpenAI voices, reads the screen with your permission, reacts to the action.",
-    images: ["/og/og-buddy.png"],
+    images: ["/og/og-buddy.jpg"],
   },
 };
 

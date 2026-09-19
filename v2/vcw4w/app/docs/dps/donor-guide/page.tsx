@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { DocsHero } from "@/components/docs/docs-hero";
 import { SectionHead, Callout, Steps, MockWindow, SplitBar, Pager } from "@/components/docs/docs-bits";
 
@@ -114,6 +115,33 @@ export default function DpsDonorGuidePage() {
         </div>
       </MockWindow>
       <SplitBar leftLabel="75% donor credits" rightLabel="25% platform" />
+
+      <SectionHead
+        index="5"
+        kicker="First session"
+        title="Earn your first coins in fifteen minutes"
+      />
+      <Steps
+        items={[
+          ["Open the donor client", <>Launch the DPS donor page in a desktop browser with the charger plugged in. Confirm the auto detected CPU, memory, and WebGPU lines match your machine.</>],
+          ["Set conservative sliders", <>Start at CPU 50%, RAM 40%, GPU 60% for the first session. You can raise them once you know how warm and loud your machine gets under load.</>],
+          ["Run one chunk batch", <>Accept a single small batch, such as a short QA chunk set, and watch the checkpoint hashes land. Leave the tab open until the batch verifies.</>],
+          ["Check the wallet", <>Verified chunks credit Vibe Coins at 100 coins to $1.00. Compare the payout row against the wallet example above, then read <Link className="underline" href="/docs/vibe-coins">Vibe Coins</Link> for spending options.</>],
+        ]}
+      />
+
+      <SectionHead
+        index="6"
+        kicker="Troubleshooting"
+        title="No jobs, paused compute, missing payouts"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">📭 <strong className="text-foreground">No jobs matched:</strong> WebGPU devices get matched first, so CPU only machines wait longer. Keep the client open, confirm network speed is stable, and try a busier hour rather than changing sliders.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🔋 <strong className="text-foreground">Compute keeps pausing:</strong> unplugged devices pause below 30% battery and throttle on heat. Plug in, close heavy tabs, and lower the GPU share before assuming the mesh is broken.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧱 <strong className="text-foreground">Browser warns about load:</strong> that is the share cap working as designed. Lower CPU share in steps of ten until the machine stays responsive, since in flight chunks checkpoint and migrate instead of failing.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🪙 <strong className="text-foreground">Payout smaller than expected:</strong> only verified chunks pay, and failed hash checks are re-run on another donor at no cost to you. Compare verified versus attempted chunk counts first, then check the <Link className="underline" href="/docs/dps">DPS overview</Link> split math.</li>
+        <li className="rounded-xl border border-border bg-card p-3">📦 <strong className="text-foreground">Curious about the other side?</strong> Requesters post the jobs you compute, with quotes and verification explained in the <Link className="underline" href="/docs/dps/job-requester">requester guide</Link>. General account help lives in <Link className="underline" href="/docs/faq">FAQ and support</Link>.</li>
+      </ul>
 
       <Pager current="/docs/dps/donor-guide" />
     </article>

@@ -101,6 +101,128 @@ export default function GameSavesPage() {
         <li><strong className="text-foreground">Corrupt-manual recovery:</strong> if a manual copy fails to parse or apply, Load-autosave restores the auto companion for the same slot — same run, one minute older at most.</li>
       </ul>
 
+      <SectionHead
+        index="4"
+        kicker="Four slots, four jobs"
+        title="Which slot for which run"
+        body="Slot 0 is the safe home. Slots 1 to 3 are your lab bench: clean until cheats touch them, branded forever after."
+      />
+      <div className="mt-5 overflow-hidden rounded-2xl border border-border">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border bg-card">
+              <th className="px-4 py-3 font-mono text-xs font-black uppercase tracking-widest text-muted-foreground">Slot</th>
+              <th className="px-4 py-3 font-mono text-xs font-black uppercase tracking-widest text-muted-foreground">Best job</th>
+              <th className="px-4 py-3 font-mono text-xs font-black uppercase tracking-widest text-muted-foreground">Cheat rule</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border bg-card">
+            {[
+              ["Slot 0", "Main run plus autosave home", "Cheat-proof: markers stripped on write, cheat requests refused."],
+              ["Slot 1", "Second run or clean alternate", "Stays clean until cheats are used, then branded permanently."],
+              ["Slot 2", "Experiments and risky strategies", "Same permanent brand rule as slot 1. Test here, not in slot 0."],
+              ["Slot 3", "Throwaway cheats and chaos", "Assume branded from the first cheat. Still playable, forever flagged."],
+            ].map(([k, v, r]) => (
+              <tr key={k}>
+                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-bold">{k}</td>
+                <td className="px-4 py-3 text-muted-foreground">{v}</td>
+                <td className="px-4 py-3 text-muted-foreground">{r}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Callout tone="cyan" title="One slot per run.">
+        Give each active run its own slot and name the job honestly: slot 0 for the run you care about, slot 3
+        for the chaos. When a save is branded, you never have to wonder which timeline it belongs to.
+      </Callout>
+
+      <SectionHead
+        index="5"
+        kicker="Phone to desktop"
+        title="Worked example: move a run between devices"
+        body="Signed in, the same run follows you. Here is the exact handoff, start to finish."
+      />
+      <Steps
+        items={[
+          [
+            "Finish on the phone, signed in",
+            <>Play while signed in so the slot writes sync to the cloud, and note which slot number you are on. Signed-out play keeps only the device mirror, which never leaves that browser.</>,
+          ],
+          [
+            "Open the same game on desktop",
+            <>Sign in with the same account on the second device (check <Link className="font-bold underline" href="/account">/account</Link> if you are unsure which account holds the run) and open the same game.</>,
+          ],
+          [
+            "Load the same slot and kind",
+            <>Pick the same slot 0 to 3 you played on the phone. Load the manual copy for your save, or the auto companion if the manual copy ever fails: same run, at most a minute older.</>,
+          ],
+        ]}
+      />
+
+      <SectionHead
+        index="6"
+        kicker="When saves misbehave"
+        title="Troubleshooting"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🧭 <strong className="text-foreground">Run did not follow me.</strong> The usual causes, in order: one device was signed out, the two devices use different accounts, or a different slot was loaded. Fix: sign in on both, confirm the same account, load the same slot number.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧩 <strong className="text-foreground">Manual load fails.</strong> Load the auto companion of the same slot instead. If the manual copy fails to parse, the companion restores the same run from at most a minute earlier.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🖋️ <strong className="text-foreground">Slot shows a cheat mark.</strong> That mark is permanent and survives delete and recreate. Move the serious run to cheat-proof slot 0 and keep the branded slot for chaos.</li>
+        <li className="rounded-xl border border-border bg-card p-3">👻 <strong className="text-foreground">Guest progress vanished.</strong> The device mirror lives in that browser only: clearing site data, switching browsers, or switching devices ends it. Sign in for cloud slots that travel.</li>
+        <li className="rounded-xl border border-border bg-card p-3">⏸️ <strong className="text-foreground">Autosave stopped writing.</strong> Check the opt-out toggle in the Cloud saves section of the game shell. Timed and on-request writes stop while it is off; manual slot writes still work.</li>
+      </ul>
+
+      <SectionHead
+        index="7"
+        kicker="Two homes for progress"
+        title="Guest or signed in: where your run lives"
+        body="Same shell, different home. The device mirror forgives accidents; only the cloud follows you."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">🧭 Signed out: device mirror</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Autosave keeps a mirror in this browser, so a refresh or an accidental close still resumes.
+            That mirror never leaves the device, vanishes with cleared site data, and cannot hop browsers.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="font-black">☁️ Signed in: cloud sync</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The same slot writes sync to the cloud under your account. Any device with the same login
+            loads the same slot number and continues the identical run: manual copy plus auto companion.
+          </p>
+        </div>
+      </div>
+
+      <SectionHead
+        index="8"
+        kicker="Speak save fluently"
+        title="Glossary"
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🗄️ <strong className="text-foreground">Slot.</strong> One of four numbered homes (0 to 3) per game. Each slot holds two copies: manual plus auto.</li>
+        <li className="rounded-xl border border-border bg-card p-3">✍️ <strong className="text-foreground">Manual copy.</strong> The write your Save button makes. Loads with Save plus Load; never touched by the minute timer.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🤖 <strong className="text-foreground">Auto companion.</strong> The Load-only backup the timer refreshes. Restores the same slot when the manual copy fails.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🔀 <strong className="text-foreground">Kind.</strong> The cloud selector: ?kind=manual fetches your save, ?kind=auto fetches the companion, omitting it fetches both.</li>
+        <li className="rounded-xl border border-border bg-card p-3">📱 <strong className="text-foreground">Device mirror.</strong> The signed-out browser copy, with the auto mirror stored under the :auto suffix. Handy, but homebound.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🖋️ <strong className="text-foreground">Cheat mark.</strong> The permanent cheat_mode:true brand on slots 1 to 3 once cheats are used. A database invariant, not a label.</li>
+      </ul>
+
+      <SectionHead
+        index="9"
+        kicker="Thirty second habit"
+        title="Checklist before you close the tab"
+        body="Runs are lost in the gap between playing and saving. Close that gap with four glances."
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">👁️ <strong className="text-foreground">Glance at the slot number.</strong> Confirm you are writing to the slot you mean: 0 for the keeper run, 3 for the chaos run. A save in the wrong slot is not lost, just parked where you will not look.</li>
+        <li className="rounded-xl border border-border bg-card p-3">👤 <strong className="text-foreground">Glance at the login.</strong> If the header offers Login instead of Dashboard, this browser holds only a mirror. Sign in before the milestone moment, not after it.</li>
+        <li className="rounded-xl border border-border bg-card p-3">💾 <strong className="text-foreground">Press Save on milestones.</strong> Autosave covers minutes, not meaning: after a boss, a cutscene, or a perfect day, write the manual copy deliberately so the companion is never your only witness.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🧾 <strong className="text-foreground">Verify on the next visit.</strong> When you return, load the slot and confirm the run before playing on. Catching a wrong slot early costs seconds; catching it after an hour of overwriting costs the hour.</li>
+      </ul>
+
       <p className="mt-8 text-sm text-muted-foreground">
         Slot mechanics in full in <Link className="font-bold underline" href="/docs/playing-games">Playing games</Link> ·
         Fridge Simulator handoff in <Link className="font-bold underline" href="/docs/games-fridge/saves">Resume anywhere</Link>.

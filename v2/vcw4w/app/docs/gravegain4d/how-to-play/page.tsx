@@ -101,6 +101,63 @@ export default function GraveGain4DHowToPlayPage() {
         title="Par, ghosts, and the teen band"
         body="Every hole has a par (3–5). At or under par advances the saga; over par still advances after the mercy cap — the tour wants you at the Array, not stuck in the vaults. Ghosts never collide. Saves autosave after each hole card. GraveGain4D is teens 13+ and inherits the GraveGain age-gate; Kids Mode and Child logins behave exactly as the saga rules say."
       />
+      <SectionHead
+        index="6"
+        kicker="Scoreboard math"
+        title="Par examples and stroke budgets"
+        body="Par is a budget, not a grade. Plan each hole as putts plus one spare stroke for a folded surprise."
+      />
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        {[
+          ["Par 3, sunk in 2: birdie", "Drive the opening lane, then tap in the finisher. Two clean reads, zero rewinds, one stroke banked for later holes."],
+          ["Par 4, sunk in 5: bogey", "A clipped wall edge on stroke two, a rewind, then a safe recovery line. Over par still walks forward, so take the safe five instead of forcing a hero four."],
+          ["Par 5, capped by mercy", "Long vault corridors punish full charges. Nudge, fold, nudge again. If the count climbs past the mercy cap, the tour advances you anyway so practice time stays on fresh holes."],
+        ].map(([t, b]) => (
+          <div key={t} className="rounded-2xl border border-border bg-card p-4">
+            <p className="font-black">{t}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{b}</p>
+          </div>
+        ))}
+      </div>
+      <Callout tone="cyan" title="Budget rule: par minus one is ambition, par plus one is wisdom.">
+        On a par 4, play for four but accept five. The saga rewards arrival at the Array, not perfect cards on every
+        green. Rookies who chase birdies on hole 6 usually donate three strokes to the vault walls.
+      </Callout>
+
+      <SectionHead
+        index="7"
+        kicker="Missed-shot clinic"
+        title="Which plane to fold, and when to stop folding"
+        body="Every blocked putt answers one question: which plane moves the blocking geometry. Sweep planes in order, shortest look first."
+      />
+      <Steps
+        items={[
+          ["Try XW first for side walls", <>Hold Q, watch the left edge, then hold E to return. Side crypt walls and grove roots usually live on XW, so two seconds here solves half of all blocks.</>],
+          ["Try YW next for floor ridges and lintels", <>Drag the W-slider slowly through the middle range. If the fairway stripe brightens or the hazard marker fades, stop sweeping and putt from that slice.</>],
+          ["Save ZW for vault gates", <>From hole 6 on, ana and kata gates answer only to ZW. Park the slider on the exact tick where the gate glyph turns green, then putt without touching the slider again.</>],
+          ["Stop folding and change the shot", <>If all three planes leave the line blocked, the shot is wrong, not the slice. Dream-shift with T, pick a shorter layup, or accept a two putt route around the hazard.</>],
+        ]}
+      />
+      <ul className="mt-5 list-disc space-y-2 pl-6 text-sm leading-relaxed text-muted-foreground">
+        <li><strong className="text-foreground">Symptom: orb curves without touching anything.</strong> A wall lip is clipping the slice. Fold XW one step and roll again.</li>
+        <li><strong className="text-foreground">Symptom: cup beacon visible, lane never opens.</strong> The lane lives in the dream alternate. Press T, rotate inside the dream, then putt there.</li>
+        <li><strong className="text-foreground">Symptom: three ghosts crowd the green.</strong> Too many rewinds on one lie. Finish the hole, any score advances the tour, and reset to one rewind per lie.</li>
+        <li><strong className="text-foreground">Symptom: touch putt button feels covered.</strong> Drag the W-slider dock to the side edge, then use the full width putt pad. Targets stay 44px so thumbs land cleanly.</li>
+      </ul>
+
+      <SectionHead
+        index="8"
+        kicker="Quick answers"
+        title="Drill FAQ"
+        body="Five questions every rookie asks on hole 1, answered once so practice stays on the green."
+      />
+      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+        <li className="rounded-xl border border-border bg-card p-3">🌀 <strong className="text-foreground">Do rotations cost strokes?</strong> Never. Q, E, and the slider are free. Only a released putt adds to the card.</li>
+        <li className="rounded-xl border border-border bg-card p-3">👻 <strong className="text-foreground">Can a ghost knock my ball?</strong> No. Ghost trails replay old lines visually and pass through everything, including your orb.</li>
+        <li className="rounded-xl border border-border bg-card p-3">🌙 <strong className="text-foreground">Does dream-shift change par?</strong> No. Waking and dream versions share the same cup and the same par number, only dressing and hazards differ.</li>
+        <li className="rounded-xl border border-border bg-card p-3">⛳ <strong className="text-foreground">Where should I practice?</strong> Replay hole 1 until the second tick power feels automatic, then drill hole 6 gates, since ZW timing decides the late tour.</li>
+        <li className="rounded-xl border border-border bg-card p-3">📖 <strong className="text-foreground">How is this guide different from the canon page?</strong> The companion page tells the saga story, inspirations, and world lore. This page teaches hands: drills, budgets, plane order, and fixes.</li>
+      </ul>
       <p className="mt-4 text-sm text-muted-foreground">
         Back to <Link className="underline" href="/docs/gravegain4d">the GraveGain4D guide →</Link>
       </p>

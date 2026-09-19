@@ -97,6 +97,77 @@ export default function MmoPlayerPage() {
         The billing check compares your quoted share against your live ledger balance first. If the coins are not there, the answer is 402 and nothing is billed — top up and retry. Wrong-band answers are 403, never a billing outage. Details in <Link className="underline" href="/docs/mmo/faq">the FAQ</Link>.
       </Callout>
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="Your first hour in a teens room, coin by coin"
+        body="Say you join a teens room with three other players for 60 minutes. Server plus load is quoted per minute for the band and split four ways, while the host carries the hourly rental alone. You confirm one exact total up front, and short funds answer 402 before anything bills."
+      />
+      <Steps
+        items={[
+          [
+            "Read the quote out loud",
+            <>The quote names the per player per minute figure, the minutes, your share, and the USD equivalent at 100 coins to $1.00. If any line is missing, stop and re-read it: a complete quote is the whole safety net.</>,
+          ],
+          [
+            "Confirm the exact total",
+            <>Confirm the shown total to the centicentcoin. Totals drift as players join and leave, so a stale figure answers 400 and asks you to confirm the fresh one. That retry is free and never a charge.</>,
+          ],
+          [
+            "Play, watch the clock, top up early",
+            <>The meter ticks per minute while the shard is live, and a stopped shard bills nothing further. If your balance runs low mid session, top up before the next minute ticks so the 402 never interrupts boss night. Vibe Coin basics live in <Link className="underline" href="/docs/vibe-coins">Vibe Coins</Link>.</>,
+          ],
+          [
+            "Check the receipt after",
+            <>Your receipt is <Link className="underline" href="/my/usage/">/my/usage/</Link>: every row ties back to the ledger sum, so the balance you see is the balance the gate checked. Screenshot it if you ever need support.</>,
+          ],
+        ]}
+      />
+      <div className="mt-5 overflow-hidden rounded-2xl border border-border">
+        <table className="w-full text-left text-sm">
+          <caption className="bg-muted/50 px-4 py-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Player hiccups and the one move that fixes each
+          </caption>
+          <thead>
+            <tr className="border-y border-border bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
+              <th scope="col" className="px-4 py-2.5">You see</th>
+              <th scope="col" className="px-4 py-2.5">It means</th>
+              <th scope="col" className="px-4 py-2.5">Do this</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">402</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Short funds for the quoted share</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Top up, confirm the fresh total, retry. Nothing billed.</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">403</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Your band may not enter this band room</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Pick a room at or below your band. Wallet untouched.</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">400 on confirm</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Quote moved while you read it</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Re-read the quote and confirm the new figure.</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">401</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Session expired before confirm</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Sign in again, re-read the quote, retry.</td>
+            </tr>
+            <tr>
+              <th scope="row" className="px-4 py-2.5 font-black">0 coins due</th>
+              <td className="px-4 py-2.5 text-muted-foreground">Kids room or hostFree treat</td>
+              <td className="px-4 py-2.5 text-muted-foreground">Play free. The host pays the meter on these nights.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <Callout tone="emerald" title="Join like a regular, not a tourist.">
+        Regulars check band, quote, and balance before every session, in that order. Ten seconds of reading avoids every common failure on this page, and <Link className="underline" href="/docs/mmo/faq">the FAQ</Link> covers the rare ones. Bring a friend from the right band and the split gets cheaper for everyone at the table.
+      </Callout>
+
       <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Link
           href="/docs/mmo/host"

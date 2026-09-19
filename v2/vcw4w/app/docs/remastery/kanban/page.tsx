@@ -95,6 +95,50 @@ export default function RemasteryKanbanPage() {
         ]}
       />
 
+      <SectionHead
+        index="4"
+        kicker="Worked example"
+        title="One sprint, six cards"
+        body="Follow one fictional week on the GraveGain raid squad board. Six cards, one active cycle, estimates in hours. By Friday the math tells the story without a status meeting."
+      />
+      <MockWindow title="cycle preview: ship the raid, week 1" badge="54% done">
+        <div className="space-y-2 font-mono text-xs">
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>Instanced mesh pass · urgent 4h</span><span className="font-black text-emerald-300">done</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>Timer Web Worker · high 2.5h</span><span className="font-black text-emerald-300">done</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>Remastery routes test · med 1h</span><span className="font-black text-emerald-300">done</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>Raid lobby presence · high 3h</span><span className="font-black text-amber-300">doing</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>Boss theme hookup · low 2h</span><span className="font-black text-slate-400">todo</span></div>
+          <div className="flex justify-between gap-3 rounded-lg bg-white/5 px-3 py-2"><span>Victory poster · med 1.5h</span><span className="font-black text-slate-400">todo</span></div>
+        </div>
+      </MockWindow>
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+        Done estimates total 7.5 of 14 planned hours, so the cycle bar reads 54 percent. The doing
+        card holds the risk: one high priority item with a named owner and a due date beats three
+        unowned cards every time. At review the squad rolls the two todo cards into week 2 and
+        converts the 7.5 unbilled hours toward a draft invoice. Prefer plain English? Read the{" "}
+        <Link className="underline" href="/docs/remastery/kanban-sprints">kanban sprints guide</Link>,
+        then reconcile logged hours in the{" "}
+        <Link className="underline" href="/docs/remastery/time-tracking">time tracker</Link>.
+      </p>
+      <Callout tone="gold" title="Cap work in progress.">
+        Two cards per person in doing, maximum. A third card may not enter doing until one reaches
+        done. Unowned cards rot, so every doing card names an assignee plus a due date at creation.
+      </Callout>
+
+      <SectionHead
+        index="5"
+        kicker="Troubleshooting"
+        title="When the board looks wrong"
+      />
+      <Steps
+        items={[
+          ["Cycle progress reads zero", <>Finished cards may sit outside the active cycle. Attach completed cards to the active cycle identifier, or close the stale cycle before opening the new one.</>],
+          ["A dragged card snaps back", <>Confirm squad membership first, then retry the move. The board persists positions per column, so a rejected write means the permission check or the position value failed.</>],
+          ["Estimates always miss", <>Compare clocked seconds per card across two full cycles, then re-estimate from those actuals. A chronic twofold miss means the card is secretly three cards: split it and estimate each slice.</>],
+          ["Labels multiply without mercy", <>Prune the label taxonomy monthly: archive synonyms, keep a tiny palette such as frontend, art, audio, and blocker. Filters stay useful only while the vocabulary stays small.</>],
+        ]}
+      />
+
       <Pager current="/docs/remastery/kanban" />
     </article>
   );

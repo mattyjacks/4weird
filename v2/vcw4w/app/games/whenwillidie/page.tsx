@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
-import { breadcrumbJsonLd, canonical, jsonLdScript } from "@/lib/seo";
+import { breadcrumbJsonLd, canonical, faqJsonLd, jsonLdScript } from "@/lib/seo";
+import { GROUP_08_SPOTLIGHTS } from "@/content/game-spotlights/group-08";
 import WhenWillIDieClient from "./whenwillidie-client";
 
 export const metadata: Metadata = {
@@ -35,17 +36,25 @@ export const viewport: Viewport = {
 };
 
 export default function WhenWillIDiePage() {
+  const spotlight = GROUP_08_SPOTLIGHTS.find((entry) => entry.slug === "whenwillidie");
   return (
     <div className="bg-slate-950 text-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: jsonLdScript(
+          __html: jsonLdScript([
             breadcrumbJsonLd([
               ["Games", "/games"],
               ["When Will I Die?", "/games/whenwillidie"],
             ]),
-          ),
+            ...(spotlight && spotlight.faq.length > 0
+              ? [
+                  faqJsonLd(
+                    spotlight.faq.map((entry) => [entry.q, entry.a] as [string, string]),
+                  ),
+                ]
+              : []),
+          ]),
         }}
       />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
@@ -83,6 +92,29 @@ export default function WhenWillIDiePage() {
             API: POST /api/games/whenwillidie/predict
           </span>
         </div>
+        {spotlight && (
+          <section aria-label="About When Will I Die?" className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
+            <h2 className="text-lg font-bold sm:text-xl">About When Will I Die?</h2>
+            {spotlight.about.map((paragraph, index) => (
+              <p key={index} className="mt-3 text-sm leading-relaxed text-slate-300">
+                {paragraph}
+              </p>
+            ))}
+          </section>
+        )}
+        {spotlight && spotlight.faq.length > 0 && (
+          <section aria-label="When Will I Die? questions" className="mt-8 rounded-2xl border border-white/10 bg-white/[.03] p-5 sm:p-6">
+            <h2 className="text-lg font-bold sm:text-xl">When Will I Die?: questions, answered</h2>
+            <div className="mt-4 space-y-3">
+              {spotlight.faq.map((entry) => (
+                <details key={entry.q} className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <summary className="cursor-pointer font-bold text-white">{entry.q}</summary>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{entry.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
