@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Inbox Sprint — VocRehab Work & Life Practice Games",
+  title: "Inbox Sprint: triage work email game | VocRehab",
   description:
-    "Triage 8 mock messages: reply, schedule, file, or flag. Practice, not a test — nothing here grades you.",
+    "VocRehab email triage game: sort 8 mock messages into reply, schedule, file, or flag, catch 4 phishing attempts, and write one careful reply. Practice, not a test.",
   alternates: { canonical: "/vocrehab/play/inbox-sprint" },
 };
 

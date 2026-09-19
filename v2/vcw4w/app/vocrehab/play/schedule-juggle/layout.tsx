@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Schedule Juggle — VocRehab Work & Life Practice Games",
+  title: "Schedule Juggle: monthly planning game | VocRehab",
   description:
-    "Fit shifts and a training block around 5 real-life constraints on a 7-day grid. Soft hints, never red errors.",
+    "VocRehab calendar planning game: fit shifts, training, and travel around real-life constraints on a month view that saves to your device. Untimed, with soft hints.",
   alternates: { canonical: "/vocrehab/play/schedule-juggle" },
 };
 
